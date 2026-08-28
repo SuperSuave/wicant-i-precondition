@@ -1,29 +1,4 @@
 /*
- * Proposed Architecture for "CAN Do" Engine ("If This CAN Message, Then Play That CAN Message"):
- *
- * 1. RX Integration (can.c / main.c / autopid.c):
- *    - Incoming frames in can_receive() hook or CAN RX task call cando_process_rx_frame(twai_message_t *msg, can_bus_t bus).
- *
- * 2. Rule Evaluation:
- *    - Compares incoming frame against loaded cando_rule_set_t rules.
- *    - Matching criteria:
- *        * Bus (CAN_BUS_0 vs CAN_BUS_1)
- *        * CAN ID (11-bit standard or 29-bit extended)
- *        * Data mask / byte matching
- *        * Math expression evaluation via expression_parser
- *        * Cooldown check (cooldown_ms vs elapsed time since last_triggered_us)
- *
- * 3. Action Execution:
- *    - Constructs response twai_message_t packet.
- *    - Performs dynamic byte substitution (e.g. copying byte ranges from trigger payload).
- *    - Transmits packet using can_send(target_bus, &tx_msg, timeout).
- *    - Prevents self-triggering loop feedback by tagging or checking TX origin.
- *
- * 4. Alert & Reporting:
- *    - Emits trigger notification via MQTT if mqtt_topic is set or webhook task queue.
- */
-
-/*
  * This file is part of the WiCAN project.
  *
  * Copyright (C) 2022  Meatpi Electronics.
@@ -2685,4 +2660,78 @@ void autopid_init(char* id)
         xTaskCreate(autopid_webhook_task, "autopid_webhook_task", 6144, NULL, 4, NULL);
     }
 
+}
+
+static cando_rule_set_t g_cando_rules = {0};
+
+bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus)
+{
+    if (!rule || !rule->enabled) return false;
+    if (g_cando_rules.reverse_engineering_mode) return false;
+
+    if (rule->trigger.source == CANDO_TRIG_CAN_MESSAGE) {
+        if (!msg) return false;
+        if (rule->trigger.bus != bus) return false;
+        if (rule->trigger.can_id != msg->identifier) return false;
+
+        if (rule->trigger.match_type == CANDO_MATCH_EXACT) {
+            if (msg->data_length_code != rule->trigger.data_len) return false;
+            return (memcmp(msg->data, rule->trigger.match_data, rule->trigger.data_len) == 0);
+        } else if (rule->trigger.match_type == CANDO_MATCH_MASK) {
+            for (uint8_t i = 0; i < rule->trigger.data_len; i++) {
+                if ((msg->data[i] & rule->trigger.match_mask[i]) != (rule->trigger.match_data[i] & rule->trigger.match_mask[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
+{
+    if (!msg || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
+    if (g_cando_rules.reverse_engineering_mode) return;
+
+    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
+        cando_rule_t *rule = &g_cando_rules.rules[i];
+        if (cando_evaluate_rule(rule, msg, bus)) {
+            if (rule->trigger.exec_mode == CANDO_EXEC_ONE_SHOT && rule->trigger.triggered_latched) {
+                continue;
+            }
+            rule->trigger.triggered_latched = true;
+            /* Execute action sequence */
+            for (uint8_t s = 0; s < rule->action.step_count; s++) {
+                cando_sequence_step_t *step = &rule->action.steps[s];
+                twai_message_t tx_msg = {
+                    .identifier = step->tx_can_id,
+                    .extd = step->is_ext ? 1 : 0,
+                    .data_length_code = step->tx_len
+                };
+                memcpy(tx_msg.data, step->tx_data, step->tx_len);
+                can_send((can_bus_t)step->target_bus, &tx_msg, pdMS_TO_TICKS(100));
+            }
+        }
+    }
+}
+
+void cando_process_timer_tick(void)
+{
+    /* Periodically evaluate clock/interval rules & timeout resets */
+}
+
+esp_err_t cando_save_config(const char *json_str)
+{
+    if (!json_str) return ESP_ERR_INVALID_ARG;
+    return save_setting("cando/config", json_str) ? ESP_OK : ESP_FAIL;
+}
+
+char *cando_get_config(void)
+{
+    static char buf[1024];
+    if (read_setting_string("cando/config", buf, sizeof(buf))) {
+        return buf;
+    }
+    return "{\"rules\":[]}";
 }

@@ -1,11 +1,11 @@
 /*
- * Proposed Architecture for IFTTT Engine ("If This, Then That"):
+ * Proposed Architecture for "CAN Do" Engine ("If This CAN Message, Then Play That CAN Message"):
  *
  * 1. RX Integration (can.c / main.c / autopid.c):
- *    - Incoming frames in can_receive() hook or CAN RX task call ifttt_process_rx_frame(twai_message_t *msg, can_bus_t bus).
+ *    - Incoming frames in can_receive() hook or CAN RX task call cando_process_rx_frame(twai_message_t *msg, can_bus_t bus).
  *
  * 2. Rule Evaluation:
- *    - Compares incoming frame against loaded ifttt_rule_set_t rules.
+ *    - Compares incoming frame against loaded cando_rule_set_t rules.
  *    - Matching criteria:
  *        * Bus (CAN_BUS_0 vs CAN_BUS_1)
  *        * CAN ID (11-bit standard or 29-bit extended)

@@ -115,27 +115,27 @@ typedef struct{
 }autopid_value_t;
 
 /* --------------------------------------------------------------------------
- * Proposed IFTTT ("If This, Then That") Engine Data Structures
+ * Proposed "CAN Do" Engine Data Structures
  * -------------------------------------------------------------------------- */
 
 typedef enum {
-    IFTTT_MATCH_EXACT,      /* Match exact payload bytes */
-    IFTTT_MATCH_MASK,       /* Match using data bitmask and expected byte values */
-    IFTTT_MATCH_EXPRESSION, /* Evaluate math expression on payload (e.g. [B0:B1] > 3000) */
-} ifttt_match_type_t;
+    CANDO_MATCH_EXACT,      /* Match exact payload bytes */
+    CANDO_MATCH_MASK,       /* Match using data bitmask and expected byte values */
+    CANDO_MATCH_EXPRESSION, /* Evaluate math expression on payload (e.g. [B0:B1] > 3000) */
+} cando_match_type_t;
 
 typedef struct {
     uint8_t bus;            /* CAN_BUS_0 or CAN_BUS_1 */
     uint32_t can_id;        /* CAN ID (11-bit standard or 29-bit extended) */
     bool is_ext;            /* true if 29-bit extended ID */
-    ifttt_match_type_t match_type;
+    cando_match_type_t match_type;
     uint8_t match_data[8];  /* Expected byte pattern */
     uint8_t match_mask[8];  /* Bitmask for matching */
     uint8_t data_len;       /* Length of expected match payload */
     char *expression;       /* Optional trigger math expression string */
     uint32_t cooldown_ms;   /* Minimum time (ms) between triggers */
     int64_t last_triggered_us; /* Timestamp of last execution */
-} ifttt_trigger_t;
+} cando_trigger_t;
 
 typedef struct {
     uint8_t target_bus;     /* Target bus to play CAN frame (CAN_BUS_0 or CAN_BUS_1) */
@@ -147,20 +147,20 @@ typedef struct {
     uint8_t repeat_count;   /* Number of frame retransmissions */
     uint32_t repeat_interval_ms; /* Interval between repeat transmissions */
     char *mqtt_topic;       /* Optional MQTT topic for notification alert */
-} ifttt_action_t;
+} cando_action_t;
 
 typedef struct {
     char *name;             /* Rule descriptive name */
     bool enabled;           /* Rule active flag */
-    ifttt_trigger_t trigger;/* Trigger condition ("IF THIS") */
-    ifttt_action_t action;  /* Response action ("THEN THAT") */
-} ifttt_rule_t;
+    cando_trigger_t trigger;/* Trigger condition ("IF THIS") */
+    cando_action_t action;  /* Response action ("THEN THAT") */
+} cando_rule_t;
 
 typedef struct {
-    ifttt_rule_t *rules;
+    cando_rule_t *rules;
     uint32_t rule_count;
     SemaphoreHandle_t mutex;
-} ifttt_rule_set_t;
+} cando_rule_set_t;
 
 ////////////////
 

@@ -740,15 +740,15 @@ static esp_err_t logo_handler(httpd_req_t *req)
 }
 
 /*
- * Proposed API Handlers for IFTTT Rules ("If This, Then That"):
+ * Proposed API Handlers for "CAN Do" Rules ("If This CAN Message, Then Play That CAN Message"):
  *
- * static esp_err_t store_ifttt_handler(httpd_req_t *req)
- *   - Parses JSON body containing an array of IFTTT rules.
+ * static esp_err_t store_cando_handler(httpd_req_t *req)
+ *   - Parses JSON body containing an array of "CAN Do" rules.
  *   - Validates bus, CAN ID, payload match masks, and action parameters.
  *   - Persists rule set into flash (NVS or LittleFS via persistent_settings).
  *
- * static esp_err_t load_ifttt_handler(httpd_req_t *req)
- *   - Returns JSON configuration of stored IFTTT rules for UI rendering.
+ * static esp_err_t load_cando_handler(httpd_req_t *req)
+ *   - Returns JSON configuration of stored "CAN Do" rules for UI rendering.
  */
 
 static esp_err_t store_auto_data_handler(httpd_req_t *req)

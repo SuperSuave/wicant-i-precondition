@@ -31,6 +31,7 @@
 #include "esp_twai.h"
 #include "esp_twai_onchip.h"
 #include "can.h"
+#include "autopid.h"
 #include "hw_config.h"
 #if HW_HAS_MCP2515
 #include "driver/spi_master.h"

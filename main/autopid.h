@@ -211,6 +211,7 @@ typedef struct {
 void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus);
 void cando_process_timer_tick(void);
 bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus);
+esp_err_t cando_load_config(void);
 esp_err_t cando_save_config(const char *json_str);
 char *cando_get_config(void);
 void cando_set_reverse_engineering_mode(bool enable);

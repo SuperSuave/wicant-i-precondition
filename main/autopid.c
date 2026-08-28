@@ -2835,7 +2835,7 @@ esp_err_t cando_load_config(void)
                     cando_rule_t *rule = &g_cando_rules.rules[i];
                     rule->enabled = true;
                     rule->trigger.source = CANDO_TRIG_CAN_MESSAGE;
-                    rule->trigger.exec_mode = CANDO_EXEC_ALWAYS;
+                    rule->trigger.exec_mode = CANDO_EXEC_CONTINUOUS;
 
                     cJSON *name = cJSON_GetObjectItem(r, "name");
                     if (name && name->valuestring) {
@@ -2851,11 +2851,11 @@ esp_err_t cando_load_config(void)
                     cJSON *match_p = cJSON_GetObjectItem(r, "match_payload");
                     if (match_p && match_p->valuestring) {
                         rule->trigger.match_type = CANDO_MATCH_EXACT;
-                        uint32_t b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+                        unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
                         int parsed = sscanf(match_p->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
                                            &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
                         rule->trigger.data_len = (uint8_t)parsed;
-                        uint32_t parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                        unsigned int parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
                         for (int k = 0; k < parsed; k++) {
                             rule->trigger.match_data[k] = (uint8_t)parsed_bytes[k];
                         }
@@ -2872,11 +2872,11 @@ esp_err_t cando_load_config(void)
                             step->tx_can_id = strtoul(txid->valuestring, NULL, 0);
                             step->is_ext = (step->tx_can_id > 0x7FF) || (strlen(txid->valuestring) > 5);
                             step->target_bus = 0;
-                            uint32_t b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+                            unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
                             int parsed = sscanf(txp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
                                                &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
                             step->tx_len = (uint8_t)parsed;
-                            uint32_t parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                            unsigned int parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
                             for (int k = 0; k < parsed; k++) {
                                 step->tx_data[k] = (uint8_t)parsed_bytes[k];
                             }

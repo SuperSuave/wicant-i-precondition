@@ -77,7 +77,7 @@ static uint8_t ble_uid[33];
 static char hardware_version[16];
 static char firmware_version[10];
 // Wrapper so we can provide a function pointer for network readiness
-static bool dbg_net_ready(void) { return wifi_network_is_connected(); }
+__attribute__((unused)) static bool dbg_net_ready(void) { return wifi_network_is_connected(); }
 
 static void log_can_to_mqtt(twai_message_t *frame, uint8_t type)
 {
@@ -288,7 +288,6 @@ static void precondition_task_start(void)
 static void can_rx_task(void *pvParameters)
 {
 //	static uint32_t num_msg = 0;
-	static int64_t time_old = 0;
 	// MITM (bridge) vs parallel mode. Read once: a config change restarts
 	// the firmware, and the task is created after the config is loaded.
 	// Single-bus builds have nothing to bridge, so hardcode parallel there.

@@ -715,6 +715,7 @@ esp_err_t can_receive(twai_message_t *message, can_bus_t *bus, TickType_t ticks_
 	{
 		*bus = item.bus;
 	}
+	cando_process_rx_frame(&item.msg, (uint8_t)item.bus);
 	return ESP_OK;
 }
 

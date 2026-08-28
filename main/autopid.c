@@ -2654,8 +2654,8 @@ void autopid_init(char* id)
     }
     autopid_values_count = all_pids->pid_count;
 
+    cando_load_config();
 
-    
     xTaskCreate(autopid_task, "autopid_task", 5000, (void *)AF_INET, 5, NULL);
     if(config_server_get_webhook_en())
     {
@@ -2752,19 +2752,16 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 
             rule->trigger.last_triggered_us = now_us;
 
-            /* Execute Sequence Steps */
+            /* Execute Sequence Steps Non-Blockingly */
             for (uint8_t s = 0; s < rule->action.step_count; s++) {
                 cando_sequence_step_t *step = &rule->action.steps[s];
-                if (step->delay_ms > 0) {
-                    vTaskDelay(pdMS_TO_TICKS(step->delay_ms));
-                }
                 twai_message_t tx_msg = {
                     .identifier = step->tx_can_id,
                     .extd = step->is_ext ? 1 : 0,
                     .data_length_code = step->tx_len
                 };
                 memcpy(tx_msg.data, step->tx_data, step->tx_len);
-                can_send((can_bus_t)step->target_bus, &tx_msg, pdMS_TO_TICKS(100));
+                can_send((can_bus_t)step->target_bus, &tx_msg, 0);
             }
         }
     }
@@ -2790,6 +2787,111 @@ void cando_process_timer_tick(void)
     }
 }
 
+esp_err_t cando_load_config(void)
+{
+    FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
+    if (!f) return ESP_OK;
+
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    if (sz <= 0) {
+        fclose(f);
+        return ESP_OK;
+    }
+
+    char *buf = malloc(sz + 1);
+    if (!buf) {
+        fclose(f);
+        return ESP_ERR_NO_MEM;
+    }
+    fread(buf, 1, sz, f);
+    buf[sz] = '\0';
+    fclose(f);
+
+    cJSON *root = cJSON_Parse(buf);
+    free(buf);
+    if (!root) return ESP_FAIL;
+
+    cJSON *rules_arr = cJSON_GetObjectItem(root, "rules");
+    if (rules_arr && cJSON_IsArray(rules_arr)) {
+        int count = cJSON_GetArraySize(rules_arr);
+        if (g_cando_rules.rules) {
+            for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
+                if (g_cando_rules.rules[i].name) free(g_cando_rules.rules[i].name);
+                if (g_cando_rules.rules[i].action.steps) free(g_cando_rules.rules[i].action.steps);
+            }
+            free(g_cando_rules.rules);
+            g_cando_rules.rules = NULL;
+        }
+        g_cando_rules.rule_count = 0;
+
+        if (count > 0) {
+            g_cando_rules.rules = calloc(count, sizeof(cando_rule_t));
+            if (g_cando_rules.rules) {
+                for (int i = 0; i < count; i++) {
+                    cJSON *r = cJSON_GetArrayItem(rules_arr, i);
+                    cando_rule_t *rule = &g_cando_rules.rules[i];
+                    rule->enabled = true;
+                    rule->trigger.source = CANDO_TRIG_CAN_MESSAGE;
+                    rule->trigger.exec_mode = CANDO_EXEC_ALWAYS;
+
+                    cJSON *name = cJSON_GetObjectItem(r, "name");
+                    if (name && name->valuestring) {
+                        rule->name = strdup(name->valuestring);
+                    }
+
+                    cJSON *cid = cJSON_GetObjectItem(r, "can_id");
+                    if (cid && cid->valuestring) {
+                        rule->trigger.can_id = strtoul(cid->valuestring, NULL, 0);
+                        rule->trigger.is_ext = (rule->trigger.can_id > 0x7FF) || (strlen(cid->valuestring) > 5);
+                    }
+
+                    cJSON *match_p = cJSON_GetObjectItem(r, "match_payload");
+                    if (match_p && match_p->valuestring) {
+                        rule->trigger.match_type = CANDO_MATCH_EXACT;
+                        uint32_t b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+                        int parsed = sscanf(match_p->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
+                                           &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
+                        rule->trigger.data_len = (uint8_t)parsed;
+                        uint32_t parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                        for (int k = 0; k < parsed; k++) {
+                            rule->trigger.match_data[k] = (uint8_t)parsed_bytes[k];
+                        }
+                    }
+
+                    cJSON *txid = cJSON_GetObjectItem(r, "tx_can_id");
+                    cJSON *txp = cJSON_GetObjectItem(r, "tx_payload");
+
+                    if (txid && txid->valuestring && txp && txp->valuestring) {
+                        rule->action.step_count = 1;
+                        rule->action.steps = calloc(1, sizeof(cando_sequence_step_t));
+                        if (rule->action.steps) {
+                            cando_sequence_step_t *step = &rule->action.steps[0];
+                            step->tx_can_id = strtoul(txid->valuestring, NULL, 0);
+                            step->is_ext = (step->tx_can_id > 0x7FF) || (strlen(txid->valuestring) > 5);
+                            step->target_bus = 0;
+                            uint32_t b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+                            int parsed = sscanf(txp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
+                                               &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
+                            step->tx_len = (uint8_t)parsed;
+                            uint32_t parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                            for (int k = 0; k < parsed; k++) {
+                                step->tx_data[k] = (uint8_t)parsed_bytes[k];
+                            }
+                        }
+                    }
+
+                    g_cando_rules.rule_count++;
+                }
+            }
+        }
+    }
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
 esp_err_t cando_save_config(const char *json_str)
 {
     if (!json_str) return ESP_ERR_INVALID_ARG;
@@ -2797,17 +2899,31 @@ esp_err_t cando_save_config(const char *json_str)
     if (!f) return ESP_FAIL;
     fputs(json_str, f);
     fclose(f);
+    cando_load_config();
     return ESP_OK;
 }
 
 char *cando_get_config(void)
 {
-    static char buf[1024];
     FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
     if (!f) {
-        return "{\"rules\":[]}";
+        return strdup("{\"rules\":[]}");
     }
-    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    if (sz <= 0) {
+        fclose(f);
+        return strdup("{\"rules\":[]}");
+    }
+
+    char *buf = malloc(sz + 1);
+    if (!buf) {
+        fclose(f);
+        return strdup("{\"rules\":[]}");
+    }
+    size_t n = fread(buf, 1, sz, f);
     fclose(f);
     buf[n] = '\0';
     return buf;

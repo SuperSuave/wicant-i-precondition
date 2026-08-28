@@ -769,6 +769,7 @@ static esp_err_t load_cando_handler(httpd_req_t *req)
     char *resp = cando_get_config();
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, resp);
+    if (resp) free(resp);
     return ESP_OK;
 }
 

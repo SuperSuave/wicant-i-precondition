@@ -2699,9 +2699,9 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
             return true;
         } else if (rule->trigger.match_type == CANDO_MATCH_EXPRESSION) {
             if (rule->trigger.expression) {
-                float val = 0.0f;
-                if (evaluate_expression((char *)rule->trigger.expression, (uint8_t *)msg->data, msg->data_length_code, &val) == 0) {
-                    return (val != 0.0f);
+                double val = 0.0;
+                if (evaluate_expression((uint8_t *)rule->trigger.expression, (uint8_t *)msg->data, (double)msg->data_length_code, &val)) {
+                    return (val != 0.0);
                 }
             }
             return false;
@@ -2793,14 +2793,22 @@ void cando_process_timer_tick(void)
 esp_err_t cando_save_config(const char *json_str)
 {
     if (!json_str) return ESP_ERR_INVALID_ARG;
-    return save_setting("cando/config", json_str) ? ESP_OK : ESP_FAIL;
+    FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "w");
+    if (!f) return ESP_FAIL;
+    fputs(json_str, f);
+    fclose(f);
+    return ESP_OK;
 }
 
 char *cando_get_config(void)
 {
     static char buf[1024];
-    if (read_setting_string("cando/config", buf, sizeof(buf))) {
-        return buf;
+    FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
+    if (!f) {
+        return "{\"rules\":[]}";
     }
-    return "{\"rules\":[]}";
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    fclose(f);
+    buf[n] = '\0';
+    return buf;
 }

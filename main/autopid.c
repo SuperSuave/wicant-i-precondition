@@ -1,4 +1,29 @@
 /*
+ * Proposed Architecture for IFTTT Engine ("If This, Then That"):
+ *
+ * 1. RX Integration (can.c / main.c / autopid.c):
+ *    - Incoming frames in can_receive() hook or CAN RX task call ifttt_process_rx_frame(twai_message_t *msg, can_bus_t bus).
+ *
+ * 2. Rule Evaluation:
+ *    - Compares incoming frame against loaded ifttt_rule_set_t rules.
+ *    - Matching criteria:
+ *        * Bus (CAN_BUS_0 vs CAN_BUS_1)
+ *        * CAN ID (11-bit standard or 29-bit extended)
+ *        * Data mask / byte matching
+ *        * Math expression evaluation via expression_parser
+ *        * Cooldown check (cooldown_ms vs elapsed time since last_triggered_us)
+ *
+ * 3. Action Execution:
+ *    - Constructs response twai_message_t packet.
+ *    - Performs dynamic byte substitution (e.g. copying byte ranges from trigger payload).
+ *    - Transmits packet using can_send(target_bus, &tx_msg, timeout).
+ *    - Prevents self-triggering loop feedback by tagging or checking TX origin.
+ *
+ * 4. Alert & Reporting:
+ *    - Emits trigger notification via MQTT if mqtt_topic is set or webhook task queue.
+ */
+
+/*
  * This file is part of the WiCAN project.
  *
  * Copyright (C) 2022  Meatpi Electronics.

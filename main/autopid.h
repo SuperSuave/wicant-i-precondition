@@ -114,6 +114,54 @@ typedef struct{
     sensor_type_t sensor_type; 
 }autopid_value_t;
 
+/* --------------------------------------------------------------------------
+ * Proposed IFTTT ("If This, Then That") Engine Data Structures
+ * -------------------------------------------------------------------------- */
+
+typedef enum {
+    IFTTT_MATCH_EXACT,      /* Match exact payload bytes */
+    IFTTT_MATCH_MASK,       /* Match using data bitmask and expected byte values */
+    IFTTT_MATCH_EXPRESSION, /* Evaluate math expression on payload (e.g. [B0:B1] > 3000) */
+} ifttt_match_type_t;
+
+typedef struct {
+    uint8_t bus;            /* CAN_BUS_0 or CAN_BUS_1 */
+    uint32_t can_id;        /* CAN ID (11-bit standard or 29-bit extended) */
+    bool is_ext;            /* true if 29-bit extended ID */
+    ifttt_match_type_t match_type;
+    uint8_t match_data[8];  /* Expected byte pattern */
+    uint8_t match_mask[8];  /* Bitmask for matching */
+    uint8_t data_len;       /* Length of expected match payload */
+    char *expression;       /* Optional trigger math expression string */
+    uint32_t cooldown_ms;   /* Minimum time (ms) between triggers */
+    int64_t last_triggered_us; /* Timestamp of last execution */
+} ifttt_trigger_t;
+
+typedef struct {
+    uint8_t target_bus;     /* Target bus to play CAN frame (CAN_BUS_0 or CAN_BUS_1) */
+    uint32_t tx_can_id;     /* Response CAN ID */
+    bool is_ext;            /* Extended 29-bit CAN ID flag */
+    uint8_t tx_data[8];     /* Payload bytes to play */
+    uint8_t tx_len;         /* Payload byte length (0-8) */
+    uint32_t delay_ms;      /* Delay before transmitting frame */
+    uint8_t repeat_count;   /* Number of frame retransmissions */
+    uint32_t repeat_interval_ms; /* Interval between repeat transmissions */
+    char *mqtt_topic;       /* Optional MQTT topic for notification alert */
+} ifttt_action_t;
+
+typedef struct {
+    char *name;             /* Rule descriptive name */
+    bool enabled;           /* Rule active flag */
+    ifttt_trigger_t trigger;/* Trigger condition ("IF THIS") */
+    ifttt_action_t action;  /* Response action ("THEN THAT") */
+} ifttt_rule_t;
+
+typedef struct {
+    ifttt_rule_t *rules;
+    uint32_t rule_count;
+    SemaphoreHandle_t mutex;
+} ifttt_rule_set_t;
+
 ////////////////
 
 // typedef struct 

@@ -739,6 +739,18 @@ static esp_err_t logo_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+/*
+ * Proposed API Handlers for IFTTT Rules ("If This, Then That"):
+ *
+ * static esp_err_t store_ifttt_handler(httpd_req_t *req)
+ *   - Parses JSON body containing an array of IFTTT rules.
+ *   - Validates bus, CAN ID, payload match masks, and action parameters.
+ *   - Persists rule set into flash (NVS or LittleFS via persistent_settings).
+ *
+ * static esp_err_t load_ifttt_handler(httpd_req_t *req)
+ *   - Returns JSON configuration of stored IFTTT rules for UI rendering.
+ */
+
 static esp_err_t store_auto_data_handler(httpd_req_t *req)
 {
     if (!req)

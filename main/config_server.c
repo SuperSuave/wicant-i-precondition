@@ -739,6 +739,40 @@ static esp_err_t logo_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static esp_err_t store_cando_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    char buffer[1024];
+    int total_len = req->content_len;
+    int cur_len = 0;
+    if (total_len >= (int)sizeof(buffer)) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    while (cur_len < total_len) {
+        int received = httpd_req_recv(req, buffer + cur_len, total_len - cur_len);
+        if (received <= 0) {
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        cur_len += received;
+    }
+    buffer[total_len] = '\0';
+    cando_save_config(buffer);
+    httpd_resp_sendstr(req, "CAN Do configuration saved successfully.");
+    return ESP_OK;
+}
+
+static esp_err_t load_cando_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    char *resp = cando_get_config();
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, resp);
+    if (resp) free(resp);
+    return ESP_OK;
+}
+
 static esp_err_t store_auto_data_handler(httpd_req_t *req)
 {
     if (!req)
@@ -1648,6 +1682,20 @@ static const httpd_uri_t system_reboot = {
     .handler   = system_reboot_handler,
     .user_ctx  = NULL    // Pass server data as context
 };
+static const httpd_uri_t store_cando_uri = {
+    .uri       = "/store_cando",
+    .method    = HTTP_POST,
+    .handler   = store_cando_handler,
+    .user_ctx  = NULL
+};
+
+static const httpd_uri_t load_cando_uri = {
+    .uri       = "/load_cando",
+    .method    = HTTP_GET,
+    .handler   = load_cando_handler,
+    .user_ctx  = NULL
+};
+
 static const httpd_uri_t store_auto_data_uri = {
     .uri       = "/store_auto_data",
     .method    = HTTP_POST,
@@ -2465,6 +2513,8 @@ static httpd_handle_t config_server_init(void)
 		httpd_register_uri_handler(server, &system_reboot);
 		httpd_register_uri_handler(server, &store_canflt_uri);
 		httpd_register_uri_handler(server, &load_canflt_uri);
+		httpd_register_uri_handler(server, &store_cando_uri);
+		httpd_register_uri_handler(server, &load_cando_uri);
 		httpd_register_uri_handler(server, &store_auto_data_uri);
 		httpd_register_uri_handler(server, &load_pid_auto_uri);
 		httpd_register_uri_handler(server, &load_pid_auto_conf_uri);

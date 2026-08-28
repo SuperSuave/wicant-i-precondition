@@ -879,7 +879,21 @@
         </div>
 
         <div id="automate" class="tabcontent">
-            <div class="section-title">Automate</div>
+            <div class="section-title">Automate & CAN Do</div>
+
+            <div class="section-title" style="margin-top:1rem;">"CAN Do" Rules (If This, Then That)</div>
+            <div style="margin-bottom: 1rem;">
+                <label><b>Reverse Engineering Mode:</b> </label>
+                <select id="cando_rev_mode" onchange="toggleCandoRevMode(this.value);" style="width: auto; display: inline-block;">
+                    <option value="disable">Disabled (Automations Active)</option>
+                    <option value="enable">Enabled (Pause Rules for Sniffing)</option>
+                </select>
+            </div>
+            <div id="cando_rules_container"></div>
+            <div class="button-group" style="margin-bottom: 1.5rem;">
+                <button type="button" class="primary-button" onclick="addCandoRuleUI()">New CAN Do Rule</button>
+                <button type="button" class="store" id="cando_store_btn" onclick="saveCandoRulesUI()">Store CAN Do Rules</button>
+            </div>
 
             <div class="section-title" style="margin-top:1rem;">Home Assistant</div>
             <table class="form-table">
@@ -3230,6 +3244,7 @@ function loadAutoTable(jsonData) {
 			loadautoPIDCarData();
             loadautoPID();
             loadWebhookConfig();
+            loadCandoRulesUI();
             document.getElementById("car_model").addEventListener('change', function() {
                 // Clear existing entries
                 document.querySelector('.specific-pid-entries').innerHTML = '';
@@ -3487,6 +3502,86 @@ function loadAutoTable(jsonData) {
 	function storeCANFLT() {
 		postCANFLT();
 		document.getElementById("store_canflt_button").disabled = true;
+	}
+
+	function addCandoRuleUI(ruleData = {}) {
+		const container = document.getElementById("cando_rules_container");
+		if (!container) return;
+		const ruleDiv = document.createElement("div");
+		ruleDiv.className = "pid-entry";
+		ruleDiv.style.border = "1px solid var(--gray-300)";
+		ruleDiv.style.borderRadius = "8px";
+		ruleDiv.style.padding = "1rem";
+		ruleDiv.style.marginBottom = "1rem";
+		ruleDiv.innerHTML = `
+			<div class="pid-header">
+				<div class="header-left">
+					<span class="pid-title"><b>Rule: ${ruleData.name || "New CAN Do Rule"}</b></span>
+				</div>
+				<div class="header-right">
+					<button type="button" class="delete-btn" onclick="this.closest('.pid-entry').remove();">Delete</button>
+				</div>
+			</div>
+			<table class="compact-form-table">
+				<tr>
+					<td>Rule Name:</td>
+					<td><input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Door Unlock Action"></td>
+				</tr>
+				<tr>
+					<td>Trigger CAN ID (Hex):</td>
+					<td><input type="text" class="cando-can-id" value="${ruleData.can_id || "0x2C0"}" placeholder="0x2C0"></td>
+				</tr>
+				<tr>
+					<td>Trigger Match Payload:</td>
+					<td><input type="text" class="cando-match-payload" value="${ruleData.match_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
+				</tr>
+				<tr>
+					<td>Response CAN ID (Hex):</td>
+					<td><input type="text" class="cando-tx-id" value="${ruleData.tx_can_id || "0x329"}" placeholder="0x329"></td>
+				</tr>
+				<tr>
+					<td>Response TX Payload:</td>
+					<td><input type="text" class="cando-tx-payload" value="${ruleData.tx_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
+				</tr>
+			</table>
+		`;
+		container.appendChild(ruleDiv);
+	}
+
+	function saveCandoRulesUI() {
+		const rules = [];
+		document.querySelectorAll("#cando_rules_container .pid-entry").forEach(entry => {
+			rules.push({
+				name: entry.querySelector(".cando-name")?.value || "",
+				can_id: entry.querySelector(".cando-can-id")?.value || "",
+				match_payload: entry.querySelector(".cando-match-payload")?.value || "",
+				tx_can_id: entry.querySelector(".cando-tx-id")?.value || "",
+				tx_payload: entry.querySelector(".cando-tx-payload")?.value || ""
+			});
+		});
+		fetch("/store_cando", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ rules: rules })
+		}).then(res => res.text()).then(msg => {
+			showNotification("CAN Do rules saved successfully!", "green");
+		}).catch(err => {
+			showNotification("Failed to save CAN Do rules: " + err, "red");
+		});
+	}
+
+	function loadCandoRulesUI() {
+		fetch("/load_cando").then(res => res.json()).then(data => {
+			if (data && data.rules && Array.isArray(data.rules)) {
+				const container = document.getElementById("cando_rules_container");
+				if (container) container.innerHTML = "";
+				data.rules.forEach(r => addCandoRuleUI(r));
+			}
+		}).catch(err => console.log("No saved CAN Do rules found:", err));
+	}
+
+	function toggleCandoRevMode(val) {
+		showNotification("Reverse Engineering Mode: " + val, "blue");
 	}
     </script>
 </body>

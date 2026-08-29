@@ -17,6 +17,8 @@ fi
 
 build_one() {
     local variant=$1
+    echo "=== minifying web assets ==="
+    python3 tools/minify_html.py main/homepage_full.html main/homepage.html 2>/dev/null || python tools/minify_html.py main/homepage_full.html main/homepage.html
     echo "=== building $variant ==="
     idf.py -B "build.$variant" -DHARDWARE_VER_NAME="$variant" build
 }

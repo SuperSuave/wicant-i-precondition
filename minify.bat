@@ -1,3 +1,3 @@
 @echo off
-.\minhtml.exe --output main/homepage.html --keep-closing-tags --minify-css --minify-js main/homepage_full.html
+python tools/minify_html.py main/homepage_full.html main/homepage.html
 echo HTML minification completed successfully!

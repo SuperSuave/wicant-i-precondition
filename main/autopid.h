@@ -21,6 +21,13 @@
 #ifndef __AUTO_PID_H__
 #define __AUTO_PID_H__
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "esp_err.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "driver/twai.h"
+
 #define BUFFER_SIZE 1024
 #define QUEUE_SIZE 10
 

@@ -43,7 +43,7 @@ void time_sync_start_sntp(void)
         return;
     }
 
-    if (cando_get_rev_mode()) {
+    if (cando_get_reverse_engineering_mode()) {
         ESP_LOGI(TAG, "Reverse engineering mode active: SNTP skipped");
         return;
     }

@@ -879,8 +879,6 @@
         </div>
 
         <div id="automate" class="tabcontent">
-            <div class="section-title">Automate & CAN Do</div>
-
             <div class="section-title" style="margin-top:1rem;">"CAN Do" Rules (If This, Then That)</div>
             <div style="margin-bottom: 1rem;">
                 <label><b>Reverse Engineering Mode:</b> </label>
@@ -3504,81 +3502,130 @@ function loadAutoTable(jsonData) {
 		document.getElementById("store_canflt_button").disabled = true;
 	}
 
-	function addCandoRuleUI(ruleData = {}) {
-		const container = document.getElementById("cando_rules_container");
-		if (!container) return;
-		const ruleDiv = document.createElement("div");
-		ruleDiv.className = "pid-entry";
-		ruleDiv.style.border = "1px solid var(--gray-300)";
-		ruleDiv.style.borderRadius = "8px";
-		ruleDiv.style.padding = "1rem";
-		ruleDiv.style.marginBottom = "1rem";
-		ruleDiv.innerHTML = `
-			<div class="pid-header">
-				<div class="header-left">
-					<span class="pid-title"><b>Rule: ${ruleData.name || "New CAN Do Rule"}</b></span>
-				</div>
-				<div class="header-right">
-					<button type="button" class="delete-btn" onclick="this.closest('.pid-entry').remove();">Delete</button>
-				</div>
-			</div>
-			<table class="compact-form-table">
-				<tr>
-					<td>Rule Name:</td>
-					<td><input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Door Unlock Action"></td>
-				</tr>
-				<tr>
-					<td>Trigger CAN ID (Hex):</td>
-					<td><input type="text" class="cando-can-id" value="${ruleData.can_id || "0x2C0"}" placeholder="0x2C0"></td>
-				</tr>
-				<tr>
-					<td>Trigger Match Payload:</td>
-					<td><input type="text" class="cando-match-payload" value="${ruleData.match_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
-				</tr>
-				<tr>
-					<td>Response CAN ID (Hex):</td>
-					<td><input type="text" class="cando-tx-id" value="${ruleData.tx_can_id || "0x329"}" placeholder="0x329"></td>
-				</tr>
-				<tr>
-					<td>Response TX Payload:</td>
-					<td><input type="text" class="cando-tx-payload" value="${ruleData.tx_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
-				</tr>
-			</table>
-		`;
-		container.appendChild(ruleDiv);
-	}
+    function addCandoRuleUI(ruleData = {}) {
+        const container = document.getElementById("cando_rules_container");
+        if (!container) return;
+        const ruleDiv = document.createElement("div");
+        ruleDiv.className = "pid-entry";
+        ruleDiv.style.border = "1px solid var(--gray-300)";
+        ruleDiv.style.borderRadius = "8px";
+        ruleDiv.style.padding = "1rem";
+        ruleDiv.style.marginBottom = "1rem";
 
-	function saveCandoRulesUI() {
-		const rules = [];
-		document.querySelectorAll("#cando_rules_container .pid-entry").forEach(entry => {
-			rules.push({
-				name: entry.querySelector(".cando-name")?.value || "",
-				can_id: entry.querySelector(".cando-can-id")?.value || "",
-				match_payload: entry.querySelector(".cando-match-payload")?.value || "",
-				tx_can_id: entry.querySelector(".cando-tx-id")?.value || "",
-				tx_payload: entry.querySelector(".cando-tx-payload")?.value || ""
-			});
-		});
-		fetch("/store_cando", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ rules: rules })
-		}).then(res => res.text()).then(msg => {
-			showNotification("CAN Do rules saved successfully!", "green");
-		}).catch(err => {
-			showNotification("Failed to save CAN Do rules: " + err, "red");
-		});
-	}
+        const triggerType = ruleData.trigger_type || "can_msg";
 
-	function loadCandoRulesUI() {
-		fetch("/load_cando").then(res => res.json()).then(data => {
-			if (data && data.rules && Array.isArray(data.rules)) {
-				const container = document.getElementById("cando_rules_container");
-				if (container) container.innerHTML = "";
-				data.rules.forEach(r => addCandoRuleUI(r));
-			}
-		}).catch(err => console.log("No saved CAN Do rules found:", err));
-	}
+        ruleDiv.innerHTML = `
+            <div class="pid-header">
+                <div class="header-left">
+                    <span class="pid-title"><b>Rule: ${ruleData.name || "New CAN Do Rule"}</b></span>
+                </div>
+                <div class="header-right">
+                    <button type="button" class="delete-btn" onclick="this.closest('.pid-entry').remove();">Delete</button>
+                </div>
+            </div>
+            <table class="compact-form-table">
+                <tr>
+                    <td>Rule Name:</td>
+                    <td><input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Seek Left Action"></td>
+                </tr>
+                <tr>
+                    <td>Trigger Source:</td>
+                    <td>
+                        <select class="cando-trigger-type" onchange="toggleCandoTriggerUI(this)">
+                            <option value="can_msg" ${triggerType === "can_msg" ? "selected" : ""}>CAN Message</option>
+                            <option value="clock" ${triggerType === "clock" ? "selected" : ""}>Clock Time (HH:MM:SS)</option>
+                            <option value="interval" ${triggerType === "interval" ? "selected" : ""}>Interval Timer (Seconds)</option>
+                            <option value="voltage" ${triggerType === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="cando-trig-can ${triggerType === "can_msg" ? "" : "hidden"}">
+                    <td>Trigger CAN ID (Hex):</td>
+                    <td><input type="text" class="cando-can-id" value="${ruleData.can_id || "0x2C0"}" placeholder="0x2C0"></td>
+                </tr>
+                <tr class="cando-trig-can ${triggerType === "can_msg" ? "" : "hidden"}">
+                    <td>Trigger Match Payload:</td>
+                    <td><input type="text" class="cando-match-payload" value="${ruleData.match_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
+                </tr>
+                <tr class="cando-trig-clock ${triggerType === "clock" ? "" : "hidden"}">
+                    <td>Time (HH:MM:SS):</td>
+                    <td><input type="text" class="cando-clock-time" value="${ruleData.clock_time || "08:00:00"}" placeholder="08:00:00"></td>
+                </tr>
+                <tr class="cando-trig-interval ${triggerType === "interval" ? "" : "hidden"}">
+                    <td>Interval Period (sec):</td>
+                    <td><input type="number" class="cando-interval-sec" value="${ruleData.interval_sec || 10}" placeholder="10"></td>
+                </tr>
+                <tr class="cando-trig-voltage ${triggerType === "voltage" ? "" : "hidden"}">
+                    <td>Voltage Threshold (V):</td>
+                    <td><input type="text" class="cando-voltage-val" value="${ruleData.voltage_val || "12.2"}" placeholder="12.2"></td>
+                </tr>
+                <tr>
+                    <td>Response CAN ID (Hex):</td>
+                    <td><input type="text" class="cando-tx-id" value="${ruleData.tx_can_id || "0x652"}" placeholder="0x652"></td>
+                </tr>
+                <tr>
+                    <td>Response Payload(s) [Multi-Line]:</td>
+                    <td><textarea class="cando-tx-payload" rows="3" placeholder="FF 7F FF FF 07 00 00 00&#10;FF 3F FF FF 07 00 00 00">${ruleData.tx_payload || "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00"}</textarea></td>
+                </tr>
+                <tr>
+                    <td>Inter-Frame Delay (ms):</td>
+                    <td><input type="number" class="cando-delay-ms" value="${ruleData.delay_ms || 10}" placeholder="10"></td>
+                </tr>
+                <tr>
+                    <td>Sequence Repeat Count:</td>
+                    <td><input type="number" class="cando-repeat-count" value="${ruleData.repeat_count || 3}" placeholder="3"></td>
+                </tr>
+            </table>
+        `;
+        container.appendChild(ruleDiv);
+    }
+
+    function toggleCandoTriggerUI(selectElem) {
+        const table = selectElem.closest("table");
+        const val = selectElem.value;
+        table.querySelectorAll(".cando-trig-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg"));
+        table.querySelectorAll(".cando-trig-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
+        table.querySelectorAll(".cando-trig-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
+        table.querySelectorAll(".cando-trig-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
+    }
+
+    function saveCandoRulesUI() {
+        const rules = [];
+        document.querySelectorAll("#cando_rules_container .pid-entry").forEach(entry => {
+            rules.push({
+                name: entry.querySelector(".cando-name")?.value || "",
+                trigger_type: entry.querySelector(".cando-trigger-type")?.value || "can_msg",
+                can_id: entry.querySelector(".cando-can-id")?.value || "",
+                match_payload: entry.querySelector(".cando-match-payload")?.value || "",
+                clock_time: entry.querySelector(".cando-clock-time")?.value || "",
+                interval_sec: parseInt(entry.querySelector(".cando-interval-sec")?.value || "10"),
+                voltage_val: entry.querySelector(".cando-voltage-val")?.value || "",
+                tx_can_id: entry.querySelector(".cando-tx-id")?.value || "",
+                tx_payload: entry.querySelector(".cando-tx-payload")?.value || "",
+                delay_ms: parseInt(entry.querySelector(".cando-delay-ms")?.value || "10"),
+                repeat_count: parseInt(entry.querySelector(".cando-repeat-count")?.value || "1")
+            });
+        });
+        fetch("/store_cando", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rules: rules })
+        }).then(res => res.text()).then(msg => {
+            showNotification("CAN Do rules saved successfully!", "green");
+        }).catch(err => {
+            showNotification("Failed to save CAN Do rules: " + err, "red");
+        });
+    }
+
+    function loadCandoRulesUI() {
+        fetch("/load_cando").then(res => res.json()).then(data => {
+            if (data && data.rules && Array.isArray(data.rules)) {
+                const container = document.getElementById("cando_rules_container");
+                if (container) container.innerHTML = "";
+                data.rules.forEach(r => addCandoRuleUI(r));
+            }
+        }).catch(err => console.log("No saved CAN Do rules found:", err));
+    }
 
 	function toggleCandoRevMode(val) {
 		showNotification("Reverse Engineering Mode: " + val, "blue");

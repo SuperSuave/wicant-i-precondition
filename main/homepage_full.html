@@ -879,17 +879,20 @@
         </div>
 
         <div id="automate" class="tabcontent">
-            <div class="section-title" style="margin-top:1rem;">"CAN Do" Rules (If This, Then That)</div>
-            <div style="margin-bottom: 1rem;">
-                <label><b>Reverse Engineering Mode:</b> </label>
+            <!-- "CAN Do" Rule Builder: Trigger -> Condition -> Action -->
+            <div class="section-title" style="margin-top:1rem;">"CAN Do" Automations (Trigger &rarr; Condition &rarr; Action)</div>
+            <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <label><b>Reverse Engineering Mode:</b></label>
                 <select id="cando_rev_mode" onchange="toggleCandoRevMode(this.value);" style="width: auto; display: inline-block;">
                     <option value="disable">Disabled (Automations Active)</option>
                     <option value="enable">Enabled (Pause Rules for Sniffing)</option>
                 </select>
             </div>
+
             <div id="cando_rules_container"></div>
+
             <div class="button-group" style="margin-bottom: 1.5rem;">
-                <button type="button" class="primary-button" onclick="addCandoRuleUI()">New CAN Do Rule</button>
+                <button type="button" class="primary-button" onclick="addCandoRuleUI()">+ Add Automation Rule</button>
                 <button type="button" class="store" id="cando_store_btn" onclick="saveCandoRulesUI()">Store CAN Do Rules</button>
             </div>
 
@@ -3502,116 +3505,239 @@ function loadAutoTable(jsonData) {
 		document.getElementById("store_canflt_button").disabled = true;
 	}
 
+    // Pre-populated catalog of known standard & vehicle signals
+    const CANDO_KNOWN_PIDS = [
+        { name: "Engine RPM", can_id: "0x7DF", payload: "02 01 0C 00 00 00 00 00" },
+        { name: "Vehicle Speed", can_id: "0x7DF", payload: "02 01 0D 00 00 00 00 00" },
+        { name: "Engine Coolant Temp", can_id: "0x7DF", payload: "02 01 05 00 00 00 00 00" },
+        { name: "Throttle Position", can_id: "0x7DF", payload: "02 01 11 00 00 00 00 00" },
+        { name: "Battery State of Charge (SoC)", can_id: "0x7E0", payload: "03 22 10 01 00 00 00 00" },
+        { name: "Door Lock/Unlock Status", can_id: "0x2C0", payload: "02 10 03 00 00 00 00 00" },
+        { name: "Steering Wheel Seek Left", can_id: "0x652", payload: "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00" }
+    ];
+
     function addCandoRuleUI(ruleData = {}) {
         const container = document.getElementById("cando_rules_container");
         if (!container) return;
-        const ruleDiv = document.createElement("div");
-        ruleDiv.className = "pid-entry";
-        ruleDiv.style.border = "1px solid var(--gray-300)";
-        ruleDiv.style.borderRadius = "8px";
-        ruleDiv.style.padding = "1rem";
-        ruleDiv.style.marginBottom = "1rem";
 
-        const triggerType = ruleData.trigger_type || "can_msg";
+        const ruleDiv = document.createElement("div");
+        ruleDiv.className = "pid-entry cando-rule-card";
+        ruleDiv.style.border = "1px solid var(--gray-300)";
+        ruleDiv.style.borderRadius = "10px";
+        ruleDiv.style.padding = "1.2rem";
+        ruleDiv.style.marginBottom = "1.5rem";
+        ruleDiv.style.backgroundColor = "#fafafa";
+
+        const trigSource = ruleData.trigger?.source || "can_msg";
+        const condType = ruleData.condition?.type || "none";
+        const actType = ruleData.action?.type || "can_tx";
 
         ruleDiv.innerHTML = `
-            <div class="pid-header">
+            <!-- Header -->
+            <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">
                 <div class="header-left">
-                    <span class="pid-title"><b>Rule: ${ruleData.name || "New CAN Do Rule"}</b></span>
+                    <span class="pid-title" style="font-size: 1.1rem; color: #1e293b;">
+                        ⚡ <b>${ruleData.name || "New Automation"}</b>
+                    </span>
                 </div>
                 <div class="header-right">
-                    <button type="button" class="delete-btn" onclick="this.closest('.pid-entry').remove();">Delete</button>
+                    <button type="button" class="delete-btn" onclick="this.closest('.pid-entry').remove();">Delete Rule</button>
                 </div>
             </div>
-            <table class="compact-form-table">
-                <tr>
-                    <td>Rule Name:</td>
-                    <td><input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Seek Left Action"></td>
-                </tr>
-                <tr>
-                    <td>Trigger Source:</td>
-                    <td>
-                        <select class="cando-trigger-type" onchange="toggleCandoTriggerUI(this)">
-                            <option value="can_msg" ${triggerType === "can_msg" ? "selected" : ""}>CAN Message</option>
-                            <option value="clock" ${triggerType === "clock" ? "selected" : ""}>Clock Time (HH:MM:SS)</option>
-                            <option value="interval" ${triggerType === "interval" ? "selected" : ""}>Interval Timer (Seconds)</option>
-                            <option value="voltage" ${triggerType === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr class="cando-trig-can ${triggerType === "can_msg" ? "" : "hidden"}">
-                    <td>Trigger CAN ID (Hex):</td>
-                    <td><input type="text" class="cando-can-id" value="${ruleData.can_id || "0x2C0"}" placeholder="0x2C0"></td>
-                </tr>
-                <tr class="cando-trig-can ${triggerType === "can_msg" ? "" : "hidden"}">
-                    <td>Trigger Match Payload:</td>
-                    <td><input type="text" class="cando-match-payload" value="${ruleData.match_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
-                </tr>
-                <tr class="cando-trig-clock ${triggerType === "clock" ? "" : "hidden"}">
-                    <td>Time (HH:MM:SS):</td>
-                    <td><input type="text" class="cando-clock-time" value="${ruleData.clock_time || "08:00:00"}" placeholder="08:00:00"></td>
-                </tr>
-                <tr class="cando-trig-interval ${triggerType === "interval" ? "" : "hidden"}">
-                    <td>Interval Period (sec):</td>
-                    <td><input type="number" class="cando-interval-sec" value="${ruleData.interval_sec || 10}" placeholder="10"></td>
-                </tr>
-                <tr class="cando-trig-voltage ${triggerType === "voltage" ? "" : "hidden"}">
-                    <td>Voltage Threshold (V):</td>
-                    <td><input type="text" class="cando-voltage-val" value="${ruleData.voltage_val || "12.2"}" placeholder="12.2"></td>
-                </tr>
-                <tr>
-                    <td>Response CAN ID (Hex):</td>
-                    <td><input type="text" class="cando-tx-id" value="${ruleData.tx_can_id || "0x652"}" placeholder="0x652"></td>
-                </tr>
-                <tr>
-                    <td>Response Payload(s) [Multi-Line]:</td>
-                    <td><textarea class="cando-tx-payload" rows="3" placeholder="FF 7F FF FF 07 00 00 00&#10;FF 3F FF FF 07 00 00 00">${ruleData.tx_payload || "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00"}</textarea></td>
-                </tr>
-                <tr>
-                    <td>Inter-Frame Delay (ms):</td>
-                    <td><input type="number" class="cando-delay-ms" value="${ruleData.delay_ms || 10}" placeholder="10"></td>
-                </tr>
-                <tr>
-                    <td>Sequence Repeat Count:</td>
-                    <td><input type="number" class="cando-repeat-count" value="${ruleData.repeat_count || 3}" placeholder="3"></td>
-                </tr>
-            </table>
+
+            <div style="margin-bottom: 0.8rem;">
+                <label><b>Rule Name:</b></label>
+                <input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Steering Seek Left Automation" style="width: 100%; margin-top: 0.2rem;">
+            </div>
+
+            <!-- Known Signal Quick Picker -->
+            <div style="background: #e0f2fe; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>💡 <b>Preset Signal Picker:</b></span>
+                <select class="cando-pid-picker" onchange="applyCandoPidPreset(this)" style="flex-grow: 1;">
+                    <option value="">-- Select Known Signal / PID --</option>
+                    ${CANDO_KNOWN_PIDS.map((p, idx) => `<option value="${idx}">${p.name} (${p.can_id})</option>`).join("")}
+                </select>
+            </div>
+
+            <!-- BLOCK 1: TRIGGERS (WHEN...) -->
+            <div style="border: 1px solid #93c5fd; background: #eff6ff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <div style="font-weight: bold; color: #1d4ed8; margin-bottom: 0.5rem;">1. TRIGGER ("WHEN...")</div>
+                <table class="compact-form-table">
+                    <tr>
+                        <td style="width: 25%;">Trigger Source:</td>
+                        <td>
+                            <select class="cando-trig-source" onchange="toggleCandoTrigUI(this)">
+                                <option value="can_msg" ${trigSource === "can_msg" ? "selected" : ""}>Incoming CAN Message</option>
+                                <option value="clock" ${trigSource === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
+                                <option value="interval" ${trigSource === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
+                                <option value="voltage" ${trigSource === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="trig-field-can ${trigSource === "can_msg" ? "" : "hidden"}">
+                        <td>Trigger CAN ID (Hex):</td>
+                        <td><input type="text" class="cando-trig-can-id" value="${ruleData.trigger?.can_id || "0x2C0"}" placeholder="0x2C0"></td>
+                    </tr>
+                    <tr class="trig-field-can ${trigSource === "can_msg" ? "" : "hidden"}">
+                        <td>Match Payload Pattern:</td>
+                        <td><input type="text" class="cando-trig-match-payload" value="${ruleData.trigger?.match_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
+                    </tr>
+                    <tr class="trig-field-clock ${trigSource === "clock" ? "" : "hidden"}">
+                        <td>Trigger Time (HH:MM:SS):</td>
+                        <td><input type="text" class="cando-trig-time" value="${ruleData.trigger?.time || "08:00:00"}" placeholder="08:00:00"></td>
+                    </tr>
+                    <tr class="trig-field-interval ${trigSource === "interval" ? "" : "hidden"}">
+                        <td>Interval (Seconds):</td>
+                        <td><input type="number" class="cando-trig-interval-sec" value="${ruleData.trigger?.interval_sec || 10}"></td>
+                    </tr>
+                    <tr class="trig-field-voltage ${trigSource === "voltage" ? "" : "hidden"}">
+                        <td>Voltage Threshold (V):</td>
+                        <td><input type="text" class="cando-trig-voltage-val" value="${ruleData.trigger?.voltage_val || "12.2"}" placeholder="12.2"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- BLOCK 2: CONDITIONS (AND IF...) -->
+            <div style="border: 1px solid #fde68a; background: #fffbeb; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <div style="font-weight: bold; color: #b45309; margin-bottom: 0.5rem;">2. CONDITION ("AND IF...")</div>
+                <table class="compact-form-table">
+                    <tr>
+                        <td style="width: 25%;">Safety Gate Condition:</td>
+                        <td>
+                            <select class="cando-cond-type" onchange="toggleCandoCondUI(this)">
+                                <option value="none" ${condType === "none" ? "selected" : ""}>None (Always Allow)</option>
+                                <option value="speed_zero" ${condType === "speed_zero" ? "selected" : ""}>Vehicle Speed == 0 km/h (Parked)</option>
+                                <option value="param_range" ${condType === "param_range" ? "selected" : ""}>Parameter Value Range</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="cond-field-range ${condType === "param_range" ? "" : "hidden"}">
+                        <td>Expression Check:</td>
+                        <td><input type="text" class="cando-cond-expr" value="${ruleData.condition?.expression || "[B0:B1] == 0"}" placeholder="[B0:B1] == 0"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- BLOCK 3: ACTIONS (THEN DO...) -->
+            <div style="border: 1px solid #a7f3d0; background: #f0fdf4; padding: 1rem; border-radius: 8px;">
+                <div style="font-weight: bold; color: #047857; margin-bottom: 0.5rem;">3. ACTION ("THEN DO...")</div>
+                <table class="compact-form-table">
+                    <tr>
+                        <td style="width: 25%;">Action Type:</td>
+                        <td>
+                            <select class="cando-act-type" onchange="toggleCandoActUI(this)">
+                                <option value="can_tx" ${actType === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
+                                <option value="mqtt" ${actType === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
+                                <option value="webhook" ${actType === "webhook" ? "selected" : ""}>Trigger Webhook POST</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
+                        <td>Response CAN ID (Hex):</td>
+                        <td><input type="text" class="cando-act-can-id" value="${ruleData.action?.can_id || "0x652"}" placeholder="0x652"></td>
+                    </tr>
+                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
+                        <td>Payload Step(s) [Multi-Line]:</td>
+                        <td><textarea class="cando-act-payload" rows="3" placeholder="FF 7F FF FF 07 00 00 00&#10;FF 3F FF FF 07 00 00 00">${ruleData.action?.payload || "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00"}</textarea></td>
+                    </tr>
+                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
+                        <td>Inter-Frame Delay (ms):</td>
+                        <td><input type="number" class="cando-act-delay-ms" value="${ruleData.action?.delay_ms || 10}"></td>
+                    </tr>
+                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
+                        <td>Sequence Repeat Count:</td>
+                        <td><input type="number" class="cando-act-repeat" value="${ruleData.action?.repeat || 3}"></td>
+                    </tr>
+                    <tr class="act-field-mqtt ${actType === "mqtt" ? "" : "hidden"}">
+                        <td>MQTT Topic & Payload:</td>
+                        <td><input type="text" class="cando-act-mqtt-topic" value="${ruleData.action?.mqtt_topic || "wican/alert"}" placeholder="wican/alert"></td>
+                    </tr>
+                    <tr class="act-field-webhook ${actType === "webhook" ? "" : "hidden"}">
+                        <td>Webhook URL:</td>
+                        <td><input type="text" class="cando-act-webhook-url" value="${ruleData.action?.webhook_url || "http://192.168.1.100:8123/api/webhook/wican_event"}" placeholder="http://192.168.1.100:8123/..."></td>
+                    </tr>
+                </table>
+            </div>
         `;
+
         container.appendChild(ruleDiv);
     }
 
-    function toggleCandoTriggerUI(selectElem) {
-        const table = selectElem.closest("table");
-        const val = selectElem.value;
-        table.querySelectorAll(".cando-trig-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg"));
-        table.querySelectorAll(".cando-trig-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
-        table.querySelectorAll(".cando-trig-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
-        table.querySelectorAll(".cando-trig-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
+    // Preset application handler
+    function applyCandoPidPreset(selectElem) {
+        const idx = selectElem.value;
+        if (idx === "") return;
+        const pid = CANDO_KNOWN_PIDS[parseInt(idx)];
+        const card = selectElem.closest(".cando-rule-card");
+        if (!card || !pid) return;
+
+        card.querySelector(".cando-trig-can-id").value = pid.can_id;
+        card.querySelector(".cando-trig-match-payload").value = pid.payload.split("\n")[0];
+        card.querySelector(".cando-act-can-id").value = pid.can_id;
+        card.querySelector(".cando-act-payload").value = pid.payload;
+        showNotification("Pre-filled rule with known signal: " + pid.name, "green");
     }
 
+    // Toggle Visibility Helpers
+    function toggleCandoTrigUI(selectElem) {
+        const card = selectElem.closest(".cando-rule-card");
+        const val = selectElem.value;
+        card.querySelectorAll(".trig-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg"));
+        card.querySelectorAll(".trig-field-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
+        card.querySelectorAll(".trig-field-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
+        card.querySelectorAll(".trig-field-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
+    }
+
+    function toggleCandoCondUI(selectElem) {
+        const card = selectElem.closest(".cando-rule-card");
+        const val = selectElem.value;
+        card.querySelectorAll(".cond-field-range").forEach(el => el.classList.toggle("hidden", val !== "param_range"));
+    }
+
+    function toggleCandoActUI(selectElem) {
+        const card = selectElem.closest(".cando-rule-card");
+        const val = selectElem.value;
+        card.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_tx"));
+        card.querySelectorAll(".act-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "mqtt"));
+        card.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
+    }
+
+    // Save & Load
     function saveCandoRulesUI() {
         const rules = [];
-        document.querySelectorAll("#cando_rules_container .pid-entry").forEach(entry => {
+        document.querySelectorAll("#cando_rules_container .cando-rule-card").forEach(card => {
             rules.push({
-                name: entry.querySelector(".cando-name")?.value || "",
-                trigger_type: entry.querySelector(".cando-trigger-type")?.value || "can_msg",
-                can_id: entry.querySelector(".cando-can-id")?.value || "",
-                match_payload: entry.querySelector(".cando-match-payload")?.value || "",
-                clock_time: entry.querySelector(".cando-clock-time")?.value || "",
-                interval_sec: parseInt(entry.querySelector(".cando-interval-sec")?.value || "10"),
-                voltage_val: entry.querySelector(".cando-voltage-val")?.value || "",
-                tx_can_id: entry.querySelector(".cando-tx-id")?.value || "",
-                tx_payload: entry.querySelector(".cando-tx-payload")?.value || "",
-                delay_ms: parseInt(entry.querySelector(".cando-delay-ms")?.value || "10"),
-                repeat_count: parseInt(entry.querySelector(".cando-repeat-count")?.value || "1")
+                name: card.querySelector(".cando-name")?.value || "",
+                trigger: {
+                    source: card.querySelector(".cando-trig-source")?.value || "can_msg",
+                    can_id: card.querySelector(".cando-trig-can-id")?.value || "",
+                    match_payload: card.querySelector(".cando-trig-match-payload")?.value || "",
+                    time: card.querySelector(".cando-trig-time")?.value || "",
+                    interval_sec: parseInt(card.querySelector(".cando-trig-interval-sec")?.value || "10"),
+                    voltage_val: card.querySelector(".cando-trig-voltage-val")?.value || ""
+                },
+                condition: {
+                    type: card.querySelector(".cando-cond-type")?.value || "none",
+                    expression: card.querySelector(".cando-cond-expr")?.value || ""
+                },
+                action: {
+                    type: card.querySelector(".cando-act-type")?.value || "can_tx",
+                    can_id: card.querySelector(".cando-act-can-id")?.value || "",
+                    payload: card.querySelector(".cando-act-payload")?.value || "",
+                    delay_ms: parseInt(card.querySelector(".cando-act-delay-ms")?.value || "10"),
+                    repeat: parseInt(card.querySelector(".cando-act-repeat")?.value || "1"),
+                    mqtt_topic: card.querySelector(".cando-act-mqtt-topic")?.value || "",
+                    webhook_url: card.querySelector(".cando-act-webhook-url")?.value || ""
+                }
             });
         });
+
         fetch("/store_cando", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ rules: rules })
         }).then(res => res.text()).then(msg => {
-            showNotification("CAN Do rules saved successfully!", "green");
+            showNotification("CAN Do automations saved successfully!", "green");
         }).catch(err => {
             showNotification("Failed to save CAN Do rules: " + err, "red");
         });

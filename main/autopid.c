@@ -2804,24 +2804,49 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
     for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
         cando_rule_t *rule = &g_cando_rules.rules[i];
 
-        /* Check for reset CAN ID frame to re-arm latched one-shot rule */
+        /* Check for reset CAN ID frame to re-arm latched one-shot or pending verify rule */
         if (rule->trigger.reset_can_id > 0 && msg->identifier == rule->trigger.reset_can_id) {
             rule->trigger.triggered_latched = false;
+            rule->trigger.pending_verify = false;
             continue;
+        }
+
+        /* Check for verification confirmation CAN frame in POLL_VERIFY mode */
+        if (rule->trigger.exec_mode == CANDO_EXEC_POLL_VERIFY && rule->trigger.pending_verify) {
+            if (rule->trigger.verify_can_id > 0 && msg->identifier == rule->trigger.verify_can_id) {
+                bool verify_ok = true;
+                if (rule->trigger.has_verify) {
+                    for (uint8_t v = 0; v < rule->trigger.verify_len; v++) {
+                        if (rule->trigger.verify_mask[v] != 0) {
+                            if (v >= msg->data_length_code ||
+                                (msg->data[v] & rule->trigger.verify_mask[v]) != (rule->trigger.verify_data[v] & rule->trigger.verify_mask[v])) {
+                                verify_ok = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (verify_ok) {
+                    rule->trigger.pending_verify = false;
+                    rule->trigger.triggered_latched = true; /* Confirmation received! Latch completed */
+                    rule->trigger.last_triggered_us = now_us;
+                }
+            }
         }
 
         bool eval_passed = cando_evaluate_rule(rule, msg, bus);
 
-        /* Update payload history for this rule */
+        /* Update payload history for this rule if it matches trigger CAN ID & bus */
         if (rule->trigger.source == CANDO_TRIG_CAN_MESSAGE && rule->trigger.can_id == msg->identifier && rule->trigger.bus == bus) {
             memcpy(rule->trigger.last_payload, msg->data, msg->data_length_code);
             rule->trigger.has_last_payload = true;
         }
 
         if (eval_passed) {
-            /* Enforce cooldown_ms */
-            if (rule->trigger.cooldown_ms > 0 && rule->trigger.last_triggered_us > 0) {
-                if ((now_us - rule->trigger.last_triggered_us) < ((int64_t)rule->trigger.cooldown_ms * 1000)) {
+            /* Enforce cooldown_ms (default minimum 50ms anti-loop safeguard) */
+            uint32_t cd_ms = (rule->trigger.cooldown_ms > 0) ? rule->trigger.cooldown_ms : 50;
+            if (rule->trigger.last_triggered_us > 0) {
+                if ((now_us - rule->trigger.last_triggered_us) < ((int64_t)cd_ms * 1000)) {
                     continue;
                 }
             }
@@ -2834,12 +2859,19 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 rule->trigger.triggered_latched = true;
             }
 
-            /* On-Change Edge Triggering */
-            if (rule->trigger.exec_mode == CANDO_EXEC_ON_CHANGE) {
-                if (memcmp(rule->trigger.last_payload, msg->data, msg->data_length_code) == 0) {
+            /* Poll & Verify Latching */
+            if (rule->trigger.exec_mode == CANDO_EXEC_POLL_VERIFY) {
+                if (rule->trigger.triggered_latched || rule->trigger.pending_verify) {
                     continue;
                 }
-                memcpy(rule->trigger.last_payload, msg->data, msg->data_length_code);
+                rule->trigger.pending_verify = true;
+            }
+
+            /* On-Change Edge Triggering */
+            if (rule->trigger.exec_mode == CANDO_EXEC_ON_CHANGE) {
+                if (rule->trigger.has_last_payload && memcmp(rule->trigger.last_payload, msg->data, msg->data_length_code) == 0) {
+                    continue;
+                }
             }
 
             rule->trigger.last_triggered_us = now_us;
@@ -2863,16 +2895,23 @@ void cando_process_timer_tick(void)
 {
     if (g_cando_rules.reverse_engineering_mode || !g_cando_rules.rules) return;
 
+    int64_t now_us = esp_timer_get_time();
+
     for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
         cando_rule_t *rule = &g_cando_rules.rules[i];
 
         /* Auto re-arm latch timeout */
-        if (rule->trigger.exec_mode == CANDO_EXEC_ONE_SHOT && rule->trigger.triggered_latched) {
-            if (rule->trigger.timeout_reset_ms > 0) {
-                int64_t now_us = esp_timer_get_time();
-                if ((now_us - rule->trigger.last_triggered_us) > ((int64_t)rule->trigger.timeout_reset_ms * 1000)) {
-                    rule->trigger.triggered_latched = false;
-                }
+        if (rule->trigger.triggered_latched && rule->trigger.timeout_reset_ms > 0) {
+            if ((now_us - rule->trigger.last_triggered_us) > ((int64_t)rule->trigger.timeout_reset_ms * 1000)) {
+                rule->trigger.triggered_latched = false;
+            }
+        }
+
+        /* Timeout pending verification if no confirmation arrived */
+        if (rule->trigger.exec_mode == CANDO_EXEC_POLL_VERIFY && rule->trigger.pending_verify) {
+            uint32_t v_timeout = (rule->trigger.timeout_reset_ms > 0) ? rule->trigger.timeout_reset_ms : 3000;
+            if ((now_us - rule->trigger.last_triggered_us) > ((int64_t)v_timeout * 1000)) {
+                rule->trigger.pending_verify = false;
             }
         }
     }
@@ -2926,11 +2965,46 @@ esp_err_t cando_load_config(void)
                     cando_rule_t *rule = &g_cando_rules.rules[i];
                     rule->enabled = true;
                     rule->trigger.source = CANDO_TRIG_CAN_MESSAGE;
-                    rule->trigger.exec_mode = CANDO_EXEC_CONTINUOUS;
+                    rule->trigger.exec_mode = CANDO_EXEC_ON_CHANGE;
+                    rule->trigger.cooldown_ms = 500;
+                    rule->trigger.timeout_reset_ms = 2000;
 
                     cJSON *name = cJSON_GetObjectItem(r, "name");
                     if (name && name->valuestring) {
                         rule->name = strdup(name->valuestring);
+                    }
+
+                    cJSON *em = cJSON_GetObjectItem(r, "exec_mode");
+                    if (em && em->valuestring) {
+                        if (strcmp(em->valuestring, "one_shot") == 0) rule->trigger.exec_mode = CANDO_EXEC_ONE_SHOT;
+                        else if (strcmp(em->valuestring, "on_change") == 0) rule->trigger.exec_mode = CANDO_EXEC_ON_CHANGE;
+                        else if (strcmp(em->valuestring, "poll_verify") == 0) rule->trigger.exec_mode = CANDO_EXEC_POLL_VERIFY;
+                        else if (strcmp(em->valuestring, "continuous") == 0) rule->trigger.exec_mode = CANDO_EXEC_CONTINUOUS;
+                    }
+
+                    cJSON *cd = cJSON_GetObjectItem(r, "cooldown_ms");
+                    if (cd && cJSON_IsNumber(cd)) rule->trigger.cooldown_ms = (uint32_t)cd->valueint;
+
+                    cJSON *t_reset = cJSON_GetObjectItem(r, "timeout_reset_ms");
+                    if (t_reset && cJSON_IsNumber(t_reset)) rule->trigger.timeout_reset_ms = (uint32_t)t_reset->valueint;
+
+                    cJSON *rcid = cJSON_GetObjectItem(r, "reset_can_id");
+                    if (rcid && rcid->valuestring && strlen(rcid->valuestring) > 0) {
+                        rule->trigger.reset_can_id = strtoul(rcid->valuestring, NULL, 0);
+                    }
+
+                    cJSON *vcid = cJSON_GetObjectItem(r, "verify_can_id");
+                    if (vcid && vcid->valuestring && strlen(vcid->valuestring) > 0) {
+                        rule->trigger.verify_can_id = strtoul(vcid->valuestring, NULL, 0);
+                    }
+
+                    cJSON *vp = cJSON_GetObjectItem(r, "verify_payload");
+                    if (vp && vp->valuestring && strlen(vp->valuestring) > 0) {
+                        cando_parse_payload_pattern(vp->valuestring,
+                                                    rule->trigger.verify_data,
+                                                    rule->trigger.verify_mask,
+                                                    &rule->trigger.verify_len,
+                                                    &rule->trigger.has_verify);
                     }
 
                     cJSON *cid = NULL;

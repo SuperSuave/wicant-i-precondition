@@ -179,6 +179,9 @@ typedef struct {
     uint32_t verify_can_id;  /* Expected status CAN ID after action */
     uint8_t verify_data[8];  /* Expected confirmation payload */
     uint8_t verify_mask[8];  /* Mask for confirmation payload */
+    uint8_t verify_len;      /* Length of verification payload pattern */
+    bool has_verify;         /* true if verification payload pattern active */
+    bool pending_verify;     /* true when action sent and waiting for verification CAN frame */
 
     /* Reset conditions */
     uint32_t reset_can_id;   /* Reset CAN ID to re-arm one-shot latch */

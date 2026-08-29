@@ -3619,6 +3619,59 @@ function loadAutoTable(jsonData) {
                     </select>
                 </div>
 
+                <!-- BLOCK: EXECUTION CONTROL & LOOP SAFEGUARDS -->
+                <div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                        <span style="font-weight: bold; color: #334155; font-size: 0.95rem;">⚙️ Execution Mode &amp; Loop Safeguards</span>
+                        <span style="font-size: 0.78rem; color: #64748b;">(Anti-Duplication &amp; Latching Protection)</span>
+                    </div>
+                    <table class="compact-form-table">
+                        <tr>
+                            <td style="width: 28%;">Execution Mode:</td>
+                            <td>
+                                <select class="cando-exec-mode" onchange="toggleCandoExecModeUI(this)">
+                                    <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>⚡ Edge-Triggered (On Change only - Recommended)</option>
+                                    <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>🔒 One-Shot &amp; Latch (Fire once until reset/timeout)</option>
+                                    <option value="poll_verify" ${ruleData.exec_mode === "poll_verify" ? "selected" : ""}>🔄 Poll &amp; Verify (Wait for confirmation status CAN ID)</option>
+                                    <option value="continuous" ${ruleData.exec_mode === "continuous" ? "selected" : ""}>🔁 Continuous (Fire on every matching message)</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Anti-Loop Cooldown (ms):</td>
+                            <td>
+                                <input type="number" class="cando-cooldown-ms" value="${ruleData.cooldown_ms !== undefined ? ruleData.cooldown_ms : 500}" min="0" max="60000" placeholder="500">
+                                <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">Min delay between triggers to prevent bus floods</span>
+                            </td>
+                        </tr>
+                        <tr class="cando-latch-row ${(!ruleData.exec_mode || ruleData.exec_mode === 'on_change' || ruleData.exec_mode === 'continuous') ? 'hidden' : ''}">
+                            <td>Auto Re-Arm Timeout (ms):</td>
+                            <td>
+                                <input type="number" class="cando-timeout-reset-ms" value="${ruleData.timeout_reset_ms !== undefined ? ruleData.timeout_reset_ms : 2000}" min="0" max="3600000" placeholder="2000">
+                                <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">Auto re-arms latch after inactivity (0 = manual reset only)</span>
+                            </td>
+                        </tr>
+                        <tr class="cando-latch-row ${(!ruleData.exec_mode || ruleData.exec_mode === 'on_change' || ruleData.exec_mode === 'continuous') ? 'hidden' : ''}">
+                            <td>Reset / Re-Arm CAN ID:</td>
+                            <td>
+                                <input type="text" class="cando-reset-can-id" value="${ruleData.reset_can_id || ''}" placeholder="e.g. 0x2C0 (Optional release frame)">
+                            </td>
+                        </tr>
+                        <tr class="cando-verify-row ${ruleData.exec_mode === 'poll_verify' ? '' : 'hidden'}">
+                            <td>Confirmation CAN ID:</td>
+                            <td>
+                                <input type="text" class="cando-verify-can-id" value="${ruleData.verify_can_id || ''}" placeholder="e.g. 0x7E8">
+                            </td>
+                        </tr>
+                        <tr class="cando-verify-row ${ruleData.exec_mode === 'poll_verify' ? '' : 'hidden'}">
+                            <td style="vertical-align: middle;">Expected Confirm Payload:</td>
+                            <td>
+                                ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
                 <!-- BLOCK 1: TRIGGERS (WHEN...) -->
                 <div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
@@ -4191,6 +4244,16 @@ function loadAutoTable(jsonData) {
         item.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
     }
 
+    function toggleCandoExecModeUI(selectElem) {
+        const card = selectElem.closest(".cando-rule-card");
+        if (!card) return;
+        const mode = selectElem.value;
+        const showLatch = (mode === "one_shot" || mode === "poll_verify");
+        const showVerify = (mode === "poll_verify");
+        card.querySelectorAll(".cando-latch-row").forEach(el => el.classList.toggle("hidden", !showLatch));
+        card.querySelectorAll(".cando-verify-row").forEach(el => el.classList.toggle("hidden", !showVerify));
+    }
+
     // Preset application handler
     function applyCandoPidPreset(selectElem) {
         const idx = selectElem.value;
@@ -4271,6 +4334,13 @@ function loadAutoTable(jsonData) {
         const rules = [];
         const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
         cards.forEach(card => {
+            const execMode = card.querySelector(".cando-exec-mode")?.value || "on_change";
+            const cooldownMs = parseInt(card.querySelector(".cando-cooldown-ms")?.value || "500");
+            const timeoutResetMs = parseInt(card.querySelector(".cando-timeout-reset-ms")?.value || "2000");
+            const resetCanId = card.querySelector(".cando-reset-can-id")?.value || "";
+            const verifyCanId = card.querySelector(".cando-verify-can-id")?.value || "";
+            const verifyPayload = getByteGridString(card, "cando-verify");
+
             const triggers = [];
             card.querySelectorAll(".cando-trigger-item").forEach(item => {
                 const fromPayload = getByteGridString(item, "cando-trig-from");
@@ -4309,6 +4379,7 @@ function loadAutoTable(jsonData) {
                 });
             });
 
+            const actions = [];
             card.querySelectorAll(".cando-action-item").forEach(item => {
                 const steps = [];
                 const payloadLines = [];
@@ -4342,6 +4413,12 @@ function loadAutoTable(jsonData) {
 
             rules.push({
                 name: card.querySelector(".cando-name")?.value || "",
+                exec_mode: execMode,
+                cooldown_ms: cooldownMs,
+                timeout_reset_ms: timeoutResetMs,
+                reset_can_id: resetCanId,
+                verify_can_id: verifyCanId,
+                verify_payload: verifyPayload,
                 triggers: triggers,
                 conditions: conditions,
                 actions: actions,

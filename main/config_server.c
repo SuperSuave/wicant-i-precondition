@@ -46,6 +46,7 @@
 #include "filesystem.h"
 #include "cJSON.h"
 #include "dev_status.h"
+#include "time_sync.h"
 #include<stdio.h>
 #include <stdlib.h>
 
@@ -742,16 +743,21 @@ static esp_err_t logo_handler(httpd_req_t *req)
 static esp_err_t store_cando_handler(httpd_req_t *req)
 {
     if (!req) return ESP_ERR_INVALID_ARG;
-    char buffer[1024];
     int total_len = req->content_len;
-    int cur_len = 0;
-    if (total_len >= (int)sizeof(buffer)) {
+    if (total_len <= 0 || total_len > MAX_FILE_SIZE) {
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
+    char *buffer = malloc(total_len + 1);
+    if (!buffer) {
+        httpd_resp_send_500(req);
+        return ESP_ERR_NO_MEM;
+    }
+    int cur_len = 0;
     while (cur_len < total_len) {
         int received = httpd_req_recv(req, buffer + cur_len, total_len - cur_len);
         if (received <= 0) {
+            free(buffer);
             httpd_resp_send_500(req);
             return ESP_FAIL;
         }
@@ -759,6 +765,7 @@ static esp_err_t store_cando_handler(httpd_req_t *req)
     }
     buffer[total_len] = '\0';
     cando_save_config(buffer);
+    free(buffer);
     httpd_resp_sendstr(req, "CAN Do configuration saved successfully.");
     return ESP_OK;
 }
@@ -771,6 +778,106 @@ static esp_err_t load_cando_handler(httpd_req_t *req)
     httpd_resp_sendstr(req, resp);
     if (resp) free(resp);
     return ESP_OK;
+}
+
+static esp_err_t get_time_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    time_t now = time(NULL);
+    char time_buf[64] = {0};
+    time_sync_get_formatted(time_buf, sizeof(time_buf));
+    time_sync_config_t *cfg = time_sync_get_config();
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddBoolToObject(root, "synced", time_sync_is_synced());
+    cJSON_AddNumberToObject(root, "epoch", (double)now);
+    cJSON_AddStringToObject(root, "time_str", time_buf);
+    cJSON_AddBoolToObject(root, "sntp_enabled", cfg ? cfg->sntp_enabled : false);
+    cJSON_AddStringToObject(root, "sntp_server", cfg ? cfg->sntp_server : "pool.ntp.org");
+    cJSON_AddStringToObject(root, "timezone", cfg ? cfg->timezone : "UTC0");
+
+    char *resp = cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, resp ? resp : "{}");
+    if (resp) free(resp);
+    return ESP_OK;
+}
+
+static esp_err_t set_time_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    char buffer[256];
+    int total_len = req->content_len;
+    if (total_len <= 0 || total_len >= (int)sizeof(buffer)) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    int received = httpd_req_recv(req, buffer, total_len);
+    if (received <= 0) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    buffer[received] = '\0';
+
+    cJSON *root = cJSON_Parse(buffer);
+    if (root) {
+        cJSON *ep = cJSON_GetObjectItem(root, "epoch");
+        cJSON *tz = cJSON_GetObjectItem(root, "tz");
+        int64_t epoch_sec = ep ? (int64_t)ep->valuedouble : 0;
+        const char *tz_str = (tz && tz->valuestring) ? tz->valuestring : NULL;
+        time_sync_set_time(epoch_sec, tz_str);
+        cJSON_Delete(root);
+        httpd_resp_sendstr(req, "Time updated successfully");
+        return ESP_OK;
+    }
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
+}
+
+static esp_err_t store_time_config_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    char buffer[256];
+    int total_len = req->content_len;
+    if (total_len <= 0 || total_len >= (int)sizeof(buffer)) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    int received = httpd_req_recv(req, buffer, total_len);
+    if (received <= 0) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    buffer[received] = '\0';
+
+    cJSON *root = cJSON_Parse(buffer);
+    if (root) {
+        time_sync_config_t cfg;
+        time_sync_load_config(&cfg);
+        cJSON *en = cJSON_GetObjectItem(root, "sntp_enabled");
+        if (en && cJSON_IsBool(en)) cfg.sntp_enabled = cJSON_IsTrue(en);
+        cJSON *srv = cJSON_GetObjectItem(root, "sntp_server");
+        if (srv && srv->valuestring && strlen(srv->valuestring) > 0) {
+            strncpy(cfg.sntp_server, srv->valuestring, sizeof(cfg.sntp_server) - 1);
+        }
+        cJSON *tz = cJSON_GetObjectItem(root, "timezone");
+        if (tz && tz->valuestring && strlen(tz->valuestring) > 0) {
+            strncpy(cfg.timezone, tz->valuestring, sizeof(cfg.timezone) - 1);
+        }
+        time_sync_save_config(&cfg);
+        if (cfg.sntp_enabled) {
+            time_sync_start_sntp();
+        } else {
+            time_sync_stop_sntp();
+        }
+        cJSON_Delete(root);
+        httpd_resp_sendstr(req, "Time configuration saved successfully");
+        return ESP_OK;
+    }
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
 }
 
 static esp_err_t store_auto_data_handler(httpd_req_t *req)
@@ -1696,6 +1803,27 @@ static const httpd_uri_t load_cando_uri = {
     .user_ctx  = NULL
 };
 
+static const httpd_uri_t get_time_uri = {
+    .uri       = "/get_time",
+    .method    = HTTP_GET,
+    .handler   = get_time_handler,
+    .user_ctx  = NULL
+};
+
+static const httpd_uri_t set_time_uri = {
+    .uri       = "/set_time",
+    .method    = HTTP_POST,
+    .handler   = set_time_handler,
+    .user_ctx  = NULL
+};
+
+static const httpd_uri_t store_time_config_uri = {
+    .uri       = "/store_time_config",
+    .method    = HTTP_POST,
+    .handler   = store_time_config_handler,
+    .user_ctx  = NULL
+};
+
 static const httpd_uri_t store_auto_data_uri = {
     .uri       = "/store_auto_data",
     .method    = HTTP_POST,
@@ -2496,7 +2624,7 @@ static httpd_handle_t config_server_init(void)
                        );
 
     // Start the httpd server
-	config.max_uri_handlers = 32;
+	config.max_uri_handlers = 40;
 	config.stack_size = 5120;
     ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
     if (httpd_start(&server, &config) == ESP_OK)
@@ -2515,6 +2643,9 @@ static httpd_handle_t config_server_init(void)
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
 		httpd_register_uri_handler(server, &load_cando_uri);
+		httpd_register_uri_handler(server, &get_time_uri);
+		httpd_register_uri_handler(server, &set_time_uri);
+		httpd_register_uri_handler(server, &store_time_config_uri);
 		httpd_register_uri_handler(server, &store_auto_data_uri);
 		httpd_register_uri_handler(server, &load_pid_auto_uri);
 		httpd_register_uri_handler(server, &load_pid_auto_conf_uri);
@@ -2536,7 +2667,7 @@ static httpd_handle_t config_server_init(void)
 void config_server_restart(void)
 {
     // Start the httpd server
-	config.max_uri_handlers = 32;
+	config.max_uri_handlers = 40;
 	// Ensure webhook cache is initialized after restarts too.
 	ha_webhooks_init();
     ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
@@ -2554,6 +2685,11 @@ void config_server_restart(void)
 		httpd_register_uri_handler(server, &system_reboot);
 		httpd_register_uri_handler(server, &store_canflt_uri);
 		httpd_register_uri_handler(server, &load_canflt_uri);
+		httpd_register_uri_handler(server, &store_cando_uri);
+		httpd_register_uri_handler(server, &load_cando_uri);
+		httpd_register_uri_handler(server, &get_time_uri);
+		httpd_register_uri_handler(server, &set_time_uri);
+		httpd_register_uri_handler(server, &store_time_config_uri);
 		httpd_register_uri_handler(server, &store_auto_data_uri);
 		httpd_register_uri_handler(server, &load_pid_auto_uri);
 		httpd_register_uri_handler(server, &load_pid_auto_conf_uri);

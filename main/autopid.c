@@ -2676,6 +2676,63 @@ bool cando_get_reverse_engineering_mode(void)
     return g_cando_rules.reverse_engineering_mode;
 }
 
+static bool cando_parse_payload_pattern(const char *str, uint8_t *data, uint8_t *mask, uint8_t *len, bool *has_filter)
+{
+    if (!str || !data || !mask || !len || !has_filter) return false;
+    memset(data, 0, 8);
+    memset(mask, 0, 8);
+    *len = 0;
+    *has_filter = false;
+
+    const char *p = str;
+    uint8_t byte_idx = 0;
+
+    while (*p && byte_idx < 8) {
+        while (*p == ' ' || *p == '\t' || *p == ',') p++;
+        if (!*p) break;
+
+        char high_ch = *p++;
+        char low_ch = (*p && *p != ' ' && *p != '\t' && *p != ',') ? *p++ : '*';
+
+        uint8_t d_val = 0;
+        uint8_t m_val = 0;
+
+        if (high_ch == '*' || high_ch == 'X' || high_ch == 'x' || high_ch == '?') {
+            m_val |= 0x00;
+        } else {
+            int h = (high_ch >= '0' && high_ch <= '9') ? (high_ch - '0') :
+                    (high_ch >= 'A' && high_ch <= 'F') ? (high_ch - 'A' + 10) :
+                    (high_ch >= 'a' && high_ch <= 'f') ? (high_ch - 'a' + 10) : -1;
+            if (h >= 0) {
+                d_val |= (uint8_t)(h << 4);
+                m_val |= 0xF0;
+            }
+        }
+
+        if (low_ch == '*' || low_ch == 'X' || low_ch == 'x' || low_ch == '?') {
+            m_val |= 0x00;
+        } else {
+            int l = (low_ch >= '0' && low_ch <= '9') ? (low_ch - '0') :
+                    (low_ch >= 'A' && low_ch <= 'F') ? (low_ch - 'A' + 10) :
+                    (low_ch >= 'a' && low_ch <= 'f') ? (low_ch - 'a' + 10) : -1;
+            if (l >= 0) {
+                d_val |= (uint8_t)(l & 0x0F);
+                m_val |= 0x0F;
+            }
+        }
+
+        data[byte_idx] = d_val;
+        mask[byte_idx] = m_val;
+        if (m_val != 0) {
+            *has_filter = true;
+        }
+        byte_idx++;
+    }
+
+    *len = byte_idx;
+    return true;
+}
+
 bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus)
 {
     if (!rule || !rule->enabled) return false;
@@ -2687,17 +2744,42 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
         if (rule->trigger.can_id != msg->identifier) return false;
         if (rule->trigger.is_ext != (msg->extd != 0)) return false;
 
-        if (rule->trigger.match_type == CANDO_MATCH_EXACT) {
-            if (msg->data_length_code != rule->trigger.data_len) return false;
-            return (memcmp(msg->data, rule->trigger.match_data, rule->trigger.data_len) == 0);
-        } else if (rule->trigger.match_type == CANDO_MATCH_MASK) {
-            for (uint8_t i = 0; i < rule->trigger.data_len; i++) {
-                if ((msg->data[i] & rule->trigger.match_mask[i]) != (rule->trigger.match_data[i] & rule->trigger.match_mask[i])) {
-                    return false;
+        /* Check From payload filter (previous frame state) */
+        if (rule->trigger.has_from) {
+            if (!rule->trigger.has_last_payload) {
+                return false;
+            }
+            for (uint8_t i = 0; i < rule->trigger.from_len; i++) {
+                if (rule->trigger.from_mask[i] != 0) {
+                    if ((rule->trigger.last_payload[i] & rule->trigger.from_mask[i]) != (rule->trigger.from_data[i] & rule->trigger.from_mask[i])) {
+                        return false;
+                    }
                 }
             }
-            return true;
-        } else if (rule->trigger.match_type == CANDO_MATCH_EXPRESSION) {
+        }
+
+        /* Check To payload filter (current frame state) */
+        if (rule->trigger.has_to) {
+            for (uint8_t i = 0; i < rule->trigger.data_len; i++) {
+                if (rule->trigger.match_mask[i] != 0) {
+                    if (i >= msg->data_length_code) return false;
+                    if ((msg->data[i] & rule->trigger.match_mask[i]) != (rule->trigger.match_data[i] & rule->trigger.match_mask[i])) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        /* Check Any Change mode (when both from and to have no active filter mask) */
+        if (rule->trigger.any_change || (!rule->trigger.has_from && !rule->trigger.has_to && rule->trigger.match_type != CANDO_MATCH_EXPRESSION)) {
+            if (rule->trigger.has_last_payload) {
+                if (memcmp(rule->trigger.last_payload, msg->data, msg->data_length_code) == 0) {
+                    return false; // No change in payload
+                }
+            }
+        }
+
+        if (rule->trigger.match_type == CANDO_MATCH_EXPRESSION) {
             if (rule->trigger.expression) {
                 double val = 0.0;
                 if (evaluate_expression((uint8_t *)rule->trigger.expression, (uint8_t *)msg->data, (double)msg->data_length_code, &val)) {
@@ -2706,6 +2788,8 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
             }
             return false;
         }
+
+        return true;
     }
     return false;
 }
@@ -2726,7 +2810,15 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
             continue;
         }
 
-        if (cando_evaluate_rule(rule, msg, bus)) {
+        bool eval_passed = cando_evaluate_rule(rule, msg, bus);
+
+        /* Update payload history for this rule */
+        if (rule->trigger.source == CANDO_TRIG_CAN_MESSAGE && rule->trigger.can_id == msg->identifier && rule->trigger.bus == bus) {
+            memcpy(rule->trigger.last_payload, msg->data, msg->data_length_code);
+            rule->trigger.has_last_payload = true;
+        }
+
+        if (eval_passed) {
             /* Enforce cooldown_ms */
             if (rule->trigger.cooldown_ms > 0 && rule->trigger.last_triggered_us > 0) {
                 if ((now_us - rule->trigger.last_triggered_us) < ((int64_t)rule->trigger.cooldown_ms * 1000)) {
@@ -2770,16 +2862,15 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 void cando_process_timer_tick(void)
 {
     if (g_cando_rules.reverse_engineering_mode || !g_cando_rules.rules) return;
-    int64_t now_us = esp_timer_get_time();
 
     for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
         cando_rule_t *rule = &g_cando_rules.rules[i];
-        if (!rule->enabled) continue;
 
-        /* Auto re-arm latched one-shot rule if timeout_reset_ms expired */
+        /* Auto re-arm latch timeout */
         if (rule->trigger.exec_mode == CANDO_EXEC_ONE_SHOT && rule->trigger.triggered_latched) {
-            if (rule->trigger.timeout_reset_ms > 0 && rule->trigger.last_triggered_us > 0) {
-                if ((now_us - rule->trigger.last_triggered_us) >= ((int64_t)rule->trigger.timeout_reset_ms * 1000)) {
+            if (rule->trigger.timeout_reset_ms > 0) {
+                int64_t now_us = esp_timer_get_time();
+                if ((now_us - rule->trigger.last_triggered_us) > ((int64_t)rule->trigger.timeout_reset_ms * 1000)) {
                     rule->trigger.triggered_latched = false;
                 }
             }
@@ -2842,43 +2933,150 @@ esp_err_t cando_load_config(void)
                         rule->name = strdup(name->valuestring);
                     }
 
-                    cJSON *cid = cJSON_GetObjectItem(r, "can_id");
-                    if (cid && cid->valuestring) {
+                    cJSON *cid = NULL;
+                    cJSON *bus_item = NULL;
+                    cJSON *from_p = NULL;
+                    cJSON *to_p = NULL;
+
+                    cJSON *trigs_arr = cJSON_GetObjectItem(r, "triggers");
+                    cJSON *trig_obj = cJSON_GetObjectItem(r, "trigger");
+                    if (trigs_arr && cJSON_IsArray(trigs_arr) && cJSON_GetArraySize(trigs_arr) > 0) {
+                        trig_obj = cJSON_GetArrayItem(trigs_arr, 0);
+                    }
+
+                    if (trig_obj) {
+                        cid = cJSON_GetObjectItem(trig_obj, "can_id");
+                        bus_item = cJSON_GetObjectItem(trig_obj, "bus");
+                        from_p = cJSON_GetObjectItem(trig_obj, "from_payload");
+                        to_p = cJSON_GetObjectItem(trig_obj, "to_payload");
+                        if (!to_p) to_p = cJSON_GetObjectItem(trig_obj, "match_payload");
+                    } else {
+                        cid = cJSON_GetObjectItem(r, "can_id");
+                        from_p = cJSON_GetObjectItem(r, "from_payload");
+                        to_p = cJSON_GetObjectItem(r, "match_payload");
+                    }
+
+                    if (cid && cid->valuestring && strlen(cid->valuestring) > 0) {
                         rule->trigger.can_id = strtoul(cid->valuestring, NULL, 0);
                         rule->trigger.is_ext = (rule->trigger.can_id > 0x7FF) || (strlen(cid->valuestring) > 5);
                     }
+                    if (bus_item && cJSON_IsNumber(bus_item)) {
+                        rule->trigger.bus = (uint8_t)bus_item->valueint;
+                    }
 
-                    cJSON *match_p = cJSON_GetObjectItem(r, "match_payload");
-                    if (match_p && match_p->valuestring) {
-                        rule->trigger.match_type = CANDO_MATCH_EXACT;
-                        unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
-                        int parsed = sscanf(match_p->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
-                                           &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
-                        rule->trigger.data_len = (uint8_t)parsed;
-                        unsigned int parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
-                        for (int k = 0; k < parsed; k++) {
-                            rule->trigger.match_data[k] = (uint8_t)parsed_bytes[k];
+                    if (from_p && from_p->valuestring && strlen(from_p->valuestring) > 0) {
+                        cando_parse_payload_pattern(from_p->valuestring,
+                                                    rule->trigger.from_data,
+                                                    rule->trigger.from_mask,
+                                                    &rule->trigger.from_len,
+                                                    &rule->trigger.has_from);
+                    }
+
+                    if (to_p && to_p->valuestring && strlen(to_p->valuestring) > 0) {
+                        rule->trigger.match_type = CANDO_MATCH_MASK;
+                        cando_parse_payload_pattern(to_p->valuestring,
+                                                    rule->trigger.match_data,
+                                                    rule->trigger.match_mask,
+                                                    &rule->trigger.data_len,
+                                                    &rule->trigger.has_to);
+                    }
+
+                    if (!rule->trigger.has_from && !rule->trigger.has_to) {
+                        rule->trigger.any_change = true;
+                    }
+
+                    cJSON *acts_arr = cJSON_GetObjectItem(r, "actions");
+                    cJSON *act_obj = cJSON_GetObjectItem(r, "action");
+                    if (acts_arr && cJSON_IsArray(acts_arr) && cJSON_GetArraySize(acts_arr) > 0) {
+                        act_obj = cJSON_GetArrayItem(acts_arr, 0);
+                    }
+
+                    cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
+                    cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
+                    cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
+                    cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
+                    cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
+
+                    uint32_t can_id_val = 0;
+                    bool is_ext = false;
+                    uint8_t target_bus = 0;
+                    uint32_t delay_val = 10;
+
+                    if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
+                        can_id_val = strtoul(txid->valuestring, NULL, 0);
+                        is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
+                    }
+                    if (act_bus && cJSON_IsNumber(act_bus)) {
+                        target_bus = (uint8_t)act_bus->valueint;
+                    }
+                    if (act_delay && cJSON_IsNumber(act_delay)) {
+                        delay_val = (uint32_t)act_delay->valueint;
+                    }
+
+                    /* Count total expanded sequence steps */
+                    uint32_t total_steps = 0;
+                    if (steps_arr && cJSON_IsArray(steps_arr)) {
+                        int num_items = cJSON_GetArraySize(steps_arr);
+                        for (int k = 0; k < num_items; k++) {
+                            cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+                            cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                            int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+                            total_steps += r_cnt;
                         }
                     }
 
-                    cJSON *txid = cJSON_GetObjectItem(r, "tx_can_id");
-                    cJSON *txp = cJSON_GetObjectItem(r, "tx_payload");
+                    if (total_steps > 0 && total_steps <= 128) {
+                        rule->action.steps = calloc(total_steps, sizeof(cando_sequence_step_t));
+                        if (rule->action.steps) {
+                            uint8_t s_idx = 0;
+                            int num_items = cJSON_GetArraySize(steps_arr);
+                            for (int k = 0; k < num_items && s_idx < total_steps; k++) {
+                                cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+                                cJSON *sp = cJSON_GetObjectItem(st, "payload");
+                                cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                                int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
 
-                    if (txid && txid->valuestring && txp && txp->valuestring) {
+                                uint8_t byte_data[8] = {0};
+                                uint8_t byte_len = 0;
+                                if (sp && sp->valuestring) {
+                                    unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+                                    int parsed = sscanf(sp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
+                                                        &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
+                                    byte_len = (uint8_t)parsed;
+                                    unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                                    for (int m = 0; m < parsed; m++) {
+                                        byte_data[m] = (uint8_t)pb[m];
+                                    }
+                                }
+
+                                for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
+                                    cando_sequence_step_t *step = &rule->action.steps[s_idx++];
+                                    step->tx_can_id = can_id_val;
+                                    step->is_ext = is_ext;
+                                    step->target_bus = target_bus;
+                                    step->delay_ms = delay_val;
+                                    step->tx_len = byte_len;
+                                    memcpy(step->tx_data, byte_data, byte_len);
+                                }
+                            }
+                            rule->action.step_count = s_idx;
+                        }
+                    } else if (txp && txp->valuestring && can_id_val > 0) {
                         rule->action.step_count = 1;
                         rule->action.steps = calloc(1, sizeof(cando_sequence_step_t));
                         if (rule->action.steps) {
                             cando_sequence_step_t *step = &rule->action.steps[0];
-                            step->tx_can_id = strtoul(txid->valuestring, NULL, 0);
-                            step->is_ext = (step->tx_can_id > 0x7FF) || (strlen(txid->valuestring) > 5);
-                            step->target_bus = 0;
+                            step->tx_can_id = can_id_val;
+                            step->is_ext = is_ext;
+                            step->target_bus = target_bus;
+                            step->delay_ms = delay_val;
                             unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
                             int parsed = sscanf(txp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
-                                               &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
+                                                &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
                             step->tx_len = (uint8_t)parsed;
-                            unsigned int parsed_bytes[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
-                            for (int k = 0; k < parsed; k++) {
-                                step->tx_data[k] = (uint8_t)parsed_bytes[k];
+                            unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                            for (int m = 0; m < parsed; m++) {
+                                step->tx_data[m] = (uint8_t)pb[m];
                             }
                         }
                     }

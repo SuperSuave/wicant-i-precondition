@@ -145,9 +145,16 @@ typedef struct {
     bool is_ext;            /* true if 29-bit extended ID */
     cando_match_type_t match_type;
     cando_exec_mode_t exec_mode;
-    uint8_t match_data[8];  /* Expected byte pattern */
+    uint8_t match_data[8];  /* Expected byte pattern (To / current payload) */
     uint8_t match_mask[8];  /* Bitmask for matching */
     uint8_t data_len;       /* Length of expected match payload */
+    uint8_t from_data[8];   /* Expected previous byte pattern (From payload) */
+    uint8_t from_mask[8];   /* Bitmask for From payload */
+    uint8_t from_len;       /* Length of From payload */
+    bool has_from;          /* true if From payload filter is active */
+    bool has_to;            /* true if To payload filter is active */
+    bool any_change;        /* true if any payload change triggers */
+    bool has_last_payload;  /* true once first frame has been tracked */
     char *expression;       /* Optional trigger math expression string */
 
     /* Clock & Calendar Fields */

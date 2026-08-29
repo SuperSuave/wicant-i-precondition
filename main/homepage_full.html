@@ -416,6 +416,9 @@
                 width: calc(100% - 200px);
             }
         }
+        .hidden, tr.hidden {
+            display: none !important;
+        }
         .system-button {
             min-width: 110px;
             width: auto;
@@ -880,7 +883,7 @@
 
         <div id="automate" class="tabcontent">
             <!-- "CAN Do" Rule Builder: Trigger -> Condition -> Action -->
-            <div class="section-title" style="margin-top:1rem;">"CAN Do" Automations (Trigger &rarr; Condition &rarr; Action)</div>
+            <div class="section-title" style="margin-top:1rem;">CAN Do Automations (Trigger &rarr; Condition &rarr; Action)</div>
             <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                 <label><b>Reverse Engineering Mode:</b></label>
                 <select id="cando_rev_mode" onchange="toggleCandoRevMode(this.value);" style="width: auto; display: inline-block;">
@@ -891,9 +894,12 @@
 
             <div id="cando_rules_container"></div>
 
-            <div class="button-group" style="margin-bottom: 1.5rem;">
-                <button type="button" class="primary-button" onclick="addCandoRuleUI()">+ Add Automation Rule</button>
+            <div class="button-group" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <button type="button" class="primary-button" onclick="addCandoRuleUI()">+ CAN Do Rule</button>
                 <button type="button" class="store" id="cando_store_btn" onclick="saveCandoRulesUI()">Store CAN Do Rules</button>
+                <button type="button" class="system-button" onclick="exportCandoRules()" style="background: #0284c7; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer;">📥 Backup Rules</button>
+                <button type="button" class="system-button" onclick="document.getElementById('cando_import_file').click()" style="background: #475569; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer;">📤 Restore Rules</button>
+                <input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)" style="display: none;" />
             </div>
 
             <div class="section-title" style="margin-top:1rem;">Home Assistant</div>
@@ -1283,6 +1289,59 @@
                 </tr>
             </table>
         
+            <div class="divider"></div>
+            <div class="section-title">Date &amp; Time (SNTP / Clock Sync)</div>
+            <table class="form-table">
+                <tr>
+                    <td>Device Current Time:</td>
+                    <td>
+                        <span id="device_time_display" style="font-family: monospace; font-weight: bold; font-size: 1rem; color: #1e40af;">--:--:--</span>
+                        <span id="device_time_sync_badge" style="margin-left: 8px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: #475569;">Checking...</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sync from Browser:</td>
+                    <td>
+                        <button type="button" class="system-button" onclick="syncTimeFromBrowser()" style="background: #2563eb; color: #ffffff; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; border-radius: 4px;">🕒 Sync Clock from Browser</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Background SNTP Client:</td>
+                    <td>
+                        <select id="sntp_enabled" onchange="saveTimeConfigUI()">
+                            <option value="disable">Disabled</option>
+                            <option value="enable">Enabled</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="sntp_server_row" class="hidden">
+                    <td>NTP Server Address:</td>
+                    <td>
+                        <input type="text" id="sntp_server" value="pool.ntp.org" placeholder="pool.ntp.org" onchange="saveTimeConfigUI()">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Timezone (POSIX TZ):</td>
+                    <td>
+                        <select id="tz_preset" onchange="applyTzPreset(this)" style="margin-bottom: 4px;">
+                            <option value="">-- Select Common Timezone --</option>
+                            <option value="UTC0">UTC / GMT</option>
+                            <option value="EST5EDT,M3.2.0,M11.1.0">US Eastern (EST/EDT)</option>
+                            <option value="CST6CDT,M3.2.0,M11.1.0">US Central (CST/CDT)</option>
+                            <option value="MST7MDT,M3.2.0,M11.1.0">US Mountain (MST/MDT)</option>
+                            <option value="PST8PDT,M3.2.0,M11.1.0">US Pacific (PST/PDT)</option>
+                            <option value="GMT0BST,M3.5.0/1,M10.5.0">Europe / London (GMT/BST)</option>
+                            <option value="CET-1CEST,M3.5.0,M10.5.0/3">Europe / Berlin / Paris (CET/CEST)</option>
+                            <option value="AEST-10AEDT,M10.1.0,M4.1.0/3">Australia / Sydney (AEST/AEDT)</option>
+                            <option value="JST-9">Asia / Tokyo (JST)</option>
+                            <option value="custom">Custom POSIX String...</option>
+                        </select>
+                        <input type="text" id="sntp_timezone" value="UTC0" placeholder="UTC0" onchange="saveTimeConfigUI()">
+                    </td>
+                </tr>
+            </table>
+
+            <div class="divider"></div>
             <div class="section-title">Firmware Update</div>
             <form id="ota_form" action="/upload/ota.bin" method="post" enctype="multipart/form-data">
                 <table class="form-table">
@@ -1399,6 +1458,8 @@
             document.getElementById("submit_button").disabled = true;
 
             syncPreconButtonToggle();
+            fetchDeviceTime();
+            loadCandoRulesUI();
         });
 
         // If the currently selected button is one of the extra options, show
@@ -3516,7 +3577,7 @@ function loadAutoTable(jsonData) {
         { name: "Steering Wheel Seek Left", can_id: "0x652", payload: "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00" }
     ];
 
-    function addCandoRuleUI(ruleData = {}) {
+    function addCandoRuleUI(ruleData = {}, isCollapsed = false) {
         const container = document.getElementById("cando_rules_container");
         if (!container) return;
 
@@ -3528,139 +3589,606 @@ function loadAutoTable(jsonData) {
         ruleDiv.style.marginBottom = "1.5rem";
         ruleDiv.style.backgroundColor = "#fafafa";
 
-        const trigSource = ruleData.trigger?.source || "can_msg";
-        const condType = ruleData.condition?.type || "none";
-        const actType = ruleData.action?.type || "can_tx";
-
         ruleDiv.innerHTML = `
             <!-- Header -->
-            <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">
-                <div class="header-left">
-                    <span class="pid-title" style="font-size: 1.1rem; color: #1e293b;">
-                        ⚡ <b>${ruleData.name || "New Automation"}</b>
+            <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCandoHeaderClick(event, this)">
+                <div class="header-left" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="collapse-btn cando-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem;" onclick="event.stopPropagation(); toggleCandoRuleCard(this);">${isCollapsed ? "▼" : "▲"}</button>
+                    <span class="pid-title" style="font-size: 1.05rem; color: #1e293b;">
+                        ⚡ <b class="cando-title-text">${ruleData.name || "New Automation"}</b>
                     </span>
                 </div>
-                <div class="header-right">
-                    <button type="button" class="delete-btn" onclick="this.closest('.pid-entry').remove();">Delete Rule</button>
+                <div class="header-right" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); toggleCandoRuleCard(this);" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0;">${isCollapsed ? "Edit" : "Collapse"}</button>
+                    <button type="button" class="delete-btn" onclick="event.stopPropagation(); this.closest('.pid-entry').remove();" style="margin: 0;">Delete Rule</button>
                 </div>
             </div>
 
-            <div style="margin-bottom: 0.8rem;">
-                <label><b>Rule Name:</b></label>
-                <input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Steering Seek Left Automation" style="width: 100%; margin-top: 0.2rem;">
-            </div>
+            <div class="cando-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
+                <div style="margin-bottom: 0.8rem; margin-top: 0.5rem;">
+                    <label><b>Rule Name:</b></label>
+                    <input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Steering Seek Left Automation" style="width: 100%; margin-top: 0.2rem;">
+                </div>
 
-            <!-- Known Signal Quick Picker -->
-            <div style="background: #e0f2fe; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>💡 <b>Preset Signal Picker:</b></span>
-                <select class="cando-pid-picker" onchange="applyCandoPidPreset(this)" style="flex-grow: 1;">
-                    <option value="">-- Select Known Signal / PID --</option>
-                    ${CANDO_KNOWN_PIDS.map((p, idx) => `<option value="${idx}">${p.name} (${p.can_id})</option>`).join("")}
-                </select>
-            </div>
+                <!-- Known Signal Quick Picker -->
+                <div style="background: #e0f2fe; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>💡 <b>Preset Signal Picker:</b></span>
+                    <select class="cando-pid-picker" onchange="applyCandoPidPreset(this)" style="flex-grow: 1;">
+                        <option value="">-- Add Known Signal / PID as Trigger + Action --</option>
+                        ${CANDO_KNOWN_PIDS.map((p, idx) => `<option value="${idx}">${p.name} (${p.can_id})</option>`).join("")}
+                    </select>
+                </div>
 
-            <!-- BLOCK 1: TRIGGERS (WHEN...) -->
-            <div style="border: 1px solid #93c5fd; background: #eff6ff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <div style="font-weight: bold; color: #1d4ed8; margin-bottom: 0.5rem;">1. TRIGGER ("WHEN...")</div>
-                <table class="compact-form-table">
-                    <tr>
-                        <td style="width: 25%;">Trigger Source:</td>
-                        <td>
-                            <select class="cando-trig-source" onchange="toggleCandoTrigUI(this)">
-                                <option value="can_msg" ${trigSource === "can_msg" ? "selected" : ""}>Incoming CAN Message</option>
-                                <option value="clock" ${trigSource === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
-                                <option value="interval" ${trigSource === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
-                                <option value="voltage" ${trigSource === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr class="trig-field-can ${trigSource === "can_msg" ? "" : "hidden"}">
-                        <td>Trigger CAN ID (Hex):</td>
-                        <td><input type="text" class="cando-trig-can-id" value="${ruleData.trigger?.can_id || "0x2C0"}" placeholder="0x2C0"></td>
-                    </tr>
-                    <tr class="trig-field-can ${trigSource === "can_msg" ? "" : "hidden"}">
-                        <td>Match Payload Pattern:</td>
-                        <td><input type="text" class="cando-trig-match-payload" value="${ruleData.trigger?.match_payload || "02 10 03 00 00 00 00 00"}" placeholder="02 10 03 ..."></td>
-                    </tr>
-                    <tr class="trig-field-clock ${trigSource === "clock" ? "" : "hidden"}">
-                        <td>Trigger Time (HH:MM:SS):</td>
-                        <td><input type="text" class="cando-trig-time" value="${ruleData.trigger?.time || "08:00:00"}" placeholder="08:00:00"></td>
-                    </tr>
-                    <tr class="trig-field-interval ${trigSource === "interval" ? "" : "hidden"}">
-                        <td>Interval (Seconds):</td>
-                        <td><input type="number" class="cando-trig-interval-sec" value="${ruleData.trigger?.interval_sec || 10}"></td>
-                    </tr>
-                    <tr class="trig-field-voltage ${trigSource === "voltage" ? "" : "hidden"}">
-                        <td>Voltage Threshold (V):</td>
-                        <td><input type="text" class="cando-trig-voltage-val" value="${ruleData.trigger?.voltage_val || "12.2"}" placeholder="12.2"></td>
-                    </tr>
-                </table>
-            </div>
+                <!-- BLOCK 1: TRIGGERS (WHEN...) -->
+                <div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <div>
+                            <span style="font-weight: bold; color: #c2410c; font-size: 1rem;">🟠 1. TRIGGERS ("WHEN...")</span>
+                            <span style="font-size: 0.8rem; color: #9a3412; margin-left: 0.5rem;">(Fires when ANY trigger occurs)</span>
+                        </div>
+                        <button type="button" class="system-button" onclick="addCandoTriggerItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #ea580c; color: white;">+ Add Trigger</button>
+                    </div>
+                    <div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                </div>
 
-            <!-- BLOCK 2: CONDITIONS (AND IF...) -->
-            <div style="border: 1px solid #fde68a; background: #fffbeb; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <div style="font-weight: bold; color: #b45309; margin-bottom: 0.5rem;">2. CONDITION ("AND IF...")</div>
-                <table class="compact-form-table">
-                    <tr>
-                        <td style="width: 25%;">Safety Gate Condition:</td>
-                        <td>
-                            <select class="cando-cond-type" onchange="toggleCandoCondUI(this)">
-                                <option value="none" ${condType === "none" ? "selected" : ""}>None (Always Allow)</option>
-                                <option value="speed_zero" ${condType === "speed_zero" ? "selected" : ""}>Vehicle Speed == 0 km/h (Parked)</option>
-                                <option value="param_range" ${condType === "param_range" ? "selected" : ""}>Parameter Value Range</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr class="cond-field-range ${condType === "param_range" ? "" : "hidden"}">
-                        <td>Expression Check:</td>
-                        <td><input type="text" class="cando-cond-expr" value="${ruleData.condition?.expression || "[B0:B1] == 0"}" placeholder="[B0:B1] == 0"></td>
-                    </tr>
-                </table>
-            </div>
+                <!-- BLOCK 2: CONDITIONS (AND IF...) -->
+                <div class="cando-section-box" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <div>
+                            <span style="font-weight: bold; color: #1d4ed8; font-size: 1rem;">🔵 2. CONDITIONS ("AND IF...")</span>
+                            <span style="font-size: 0.8rem; color: #1e40af; margin-left: 0.5rem;">(Optional - must pass to run actions)</span>
+                        </div>
+                        <button type="button" class="system-button" onclick="addCandoConditionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #2563eb; color: white;">+ Add Condition</button>
+                    </div>
+                    <div class="cando-conditions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                </div>
 
-            <!-- BLOCK 3: ACTIONS (THEN DO...) -->
-            <div style="border: 1px solid #a7f3d0; background: #f0fdf4; padding: 1rem; border-radius: 8px;">
-                <div style="font-weight: bold; color: #047857; margin-bottom: 0.5rem;">3. ACTION ("THEN DO...")</div>
-                <table class="compact-form-table">
-                    <tr>
-                        <td style="width: 25%;">Action Type:</td>
-                        <td>
-                            <select class="cando-act-type" onchange="toggleCandoActUI(this)">
-                                <option value="can_tx" ${actType === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
-                                <option value="mqtt" ${actType === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
-                                <option value="webhook" ${actType === "webhook" ? "selected" : ""}>Trigger Webhook POST</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
-                        <td>Response CAN ID (Hex):</td>
-                        <td><input type="text" class="cando-act-can-id" value="${ruleData.action?.can_id || "0x652"}" placeholder="0x652"></td>
-                    </tr>
-                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
-                        <td>Payload Step(s) [Multi-Line]:</td>
-                        <td><textarea class="cando-act-payload" rows="3" placeholder="FF 7F FF FF 07 00 00 00&#10;FF 3F FF FF 07 00 00 00">${ruleData.action?.payload || "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00"}</textarea></td>
-                    </tr>
-                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
-                        <td>Inter-Frame Delay (ms):</td>
-                        <td><input type="number" class="cando-act-delay-ms" value="${ruleData.action?.delay_ms || 10}"></td>
-                    </tr>
-                    <tr class="act-field-can ${actType === "can_tx" ? "" : "hidden"}">
-                        <td>Sequence Repeat Count:</td>
-                        <td><input type="number" class="cando-act-repeat" value="${ruleData.action?.repeat || 3}"></td>
-                    </tr>
-                    <tr class="act-field-mqtt ${actType === "mqtt" ? "" : "hidden"}">
-                        <td>MQTT Topic & Payload:</td>
-                        <td><input type="text" class="cando-act-mqtt-topic" value="${ruleData.action?.mqtt_topic || "wican/alert"}" placeholder="wican/alert"></td>
-                    </tr>
-                    <tr class="act-field-webhook ${actType === "webhook" ? "" : "hidden"}">
-                        <td>Webhook URL:</td>
-                        <td><input type="text" class="cando-act-webhook-url" value="${ruleData.action?.webhook_url || "http://192.168.1.100:8123/api/webhook/wican_event"}" placeholder="http://192.168.1.100:8123/..."></td>
-                    </tr>
-                </table>
+                <!-- BLOCK 3: ACTIONS (THEN DO...) -->
+                <div class="cando-section-box" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 1rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <div>
+                            <span style="font-weight: bold; color: #047857; font-size: 1rem;">🟢 3. ACTIONS ("THEN DO...")</span>
+                            <span style="font-size: 0.8rem; color: #065f46; margin-left: 0.5rem;">(Executed in sequence)</span>
+                        </div>
+                        <button type="button" class="system-button" onclick="addCandoActionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #059669; color: white;">+ Add Action</button>
+                    </div>
+                    <div class="cando-actions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                </div>
             </div>
         `;
 
+        const nameInput = ruleDiv.querySelector(".cando-name");
+        const titleText = ruleDiv.querySelector(".cando-title-text");
+        if (nameInput && titleText) {
+            nameInput.addEventListener("input", () => {
+                titleText.textContent = nameInput.value.trim() || "New Automation";
+            });
+        }
+
         container.appendChild(ruleDiv);
+
+        // Populate Triggers (supports array or legacy single trigger)
+        const trigContainer = ruleDiv.querySelector(".cando-triggers-container");
+        const triggers = ruleData.triggers || (ruleData.trigger ? [ruleData.trigger] : [{ source: "can_msg" }]);
+        triggers.forEach(trig => renderCandoTriggerItem(trigContainer, trig));
+
+        // Populate Conditions (supports array or legacy single condition)
+        const condContainer = ruleDiv.querySelector(".cando-conditions-container");
+        const conditions = ruleData.conditions || (ruleData.condition && ruleData.condition.type !== "none" ? [ruleData.condition] : []);
+        conditions.forEach(cond => renderCandoConditionItem(condContainer, cond));
+
+        // Populate Actions (supports array or legacy single action)
+        const actContainer = ruleDiv.querySelector(".cando-actions-container");
+        const actions = ruleData.actions || (ruleData.action ? [ruleData.action] : [{ type: "can_tx" }]);
+        actions.forEach(act => renderCandoActionItem(actContainer, act));
+    }
+
+    // --- BYTE GRID HELPER FUNCTIONS (D1 - D8) ---
+    function renderByteInputsHTML(prefixClass, payloadStr = "") {
+        const rawBytes = (payloadStr || "").trim().split(/\s+/);
+        let html = `<div class="${prefixClass}-grid" style="display: inline-flex; gap: 5px; align-items: flex-end; flex-wrap: wrap; margin-top: 4px;">`;
+        for (let i = 0; i < 8; i++) {
+            const rawVal = rawBytes[i] || "";
+            const val = (rawVal === "**" || rawVal === "*") ? "" : rawVal;
+            html += `
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: #475569; margin-bottom: 2px;">D${i + 1}</span>
+                    <input type="text" class="${prefixClass}-byte" data-idx="${i}" maxlength="2" value="${val}" placeholder="*" 
+                           oninput="handleByteInput(this)" onkeydown="handleByteKeyDown(event, this)" onpaste="handleBytePaste(event, this)"
+                           style="width: 36px; text-align: center; font-family: monospace; font-weight: bold; font-size: 0.88rem; padding: 4px 2px; text-transform: uppercase; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc;">
+                </div>
+            `;
+        }
+        html += `
+            <button type="button" onclick="clearByteInputs(this, '${prefixClass}')" style="padding: 4px 7px; font-size: 0.72rem; height: 28px; margin-bottom: 1px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer;" title="Clear all bytes">Clear</button>
+        </div>`;
+        return html;
+    }
+
+    function handleBytePaste(event, input) {
+        event.preventDefault();
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const pastedData = clipboardData ? clipboardData.getData('Text') : "";
+        if (!pastedData) return;
+
+        let cleaned = pastedData.trim();
+        let hexTokens = [];
+        if (cleaned.includes(" ")) {
+            hexTokens = cleaned.split(/\s+/);
+        } else if (/^[0-9A-Fa-f*]+$/.test(cleaned) && cleaned.length > 2) {
+            for (let i = 0; i < cleaned.length && i < 16; i += 2) {
+                hexTokens.push(cleaned.substr(i, 2));
+            }
+        } else {
+            hexTokens = [cleaned];
+        }
+
+        const grid = input.closest("[class$='-grid']");
+        if (!grid) return;
+        const startIdx = parseInt(input.getAttribute("data-idx")) || 0;
+        const inputs = grid.querySelectorAll("input[type='text']");
+
+        for (let i = 0; i < hexTokens.length && (startIdx + i) < inputs.length; i++) {
+            let tok = hexTokens[i].toUpperCase();
+            inputs[startIdx + i].value = (tok === "**" || tok === "*") ? "" : tok;
+        }
+
+        const nextFocus = Math.min(startIdx + hexTokens.length, inputs.length - 1);
+        if (inputs[nextFocus]) inputs[nextFocus].focus();
+    }
+
+    function handleByteInput(input) {
+        input.value = input.value.toUpperCase();
+        if (input.value.length === 2) {
+            const grid = input.closest("[class$='-grid']");
+            const nextIdx = parseInt(input.getAttribute("data-idx")) + 1;
+            const nextInput = grid ? grid.querySelector(`[data-idx="${nextIdx}"]`) : null;
+            if (nextInput) {
+                nextInput.focus();
+                nextInput.select();
+            }
+        }
+    }
+
+    function handleByteKeyDown(event, input) {
+        const grid = input.closest("[class$='-grid']");
+        const idx = parseInt(input.getAttribute("data-idx"));
+        if (event.key === "Backspace" && input.value === "" && idx > 0) {
+            const prevInput = grid ? grid.querySelector(`[data-idx="${idx - 1}"]`) : null;
+            if (prevInput) {
+                prevInput.focus();
+                prevInput.select();
+            }
+        } else if (event.key === "ArrowRight" && idx < 7) {
+            const nextInput = grid ? grid.querySelector(`[data-idx="${idx + 1}"]`) : null;
+            if (nextInput) { nextInput.focus(); nextInput.select(); }
+        } else if (event.key === "ArrowLeft" && idx > 0) {
+            const prevInput = grid ? grid.querySelector(`[data-idx="${idx - 1}"]`) : null;
+            if (prevInput) { prevInput.focus(); prevInput.select(); }
+        } else if (event.key === " ") {
+            event.preventDefault();
+            const nextInput = grid ? grid.querySelector(`[data-idx="${idx + 1}"]`) : null;
+            if (nextInput) { nextInput.focus(); nextInput.select(); }
+        }
+    }
+
+    function clearByteInputs(btn, prefixClass) {
+        const grid = btn.closest(`.${prefixClass}-grid`);
+        if (grid) {
+            grid.querySelectorAll(`.${prefixClass}-byte`).forEach(inp => inp.value = "");
+        }
+    }
+
+    function getByteGridString(container, prefixClass) {
+        const grid = container.querySelector(`.${prefixClass}-grid`);
+        if (!grid) return "";
+        const inputs = grid.querySelectorAll(`.${prefixClass}-byte`);
+        const bytes = [];
+        let hasAny = false;
+        inputs.forEach(inp => {
+            let v = inp.value.trim().toUpperCase();
+            if (!v || v === "*") {
+                bytes.push("**");
+            } else if (v.length === 1) {
+                bytes.push("*" + v);
+                hasAny = true;
+            } else {
+                bytes.push(v);
+                hasAny = true;
+            }
+        });
+        if (!hasAny) return "";
+        while (bytes.length > 0 && bytes[bytes.length - 1] === "**") {
+            bytes.pop();
+        }
+        return bytes.join(" ");
+    }
+
+    function populateByteGrid(container, prefixClass, payloadStr) {
+        const grid = container.querySelector(`.${prefixClass}-grid`);
+        if (!grid) return;
+        const bytes = (payloadStr || "").trim().split(/\s+/);
+        const inputs = grid.querySelectorAll(`.${prefixClass}-byte`);
+        inputs.forEach((inp, idx) => {
+            inp.value = (bytes[idx] && bytes[idx] !== "**" && bytes[idx] !== "*") ? bytes[idx] : "";
+        });
+    }
+
+    // --- TRIGGER SUB-ITEMS ---
+    function addCandoTriggerItem(buttonElem) {
+        const card = buttonElem.closest(".cando-rule-card");
+        const container = card.querySelector(".cando-triggers-container");
+        renderCandoTriggerItem(container, { source: "can_msg" });
+    }
+
+    function renderCandoTriggerItem(container, data = {}) {
+        const source = data.source || "can_msg";
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "cando-trigger-item";
+        itemDiv.style.background = "#ffffff";
+        itemDiv.style.border = "1px solid #fed7aa";
+        itemDiv.style.borderRadius = "6px";
+        itemDiv.style.padding = "0.8rem";
+        itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+
+        itemDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #fed7aa; padding-bottom: 0.4rem;">
+                <span style="font-weight: 600; font-size: 0.9rem; color: #ea580c;">Trigger Type:</span>
+                <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-trigger-item').remove();">✕ Remove</button>
+            </div>
+            <table class="compact-form-table">
+                <tr>
+                    <td style="width: 25%;">Trigger Source:</td>
+                    <td>
+                        <select class="cando-trig-source" onchange="toggleCandoTrigItemUI(this)">
+                            <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Incoming CAN Message</option>
+                            <option value="clock" ${source === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
+                            <option value="interval" ${source === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
+                            <option value="voltage" ${source === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
+                            <option value="state_change" ${source === "state_change" ? "selected" : ""}>Parameter / State Change</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                    <td>Trigger CAN ID (Hex):</td>
+                    <td><input type="text" class="cando-trig-can-id" value="${data.can_id || "0x2C0"}" placeholder="0x2C0"></td>
+                </tr>
+                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                    <td>Bus:</td>
+                    <td>
+                        <select class="cando-trig-bus">
+                            <option value="0" ${data.bus === 0 || !data.bus ? "selected" : ""}>CAN 0 (Primary)</option>
+                            <option value="1" ${data.bus === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                    <td style="vertical-align: middle;">From Payload (D1–D8, Optional):</td>
+                    <td>
+                        ${renderByteInputsHTML("cando-trig-from", data.from_payload || "")}
+                    </td>
+                </tr>
+                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                    <td style="vertical-align: middle;">To Payload (D1–D8, Optional):</td>
+                    <td>
+                        ${renderByteInputsHTML("cando-trig-to", data.to_payload || data.match_payload || "")}
+                    </td>
+                </tr>
+                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                    <td colspan="2" style="font-size: 0.78rem; color: #6b7280; padding-top: 2px;">
+                        💡 <i><b>Byte Grid D1 – D8:</b> Enter exact hex (e.g. <code>A5</code>), wildcard high/low nibble (e.g. <code>3*</code> or <code>*F</code>), or leave blank/<code>*</code> for any. Fill either <b>From</b> or <b>To</b>, or leave both blank to trigger on <b>any change</b>.</i>
+                    </td>
+                </tr>
+                <tr class="trig-field-clock ${source === "clock" ? "" : "hidden"}">
+                    <td>Trigger Time (HH:MM:SS):</td>
+                    <td><input type="text" class="cando-trig-time" value="${data.time || "08:00:00"}" placeholder="08:00:00"></td>
+                </tr>
+                <tr class="trig-field-interval ${source === "interval" ? "" : "hidden"}">
+                    <td>Interval (Seconds):</td>
+                    <td><input type="number" class="cando-trig-interval-sec" value="${data.interval_sec || 10}"></td>
+                </tr>
+                <tr class="trig-field-voltage ${source === "voltage" ? "" : "hidden"}">
+                    <td>Voltage Threshold (V):</td>
+                    <td><input type="text" class="cando-trig-voltage-val" value="${data.voltage_val || "12.2"}" placeholder="12.2"></td>
+                </tr>
+                <tr class="trig-field-voltage ${source === "voltage" ? "" : "hidden"}">
+                    <td>Condition Direction:</td>
+                    <td>
+                        <select class="cando-trig-voltage-dir">
+                            <option value="below" ${data.voltage_dir === "below" || !data.voltage_dir ? "selected" : ""}>Voltage Drops Below (&lt;)</option>
+                            <option value="above" ${data.voltage_dir === "above" ? "selected" : ""}>Voltage Rises Above (&gt;)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="trig-field-expr ${source === "state_change" ? "" : "hidden"}">
+                    <td>Expression / Parameter:</td>
+                    <td><input type="text" class="cando-trig-expr" value="${data.expression || "[B0:B1]"}" placeholder="[B0:B1]"></td>
+                </tr>
+            </table>
+        `;
+        container.appendChild(itemDiv);
+    }
+
+    function toggleCandoTrigItemUI(selectElem) {
+        const item = selectElem.closest(".cando-trigger-item");
+        const val = selectElem.value;
+        item.querySelectorAll(".trig-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg"));
+        item.querySelectorAll(".trig-field-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
+        item.querySelectorAll(".trig-field-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
+        item.querySelectorAll(".trig-field-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
+        item.querySelectorAll(".trig-field-expr").forEach(el => el.classList.toggle("hidden", val !== "state_change"));
+    }
+
+    // --- CONDITION SUB-ITEMS ---
+    function addCandoConditionItem(buttonElem) {
+        const card = buttonElem.closest(".cando-rule-card");
+        const container = card.querySelector(".cando-conditions-container");
+        renderCandoConditionItem(container, { type: "param_range", invert: false });
+    }
+
+    function renderCandoConditionItem(container, data = {}) {
+        const type = data.type || "param_range";
+        const isInverted = data.invert === true || data.invert === "true";
+        const days = data.days || ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "cando-condition-item";
+        itemDiv.style.background = "#ffffff";
+        itemDiv.style.border = "1px solid #bfdbfe";
+        itemDiv.style.borderRadius = "6px";
+        itemDiv.style.padding = "0.8rem";
+        itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+
+        itemDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #bfdbfe; padding-bottom: 0.4rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: #2563eb;">Condition:</span>
+                    <label style="font-size: 0.85rem; color: #1e3a8a; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                        <input type="checkbox" class="cando-cond-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
+                        <b>NOT</b> (Invert condition)
+                    </label>
+                </div>
+                <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-condition-item').remove();">✕ Remove</button>
+            </div>
+            <table class="compact-form-table">
+                <tr>
+                    <td style="width: 25%;">Condition Type:</td>
+                    <td>
+                        <select class="cando-cond-type" onchange="toggleCandoCondItemUI(this)">
+                            <option value="param_range" ${type === "param_range" ? "selected" : ""}>Parameter Value Range / Expression</option>
+                            <option value="can_state" ${type === "can_state" ? "selected" : ""}>CAN Message State / Pattern</option>
+                            <option value="speed_zero" ${type === "speed_zero" ? "selected" : ""}>Vehicle Speed == 0 km/h (Parked)</option>
+                            <option value="day_of_week" ${type === "day_of_week" ? "selected" : ""}>Day of Week</option>
+                            <option value="time_window" ${type === "time_window" ? "selected" : ""}>Time Window (Between Times)</option>
+                            <option value="voltage" ${type === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="cond-field-expr ${type === "param_range" ? "" : "hidden"}">
+                    <td>Expression Check:</td>
+                    <td><input type="text" class="cando-cond-expr" value="${data.expression || "[B0:B1] == 0"}" placeholder="[B0:B1] == 0"></td>
+                </tr>
+                <tr class="cond-field-can ${type === "can_state" ? "" : "hidden"}">
+                    <td>CAN ID (Hex):</td>
+                    <td><input type="text" class="cando-cond-can-id" value="${data.can_id || "0x2C0"}" placeholder="0x2C0"></td>
+                </tr>
+                <tr class="cond-field-can ${type === "can_state" ? "" : "hidden"}">
+                    <td style="vertical-align: middle;">Expected State Pattern (D1–D8):</td>
+                    <td>
+                        ${renderByteInputsHTML("cando-cond-can", data.match_payload || "")}
+                    </td>
+                </tr>
+                <tr class="cond-field-days ${type === "day_of_week" ? "" : "hidden"}">
+                    <td>Active Days:</td>
+                    <td>
+                        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
+                            ${["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(d => `
+                                <label style="display: inline-flex; align-items: center; font-size: 0.85rem; font-weight: normal; margin-right: 0.3rem;">
+                                    <input type="checkbox" class="cando-cond-day" value="${d}" ${days.includes(d) ? "checked" : ""} style="width: auto; height: auto; margin-right: 0.2rem;"> ${d.toUpperCase()}
+                                </label>
+                            `).join("")}
+                        </div>
+                    </td>
+                </tr>
+                <tr class="cond-field-time ${type === "time_window" ? "" : "hidden"}">
+                    <td>Start Time (HH:MM):</td>
+                    <td><input type="text" class="cando-cond-start-time" value="${data.start_time || "06:00"}" placeholder="06:00"></td>
+                </tr>
+                <tr class="cond-field-time ${type === "time_window" ? "" : "hidden"}">
+                    <td>End Time (HH:MM):</td>
+                    <td><input type="text" class="cando-cond-end-time" value="${data.end_time || "22:00"}" placeholder="22:00"></td>
+                </tr>
+                <tr class="cond-field-volt ${type === "voltage" ? "" : "hidden"}">
+                    <td>Voltage Threshold (V):</td>
+                    <td><input type="text" class="cando-cond-voltage-val" value="${data.voltage_val || "12.0"}" placeholder="12.0"></td>
+                </tr>
+                <tr class="cond-field-volt ${type === "voltage" ? "" : "hidden"}">
+                    <td>Comparison:</td>
+                    <td>
+                        <select class="cando-cond-voltage-dir">
+                            <option value="above" ${data.voltage_dir === "above" || !data.voltage_dir ? "selected" : ""}>Voltage &gt; Threshold (Sufficient Battery)</option>
+                            <option value="below" ${data.voltage_dir === "below" ? "selected" : ""}>Voltage &lt; Threshold (Low Battery)</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        `;
+        container.appendChild(itemDiv);
+    }
+
+    function toggleCandoCondItemUI(selectElem) {
+        const item = selectElem.closest(".cando-condition-item");
+        const val = selectElem.value;
+        item.querySelectorAll(".cond-field-expr").forEach(el => el.classList.toggle("hidden", val !== "param_range"));
+        item.querySelectorAll(".cond-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_state"));
+        item.querySelectorAll(".cond-field-days").forEach(el => el.classList.toggle("hidden", val !== "day_of_week"));
+        item.querySelectorAll(".cond-field-time").forEach(el => el.classList.toggle("hidden", val !== "time_window"));
+        item.querySelectorAll(".cond-field-volt").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
+    }
+
+    // --- PAYLOAD STEP SUB-ITEMS (D1 - D8) ---
+    function renderCandoPayloadStep(container, stepData = {}) {
+        const stepDiv = document.createElement("div");
+        stepDiv.className = "cando-payload-step-item";
+        stepDiv.style.background = "#f0fdf4";
+        stepDiv.style.border = "1px solid #86efac";
+        stepDiv.style.borderRadius = "6px";
+        stepDiv.style.padding = "0.5rem 0.7rem";
+        stepDiv.style.marginBottom = "0.5rem";
+
+        const repeatVal = stepData.repeat !== undefined ? stepData.repeat : 1;
+        const stepIdx = container.querySelectorAll(".cando-payload-step-item").length + 1;
+
+        stepDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                <span class="cando-step-label" style="font-weight: 700; font-size: 0.8rem; color: #166534;">Step <span class="step-num">${stepIdx}</span>:</span>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <label style="font-size: 0.8rem; color: #166534; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
+                        Repeat:
+                        <input type="number" class="cando-step-repeat" value="${repeatVal}" min="1" max="1000" style="width: 46px; text-align: center; padding: 2px 4px; border-radius: 4px; border: 1px solid #86efac; background: #ffffff;">
+                        <span style="font-size: 0.75rem;">x</span>
+                    </label>
+                    <button type="button" class="delete-btn" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;" onclick="removeCandoPayloadStep(this);">✕</button>
+                </div>
+            </div>
+            ${renderByteInputsHTML("cando-step-byte", stepData.payload || "")}
+        `;
+        container.appendChild(stepDiv);
+    }
+
+    function addCandoPayloadStep(buttonElem) {
+        const card = buttonElem.closest(".cando-action-item");
+        const container = card.querySelector(".cando-payload-steps-container");
+        renderCandoPayloadStep(container, { payload: "00 00 00 00 00 00 00 00", repeat: 1 });
+        renumberCandoPayloadSteps(container);
+    }
+
+    function removeCandoPayloadStep(btn) {
+        const container = btn.closest(".cando-payload-steps-container");
+        btn.closest(".cando-payload-step-item").remove();
+        if (container) renumberCandoPayloadSteps(container);
+    }
+
+    function renumberCandoPayloadSteps(container) {
+        if (!container) return;
+        container.querySelectorAll(".cando-payload-step-item").forEach((step, idx) => {
+            const numSpan = step.querySelector(".step-num");
+            if (numSpan) numSpan.textContent = idx + 1;
+        });
+    }
+
+    // --- ACTION SUB-ITEMS ---
+    function addCandoActionItem(buttonElem) {
+        const card = buttonElem.closest(".cando-rule-card");
+        const container = card.querySelector(".cando-actions-container");
+        renderCandoActionItem(container, { type: "can_tx" });
+    }
+
+    function renderCandoActionItem(container, data = {}) {
+        const type = data.type || "can_tx";
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "cando-action-item";
+        itemDiv.style.background = "#ffffff";
+        itemDiv.style.border = "1px solid #bbf7d0";
+        itemDiv.style.borderRadius = "6px";
+        itemDiv.style.padding = "0.8rem";
+        itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+
+        itemDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #bbf7d0; padding-bottom: 0.4rem;">
+                <span style="font-weight: 600; font-size: 0.9rem; color: #059669;">Action Step:</span>
+                <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-action-item').remove();">✕ Remove</button>
+            </div>
+            <table class="compact-form-table">
+                <tr>
+                    <td style="width: 25%;">Action Type:</td>
+                    <td>
+                        <select class="cando-act-type" onchange="toggleCandoActItemUI(this)">
+                            <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
+                            <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
+                            <option value="mqtt" ${type === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
+                            <option value="webhook" ${type === "webhook" ? "selected" : ""}>Trigger Webhook POST</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                    <td>Response CAN ID (Hex):</td>
+                    <td><input type="text" class="cando-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652"></td>
+                </tr>
+                <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                    <td>Target Bus:</td>
+                    <td>
+                        <select class="cando-act-bus">
+                            <option value="0" ${data.bus === 0 || !data.bus ? "selected" : ""}>CAN 0 (Primary)</option>
+                            <option value="1" ${data.bus === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                    <td>Inter-Frame Delay (ms):</td>
+                    <td><input type="number" class="cando-act-delay-ms" value="${data.delay_ms || 10}"></td>
+                </tr>
+                <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                    <td colspan="2" style="padding-top: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                            <span style="font-weight: 700; font-size: 0.85rem; color: #065f46;">Payload Step(s) [D1–D8]:</span>
+                            <button type="button" class="system-button" style="padding: 2px 8px; font-size: 0.78rem; background: #059669; color: #ffffff; border: none; border-radius: 4px;" onclick="addCandoPayloadStep(this)">+ Add Step</button>
+                        </div>
+                        <div class="cando-payload-steps-container"></div>
+                    </td>
+                </tr>
+                <tr class="act-field-delay ${type === "delay" ? "" : "hidden"}">
+                    <td>Wait Duration (ms):</td>
+                    <td><input type="number" class="cando-act-wait-ms" value="${data.wait_ms || 500}" placeholder="e.g. 500"></td>
+                </tr>
+                <tr class="act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
+                    <td>MQTT Topic:</td>
+                    <td><input type="text" class="cando-act-mqtt-topic" value="${data.mqtt_topic || "wican/alert"}" placeholder="wican/alert"></td>
+                </tr>
+                <tr class="act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
+                    <td>MQTT Payload:</td>
+                    <td><input type="text" class="cando-act-mqtt-payload" value="${data.mqtt_payload || "triggered"}" placeholder="triggered"></td>
+                </tr>
+                <tr class="act-field-webhook ${type === "webhook" ? "" : "hidden"}">
+                    <td>Webhook URL:</td>
+                    <td><input type="text" class="cando-act-webhook-url" value="${data.webhook_url || "http://192.168.1.100:8123/api/webhook/wican_event"}" placeholder="http://192.168.1.100:8123/..."></td>
+                </tr>
+            </table>
+        `;
+        container.appendChild(itemDiv);
+
+        // Populate steps in container
+        const stepsContainer = itemDiv.querySelector(".cando-payload-steps-container");
+        if (stepsContainer) {
+            if (data.steps && Array.isArray(data.steps) && data.steps.length > 0) {
+                data.steps.forEach(s => renderCandoPayloadStep(stepsContainer, s));
+            } else if (data.payload) {
+                const lines = data.payload.split("\n");
+                lines.forEach(l => {
+                    const trimmed = l.trim();
+                    if (!trimmed) return;
+                    let repeat = 1;
+                    let p = trimmed;
+                    const m = trimmed.match(/\[x(\d+)\]/i) || trimmed.match(/x(\d+)$/i);
+                    if (m) {
+                        repeat = parseInt(m[1]) || 1;
+                        p = trimmed.replace(m[0], "").trim();
+                    }
+                    renderCandoPayloadStep(stepsContainer, { payload: p, repeat: repeat });
+                });
+            } else {
+                renderCandoPayloadStep(stepsContainer, { payload: "FF 7F FF FF 07 00 00 00", repeat: 3 });
+                renderCandoPayloadStep(stepsContainer, { payload: "FF 3F FF FF 07 00 00 00", repeat: 3 });
+            }
+        }
+    }
+
+    function toggleCandoActItemUI(selectElem) {
+        const item = selectElem.closest(".cando-action-item");
+        const val = selectElem.value;
+        item.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_tx"));
+        item.querySelectorAll(".act-field-delay").forEach(el => el.classList.toggle("hidden", val !== "delay"));
+        item.querySelectorAll(".act-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "mqtt"));
+        item.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
     }
 
     // Preset application handler
@@ -3671,64 +4199,155 @@ function loadAutoTable(jsonData) {
         const card = selectElem.closest(".cando-rule-card");
         if (!card || !pid) return;
 
-        card.querySelector(".cando-trig-can-id").value = pid.can_id;
-        card.querySelector(".cando-trig-match-payload").value = pid.payload.split("\n")[0];
-        card.querySelector(".cando-act-can-id").value = pid.can_id;
-        card.querySelector(".cando-act-payload").value = pid.payload;
+        // Populate / update first trigger or create one
+        let trigContainer = card.querySelector(".cando-triggers-container");
+        let firstTrig = trigContainer.querySelector(".cando-trigger-item");
+        if (!firstTrig) {
+            renderCandoTriggerItem(trigContainer, { source: "can_msg", can_id: pid.can_id, to_payload: pid.payload.split("\n")[0] });
+        } else {
+            const src = firstTrig.querySelector(".cando-trig-source");
+            if (src) { src.value = "can_msg"; toggleCandoTrigItemUI(src); }
+            const cid = firstTrig.querySelector(".cando-trig-can-id");
+            if (cid) cid.value = pid.can_id;
+            populateByteGrid(firstTrig, "cando-trig-to", pid.payload.split("\n")[0]);
+            populateByteGrid(firstTrig, "cando-trig-from", "");
+        }
+
+        // Populate / update first action or create one
+        let actContainer = card.querySelector(".cando-actions-container");
+        let firstAct = actContainer.querySelector(".cando-action-item");
+        if (!firstAct) {
+            renderCandoActionItem(actContainer, { type: "can_tx", can_id: pid.can_id, payload: pid.payload });
+        } else {
+            const typ = firstAct.querySelector(".cando-act-type");
+            if (typ) { typ.value = "can_tx"; toggleCandoActItemUI(typ); }
+            const acid = firstAct.querySelector(".cando-act-can-id");
+            if (acid) acid.value = pid.can_id;
+            const stepsContainer = firstAct.querySelector(".cando-payload-steps-container");
+            if (stepsContainer) {
+                stepsContainer.innerHTML = "";
+                const lines = pid.payload.split("\n");
+                lines.forEach(l => {
+                    if (l.trim()) renderCandoPayloadStep(stepsContainer, { payload: l.trim(), repeat: 3 });
+                });
+            }
+        }
+
         showNotification("Pre-filled rule with known signal: " + pid.name, "green");
     }
 
-    // Toggle Visibility Helpers
-    function toggleCandoTrigUI(selectElem) {
-        const card = selectElem.closest(".cando-rule-card");
-        const val = selectElem.value;
-        card.querySelectorAll(".trig-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg"));
-        card.querySelectorAll(".trig-field-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
-        card.querySelectorAll(".trig-field-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
-        card.querySelectorAll(".trig-field-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
+    // Card toggle collapse helpers
+    function toggleCandoRuleCard(elem) {
+        const card = elem.closest(".cando-rule-card");
+        if (!card) return;
+        const body = card.querySelector(".cando-rule-body");
+        const editBtn = card.querySelector(".cando-edit-btn");
+        const toggleBtn = card.querySelector(".cando-toggle-btn");
+        if (!body) return;
+
+        const isHidden = body.classList.contains("hidden") || body.style.display === "none";
+        if (isHidden) {
+            body.classList.remove("hidden");
+            body.style.display = "block";
+            if (editBtn) editBtn.textContent = "Collapse";
+            if (toggleBtn) toggleBtn.textContent = "▲";
+        } else {
+            body.classList.add("hidden");
+            body.style.display = "none";
+            if (editBtn) editBtn.textContent = "Edit";
+            if (toggleBtn) toggleBtn.textContent = "▼";
+        }
     }
 
-    function toggleCandoCondUI(selectElem) {
-        const card = selectElem.closest(".cando-rule-card");
-        const val = selectElem.value;
-        card.querySelectorAll(".cond-field-range").forEach(el => el.classList.toggle("hidden", val !== "param_range"));
-    }
-
-    function toggleCandoActUI(selectElem) {
-        const card = selectElem.closest(".cando-rule-card");
-        const val = selectElem.value;
-        card.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_tx"));
-        card.querySelectorAll(".act-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "mqtt"));
-        card.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
+    function handleCandoHeaderClick(event, headerElem) {
+        if (event.target.closest("button") || event.target.closest("input") || event.target.closest("select") || event.target.closest("textarea")) {
+            return;
+        }
+        toggleCandoRuleCard(headerElem);
     }
 
     // Save & Load
     function saveCandoRulesUI() {
         const rules = [];
-        document.querySelectorAll("#cando_rules_container .cando-rule-card").forEach(card => {
+        const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+        cards.forEach(card => {
+            const triggers = [];
+            card.querySelectorAll(".cando-trigger-item").forEach(item => {
+                const fromPayload = getByteGridString(item, "cando-trig-from");
+                const toPayload = getByteGridString(item, "cando-trig-to");
+                triggers.push({
+                    source: item.querySelector(".cando-trig-source")?.value || "can_msg",
+                    can_id: item.querySelector(".cando-trig-can-id")?.value || "",
+                    from_payload: fromPayload,
+                    to_payload: toPayload,
+                    match_payload: toPayload,
+                    bus: parseInt(item.querySelector(".cando-trig-bus")?.value || "0"),
+                    time: item.querySelector(".cando-trig-time")?.value || "",
+                    interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
+                    voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
+                    voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
+                    expression: item.querySelector(".cando-trig-expr")?.value || ""
+                });
+            });
+
+            const conditions = [];
+            card.querySelectorAll(".cando-condition-item").forEach(item => {
+                const days = [];
+                item.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
+                const condCanPayload = getByteGridString(item, "cando-cond-can");
+                conditions.push({
+                    type: item.querySelector(".cando-cond-type")?.value || "param_range",
+                    invert: item.querySelector(".cando-cond-invert")?.checked || false,
+                    expression: item.querySelector(".cando-cond-expr")?.value || "",
+                    can_id: item.querySelector(".cando-cond-can-id")?.value || "",
+                    match_payload: condCanPayload,
+                    days: days,
+                    start_time: item.querySelector(".cando-cond-start-time")?.value || "",
+                    end_time: item.querySelector(".cando-cond-end-time")?.value || "",
+                    voltage_val: item.querySelector(".cando-cond-voltage-val")?.value || "",
+                    voltage_dir: item.querySelector(".cando-cond-voltage-dir")?.value || "above"
+                });
+            });
+
+            card.querySelectorAll(".cando-action-item").forEach(item => {
+                const steps = [];
+                const payloadLines = [];
+                item.querySelectorAll(".cando-payload-step-item").forEach(stepItem => {
+                    const p = getByteGridString(stepItem, "cando-step-byte");
+                    const rep = parseInt(stepItem.querySelector(".cando-step-repeat")?.value || "1");
+                    if (p) {
+                        steps.push({ payload: p, repeat: rep });
+                        payloadLines.push(rep > 1 ? `${p} [x${rep}]` : p);
+                    }
+                });
+
+                actions.push({
+                    type: item.querySelector(".cando-act-type")?.value || "can_tx",
+                    can_id: item.querySelector(".cando-act-can-id")?.value || "",
+                    steps: steps,
+                    payload: payloadLines.join("\n"),
+                    bus: parseInt(item.querySelector(".cando-act-bus")?.value || "0"),
+                    delay_ms: parseInt(item.querySelector(".cando-act-delay-ms")?.value || "10"),
+                    wait_ms: parseInt(item.querySelector(".cando-act-wait-ms")?.value || "500"),
+                    mqtt_topic: item.querySelector(".cando-act-mqtt-topic")?.value || "",
+                    mqtt_payload: item.querySelector(".cando-act-mqtt-payload")?.value || "",
+                    webhook_url: item.querySelector(".cando-act-webhook-url")?.value || ""
+                });
+            });
+
+            // Maintain legacy trigger/condition/action for backward compatibility
+            const primaryTrig = triggers[0] || { source: "can_msg" };
+            const primaryCond = conditions[0] || { type: "none" };
+            const primaryAct = actions[0] || { type: "can_tx" };
+
             rules.push({
                 name: card.querySelector(".cando-name")?.value || "",
-                trigger: {
-                    source: card.querySelector(".cando-trig-source")?.value || "can_msg",
-                    can_id: card.querySelector(".cando-trig-can-id")?.value || "",
-                    match_payload: card.querySelector(".cando-trig-match-payload")?.value || "",
-                    time: card.querySelector(".cando-trig-time")?.value || "",
-                    interval_sec: parseInt(card.querySelector(".cando-trig-interval-sec")?.value || "10"),
-                    voltage_val: card.querySelector(".cando-trig-voltage-val")?.value || ""
-                },
-                condition: {
-                    type: card.querySelector(".cando-cond-type")?.value || "none",
-                    expression: card.querySelector(".cando-cond-expr")?.value || ""
-                },
-                action: {
-                    type: card.querySelector(".cando-act-type")?.value || "can_tx",
-                    can_id: card.querySelector(".cando-act-can-id")?.value || "",
-                    payload: card.querySelector(".cando-act-payload")?.value || "",
-                    delay_ms: parseInt(card.querySelector(".cando-act-delay-ms")?.value || "10"),
-                    repeat: parseInt(card.querySelector(".cando-act-repeat")?.value || "1"),
-                    mqtt_topic: card.querySelector(".cando-act-mqtt-topic")?.value || "",
-                    webhook_url: card.querySelector(".cando-act-webhook-url")?.value || ""
-                }
+                triggers: triggers,
+                conditions: conditions,
+                actions: actions,
+                trigger: primaryTrig,
+                condition: primaryCond,
+                action: primaryAct
             });
         });
 
@@ -3738,6 +4357,18 @@ function loadAutoTable(jsonData) {
             body: JSON.stringify({ rules: rules })
         }).then(res => res.text()).then(msg => {
             showNotification("CAN Do automations saved successfully!", "green");
+            // Collapse all rule cards and show Edit button
+            cards.forEach(card => {
+                const body = card.querySelector(".cando-rule-body");
+                const editBtn = card.querySelector(".cando-edit-btn");
+                const toggleBtn = card.querySelector(".cando-toggle-btn");
+                if (body) {
+                    body.classList.add("hidden");
+                    body.style.display = "none";
+                }
+                if (editBtn) editBtn.textContent = "Edit";
+                if (toggleBtn) toggleBtn.textContent = "▼";
+            });
         }).catch(err => {
             showNotification("Failed to save CAN Do rules: " + err, "red");
         });
@@ -3748,7 +4379,7 @@ function loadAutoTable(jsonData) {
             if (data && data.rules && Array.isArray(data.rules)) {
                 const container = document.getElementById("cando_rules_container");
                 if (container) container.innerHTML = "";
-                data.rules.forEach(r => addCandoRuleUI(r));
+                data.rules.forEach(r => addCandoRuleUI(r, true));
             }
         }).catch(err => console.log("No saved CAN Do rules found:", err));
     }
@@ -3756,6 +4387,134 @@ function loadAutoTable(jsonData) {
 	function toggleCandoRevMode(val) {
 		showNotification("Reverse Engineering Mode: " + val, "blue");
 	}
+
+    // --- CAN DO BACKUP & RESTORE ---
+    function exportCandoRules() {
+        fetch("/load_cando").then(res => res.json()).then(data => {
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "wican_cando_rules.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification("CAN Do automations backed up successfully!", "green");
+        }).catch(err => {
+            showNotification("Failed to export CAN Do rules: " + err, "red");
+        });
+    }
+
+    function importCandoRules(inputElem) {
+        const file = inputElem.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data && Array.isArray(data.rules)) {
+                    const container = document.getElementById("cando_rules_container");
+                    if (container) container.innerHTML = "";
+                    data.rules.forEach(r => addCandoRuleUI(r, false));
+                    fetch("/store_cando", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    }).then(res => res.text()).then(msg => {
+                        showNotification(`Restored and saved ${data.rules.length} CAN Do rule(s) successfully!`, "green");
+                    }).catch(err => {
+                        showNotification("Rules loaded in editor. Click 'Store CAN Do Rules' to save.", "blue");
+                    });
+                } else {
+                    showNotification("Invalid CAN Do backup file format.", "red");
+                }
+            } catch (err) {
+                showNotification("Failed to parse backup file: " + err, "red");
+            }
+            inputElem.value = "";
+        };
+        reader.readAsText(file);
+    }
+
+    // --- TIME & SNTP MANAGEMENT ---
+    function fetchDeviceTime() {
+        fetch("/get_time").then(res => res.json()).then(data => {
+            if (data) {
+                const disp = document.getElementById("device_time_display");
+                const badge = document.getElementById("device_time_sync_badge");
+                if (disp) disp.textContent = data.time_str || "--:--:--";
+                if (badge) {
+                    if (data.synced) {
+                        badge.textContent = "✓ Synced";
+                        badge.style.background = "#dcfce7";
+                        badge.style.color = "#166534";
+                    } else {
+                        badge.textContent = "⚠ Unset / Not Synced";
+                        badge.style.background = "#fef3c7";
+                        badge.style.color = "#92400e";
+                    }
+                }
+                const enSelect = document.getElementById("sntp_enabled");
+                if (enSelect) {
+                    enSelect.value = data.sntp_enabled ? "enable" : "disable";
+                    toggleSntpFields(enSelect.value);
+                }
+                const srvInput = document.getElementById("sntp_server");
+                if (srvInput && data.sntp_server) srvInput.value = data.sntp_server;
+                const tzInput = document.getElementById("sntp_timezone");
+                if (tzInput && data.timezone) tzInput.value = data.timezone;
+            }
+        }).catch(err => console.log("Error fetching device time:", err));
+    }
+
+    function toggleSntpFields(val) {
+        const row = document.getElementById("sntp_server_row");
+        if (row) row.classList.toggle("hidden", val !== "enable");
+    }
+
+    function syncTimeFromBrowser() {
+        const epoch = Math.floor(Date.now() / 1000);
+        const tz = document.getElementById("sntp_timezone")?.value || "UTC0";
+
+        fetch("/set_time", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ epoch: epoch, tz: tz })
+        }).then(res => res.text()).then(msg => {
+            showNotification("Clock synchronized successfully from browser!", "green");
+            fetchDeviceTime();
+        }).catch(err => {
+            showNotification("Failed to sync clock: " + err, "red");
+        });
+    }
+
+    function saveTimeConfigUI() {
+        const enabled = document.getElementById("sntp_enabled")?.value === "enable";
+        const server = document.getElementById("sntp_server")?.value || "pool.ntp.org";
+        const tz = document.getElementById("sntp_timezone")?.value || "UTC0";
+        toggleSntpFields(document.getElementById("sntp_enabled")?.value);
+
+        fetch("/store_time_config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sntp_enabled: enabled, sntp_server: server, timezone: tz })
+        }).then(res => res.text()).then(msg => {
+            showNotification("Time settings saved!", "green");
+            fetchDeviceTime();
+        }).catch(err => {
+            showNotification("Failed to save time settings: " + err, "red");
+        });
+    }
+
+    function applyTzPreset(select) {
+        if (select.value && select.value !== "custom") {
+            const tzInput = document.getElementById("sntp_timezone");
+            if (tzInput) tzInput.value = select.value;
+            saveTimeConfigUI();
+        }
+    }
     </script>
 </body>
 

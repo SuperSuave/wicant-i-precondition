@@ -33,6 +33,7 @@
  #include "lwip/sockets.h"
  #include "config_server.h"
  #include "ble.h"
+ #include "time_sync.h"
  #include "dev_status.h"
  
  #define WIFI_CONNECTED_BIT 			BIT0
@@ -133,6 +134,7 @@
 
          // Keep global device status in sync
          dev_status_set_wifi_connected();
+         time_sync_on_sta_got_ip();
      }
  
      if (event_id == WIFI_EVENT_AP_STACONNECTED)

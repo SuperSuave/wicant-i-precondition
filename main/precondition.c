@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include "esp_log.h"
@@ -7,6 +8,7 @@
 #include "hsm.h"
 #include "precondition.h"
 #include "persistent_settings.h"
+#include "track_popup.h"
 #include "config_server.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -168,7 +170,7 @@ static bool activation_is_release(const message_payload_t *msg, const twai_messa
 #define PRECONDITION_RETRY_US 10000000U  // 10 seconds
 #define PRECONDITION_MAX_RETRIES 4U
 #define PRECONDITION_STARTED_TIMEOUT_US 70000000U  // 70 seconds
-#define PRECONDITION_CAR_START_DELAY_US 8000000U  // persistent mode: wait 8 seconds after READY before relaunching
+#define PRECONDITION_CAR_START_DELAY_US 8000000U  // wait 8 seconds after READY before startup actions
 #define REPEATING_MODE_RETRY_INTERVAL_US (5LL * 60LL * 1000000LL)  // 5 minutes between re-nudges
 
 #define BATTERY_TEMPERATURE_FRAME_ID 0x152U
@@ -194,15 +196,16 @@ static int64_t ts_elapsed(int64_t now, int64_t old) {
 }
 
 // ********************* state machine outline *********************
+// Also see docs/electroniq_buttons/ for a pdf with a diagram of the state machine
 //
-// IDLE                       Preconditioning is not requested.
-// REQUESTED                  Owns an enabled session and prevents the car from cancelling it.
+// IDLE                       No preconditioning request is active.
+// REQUESTED                  Owns a start request and prevents the car from cancelling it.
 // +- CAR_START_DELAY         Waits briefly after READY before a persistent-mode relaunch.
 // +- START_BURST (initial)   Sends the start command sequence.
 // +- WAIT_STARTING           Waits for the car to begin starting.
 // +- WAIT_STARTED            Waits for preconditioning to become fully active.
-// +- ACTIVE                  Monitors active preconditioning in every mode.
-// +- MANAGED                 Waits between attempts while a repeating mode remains enabled.
+// +- ACTIVE                  Monitors an active once-mode session.
+// +- MANAGED                 Maintains a repeating-mode session and schedules new attempts.
 // STOPPING                   Owns an active stop request.
 // +- STOP_BURST (initial)    Sends the stop command sequence.
 // +- WAIT_STOPPED            Waits for the car to confirm that it stopped.
@@ -231,12 +234,12 @@ static sm_t precon_sm;
 // never carry stale values across episodes. `platform` and `button` belong to
 // the global hooks and are machine-wide.
 
+// highest precondition status the car has reported during the current request
 typedef enum {
-    PRECON_STATUS_UNKNOWN = 0,
-    PRECON_STATUS_IDLE,
-    PRECON_STATUS_STARTING,
-    PRECON_STATUS_STARTED,
-} precon_status_t;
+    STATUS_SEEN_NONE = 0,
+    STATUS_SEEN_STARTING,
+    STATUS_SEEN_STARTED,
+} status_seen_t;
 
 // why the current start attempt was launched. MANUAL must be zero: it is the
 // entry argument plain sm_transition supplies
@@ -244,11 +247,18 @@ typedef enum {
     ATTEMPT_MANUAL = 0,  // activation button; shows the cluster countdown
     ATTEMPT_CAR_START,   // persistent-mode relaunch on a car-ready edge; shows the countdown
     ATTEMPT_PERIODIC,    // repeating-mode re-nudge; silent and one-shot
-    ATTEMPT_BMU_RESTART, // status-only BMU restart; silent and not retried directly
 } attempt_kind_t;
 
-// owned by REQUESTED and its children; describes the most recent start
-// attempt, so it is dormant while ACTIVE or MANAGED is the leaf
+// owned by IDLE
+static struct {
+    // one-shot notice carried across the off-to-ready power cycle
+    // when turning the car off implicitly disables an active Continuous session
+    bool continuous_disabled_by_car_off;
+    int64_t continuous_disabled_ready_at_us;
+} idle;
+
+// owned by REQUESTED and its children; describes the start attempt in flight,
+// so it is dormant while MANAGED is the leaf
 static struct {
     // why this attempt was launched; set on entry from the transition argument
     attempt_kind_t kind;
@@ -256,12 +266,15 @@ static struct {
     int64_t last_attempt_ts;
     // number of times we've re-sent the start burst within the current request
     uint8_t retries;
+    status_seen_t status_seen;
 } requested;
 
-// owned by MANAGED: scheduling for periodic start bursts while a repeating
-// mode is enabled but preconditioning is inactive
+// owned by MANAGED: scheduling for periodic start bursts while the BMU manages the session
 static struct {
-    // start of the current nudge interval
+    // has the car (2AD) reported idle since entering MANAGED? the periodic start burst only
+    // arms once the BMU has actually stopped preconditioning
+    bool idle_seen;
+    // start of the current start burst interval (set on the idle edge)
     int64_t nudge_base_ts;
 } managed;
 
@@ -275,16 +288,12 @@ static struct {
 
 // process-lifetime platform info
 static struct {
-    // most recent recognized preconditioning status reported by the car
-    precon_status_t precon_status;
+    // is the status frame available? false if on unknown platform, true if we at any point receive a known status frame
+    bool status_frame_available;
     // is the car in READY? tracked from 0x038 edges; stays false on platforms
     // where that frame is unavailable
     bool car_in_ready;
 } platform;
-
-static bool precon_status_available(void) {
-    return platform.precon_status != PRECON_STATUS_UNKNOWN;
-}
 
 // activation button edge tracking, owned by the global hooks
 static struct {
@@ -378,14 +387,14 @@ static fwd_result_t starting_display_fwd(sm_t *sm, twai_message_t *to_send, can_
     if (fwd_bus != CAR_BUS) {
         return FWD_PASSTHROUGH;
     }
-    // periodic re-nudges and observed BMU restarts don't touch the cluster;
-    // manual and car-start attempts show the countdown
-    if (requested.kind == ATTEMPT_PERIODIC || requested.kind == ATTEMPT_BMU_RESTART) {
+    // periodic re-nudges don't touch the cluster; manual and car-start
+    // attempts show the countdown
+    if (requested.kind == ATTEMPT_PERIODIC) {
         return FWD_PASSTHROUGH;
     }
     // the display only runs until the car confirms preconditioning fully
     // started, which can happen mid-burst, before we route to ACTIVE
-    if (platform.precon_status == PRECON_STATUS_STARTED) {
+    if (requested.status_seen == STATUS_SEEN_STARTED) {
         return FWD_PASSTHROUGH;
     }
     if (to_send->identifier == 0x4E8U) {
@@ -394,10 +403,10 @@ static fwd_result_t starting_display_fwd(sm_t *sm, twai_message_t *to_send, can_
             to_send,
             SECONDS_UNTIL_START(time_since_last_attempt),
             // display retry count in tenths digit
-            precon_status_available() ? (requested.retries % 10U) : 0U,
-            precon_status_available() ? (requested.retries == 0U ? DIST_UNIT_YD : DIST_UNIT_KM) : DIST_UNIT_M,
+            platform.status_frame_available ? (requested.retries % 10U) : 0U,
+            platform.status_frame_available ? (requested.retries == 0U ? DIST_UNIT_YD : DIST_UNIT_KM) : DIST_UNIT_M,
             // switch to the destination flag once the car confirms it's starting
-            precon_status_available() ? (platform.precon_status == PRECON_STATUS_STARTING ? FLAG_DESTINATION : FLAG_BLUE_1) : FLAG_BLUE_4
+            platform.status_frame_available ? (requested.status_seen >= STATUS_SEEN_STARTING ? FLAG_DESTINATION : FLAG_BLUE_1) : FLAG_BLUE_4
         );
         return FWD_MODIFIED;
     }
@@ -416,7 +425,7 @@ static fwd_result_t stopping_display_fwd(sm_t *sm, twai_message_t *to_send, can_
     }
     // only display when we can actually confirm/retry the stop, and hide it
     // once retries are exhausted (including the silent give-up stop)
-    if (!precon_status_available() || stopping.retries >= PRECONDITION_MAX_RETRIES) {
+    if (!platform.status_frame_available || stopping.retries >= PRECONDITION_MAX_RETRIES) {
         return FWD_PASSTHROUGH;
     }
     if (to_send->identifier == 0x4E8U) {
@@ -438,11 +447,16 @@ static fwd_result_t stopping_display_fwd(sm_t *sm, twai_message_t *to_send, can_
     return FWD_PASSTHROUGH;
 }
 
+// where a confirmed (or assumed) start is received: repeating modes
+// hand the session to the BMU, once mode keeps monitoring in ACTIVE
+static const sm_state_t *started_target(void) {
+    return repeating_mode_enabled() ? &S_MANAGED : &S_ACTIVE;
+}
+
 // a start attempt timed out: retry the burst, or give up
 static void start_timeout(sm_t *sm) {
-    if (requested.kind == ATTEMPT_PERIODIC || requested.kind == ATTEMPT_BMU_RESTART) {
-        // Periodic bursts and BMU-observed restarts are one-shot: go back to
-        // waiting in MANAGED without issuing an immediate retry.
+    if (requested.kind == ATTEMPT_PERIODIC) {
+        // periodic start burst timed out => go back to waiting in MANAGED w/o retrying
         sm_transition(sm, &S_MANAGED);
     } else if (requested.retries < PRECONDITION_MAX_RETRIES) {
         // manual or car-start attempt timed out => continue with retry logic
@@ -460,10 +474,22 @@ static void start_timeout(sm_t *sm) {
 // ********************* IDLE *********************
 
 static void idle_enter(sm_t *sm) {
+    bool disabled_by_car_off = sm_entry_arg(sm) != 0;
+    idle.continuous_disabled_by_car_off = disabled_by_car_off
+                                       && precon_config.mode == CONTINUOUS;
     if (repeating_mode() && repeating_mode_enabled()) {
         // the WiCAN just booted and restored persistent mode from flash
         // => wait in MANAGED for car to boot
         sm_transition(sm, &S_MANAGED);
+    }
+}
+
+static void idle_tick(sm_t *sm) {
+    if (idle.continuous_disabled_by_car_off && platform.car_in_ready
+            && ts_elapsed(sm_now(sm), idle.continuous_disabled_ready_at_us)
+                    >= PRECONDITION_CAR_START_DELAY_US) {
+        idle.continuous_disabled_by_car_off = false;
+        track_popup_show("Continuous: disabled by car restart");
     }
 }
 
@@ -473,8 +499,9 @@ static bool idle_event(sm_t *sm, sm_event_t ev) {
             sm_transition(sm, &S_REQUESTED);
             return true;
         case EV_CAR_READY:
-            // we only stay in idle during once mode, so nothing to do
-            // on car ready
+            if (idle.continuous_disabled_by_car_off) {
+                idle.continuous_disabled_ready_at_us = sm_now(sm);
+            }
             return true;
     }
     return false;
@@ -486,13 +513,21 @@ static void requested_enter(sm_t *sm) {
     requested.kind = (attempt_kind_t)sm_entry_arg(sm);
     if (repeating_mode()) {
         set_repeating_enabled(true);
-    }
-    if (requested.kind == ATTEMPT_BMU_RESTART) {
-        requested.last_attempt_ts = sm_now(sm);
-        // The status event already tells us how far the BMU got, so skip the
-        // default start burst.
-        sm_transition(sm, platform.precon_status == PRECON_STATUS_STARTED
-                          ? &S_ACTIVE : &S_WAIT_STARTED);
+        if (requested.kind == ATTEMPT_MANUAL || requested.kind == ATTEMPT_CAR_START) {
+            const char *mode_name = precon_config.mode == PERSISTENT
+                                  ? "Persistent" : "Continuous";
+            precondition_temperature_t temperature;
+            char message[64];
+            if (precondition_get_battery_temperature(&temperature)) {
+                snprintf(message, sizeof(message),
+                         "%s: maintaining 21°C (%d°C)",
+                         mode_name, temperature.min_c);
+            } else {
+                snprintf(message, sizeof(message),
+                         "%s: maintaining 21°C", mode_name);
+            }
+            track_popup_show(message);
+        }
     }
 }
 
@@ -501,6 +536,11 @@ static bool requested_event(sm_t *sm, sm_event_t ev) {
         case EV_TOGGLE:
             // debounce between start and stop
             if (sm_time_in_us(sm, &S_REQUESTED) > PRECONDITION_DEBOUNCE_US) {
+                if (precon_config.mode == PERSISTENT) {
+                    track_popup_show("Persistent mode: stopping");
+                } else if (precon_config.mode == CONTINUOUS) {
+                    track_popup_show("Continuous mode: stopping");
+                }
                 sm_transition(sm, &S_STOPPING);
             }
             return true;
@@ -513,16 +553,15 @@ static bool requested_event(sm_t *sm, sm_event_t ev) {
                 // which usefully resets its stale start-burst ctx
                 sm_transition(sm, &S_MANAGED);
             } else {
-                // reset continuous/once mode state
-                sm_transition(sm, &S_IDLE);
+                sm_transition_arg(sm, &S_IDLE, true);
             }
             return true;
     }
     return false;
 }
 
-// the MITM runs for every child of REQUESTED, including ACTIVE and MANAGED:
-// the head unit must not be able to cancel an enabled session
+// the MITM runs for every child of REQUESTED, including MANAGED: the head
+// unit must not be able to cancel a BMU-managed session either
 static fwd_result_t requested_fwd(sm_t *sm, twai_message_t *to_send, can_bus_t fwd_bus) {
     if (fwd_bus != CAR_BUS) {
         return FWD_PASSTHROUGH;
@@ -569,14 +608,13 @@ static void start_burst_enter(sm_t *sm) {
 static void start_burst_tick(sm_t *sm) {
     uint32_t t = sm_ticks_in_state(sm);
     send_precondition_start_msg(t);
-    // Status events deliberately do not cut the burst short. After all start
-    // messages are sent, route using the car's latest reported status.
+    // we have sent t+1 start msgs; transition to proper waiting state
     if (t + 1U >= PRECONDITION_START_TICKS) {
-        switch (platform.precon_status) {
-            case PRECON_STATUS_STARTED:
-                sm_transition(sm, &S_ACTIVE);
+        switch (requested.status_seen) {
+            case STATUS_SEEN_STARTED:
+                sm_transition(sm, started_target());
                 break;
-            case PRECON_STATUS_STARTING:
+            case STATUS_SEEN_STARTING:
                 sm_transition(sm, &S_WAIT_STARTED);
                 break;
             default:
@@ -586,15 +624,35 @@ static void start_burst_tick(sm_t *sm) {
     }
 }
 
+static bool start_burst_event(sm_t *sm, sm_event_t ev) {
+    // record confirmations without cutting the burst short: the full burst
+    // (including the E007 phase) is always sent, and routing happens when it
+    // ends. TOGGLE falls through to REQUESTED.
+    switch (ev) {
+        case EV_STATUS_STARTING:
+            if (requested.status_seen < STATUS_SEEN_STARTING) {
+                requested.status_seen = STATUS_SEEN_STARTING;
+            }
+            return true;
+        case EV_STATUS_STARTED:
+            requested.status_seen = STATUS_SEEN_STARTED;
+            return true;
+        case EV_STATUS_IDLE:
+            // expected while the start is still in flight
+            return true;
+    }
+    return false;
+}
+
 // ********************* REQUESTED / WAIT_STARTING *********************
 
 static void wait_starting_tick(sm_t *sm) {
     int64_t time_since_last_attempt = ts_elapsed(sm_now(sm), requested.last_attempt_ts);
-    if (!precon_status_available()) {
+    if (!platform.status_frame_available) {
         // without status frames we can't confirm or retry anything; after the
         // timeout, assume it worked so the countdown display goes away
         if (time_since_last_attempt > PRECONDITION_STARTED_TIMEOUT_US) {
-            sm_transition(sm, &S_ACTIVE);
+            sm_transition(sm, started_target());
         }
         return;
     }
@@ -606,10 +664,12 @@ static void wait_starting_tick(sm_t *sm) {
 static bool wait_starting_event(sm_t *sm, sm_event_t ev) {
     switch (ev) {
         case EV_STATUS_STARTING:
+            requested.status_seen = STATUS_SEEN_STARTING;
             sm_transition(sm, &S_WAIT_STARTED);
             return true;
         case EV_STATUS_STARTED:
-            sm_transition(sm, &S_ACTIVE);
+            requested.status_seen = STATUS_SEEN_STARTED;
+            sm_transition(sm, started_target());
             return true;
         case EV_STATUS_IDLE:
             // expected; BMU usually takes a little while to register the start burst
@@ -632,7 +692,8 @@ static void wait_started_tick(sm_t *sm) {
 static bool wait_started_event(sm_t *sm, sm_event_t ev) {
     switch (ev) {
         case EV_STATUS_STARTED:
-            sm_transition(sm, &S_ACTIVE);
+            requested.status_seen = STATUS_SEEN_STARTED;
+            sm_transition(sm, started_target());
             return true;
         case EV_STATUS_STARTING:
             // still starting; keep waiting
@@ -647,7 +708,6 @@ static bool wait_started_event(sm_t *sm, sm_event_t ev) {
 }
 
 // ********************* REQUESTED / ACTIVE *********************
-// Preconditioning is currently enabled.
 
 static bool active_event(sm_t *sm, sm_event_t ev) {
     switch (ev) {
@@ -656,46 +716,33 @@ static bool active_event(sm_t *sm, sm_event_t ev) {
             return true;
         case EV_STATUS_STARTING:
             // preconditioning was previously fully active, but now it's only showing as starting.
-            if (repeating_mode()) {
-                // The BMU is presumably restarting on its own, so monitor it 
-                // with a fresh silent attempt context.
-                sm_transition_arg(sm, &S_REQUESTED, ATTEMPT_BMU_RESTART);
-            } else {
-                // Once mode: keep retrying with original retry budget.
-                requested.last_attempt_ts = sm_now(sm);
-                sm_transition(sm, &S_WAIT_STARTED);
-            }
+            // this is a weird situation to be in; let's just reset the current attempt time,
+            // and let the retry logic continue as normal if it doesn't resolve itself after a while
+            requested.last_attempt_ts = sm_now(sm);
+            requested.status_seen = STATUS_SEEN_STARTING;
+            sm_transition(sm, &S_WAIT_STARTED);
             return true;
         case EV_STATUS_IDLE:
             // preconditioning was previously fully active, but now it's showing as off.
             // the battery has probably reached the target temp or fallen below the
             // SoC threshold. (TODO(ejones): get a CAN recording of these scenarios)
-            if (repeating_mode_enabled()) {
-                // Keep repeating-mode on and wait before asking the
-                // BMU to start again.
-                sm_transition(sm, &S_MANAGED);
-            } else {
-                // Once mode actively stops. This, together with the stopping
-                // MITM, prevents preconditioning from restarting after the
-                // battery falls back below the target temperature.
-                sm_transition(sm, &S_STOPPING);
-            }
+            // ACTIVE is only reachable in once mode, so actively stop:
+            // this (in combination with stopping MITMing), should prevent preconditioning
+            // from restarting once the battery falls back below temp
+            sm_transition(sm, &S_STOPPING);
             return true;
     }
     return false;
 }
 
 // ********************* REQUESTED / MANAGED *********************
-// Continuous/persistent modes only. In this state, the user is
-// actively requesting preconditioning, but it is not currently started
-// due to restrictions on SoC/temp/etc.
-
-static void managed_enter(sm_t *sm) {
-    managed.nudge_base_ts = sm_now(sm);
-}
+// repeating modes only: the car confirmed the start and the BMU owns the
+// session. REQUESTED's fwd MITM stays inherited; we just watch for the BMU
+// stopping (re-nudge with a start burst on a timer) and, in persistent mode,
+// for car restarts.
 
 static void managed_tick(sm_t *sm) {
-    if (platform.car_in_ready
+    if (managed.idle_seen && platform.car_in_ready
             && ts_elapsed(sm_now(sm), managed.nudge_base_ts) > REPEATING_MODE_RETRY_INTERVAL_US) {
         // targets the parent, so REQUESTED exits and re-enters: fresh attempt
         // ctx, kind set from the entry argument, descend into START_BURST
@@ -706,12 +753,16 @@ static void managed_tick(sm_t *sm) {
 static bool managed_event(sm_t *sm, sm_event_t ev) {
     switch (ev) {
         case EV_STATUS_IDLE:
+            // arm/re-arm the re-nudge start-burst clock on the idle edge so
+            // the next attempt comes a full interval after the BMU actually stopped
+            if (!managed.idle_seen) {
+                managed.idle_seen = true;
+                managed.nudge_base_ts = sm_now(sm);
+            }
             return true;
-        case EV_STATUS_STARTING:
+        case EV_STATUS_STARTING:  // TODO(ejones): we need more testing in this case
         case EV_STATUS_STARTED:
-            // The BMU has restarted preconditioning on its own:
-            // start a new silent attempt that skips the start burst.
-            sm_transition_arg(sm, &S_REQUESTED, ATTEMPT_BMU_RESTART);
+            managed.idle_seen = false;
             return true;
         case EV_CAR_READY:
             // persistent mode relaunches after the car has had time to finish
@@ -760,7 +811,7 @@ static void stop_burst_tick(sm_t *sm) {
     send_precondition_stop_msg(t);
     if (t + 1U >= PRECONDITION_STOP_TICKS) {
         // without status frames there's no confirmation or retry to wait for
-        sm_transition(sm, precon_status_available() ? &S_WAIT_STOPPED : &S_IDLE);
+        sm_transition(sm, platform.status_frame_available ? &S_WAIT_STOPPED : &S_IDLE);
     }
 }
 
@@ -800,7 +851,10 @@ static bool wait_stopped_event(sm_t *sm, sm_event_t ev) {
 
 static const sm_state_t S_IDLE = {
     .name = "idle",
+    .ctx = &idle,
+    .ctx_size = sizeof(idle),
     .enter = idle_enter,
+    .tick = idle_tick,
     .event = idle_event,
 };
 
@@ -826,6 +880,7 @@ static const sm_state_t S_START_BURST = {
     .parent = &S_REQUESTED,
     .enter = start_burst_enter,
     .tick = start_burst_tick,
+    .event = start_burst_event,
     .fwd = starting_display_fwd,
 };
 
@@ -856,7 +911,6 @@ static const sm_state_t S_MANAGED = {
     .parent = &S_REQUESTED,
     .ctx = &managed,
     .ctx_size = sizeof(managed),
-    .enter = managed_enter,
     .tick = managed_tick,
     .event = managed_event,
 };
@@ -890,6 +944,8 @@ static const sm_state_t S_WAIT_STOPPED = {
 // ********************* global hooks *********************
 
 static void precondition_global_tick(sm_t *sm) {
+    track_popup_tick();
+
     // long press mode: trigger once when the hold crosses the threshold, without
     // waiting for the release frame. state only becomes pressed via the rx hook,
     // so this does nothing when the activation button is disabled
@@ -902,6 +958,8 @@ static void precondition_global_tick(sm_t *sm) {
 }
 
 static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_bus_t rx_bus) {
+    track_popup_rx(to_push, rx_bus);
+
     // 0x038 power status: the low nibble of byte 0 reads 0x04 while the car is
     // in READY. only act on edges
     if (IS_POWER_STATUS_FRAME(to_push->identifier)
@@ -921,17 +979,15 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
     // only trust status frames coming from the car itself; a same-ID frame on
     // the head unit bus must not drive the state machine
     if (IS_STATUS_FRAME(to_push->identifier) && rx_bus == CAR_BUS) {
+        // we now know we have the status frame on the current car, so we should use it
+        platform.status_frame_available = true;
+
         uint8_t status = to_push->data[1];
-        // precon_status => last status we've seen
-        // EV_STATUS_... => instantaneous triggered by getting a status frame
         if (STATUS_STARTED(status)) {
-            platform.precon_status = PRECON_STATUS_STARTED;
             sm_send_event(sm, EV_STATUS_STARTED);
         } else if (STATUS_STARTING(status)) {
-            platform.precon_status = PRECON_STATUS_STARTING;
             sm_send_event(sm, EV_STATUS_STARTING);
         } else if (STATUS_IDLE(status)) {
-            platform.precon_status = PRECON_STATUS_IDLE;
             sm_send_event(sm, EV_STATUS_IDLE);
         }
     }
@@ -977,9 +1033,15 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
     }
 }
 
+static fwd_result_t precondition_global_fwd(sm_t *sm, twai_message_t *to_send,
+                                            can_bus_t fwd_bus) {
+    return track_popup_fwd(to_send, fwd_bus);
+}
+
 static const sm_hooks_t precondition_global_hooks = {
     .tick = precondition_global_tick,
     .rx = precondition_global_rx,
+    .fwd = precondition_global_fwd,
 };
 
 // ********************* public API *********************
@@ -998,6 +1060,7 @@ void precondition_init(void) {
 
     battery_temperature_queue = xQueueCreate(1, sizeof(precondition_temperature_t));
     configASSERT(battery_temperature_queue != NULL);
+    track_popup_init();
     sm_init(&precon_sm, "precondition", &S_IDLE, &precondition_global_hooks);
 }
 

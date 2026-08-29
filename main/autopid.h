@@ -146,6 +146,7 @@ typedef enum {
 } cando_exec_mode_t;
 
 typedef struct {
+    char id[32];            /* Optional Trigger ID (e.g. "lock_btn", "climate_start") */
     cando_trigger_source_t source;
     uint8_t bus;            /* CAN_BUS_0 or CAN_BUS_1 */
     uint32_t can_id;        /* CAN ID (11-bit standard or 29-bit extended) */
@@ -205,6 +206,8 @@ typedef struct {
 } cando_sequence_step_t;
 
 typedef struct {
+    char trigger_id[32];    /* Only execute if triggered by this trigger_id (empty/NULL = any) */
+    char *popup_message;    /* Optional dashboard track popup text (via track_popup_show) */
     cando_sequence_step_t *steps;
     uint8_t step_count;
     char *mqtt_topic;       /* Optional MQTT topic for notification alert */
@@ -214,8 +217,12 @@ typedef struct {
 typedef struct {
     char *name;             /* Rule descriptive name */
     bool enabled;           /* Rule active flag */
-    cando_trigger_t trigger;/* Trigger condition ("IF THIS") */
-    cando_action_t action;  /* Response action ("THEN THAT") */
+    cando_trigger_t *triggers; /* Multiple trigger definitions (OR) */
+    uint8_t trigger_count;
+    cando_trigger_t trigger;/* Primary trigger */
+    cando_action_t *actions;/* Multiple action blocks (Choose / Branching) */
+    uint8_t action_count;
+    cando_action_t action;  /* Primary action */
 } cando_rule_t;
 
 typedef struct {

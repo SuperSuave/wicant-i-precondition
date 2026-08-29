@@ -3886,7 +3886,13 @@ function loadAutoTable(jsonData) {
 
         itemDiv.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #fed7aa; padding-bottom: 0.4rem;">
-                <span style="font-weight: 600; font-size: 0.9rem; color: #ea580c;">Trigger Type:</span>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: #ea580c;">⚡ Trigger:</span>
+                    <label style="font-size: 0.8rem; color: #9a3412; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
+                        ID:
+                        <input type="text" class="cando-trig-id" value="${data.id || ""}" placeholder="e.g. lock_btn" style="width: 110px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #fed7aa; border-radius: 4px; background: #fff7ed;">
+                    </label>
+                </div>
                 <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-trigger-item').remove();">✕ Remove</button>
             </div>
             <table class="compact-form-table">
@@ -4148,7 +4154,13 @@ function loadAutoTable(jsonData) {
 
         itemDiv.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #bbf7d0; padding-bottom: 0.4rem;">
-                <span style="font-weight: 600; font-size: 0.9rem; color: #059669;">Action Step:</span>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: #059669;">🎯 Action Step:</span>
+                    <label style="font-size: 0.8rem; color: #065f46; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
+                        Run For Trigger ID:
+                        <input type="text" class="cando-act-trig-id" value="${data.trigger_id || ""}" placeholder="Any Trigger (Default)" style="width: 140px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #86efac; border-radius: 4px; background: #f0fdf4;">
+                    </label>
+                </div>
                 <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-action-item').remove();">✕ Remove</button>
             </div>
             <table class="compact-form-table">
@@ -4157,10 +4169,17 @@ function loadAutoTable(jsonData) {
                     <td>
                         <select class="cando-act-type" onchange="toggleCandoActItemUI(this)">
                             <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
+                            <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
                             <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
                             <option value="mqtt" ${type === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
                             <option value="webhook" ${type === "webhook" ? "selected" : ""}>Trigger Webhook POST</option>
                         </select>
+                    </td>
+                </tr>
+                <tr class="act-field-popup ${type === "can_tx" || type === "popup" ? "" : "hidden"}">
+                    <td>Dashboard Popup Text (OSD):</td>
+                    <td>
+                        <input type="text" class="cando-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. ⚡ Climate Started! (Optional cluster popup)" style="width: 100%;">
                     </td>
                 </tr>
                 <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
@@ -4239,6 +4258,7 @@ function loadAutoTable(jsonData) {
         const item = selectElem.closest(".cando-action-item");
         const val = selectElem.value;
         item.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_tx"));
+        item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", val !== "can_tx" && val !== "popup"));
         item.querySelectorAll(".act-field-delay").forEach(el => el.classList.toggle("hidden", val !== "delay"));
         item.querySelectorAll(".act-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "mqtt"));
         item.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
@@ -4346,6 +4366,7 @@ function loadAutoTable(jsonData) {
                 const fromPayload = getByteGridString(item, "cando-trig-from");
                 const toPayload = getByteGridString(item, "cando-trig-to");
                 triggers.push({
+                    id: item.querySelector(".cando-trig-id")?.value.trim() || "",
                     source: item.querySelector(".cando-trig-source")?.value || "can_msg",
                     can_id: item.querySelector(".cando-trig-can-id")?.value || "",
                     from_payload: fromPayload,
@@ -4393,6 +4414,8 @@ function loadAutoTable(jsonData) {
                 });
 
                 actions.push({
+                    trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",
+                    popup_message: item.querySelector(".cando-act-popup-msg")?.value.trim() || "",
                     type: item.querySelector(".cando-act-type")?.value || "can_tx",
                     can_id: item.querySelector(".cando-act-can-id")?.value || "",
                     steps: steps,

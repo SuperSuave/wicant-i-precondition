@@ -48,6 +48,7 @@
 #include "ha_webhooks.h"
 #include "wifi_network.h"
 #include "sleep_mode.h"
+#include "track_popup.h"
 #include <time.h>
 #include <ctype.h>
 #include <strings.h>
@@ -2733,25 +2734,24 @@ static bool cando_parse_payload_pattern(const char *str, uint8_t *data, uint8_t 
     return true;
 }
 
-bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus)
+bool cando_evaluate_trigger(cando_trigger_t *trig, const twai_message_t *msg, uint8_t bus)
 {
-    if (!rule || !rule->enabled) return false;
-    if (g_cando_rules.reverse_engineering_mode) return false;
+    if (!trig) return false;
 
-    if (rule->trigger.source == CANDO_TRIG_CAN_MESSAGE) {
+    if (trig->source == CANDO_TRIG_CAN_MESSAGE) {
         if (!msg) return false;
-        if (rule->trigger.bus != bus) return false;
-        if (rule->trigger.can_id != msg->identifier) return false;
-        if (rule->trigger.is_ext != (msg->extd != 0)) return false;
+        if (trig->bus != bus) return false;
+        if (trig->can_id != msg->identifier) return false;
+        if (trig->is_ext != (msg->extd != 0)) return false;
 
         /* Check From payload filter (previous frame state) */
-        if (rule->trigger.has_from) {
-            if (!rule->trigger.has_last_payload) {
+        if (trig->has_from) {
+            if (!trig->has_last_payload) {
                 return false;
             }
-            for (uint8_t i = 0; i < rule->trigger.from_len; i++) {
-                if (rule->trigger.from_mask[i] != 0) {
-                    if ((rule->trigger.last_payload[i] & rule->trigger.from_mask[i]) != (rule->trigger.from_data[i] & rule->trigger.from_mask[i])) {
+            for (uint8_t i = 0; i < trig->from_len; i++) {
+                if (trig->from_mask[i] != 0) {
+                    if ((trig->last_payload[i] & trig->from_mask[i]) != (trig->from_data[i] & trig->from_mask[i])) {
                         return false;
                     }
                 }
@@ -2759,11 +2759,11 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
         }
 
         /* Check To payload filter (current frame state) */
-        if (rule->trigger.has_to) {
-            for (uint8_t i = 0; i < rule->trigger.data_len; i++) {
-                if (rule->trigger.match_mask[i] != 0) {
+        if (trig->has_to) {
+            for (uint8_t i = 0; i < trig->data_len; i++) {
+                if (trig->match_mask[i] != 0) {
                     if (i >= msg->data_length_code) return false;
-                    if ((msg->data[i] & rule->trigger.match_mask[i]) != (rule->trigger.match_data[i] & rule->trigger.match_mask[i])) {
+                    if ((msg->data[i] & trig->match_mask[i]) != (trig->match_data[i] & trig->match_mask[i])) {
                         return false;
                     }
                 }
@@ -2771,18 +2771,18 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
         }
 
         /* Check Any Change mode (when both from and to have no active filter mask) */
-        if (rule->trigger.any_change || (!rule->trigger.has_from && !rule->trigger.has_to && rule->trigger.match_type != CANDO_MATCH_EXPRESSION)) {
-            if (rule->trigger.has_last_payload) {
-                if (memcmp(rule->trigger.last_payload, msg->data, msg->data_length_code) == 0) {
+        if (trig->any_change || (!trig->has_from && !trig->has_to && trig->match_type != CANDO_MATCH_EXPRESSION)) {
+            if (trig->has_last_payload) {
+                if (memcmp(trig->last_payload, msg->data, msg->data_length_code) == 0) {
                     return false; // No change in payload
                 }
             }
         }
 
-        if (rule->trigger.match_type == CANDO_MATCH_EXPRESSION) {
-            if (rule->trigger.expression) {
+        if (trig->match_type == CANDO_MATCH_EXPRESSION) {
+            if (trig->expression) {
                 double val = 0.0;
-                if (evaluate_expression((uint8_t *)rule->trigger.expression, (uint8_t *)msg->data, (double)msg->data_length_code, &val)) {
+                if (evaluate_expression((uint8_t *)trig->expression, (uint8_t *)msg->data, (double)msg->data_length_code, &val)) {
                     return (val != 0.0);
                 }
             }
@@ -2794,6 +2794,49 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
     return false;
 }
 
+static void cando_execute_action(cando_action_t *act, const char *matched_trig_id)
+{
+    if (!act) return;
+
+    /* If action specifies a trigger_id filter, only run when matched */
+    if (act->trigger_id[0] != '\0' && strcmp(act->trigger_id, "any") != 0) {
+        if (!matched_trig_id || strcmp(act->trigger_id, matched_trig_id) != 0) {
+            return;
+        }
+    }
+
+    /* 1. Show dashboard track popup if configured */
+    if (act->popup_message && act->popup_message[0] != '\0') {
+        track_popup_show(act->popup_message);
+    }
+
+    /* 2. Execute sequence steps */
+    for (uint8_t s = 0; s < act->step_count; s++) {
+        cando_sequence_step_t *step = &act->steps[s];
+        twai_message_t tx_msg = {
+            .identifier = step->tx_can_id,
+            .extd = step->is_ext ? 1 : 0,
+            .data_length_code = step->tx_len
+        };
+        memcpy(tx_msg.data, step->tx_data, step->tx_len);
+        can_send((can_bus_t)step->target_bus, &tx_msg, 0);
+    }
+}
+
+bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus)
+{
+    if (!rule || !rule->enabled) return false;
+    if (g_cando_rules.reverse_engineering_mode) return false;
+
+    if (rule->trigger_count > 0 && rule->triggers) {
+        for (uint8_t i = 0; i < rule->trigger_count; i++) {
+            if (cando_evaluate_trigger(&rule->triggers[i], msg, bus)) return true;
+        }
+        return false;
+    }
+    return cando_evaluate_trigger(&rule->trigger, msg, bus);
+}
+
 void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 {
     if (!msg || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
@@ -2803,89 +2846,95 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 
     for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
         cando_rule_t *rule = &g_cando_rules.rules[i];
+        if (!rule->enabled) continue;
 
-        /* Check for reset CAN ID frame to re-arm latched one-shot or pending verify rule */
-        if (rule->trigger.reset_can_id > 0 && msg->identifier == rule->trigger.reset_can_id) {
-            rule->trigger.triggered_latched = false;
-            rule->trigger.pending_verify = false;
-            continue;
-        }
+        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
+        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
 
-        /* Check for verification confirmation CAN frame in POLL_VERIFY mode */
-        if (rule->trigger.exec_mode == CANDO_EXEC_POLL_VERIFY && rule->trigger.pending_verify) {
-            if (rule->trigger.verify_can_id > 0 && msg->identifier == rule->trigger.verify_can_id) {
-                bool verify_ok = true;
-                if (rule->trigger.has_verify) {
-                    for (uint8_t v = 0; v < rule->trigger.verify_len; v++) {
-                        if (rule->trigger.verify_mask[v] != 0) {
-                            if (v >= msg->data_length_code ||
-                                (msg->data[v] & rule->trigger.verify_mask[v]) != (rule->trigger.verify_data[v] & rule->trigger.verify_mask[v])) {
-                                verify_ok = false;
-                                break;
+        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
+            cando_trigger_t *trig = &trig_list[t_idx];
+
+            /* Check for reset CAN ID frame to re-arm latched one-shot or pending verify rule */
+            if (trig->reset_can_id > 0 && msg->identifier == trig->reset_can_id) {
+                trig->triggered_latched = false;
+                trig->pending_verify = false;
+                continue;
+            }
+
+            /* Check for verification confirmation CAN frame in POLL_VERIFY mode */
+            if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY && trig->pending_verify) {
+                if (trig->verify_can_id > 0 && msg->identifier == trig->verify_can_id) {
+                    bool verify_ok = true;
+                    if (trig->has_verify) {
+                        for (uint8_t v = 0; v < trig->verify_len; v++) {
+                            if (trig->verify_mask[v] != 0) {
+                                if (v >= msg->data_length_code ||
+                                    (msg->data[v] & trig->verify_mask[v]) != (trig->verify_data[v] & trig->verify_mask[v])) {
+                                    verify_ok = false;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                if (verify_ok) {
-                    rule->trigger.pending_verify = false;
-                    rule->trigger.triggered_latched = true; /* Confirmation received! Latch completed */
-                    rule->trigger.last_triggered_us = now_us;
-                }
-            }
-        }
-
-        bool eval_passed = cando_evaluate_rule(rule, msg, bus);
-
-        /* Update payload history for this rule if it matches trigger CAN ID & bus */
-        if (rule->trigger.source == CANDO_TRIG_CAN_MESSAGE && rule->trigger.can_id == msg->identifier && rule->trigger.bus == bus) {
-            memcpy(rule->trigger.last_payload, msg->data, msg->data_length_code);
-            rule->trigger.has_last_payload = true;
-        }
-
-        if (eval_passed) {
-            /* Enforce cooldown_ms (default minimum 50ms anti-loop safeguard) */
-            uint32_t cd_ms = (rule->trigger.cooldown_ms > 0) ? rule->trigger.cooldown_ms : 50;
-            if (rule->trigger.last_triggered_us > 0) {
-                if ((now_us - rule->trigger.last_triggered_us) < ((int64_t)cd_ms * 1000)) {
-                    continue;
+                    if (verify_ok) {
+                        trig->pending_verify = false;
+                        trig->triggered_latched = true; /* Confirmation received! Latch completed */
+                        trig->last_triggered_us = now_us;
+                    }
                 }
             }
 
-            /* One-Shot Latching */
-            if (rule->trigger.exec_mode == CANDO_EXEC_ONE_SHOT) {
-                if (rule->trigger.triggered_latched) {
-                    continue;
-                }
-                rule->trigger.triggered_latched = true;
+            bool eval_passed = cando_evaluate_trigger(trig, msg, bus);
+
+            /* Update payload history for this trigger if it matches trigger CAN ID & bus */
+            if (trig->source == CANDO_TRIG_CAN_MESSAGE && trig->can_id == msg->identifier && trig->bus == bus) {
+                memcpy(trig->last_payload, msg->data, msg->data_length_code);
+                trig->has_last_payload = true;
             }
 
-            /* Poll & Verify Latching */
-            if (rule->trigger.exec_mode == CANDO_EXEC_POLL_VERIFY) {
-                if (rule->trigger.triggered_latched || rule->trigger.pending_verify) {
-                    continue;
+            if (eval_passed) {
+                /* Enforce cooldown_ms (default minimum 50ms anti-loop safeguard) */
+                uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
+                if (trig->last_triggered_us > 0) {
+                    if ((now_us - trig->last_triggered_us) < ((int64_t)cd_ms * 1000)) {
+                        continue;
+                    }
                 }
-                rule->trigger.pending_verify = true;
-            }
 
-            /* On-Change Edge Triggering */
-            if (rule->trigger.exec_mode == CANDO_EXEC_ON_CHANGE) {
-                if (rule->trigger.has_last_payload && memcmp(rule->trigger.last_payload, msg->data, msg->data_length_code) == 0) {
-                    continue;
+                /* One-Shot Latching */
+                if (trig->exec_mode == CANDO_EXEC_ONE_SHOT) {
+                    if (trig->triggered_latched) {
+                        continue;
+                    }
+                    trig->triggered_latched = true;
                 }
-            }
 
-            rule->trigger.last_triggered_us = now_us;
+                /* Poll & Verify Latching */
+                if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY) {
+                    if (trig->triggered_latched || trig->pending_verify) {
+                        continue;
+                    }
+                    trig->pending_verify = true;
+                }
 
-            /* Execute Sequence Steps Non-Blockingly */
-            for (uint8_t s = 0; s < rule->action.step_count; s++) {
-                cando_sequence_step_t *step = &rule->action.steps[s];
-                twai_message_t tx_msg = {
-                    .identifier = step->tx_can_id,
-                    .extd = step->is_ext ? 1 : 0,
-                    .data_length_code = step->tx_len
-                };
-                memcpy(tx_msg.data, step->tx_data, step->tx_len);
-                can_send((can_bus_t)step->target_bus, &tx_msg, 0);
+                /* On-Change Edge Triggering */
+                if (trig->exec_mode == CANDO_EXEC_ON_CHANGE) {
+                    if (trig->has_last_payload && memcmp(trig->last_payload, msg->data, msg->data_length_code) == 0) {
+                        continue;
+                    }
+                }
+
+                trig->last_triggered_us = now_us;
+
+                /* Execute Actions (filtering by matched trigger ID) */
+                const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
+                if (rule->action_count > 0 && rule->actions) {
+                    for (uint8_t a = 0; a < rule->action_count; a++) {
+                        cando_execute_action(&rule->actions[a], matched_id);
+                    }
+                } else {
+                    cando_execute_action(&rule->action, matched_id);
+                }
             }
         }
     }
@@ -2899,19 +2948,216 @@ void cando_process_timer_tick(void)
 
     for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
         cando_rule_t *rule = &g_cando_rules.rules[i];
+        if (!rule->enabled) continue;
 
-        /* Auto re-arm latch timeout */
-        if (rule->trigger.triggered_latched && rule->trigger.timeout_reset_ms > 0) {
-            if ((now_us - rule->trigger.last_triggered_us) > ((int64_t)rule->trigger.timeout_reset_ms * 1000)) {
-                rule->trigger.triggered_latched = false;
+        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
+        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
+
+        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
+            cando_trigger_t *trig = &trig_list[t_idx];
+
+            /* Auto re-arm latch timeout */
+            if (trig->triggered_latched && trig->timeout_reset_ms > 0) {
+                if ((now_us - trig->last_triggered_us) > ((int64_t)trig->timeout_reset_ms * 1000)) {
+                    trig->triggered_latched = false;
+                }
+            }
+
+            /* Timeout pending verification if no confirmation arrived */
+            if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY && trig->pending_verify) {
+                uint32_t v_timeout = (trig->timeout_reset_ms > 0) ? trig->timeout_reset_ms : 3000;
+                if ((now_us - trig->last_triggered_us) > ((int64_t)v_timeout * 1000)) {
+                    trig->pending_verify = false;
+                }
             }
         }
+    }
+}
 
-        /* Timeout pending verification if no confirmation arrived */
-        if (rule->trigger.exec_mode == CANDO_EXEC_POLL_VERIFY && rule->trigger.pending_verify) {
-            uint32_t v_timeout = (rule->trigger.timeout_reset_ms > 0) ? rule->trigger.timeout_reset_ms : 3000;
-            if ((now_us - rule->trigger.last_triggered_us) > ((int64_t)v_timeout * 1000)) {
-                rule->trigger.pending_verify = false;
+static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_t *trig)
+{
+    memset(trig, 0, sizeof(cando_trigger_t));
+    trig->source = CANDO_TRIG_CAN_MESSAGE;
+    trig->exec_mode = CANDO_EXEC_ON_CHANGE;
+    trig->cooldown_ms = 500;
+    trig->timeout_reset_ms = 2000;
+
+    cJSON *tid = trig_obj ? cJSON_GetObjectItem(trig_obj, "id") : NULL;
+    if (tid && tid->valuestring) {
+        strncpy(trig->id, tid->valuestring, sizeof(trig->id) - 1);
+    }
+
+    cJSON *em = trig_obj ? cJSON_GetObjectItem(trig_obj, "exec_mode") : cJSON_GetObjectItem(r, "exec_mode");
+    if (em && em->valuestring) {
+        if (strcmp(em->valuestring, "one_shot") == 0) trig->exec_mode = CANDO_EXEC_ONE_SHOT;
+        else if (strcmp(em->valuestring, "on_change") == 0) trig->exec_mode = CANDO_EXEC_ON_CHANGE;
+        else if (strcmp(em->valuestring, "poll_verify") == 0) trig->exec_mode = CANDO_EXEC_POLL_VERIFY;
+        else if (strcmp(em->valuestring, "continuous") == 0) trig->exec_mode = CANDO_EXEC_CONTINUOUS;
+    }
+
+    cJSON *cd = trig_obj ? cJSON_GetObjectItem(trig_obj, "cooldown_ms") : cJSON_GetObjectItem(r, "cooldown_ms");
+    if (cd && cJSON_IsNumber(cd)) trig->cooldown_ms = (uint32_t)cd->valueint;
+
+    cJSON *t_reset = trig_obj ? cJSON_GetObjectItem(trig_obj, "timeout_reset_ms") : cJSON_GetObjectItem(r, "timeout_reset_ms");
+    if (t_reset && cJSON_IsNumber(t_reset)) trig->timeout_reset_ms = (uint32_t)t_reset->valueint;
+
+    cJSON *rcid = trig_obj ? cJSON_GetObjectItem(trig_obj, "reset_can_id") : cJSON_GetObjectItem(r, "reset_can_id");
+    if (rcid && rcid->valuestring && strlen(rcid->valuestring) > 0) {
+        trig->reset_can_id = strtoul(rcid->valuestring, NULL, 0);
+    }
+
+    cJSON *vcid = trig_obj ? cJSON_GetObjectItem(trig_obj, "verify_can_id") : cJSON_GetObjectItem(r, "verify_can_id");
+    if (vcid && vcid->valuestring && strlen(vcid->valuestring) > 0) {
+        trig->verify_can_id = strtoul(vcid->valuestring, NULL, 0);
+    }
+
+    cJSON *vp = trig_obj ? cJSON_GetObjectItem(trig_obj, "verify_payload") : cJSON_GetObjectItem(r, "verify_payload");
+    if (vp && vp->valuestring && strlen(vp->valuestring) > 0) {
+        cando_parse_payload_pattern(vp->valuestring,
+                                    trig->verify_data,
+                                    trig->verify_mask,
+                                    &trig->verify_len,
+                                    &trig->has_verify);
+    }
+
+    cJSON *cid = trig_obj ? cJSON_GetObjectItem(trig_obj, "can_id") : cJSON_GetObjectItem(r, "can_id");
+    cJSON *bus_item = trig_obj ? cJSON_GetObjectItem(trig_obj, "bus") : cJSON_GetObjectItem(r, "bus");
+    cJSON *from_p = trig_obj ? cJSON_GetObjectItem(trig_obj, "from_payload") : cJSON_GetObjectItem(r, "from_payload");
+    cJSON *to_p = trig_obj ? cJSON_GetObjectItem(trig_obj, "to_payload") : NULL;
+    if (!to_p && trig_obj) to_p = cJSON_GetObjectItem(trig_obj, "match_payload");
+    if (!to_p) to_p = cJSON_GetObjectItem(r, "match_payload");
+
+    if (cid && cid->valuestring && strlen(cid->valuestring) > 0) {
+        trig->can_id = strtoul(cid->valuestring, NULL, 0);
+        trig->is_ext = (trig->can_id > 0x7FF) || (strlen(cid->valuestring) > 5);
+    }
+    if (bus_item && cJSON_IsNumber(bus_item)) {
+        trig->bus = (uint8_t)bus_item->valueint;
+    }
+
+    if (from_p && from_p->valuestring && strlen(from_p->valuestring) > 0) {
+        cando_parse_payload_pattern(from_p->valuestring,
+                                    trig->from_data,
+                                    trig->from_mask,
+                                    &trig->from_len,
+                                    &trig->has_from);
+    }
+
+    if (to_p && to_p->valuestring && strlen(to_p->valuestring) > 0) {
+        trig->match_type = CANDO_MATCH_MASK;
+        cando_parse_payload_pattern(to_p->valuestring,
+                                    trig->match_data,
+                                    trig->match_mask,
+                                    &trig->data_len,
+                                    &trig->has_to);
+    }
+
+    if (!trig->has_from && !trig->has_to) {
+        trig->any_change = true;
+    }
+}
+
+static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *act)
+{
+    memset(act, 0, sizeof(cando_action_t));
+
+    cJSON *trig_id = act_obj ? cJSON_GetObjectItem(act_obj, "trigger_id") : NULL;
+    if (trig_id && trig_id->valuestring) {
+        strncpy(act->trigger_id, trig_id->valuestring, sizeof(act->trigger_id) - 1);
+    }
+
+    cJSON *pop = act_obj ? cJSON_GetObjectItem(act_obj, "popup_message") : cJSON_GetObjectItem(r, "popup_message");
+    if (!pop && act_obj) pop = cJSON_GetObjectItem(act_obj, "track_popup");
+    if (!pop) pop = cJSON_GetObjectItem(r, "track_popup");
+    if (pop && pop->valuestring && strlen(pop->valuestring) > 0) {
+        act->popup_message = strdup(pop->valuestring);
+    }
+
+    cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
+    cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
+    cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
+    cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
+    cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
+
+    uint32_t can_id_val = 0;
+    bool is_ext = false;
+    uint8_t target_bus = 0;
+    uint32_t delay_val = 10;
+
+    if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
+        can_id_val = strtoul(txid->valuestring, NULL, 0);
+        is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
+    }
+    if (act_bus && cJSON_IsNumber(act_bus)) {
+        target_bus = (uint8_t)act_bus->valueint;
+    }
+    if (act_delay && cJSON_IsNumber(act_delay)) {
+        delay_val = (uint32_t)act_delay->valueint;
+    }
+
+    uint32_t total_steps = 0;
+    if (steps_arr && cJSON_IsArray(steps_arr)) {
+        int num_items = cJSON_GetArraySize(steps_arr);
+        for (int k = 0; k < num_items; k++) {
+            cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+            cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+            int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+            total_steps += r_cnt;
+        }
+    }
+
+    if (total_steps > 0 && total_steps <= 128) {
+        act->steps = calloc(total_steps, sizeof(cando_sequence_step_t));
+        if (act->steps) {
+            uint8_t s_idx = 0;
+            int num_items = cJSON_GetArraySize(steps_arr);
+            for (int k = 0; k < num_items && s_idx < total_steps; k++) {
+                cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+                cJSON *sp = cJSON_GetObjectItem(st, "payload");
+                cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+
+                uint8_t byte_data[8] = {0};
+                uint8_t byte_len = 0;
+                if (sp && sp->valuestring) {
+                    unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+                    int parsed = sscanf(sp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
+                                        &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
+                    byte_len = (uint8_t)parsed;
+                    unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+                    for (int m = 0; m < parsed; m++) {
+                        byte_data[m] = (uint8_t)pb[m];
+                    }
+                }
+
+                for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
+                    cando_sequence_step_t *step = &act->steps[s_idx++];
+                    step->tx_can_id = can_id_val;
+                    step->is_ext = is_ext;
+                    step->target_bus = target_bus;
+                    step->delay_ms = delay_val;
+                    step->tx_len = byte_len;
+                    memcpy(step->tx_data, byte_data, byte_len);
+                }
+            }
+            act->step_count = s_idx;
+        }
+    } else if (txp && txp->valuestring && can_id_val > 0) {
+        act->step_count = 1;
+        act->steps = calloc(1, sizeof(cando_sequence_step_t));
+        if (act->steps) {
+            cando_sequence_step_t *step = &act->steps[0];
+            step->tx_can_id = can_id_val;
+            step->is_ext = is_ext;
+            step->target_bus = target_bus;
+            step->delay_ms = delay_val;
+            unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
+            int parsed = sscanf(txp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
+                                &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
+            step->tx_len = (uint8_t)parsed;
+            unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
+            for (int m = 0; m < parsed; m++) {
+                step->tx_data[m] = (uint8_t)pb[m];
             }
         }
     }
@@ -2950,7 +3196,17 @@ esp_err_t cando_load_config(void)
         if (g_cando_rules.rules) {
             for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
                 if (g_cando_rules.rules[i].name) free(g_cando_rules.rules[i].name);
-                if (g_cando_rules.rules[i].action.steps) free(g_cando_rules.rules[i].action.steps);
+                if (g_cando_rules.rules[i].triggers) free(g_cando_rules.rules[i].triggers);
+                if (g_cando_rules.rules[i].actions) {
+                    for (uint8_t a = 0; a < g_cando_rules.rules[i].action_count; a++) {
+                        if (g_cando_rules.rules[i].actions[a].popup_message) free(g_cando_rules.rules[i].actions[a].popup_message);
+                        if (g_cando_rules.rules[i].actions[a].steps) free(g_cando_rules.rules[i].actions[a].steps);
+                    }
+                    free(g_cando_rules.rules[i].actions);
+                } else {
+                    if (g_cando_rules.rules[i].action.popup_message) free(g_cando_rules.rules[i].action.popup_message);
+                    if (g_cando_rules.rules[i].action.steps) free(g_cando_rules.rules[i].action.steps);
+                }
             }
             free(g_cando_rules.rules);
             g_cando_rules.rules = NULL;
@@ -2964,195 +3220,46 @@ esp_err_t cando_load_config(void)
                     cJSON *r = cJSON_GetArrayItem(rules_arr, i);
                     cando_rule_t *rule = &g_cando_rules.rules[i];
                     rule->enabled = true;
-                    rule->trigger.source = CANDO_TRIG_CAN_MESSAGE;
-                    rule->trigger.exec_mode = CANDO_EXEC_ON_CHANGE;
-                    rule->trigger.cooldown_ms = 500;
-                    rule->trigger.timeout_reset_ms = 2000;
 
                     cJSON *name = cJSON_GetObjectItem(r, "name");
                     if (name && name->valuestring) {
                         rule->name = strdup(name->valuestring);
                     }
 
-                    cJSON *em = cJSON_GetObjectItem(r, "exec_mode");
-                    if (em && em->valuestring) {
-                        if (strcmp(em->valuestring, "one_shot") == 0) rule->trigger.exec_mode = CANDO_EXEC_ONE_SHOT;
-                        else if (strcmp(em->valuestring, "on_change") == 0) rule->trigger.exec_mode = CANDO_EXEC_ON_CHANGE;
-                        else if (strcmp(em->valuestring, "poll_verify") == 0) rule->trigger.exec_mode = CANDO_EXEC_POLL_VERIFY;
-                        else if (strcmp(em->valuestring, "continuous") == 0) rule->trigger.exec_mode = CANDO_EXEC_CONTINUOUS;
-                    }
-
-                    cJSON *cd = cJSON_GetObjectItem(r, "cooldown_ms");
-                    if (cd && cJSON_IsNumber(cd)) rule->trigger.cooldown_ms = (uint32_t)cd->valueint;
-
-                    cJSON *t_reset = cJSON_GetObjectItem(r, "timeout_reset_ms");
-                    if (t_reset && cJSON_IsNumber(t_reset)) rule->trigger.timeout_reset_ms = (uint32_t)t_reset->valueint;
-
-                    cJSON *rcid = cJSON_GetObjectItem(r, "reset_can_id");
-                    if (rcid && rcid->valuestring && strlen(rcid->valuestring) > 0) {
-                        rule->trigger.reset_can_id = strtoul(rcid->valuestring, NULL, 0);
-                    }
-
-                    cJSON *vcid = cJSON_GetObjectItem(r, "verify_can_id");
-                    if (vcid && vcid->valuestring && strlen(vcid->valuestring) > 0) {
-                        rule->trigger.verify_can_id = strtoul(vcid->valuestring, NULL, 0);
-                    }
-
-                    cJSON *vp = cJSON_GetObjectItem(r, "verify_payload");
-                    if (vp && vp->valuestring && strlen(vp->valuestring) > 0) {
-                        cando_parse_payload_pattern(vp->valuestring,
-                                                    rule->trigger.verify_data,
-                                                    rule->trigger.verify_mask,
-                                                    &rule->trigger.verify_len,
-                                                    &rule->trigger.has_verify);
-                    }
-
-                    cJSON *cid = NULL;
-                    cJSON *bus_item = NULL;
-                    cJSON *from_p = NULL;
-                    cJSON *to_p = NULL;
-
+                    /* 1. Parse Triggers (multi or single) */
                     cJSON *trigs_arr = cJSON_GetObjectItem(r, "triggers");
-                    cJSON *trig_obj = cJSON_GetObjectItem(r, "trigger");
                     if (trigs_arr && cJSON_IsArray(trigs_arr) && cJSON_GetArraySize(trigs_arr) > 0) {
-                        trig_obj = cJSON_GetArrayItem(trigs_arr, 0);
-                    }
-
-                    if (trig_obj) {
-                        cid = cJSON_GetObjectItem(trig_obj, "can_id");
-                        bus_item = cJSON_GetObjectItem(trig_obj, "bus");
-                        from_p = cJSON_GetObjectItem(trig_obj, "from_payload");
-                        to_p = cJSON_GetObjectItem(trig_obj, "to_payload");
-                        if (!to_p) to_p = cJSON_GetObjectItem(trig_obj, "match_payload");
+                        int num_trigs = cJSON_GetArraySize(trigs_arr);
+                        rule->triggers = calloc(num_trigs, sizeof(cando_trigger_t));
+                        if (rule->triggers) {
+                            rule->trigger_count = num_trigs;
+                            for (int t = 0; t < num_trigs; t++) {
+                                cJSON *t_item = cJSON_GetArrayItem(trigs_arr, t);
+                                cando_parse_single_trigger(r, t_item, &rule->triggers[t]);
+                            }
+                            rule->trigger = rule->triggers[0];
+                        }
                     } else {
-                        cid = cJSON_GetObjectItem(r, "can_id");
-                        from_p = cJSON_GetObjectItem(r, "from_payload");
-                        to_p = cJSON_GetObjectItem(r, "match_payload");
+                        cJSON *trig_obj = cJSON_GetObjectItem(r, "trigger");
+                        cando_parse_single_trigger(r, trig_obj, &rule->trigger);
                     }
 
-                    if (cid && cid->valuestring && strlen(cid->valuestring) > 0) {
-                        rule->trigger.can_id = strtoul(cid->valuestring, NULL, 0);
-                        rule->trigger.is_ext = (rule->trigger.can_id > 0x7FF) || (strlen(cid->valuestring) > 5);
-                    }
-                    if (bus_item && cJSON_IsNumber(bus_item)) {
-                        rule->trigger.bus = (uint8_t)bus_item->valueint;
-                    }
-
-                    if (from_p && from_p->valuestring && strlen(from_p->valuestring) > 0) {
-                        cando_parse_payload_pattern(from_p->valuestring,
-                                                    rule->trigger.from_data,
-                                                    rule->trigger.from_mask,
-                                                    &rule->trigger.from_len,
-                                                    &rule->trigger.has_from);
-                    }
-
-                    if (to_p && to_p->valuestring && strlen(to_p->valuestring) > 0) {
-                        rule->trigger.match_type = CANDO_MATCH_MASK;
-                        cando_parse_payload_pattern(to_p->valuestring,
-                                                    rule->trigger.match_data,
-                                                    rule->trigger.match_mask,
-                                                    &rule->trigger.data_len,
-                                                    &rule->trigger.has_to);
-                    }
-
-                    if (!rule->trigger.has_from && !rule->trigger.has_to) {
-                        rule->trigger.any_change = true;
-                    }
-
+                    /* 2. Parse Actions (multi or single) */
                     cJSON *acts_arr = cJSON_GetObjectItem(r, "actions");
-                    cJSON *act_obj = cJSON_GetObjectItem(r, "action");
                     if (acts_arr && cJSON_IsArray(acts_arr) && cJSON_GetArraySize(acts_arr) > 0) {
-                        act_obj = cJSON_GetArrayItem(acts_arr, 0);
-                    }
-
-                    cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
-                    cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
-                    cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
-                    cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
-                    cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
-
-                    uint32_t can_id_val = 0;
-                    bool is_ext = false;
-                    uint8_t target_bus = 0;
-                    uint32_t delay_val = 10;
-
-                    if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
-                        can_id_val = strtoul(txid->valuestring, NULL, 0);
-                        is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
-                    }
-                    if (act_bus && cJSON_IsNumber(act_bus)) {
-                        target_bus = (uint8_t)act_bus->valueint;
-                    }
-                    if (act_delay && cJSON_IsNumber(act_delay)) {
-                        delay_val = (uint32_t)act_delay->valueint;
-                    }
-
-                    /* Count total expanded sequence steps */
-                    uint32_t total_steps = 0;
-                    if (steps_arr && cJSON_IsArray(steps_arr)) {
-                        int num_items = cJSON_GetArraySize(steps_arr);
-                        for (int k = 0; k < num_items; k++) {
-                            cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-                            cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-                            int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
-                            total_steps += r_cnt;
-                        }
-                    }
-
-                    if (total_steps > 0 && total_steps <= 128) {
-                        rule->action.steps = calloc(total_steps, sizeof(cando_sequence_step_t));
-                        if (rule->action.steps) {
-                            uint8_t s_idx = 0;
-                            int num_items = cJSON_GetArraySize(steps_arr);
-                            for (int k = 0; k < num_items && s_idx < total_steps; k++) {
-                                cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-                                cJSON *sp = cJSON_GetObjectItem(st, "payload");
-                                cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-                                int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
-
-                                uint8_t byte_data[8] = {0};
-                                uint8_t byte_len = 0;
-                                if (sp && sp->valuestring) {
-                                    unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
-                                    int parsed = sscanf(sp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
-                                                        &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
-                                    byte_len = (uint8_t)parsed;
-                                    unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
-                                    for (int m = 0; m < parsed; m++) {
-                                        byte_data[m] = (uint8_t)pb[m];
-                                    }
-                                }
-
-                                for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
-                                    cando_sequence_step_t *step = &rule->action.steps[s_idx++];
-                                    step->tx_can_id = can_id_val;
-                                    step->is_ext = is_ext;
-                                    step->target_bus = target_bus;
-                                    step->delay_ms = delay_val;
-                                    step->tx_len = byte_len;
-                                    memcpy(step->tx_data, byte_data, byte_len);
-                                }
+                        int num_acts = cJSON_GetArraySize(acts_arr);
+                        rule->actions = calloc(num_acts, sizeof(cando_action_t));
+                        if (rule->actions) {
+                            rule->action_count = num_acts;
+                            for (int a = 0; a < num_acts; a++) {
+                                cJSON *a_item = cJSON_GetArrayItem(acts_arr, a);
+                                cando_parse_single_action(r, a_item, &rule->actions[a]);
                             }
-                            rule->action.step_count = s_idx;
+                            rule->action = rule->actions[0];
                         }
-                    } else if (txp && txp->valuestring && can_id_val > 0) {
-                        rule->action.step_count = 1;
-                        rule->action.steps = calloc(1, sizeof(cando_sequence_step_t));
-                        if (rule->action.steps) {
-                            cando_sequence_step_t *step = &rule->action.steps[0];
-                            step->tx_can_id = can_id_val;
-                            step->is_ext = is_ext;
-                            step->target_bus = target_bus;
-                            step->delay_ms = delay_val;
-                            unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
-                            int parsed = sscanf(txp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
-                                                &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
-                            step->tx_len = (uint8_t)parsed;
-                            unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
-                            for (int m = 0; m < parsed; m++) {
-                                step->tx_data[m] = (uint8_t)pb[m];
-                            }
-                        }
+                    } else {
+                        cJSON *act_obj = cJSON_GetObjectItem(r, "action");
+                        cando_parse_single_action(r, act_obj, &rule->action);
                     }
 
                     g_cando_rules.rule_count++;

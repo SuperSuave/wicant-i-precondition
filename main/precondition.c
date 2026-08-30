@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include "esp_log.h"
@@ -169,13 +170,14 @@ static bool activation_is_release(const message_payload_t *msg, const twai_messa
 #define PRECONDITION_RETRY_US 10000000U  // 10 seconds
 #define PRECONDITION_MAX_RETRIES 4U
 #define PRECONDITION_STARTED_TIMEOUT_US 70000000U  // 70 seconds
-#define PRECONDITION_CAR_START_DELAY_US 8000000U  // persistent mode: wait 8 seconds after READY before relaunching
+#define PRECONDITION_CAR_START_DELAY_US 8000000U  // wait 8 seconds after READY before startup actions
 #define REPEATING_MODE_RETRY_INTERVAL_US (5LL * 60LL * 1000000LL)  // 5 minutes between re-nudges
 
 #define BATTERY_TEMPERATURE_FRAME_ID 0x152U
 #define BATTERY_TEMPERATURE_MIN_INDEX 0U
 #define BATTERY_TEMPERATURE_MAX_INDEX 1U
 #define BATTERY_TEMPERATURE_DATA_LENGTH 2U
+#define PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C 21
 
 #define IS_BATTERY_TEMPERATURE_FRAME(frame_id) ((frame_id) == BATTERY_TEMPERATURE_FRAME_ID)
 
@@ -248,6 +250,21 @@ typedef enum {
     ATTEMPT_BMU_RESTART, // status-only BMU restart; silent and not retried directly
 } attempt_kind_t;
 
+typedef uint8_t precondition_blockers_t;
+
+enum {
+    PRECONDITION_BLOCK_NONE = 0U,
+    PRECONDITION_BLOCK_BATTERY_WARM = 1U << 0,
+};
+
+// owned by IDLE
+static struct {
+    // one-shot notice carried across the off-to-ready power cycle
+    // when turning the car off implicitly disables an active Continuous session
+    bool continuous_disabled_by_car_off;
+    int64_t continuous_disabled_ready_at_us;
+} idle;
+
 // owned by REQUESTED and its children; describes the most recent start
 // attempt, so it is dormant while ACTIVE or MANAGED is the leaf
 static struct {
@@ -298,6 +315,19 @@ static struct {
 } button;
 
 static QueueHandle_t battery_temperature_queue = NULL;
+static QueueHandle_t precondition_state_queue = NULL;
+static QueueHandle_t precondition_toggle_queue = NULL;
+
+// Reasons that a start attempt cannot proceed.
+static precondition_blockers_t precon_blockers = PRECONDITION_BLOCK_NONE;
+
+static void set_precon_blocker(precondition_blockers_t blocker, bool active) {
+    if (active) {
+        precon_blockers |= blocker;
+    } else {
+        precon_blockers &= ~blocker;
+    }
+}
 
 // ********************* config snapshot *********************
 
@@ -461,10 +491,22 @@ static void start_timeout(sm_t *sm) {
 // ********************* IDLE *********************
 
 static void idle_enter(sm_t *sm) {
+    bool disabled_by_car_off = sm_entry_arg(sm) != 0;
+    idle.continuous_disabled_by_car_off = disabled_by_car_off
+                                       && precon_config.mode == CONTINUOUS;
     if (repeating_mode() && repeating_mode_enabled()) {
         // the WiCAN just booted and restored persistent mode from flash
         // => wait in MANAGED for car to boot
         sm_transition(sm, &S_MANAGED);
+    }
+}
+
+static void idle_tick(sm_t *sm) {
+    if (idle.continuous_disabled_by_car_off && platform.car_in_ready
+            && ts_elapsed(sm_now(sm), idle.continuous_disabled_ready_at_us)
+                    >= PRECONDITION_CAR_START_DELAY_US) {
+        idle.continuous_disabled_by_car_off = false;
+        track_popup_show("Continuous: disabled by car restart");
     }
 }
 
@@ -474,8 +516,9 @@ static bool idle_event(sm_t *sm, sm_event_t ev) {
             sm_transition(sm, &S_REQUESTED);
             return true;
         case EV_CAR_READY:
-            // we only stay in idle during once mode, so nothing to do
-            // on car ready
+            if (idle.continuous_disabled_by_car_off) {
+                idle.continuous_disabled_ready_at_us = sm_now(sm);
+            }
             return true;
     }
     return false;
@@ -487,6 +530,22 @@ static void requested_enter(sm_t *sm) {
     requested.kind = (attempt_kind_t)sm_entry_arg(sm);
     if (repeating_mode()) {
         set_repeating_enabled(true);
+        if (requested.kind == ATTEMPT_MANUAL || requested.kind == ATTEMPT_CAR_START) {
+            const char *mode_name = precon_config.mode == PERSISTENT
+                                  ? "Persistent" : "Continuous";
+            precondition_temperature_t temperature;
+            char message[64];
+            if (precondition_get_battery_temperature(&temperature)) {
+                snprintf(message, sizeof(message),
+                         "%s: maintaining %d°C (%d°C)",
+                         mode_name, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C, temperature.min_c);
+            } else {
+                snprintf(message, sizeof(message),
+                         "%s: maintaining %d°C",
+                         mode_name, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
+            }
+            track_popup_show(message);
+        }
     }
     if (requested.kind == ATTEMPT_BMU_RESTART) {
         requested.last_attempt_ts = sm_now(sm);
@@ -502,6 +561,11 @@ static bool requested_event(sm_t *sm, sm_event_t ev) {
         case EV_TOGGLE:
             // debounce between start and stop
             if (sm_time_in_us(sm, &S_REQUESTED) > PRECONDITION_DEBOUNCE_US) {
+                if (precon_config.mode == PERSISTENT) {
+                    track_popup_show("Persistent mode: stopping");
+                } else if (precon_config.mode == CONTINUOUS) {
+                    track_popup_show("Continuous mode: stopping");
+                }
                 sm_transition(sm, &S_STOPPING);
             }
             return true;
@@ -514,8 +578,7 @@ static bool requested_event(sm_t *sm, sm_event_t ev) {
                 // which usefully resets its stale start-burst ctx
                 sm_transition(sm, &S_MANAGED);
             } else {
-                // reset continuous/once mode state
-                sm_transition(sm, &S_IDLE);
+                sm_transition_arg(sm, &S_IDLE, true);
             }
             return true;
     }
@@ -562,12 +625,43 @@ static void car_start_delay_tick(sm_t *sm) {
 
 // ********************* REQUESTED / START_BURST *********************
 
+// Abort an in-progress start attempt when any known blocking condition is active.
+static bool stop_start_if_blocked(sm_t *sm) {
+    if (precon_blockers == PRECONDITION_BLOCK_NONE) {
+        return false;
+    }
+
+    if (precon_blockers & PRECONDITION_BLOCK_BATTERY_WARM) {
+        precondition_temperature_t temperature;
+        if (precondition_get_battery_temperature(&temperature)) {
+            ESP_LOGI(TAG, "Start blocked: battery minimum temperature is %d C", temperature.min_c);
+            if (requested.kind == ATTEMPT_MANUAL && precon_config.mode == ONCE) {
+                char message[48];
+                snprintf(message, sizeof(message), "Once: temp too high: %d°C ≥ %d°C",
+                         temperature.min_c, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
+                track_popup_show(message);
+            }
+        }
+    }
+    if (precon_config.mode == ONCE) {
+        // silent attempt
+        sm_transition_arg(sm, &S_STOPPING, PRECONDITION_MAX_RETRIES);
+    } else {
+        sm_transition(sm, &S_MANAGED);
+    }
+    return true;
+}
+
 // retry timers and the countdown display measure from the moment the burst began
 static void start_burst_enter(sm_t *sm) {
     requested.last_attempt_ts = sm_now(sm);
+    stop_start_if_blocked(sm);
 }
 
 static void start_burst_tick(sm_t *sm) {
+    if (stop_start_if_blocked(sm)) {
+        return;
+    }
     uint32_t t = sm_ticks_in_state(sm);
     send_precondition_start_msg(t);
     // Status events deliberately do not cut the burst short. After all start
@@ -590,6 +684,9 @@ static void start_burst_tick(sm_t *sm) {
 // ********************* REQUESTED / WAIT_STARTING *********************
 
 static void wait_starting_tick(sm_t *sm) {
+    if (stop_start_if_blocked(sm)) {
+        return;
+    }
     int64_t time_since_last_attempt = ts_elapsed(sm_now(sm), requested.last_attempt_ts);
     if (!precon_status_available()) {
         // without status frames we can't confirm or retry anything; after the
@@ -622,6 +719,9 @@ static bool wait_starting_event(sm_t *sm, sm_event_t ev) {
 // ********************* REQUESTED / WAIT_STARTED *********************
 
 static void wait_started_tick(sm_t *sm) {
+    if (stop_start_if_blocked(sm)) {
+        return;
+    }
     // the car said "starting" but hasn't reached fully started
     // (i.e. we got 2AD 05 but not 15 after a long time)
     int64_t time_since_last_attempt = ts_elapsed(sm_now(sm), requested.last_attempt_ts);
@@ -801,7 +901,10 @@ static bool wait_stopped_event(sm_t *sm, sm_event_t ev) {
 
 static const sm_state_t S_IDLE = {
     .name = "idle",
+    .ctx = &idle,
+    .ctx_size = sizeof(idle),
     .enter = idle_enter,
+    .tick = idle_tick,
     .event = idle_event,
 };
 
@@ -890,6 +993,8 @@ static const sm_state_t S_WAIT_STOPPED = {
 
 // ********************* global hooks *********************
 
+static void push_precondition_state(void);
+
 static void precondition_global_tick(sm_t *sm) {
     track_popup_tick();
     // long press mode: trigger once when the hold crosses the threshold, without
@@ -901,6 +1006,15 @@ static void precondition_global_tick(sm_t *sm) {
         button.long_press_fired = true;
         sm_send_event(sm, EV_TOGGLE);
     }
+    // web UI toggle requests are handled here, on the precondition task, so
+    // the precondition state machine stays single-writer
+    uint8_t toggle_cmd = 0;
+    if (precondition_toggle_queue != NULL
+            && xQueueReceive(precondition_toggle_queue, &toggle_cmd, 0) == pdTRUE) {
+        sm_send_event(&precon_sm, EV_TOGGLE);
+    }
+
+    push_precondition_state();
 }
 
 static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_bus_t rx_bus) {
@@ -949,6 +1063,10 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
         };
 
         xQueueOverwrite(battery_temperature_queue, &temperature);
+        set_precon_blocker(
+            PRECONDITION_BLOCK_BATTERY_WARM,
+            temperature.min_c >= PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C
+        );
     }
 
     int8_t precon_button_type = precon_config.button_type;
@@ -994,11 +1112,46 @@ static const sm_hooks_t precondition_global_hooks = {
 
 // ********************* public API *********************
 
+// push the current state into the queue so the web UI can read it with xQueuePeek
+static void push_precondition_state(void) {
+    if (precondition_state_queue == NULL) {
+        return;
+    }
+    // derive the display state straight from the machine's current leaf:
+    // requested is any state under REQUESTED (incl. MANAGED), starting is the
+    // two wait states, active only once fully running in ACTIVE
+    precondition_state_t state = {
+        .requested = sm_in(&precon_sm, &S_REQUESTED),
+        .active = sm_in(&precon_sm, &S_ACTIVE),
+        .starting = sm_in(&precon_sm, &S_WAIT_STARTING) || sm_in(&precon_sm, &S_WAIT_STARTED),
+    };
+    xQueueOverwrite(precondition_state_queue, &state);
+}
+
+// web UI polls this with xQueuePeek to display preconditioning status
+bool precondition_get_state(precondition_state_t *out) {
+    if (out == NULL || precondition_state_queue == NULL) {
+        return false;
+    }
+    return xQueuePeek(precondition_state_queue, out, 0) == pdTRUE;
+}
+
+// called from the web UI (http server task); hand off to the precondition task
+// via a queue so the precondition state machine stays single-writer
+void precondition_toggle_request(void) {
+    if (precondition_toggle_queue == NULL) {
+        return;
+    }
+    uint8_t cmd = 1;
+    xQueueOverwrite(precondition_toggle_queue, &cmd);
+}
+
 void precondition_init(void) {
     precon_config.button_type = config_server_precon_button();
     precon_config.press_type = config_server_precon_press();
     precon_config.mode = config_server_precon_mode();
-
+    precon_blockers = PRECONDITION_BLOCK_NONE;
+    
     if (precon_config.mode == PERSISTENT) {
         // Currently our only persistent setting is whether persistent
         // mode was enabled. If that changes, we should make this init
@@ -1008,8 +1161,13 @@ void precondition_init(void) {
 
     battery_temperature_queue = xQueueCreate(1, sizeof(precondition_temperature_t));
     configASSERT(battery_temperature_queue != NULL);
+    precondition_state_queue = xQueueCreate(1, sizeof(precondition_state_t));
+    configASSERT(precondition_state_queue != NULL);
+    precondition_toggle_queue = xQueueCreate(1, sizeof(uint8_t));
+    configASSERT(precondition_toggle_queue != NULL);
     track_popup_init();
     sm_init(&precon_sm, "precondition", &S_IDLE, &precondition_global_hooks);
+    push_precondition_state();
 }
 
 // called every 40ms

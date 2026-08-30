@@ -21,4 +21,13 @@ void precondition_toggle(void);
 bool precondition_is_active(void);
 void precondition_action_execute(const char *mode_str, const char *press_str);
 
+typedef struct {
+    bool requested;
+    bool active;
+    bool starting;
+} precondition_state_t;
+
+void precondition_toggle_request(void);
+bool precondition_get_state(precondition_state_t *out);
+
 #endif

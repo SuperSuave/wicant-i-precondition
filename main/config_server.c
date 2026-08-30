@@ -733,6 +733,14 @@ static esp_err_t system_reboot_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static esp_err_t precondition_toggle_handler(httpd_req_t *req)
+{
+	precondition_toggle_request();
+	const char *resp_str = "Preconditioning toggled";
+    httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
 static esp_err_t logo_handler(httpd_req_t *req)
 {
     const char* resp_str = (const char*)logo;
@@ -1270,6 +1278,13 @@ char *config_server_get_status_json(bool remove_sensitive_info)
         );
 	} else {
         cJSON_AddBoolToObject(root, "battery_temp_valid", false);
+	}
+
+	precondition_state_t pstate;
+	if (precondition_get_state(&pstate)) {
+        cJSON_AddBoolToObject(root, "precondition_requested", pstate.requested);
+        cJSON_AddBoolToObject(root, "precondition_active", pstate.active);
+        cJSON_AddBoolToObject(root, "precondition_starting", pstate.starting);
 	}
 
 	{
@@ -1934,6 +1949,13 @@ static const httpd_uri_t system_reboot = {
     .handler   = system_reboot_handler,
     .user_ctx  = NULL    // Pass server data as context
 };
+static const httpd_uri_t precondition_toggle = {
+    .uri       = "/precondition_toggle",
+    .method    = HTTP_POST,
+    .handler   = precondition_toggle_handler,
+    .user_ctx  = NULL
+};
+
 static const httpd_uri_t store_cando_uri = {
     .uri       = "/store_cando",
     .method    = HTTP_POST,
@@ -1996,7 +2018,6 @@ static const httpd_uri_t store_time_config_uri = {
     .handler   = store_time_config_handler,
     .user_ctx  = NULL
 };
-
 static const httpd_uri_t store_auto_data_uri = {
     .uri       = "/store_auto_data",
     .method    = HTTP_POST,
@@ -2812,6 +2833,7 @@ static httpd_handle_t config_server_init(void)
         httpd_register_uri_handler(server, &ws);
         httpd_register_uri_handler(server, &file_upload);
 		httpd_register_uri_handler(server, &system_reboot);
+		httpd_register_uri_handler(server, &precondition_toggle);
 		httpd_register_uri_handler(server, &store_canflt_uri);
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
@@ -2860,6 +2882,7 @@ void config_server_restart(void)
         httpd_register_uri_handler(server, &ws);
         httpd_register_uri_handler(server, &file_upload);
 		httpd_register_uri_handler(server, &system_reboot);
+		httpd_register_uri_handler(server, &precondition_toggle);
 		httpd_register_uri_handler(server, &store_canflt_uri);
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);

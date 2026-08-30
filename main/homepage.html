@@ -438,7 +438,8 @@ value="Add ID" style="width: 100%;" /></td>
 </div>
 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
 <span id="cando_catalog_badge" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;">Catalog: Initializing...</span>
-<button type="button" class="system-button" onclick="syncCatalogFromGitHub(true)" title="Fetch latest presets from GitHub repository" style="margin: 0; background: #059669; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">🔄 Sync Presets</button>
+<button type="button" class="system-button" onclick="syncCatalogFromGitHub(true)" title="Fetch latest presets from repository" style="margin: 0; background: #059669; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">🔄 Sync Presets</button>
+<button type="button" class="system-button" onclick="configureCatalogUrl()" title="Configure Catalog Repository URL" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 9px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">⚙️ URL</button>
 <button type="button" class="system-button" onclick="document.getElementById('cando_catalog_import_file').click()" title="Load custom cando_catalog.json file" style="margin: 0; background: #7c3aed; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">📁 Custom Presets</button>
 <input type="file" id="cando_catalog_import_file" accept=".json" onchange="importCandoCatalogFile(this)" style="display: none;" />
 <input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 5px 10px; border-radius: 5px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 150px; margin: 0;">
@@ -2881,15 +2882,39 @@ const CANDO_DEFAULT_FALLBACK_CATALOG = {
 ]
 };
 let CANDO_CATALOG = CANDO_DEFAULT_FALLBACK_CATALOG;
-const CANDO_GITHUB_CATALOG_URL = "https://raw.githubusercontent.com/MeatPi-Electronics/wican-fw/master/main/cando_catalog.json";
+const DEFAULT_CANDO_CATALOG_URL = "https://raw.githubusercontent.com/L1Z3/wicant-i-precondition/main/main/cando_catalog.json";
+function getCandoCatalogUrl() {
+let url = localStorage.getItem("wican_cando_catalog_url") || DEFAULT_CANDO_CATALOG_URL;
+url = url.trim();
+if (url.includes("github.com") && url.includes("/blob/")) {
+url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
+}
+return url;
+}
+function configureCatalogUrl() {
+const current = localStorage.getItem("wican_cando_catalog_url") || DEFAULT_CANDO_CATALOG_URL;
+const input = prompt("Enter CAN Do Catalog raw JSON URL:\n(Leave empty to reset to default L1Z3/wicant-i-precondition)", current);
+if (input === null) return;
+const trimmed = input.trim();
+if (!trimmed || trimmed === DEFAULT_CANDO_CATALOG_URL) {
+localStorage.removeItem("wican_cando_catalog_url");
+showNotification("Catalog URL reset to default (L1Z3/wicant-i-precondition).", "blue", 3000);
+} else {
+localStorage.setItem("wican_cando_catalog_url", trimmed);
+showNotification("Catalog URL updated. Syncing now...", "blue", 3000);
+}
+syncCatalogFromGitHub(true);
+}
 function updateCatalogStatusUI(status, info) {
 const badge = document.getElementById("cando_catalog_badge");
 if (!badge) return;
+const currentUrl = getCandoCatalogUrl();
+const isCustom = (localStorage.getItem("wican_cando_catalog_url") && localStorage.getItem("wican_cando_catalog_url") !== DEFAULT_CANDO_CATALOG_URL);
 if (status === "online") {
-badge.textContent = "Catalog: Online (GitHub)";
+badge.textContent = isCustom ? "Catalog: Online (Custom URL)" : "Catalog: Online (L1Z3)";
 badge.style.background = "#dcfce7";
 badge.style.color = "#15803d";
-badge.title = "Latest presets synced from GitHub: " + (info || "");
+badge.title = "Latest presets synced from " + currentUrl + " at " + (info || "");
 } else if (status === "device") {
 badge.textContent = "Catalog: Device Flash";
 badge.style.background = "#e0f2fe";
@@ -2917,6 +2942,48 @@ headers: { "Content-Type": "application/json" },
 body: JSON.stringify(catalogData)
 }).catch(err => console.log("Background SPIFFS catalog cache skipped:", err));
 }
+function mergeCatalogData(base, custom) {
+if (!custom) return base || CANDO_DEFAULT_FALLBACK_CATALOG;
+if (!base) return custom;
+const vehiclesMap = new Map();
+(base.vehicles || []).forEach(v => vehiclesMap.set(v.id, { ...v }));
+(custom.vehicles || []).forEach(v => vehiclesMap.set(v.id, { ...(vehiclesMap.get(v.id) || {}), ...v }));
+const mergedVehicles = Array.from(vehiclesMap.values());
+const trigMap = new Map();
+(base.trigger_presets || []).forEach(t => trigMap.set(t.id || t.name, { ...t }));
+(custom.trigger_presets || []).forEach(t => {
+const key = t.id || t.name;
+trigMap.set(key, { ...(trigMap.get(key) || {}), ...t });
+});
+const mergedTriggers = Array.from(trigMap.values());
+const catMap = new Map();
+(base.action_presets || []).forEach(cat => {
+catMap.set(cat.category, {
+category: cat.category,
+presets: (cat.presets || []).map(p => ({ ...p }))
+});
+});
+(custom.action_presets || []).forEach(cat => {
+if (!catMap.has(cat.category)) {
+catMap.set(cat.category, {
+category: cat.category,
+presets: (cat.presets || []).map(p => ({ ...p }))
+});
+} else {
+const existingCat = catMap.get(cat.category);
+const actMap = new Map();
+existingCat.presets.forEach(p => actMap.set(p.name, p));
+(cat.presets || []).forEach(p => actMap.set(p.name, { ...(actMap.get(p.name) || {}), ...p }));
+existingCat.presets = Array.from(actMap.values());
+}
+});
+const mergedActions = Array.from(catMap.values());
+return {
+vehicles: mergedVehicles,
+trigger_presets: mergedTriggers,
+action_presets: mergedActions
+};
+}
 async function loadCandoCatalog() {
 try {
 const cached = localStorage.getItem("wican_cando_catalog");
@@ -2932,13 +2999,21 @@ refreshAllCandoPresetDropdowns();
 } catch (e) {
 console.log("Cached catalog parse error:", e);
 }
-fetch(CANDO_GITHUB_CATALOG_URL + "?_t=" + Date.now(), { cache: "no-cache" })
+const catalogUrl = getCandoCatalogUrl();
+fetch(catalogUrl + (catalogUrl.includes("?") ? "&_t=" : "?_t=") + Date.now(), { cache: "no-cache" })
 .then(res => {
 if (!res.ok) throw new Error("HTTP " + res.status);
 return res.json();
 })
 .then(data => {
 if (data && data.trigger_presets && data.action_presets) {
+const customSaved = localStorage.getItem("wican_custom_imported_catalog");
+if (customSaved) {
+try {
+const customParsed = JSON.parse(customSaved);
+data = mergeCatalogData(data, customParsed);
+} catch (e) {}
+}
 CANDO_CATALOG = data;
 localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
 localStorage.setItem("wican_cando_catalog_sync_time", new Date().toLocaleString());
@@ -2949,7 +3024,7 @@ syncCatalogToDevice(data);
 }
 })
 .catch(err => {
-console.log("GitHub catalog fetch unavailable (offline/AP mode), trying WiCAN device storage:", err);
+console.log("Remote catalog fetch unavailable (offline/AP mode), trying WiCAN device storage:", err);
 fetch("/load_cando_catalog")
 .then(res => {
 if (!res.ok) throw new Error("HTTP " + res.status);
@@ -2957,6 +3032,13 @@ return res.json();
 })
 .then(data => {
 if (data && data.trigger_presets && data.action_presets) {
+const customSaved = localStorage.getItem("wican_custom_imported_catalog");
+if (customSaved) {
+try {
+const customParsed = JSON.parse(customSaved);
+data = mergeCatalogData(data, customParsed);
+} catch (e) {}
+}
 CANDO_CATALOG = data;
 localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
 updateCatalogStatusUI("device");
@@ -2985,14 +3067,22 @@ sel.appendChild(opt);
 });
 }
 function syncCatalogFromGitHub(manual = true) {
-showNotification("Syncing presets from GitHub repository...", "blue", 2500);
-fetch(CANDO_GITHUB_CATALOG_URL + "?_t=" + Date.now(), { cache: "no-cache" })
+const catalogUrl = getCandoCatalogUrl();
+showNotification("Syncing presets from " + catalogUrl + " ...", "blue", 2500);
+fetch(catalogUrl + (catalogUrl.includes("?") ? "&_t=" : "?_t=") + Date.now(), { cache: "no-cache" })
 .then(res => {
 if (!res.ok) throw new Error("HTTP " + res.status);
 return res.json();
 })
 .then(data => {
 if (data && data.trigger_presets && data.action_presets) {
+const customSaved = localStorage.getItem("wican_custom_imported_catalog");
+if (customSaved) {
+try {
+const customParsed = JSON.parse(customSaved);
+data = mergeCatalogData(data, customParsed);
+} catch (e) {}
+}
 CANDO_CATALOG = data;
 localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
 localStorage.setItem("wican_cando_catalog_sync_time", new Date().toLocaleString());
@@ -3003,13 +3093,14 @@ syncCatalogToDevice(data);
 const totalTrig = (data.trigger_presets || []).length;
 let totalAct = 0;
 (data.action_presets || []).forEach(cat => totalAct += (cat.presets || []).length);
-showNotification(`✓ Synced from GitHub: ${totalTrig} triggers, ${totalAct} action presets updated!`, "green", 4000);
+const mergeNote = customSaved ? " (smart merged with your custom presets)" : "";
+showNotification(`✓ Synced successfully: ${totalTrig} triggers, ${totalAct} action presets updated${mergeNote}!`, "green", 4500);
 } else {
 throw new Error("Invalid catalog format");
 }
 })
 .catch(err => {
-showNotification("Could not reach GitHub (check internet connection). Keeping current presets.", "red", 4000);
+showNotification("Could not reach repository (" + catalogUrl + "). Keeping current presets.", "red", 4500);
 });
 }
 function importCandoCatalogFile(inputElem) {
@@ -3020,16 +3111,23 @@ reader.onload = function(e) {
 try {
 const data = JSON.parse(e.target.result);
 if (data && data.trigger_presets && data.action_presets) {
+const shouldMerge = confirm("Merge imported presets with existing catalog?\n\n• Click OK to MERGE (recommended - preserves existing presets and adds/updates new ones)\n• Click Cancel to REPLACE (replaces entire catalog with this file)");
+if (shouldMerge) {
+localStorage.setItem("wican_custom_imported_catalog", JSON.stringify(data));
+CANDO_CATALOG = mergeCatalogData(CANDO_CATALOG, data);
+} else {
+localStorage.removeItem("wican_custom_imported_catalog");
 CANDO_CATALOG = data;
-localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
+}
+localStorage.setItem("wican_cando_catalog", JSON.stringify(CANDO_CATALOG));
 updateCatalogStatusUI("custom");
-populateVehicleProfileDropdown(data.vehicles);
+populateVehicleProfileDropdown(CANDO_CATALOG.vehicles);
 refreshAllCandoPresetDropdowns();
-syncCatalogToDevice(data);
-const totalTrig = (data.trigger_presets || []).length;
+syncCatalogToDevice(CANDO_CATALOG);
+const totalTrig = (CANDO_CATALOG.trigger_presets || []).length;
 let totalAct = 0;
-(data.action_presets || []).forEach(cat => totalAct += (cat.presets || []).length);
-showNotification(`✓ Custom catalog loaded: ${totalTrig} triggers, ${totalAct} action presets.`, "green", 4000);
+(CANDO_CATALOG.action_presets || []).forEach(cat => totalAct += (cat.presets || []).length);
+showNotification(`✓ Presets ${shouldMerge ? "merged" : "loaded"}: ${totalTrig} triggers, ${totalAct} action presets available.`, "green", 4000);
 } else {
 showNotification("Invalid catalog format. Missing trigger_presets or action_presets.", "red", 4000);
 }

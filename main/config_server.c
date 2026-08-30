@@ -781,6 +781,74 @@ static esp_err_t load_cando_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static esp_err_t store_cando_catalog_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    int total_len = req->content_len;
+    if (total_len <= 0 || total_len > MAX_FILE_SIZE) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    char *buffer = malloc(total_len + 1);
+    if (!buffer) {
+        httpd_resp_send_500(req);
+        return ESP_ERR_NO_MEM;
+    }
+    int cur_len = 0;
+    while (cur_len < total_len) {
+        int received = httpd_req_recv(req, buffer + cur_len, total_len - cur_len);
+        if (received <= 0) {
+            free(buffer);
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        cur_len += received;
+    }
+    buffer[total_len] = '\0';
+    FILE *f = fopen(FS_MOUNT_POINT "/cando_catalog.json", "w");
+    if (f) {
+        fputs(buffer, f);
+        fclose(f);
+        free(buffer);
+        httpd_resp_sendstr(req, "CAN Do catalog saved successfully.");
+        return ESP_OK;
+    }
+    free(buffer);
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
+}
+
+static esp_err_t load_cando_catalog_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    FILE *f = fopen(FS_MOUNT_POINT "/cando_catalog.json", "r");
+    if (!f) {
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+    }
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (sz <= 0) {
+        fclose(f);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+    }
+    char *buf = malloc(sz + 1);
+    if (!buf) {
+        fclose(f);
+        httpd_resp_send_500(req);
+        return ESP_ERR_NO_MEM;
+    }
+    size_t n = fread(buf, 1, sz, f);
+    fclose(f);
+    buf[n] = '\0';
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, buf);
+    free(buf);
+    return ESP_OK;
+}
+
 static esp_err_t test_cando_action_handler(httpd_req_t *req)
 {
     if (!req) return ESP_ERR_INVALID_ARG;
@@ -1841,6 +1909,20 @@ static const httpd_uri_t load_cando_uri = {
     .user_ctx  = NULL
 };
 
+static const httpd_uri_t store_cando_catalog_uri = {
+    .uri       = "/store_cando_catalog",
+    .method    = HTTP_POST,
+    .handler   = store_cando_catalog_handler,
+    .user_ctx  = NULL
+};
+
+static const httpd_uri_t load_cando_catalog_uri = {
+    .uri       = "/load_cando_catalog",
+    .method    = HTTP_GET,
+    .handler   = load_cando_catalog_handler,
+    .user_ctx  = NULL
+};
+
 static const httpd_uri_t test_cando_action_uri = {
     .uri       = "/test_cando_action",
     .method    = HTTP_POST,
@@ -2688,6 +2770,8 @@ static httpd_handle_t config_server_init(void)
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
 		httpd_register_uri_handler(server, &load_cando_uri);
+		httpd_register_uri_handler(server, &store_cando_catalog_uri);
+		httpd_register_uri_handler(server, &load_cando_catalog_uri);
 		httpd_register_uri_handler(server, &test_cando_action_uri);
 		httpd_register_uri_handler(server, &get_time_uri);
 		httpd_register_uri_handler(server, &set_time_uri);
@@ -2733,6 +2817,8 @@ void config_server_restart(void)
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
 		httpd_register_uri_handler(server, &load_cando_uri);
+		httpd_register_uri_handler(server, &store_cando_catalog_uri);
+		httpd_register_uri_handler(server, &load_cando_catalog_uri);
 		httpd_register_uri_handler(server, &test_cando_action_uri);
 		httpd_register_uri_handler(server, &get_time_uri);
 		httpd_register_uri_handler(server, &set_time_uri);

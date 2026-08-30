@@ -2666,6 +2666,8 @@ void autopid_init(char* id)
 
 }
 
+#define DEFAULT_CANDO_JSON "{\"enabled\":true,\"reverse_engineering_mode\":false,\"rules\":[{\"name\":\"E-GMP Battery Preconditioning\",\"enabled\":true,\"trigger\":{\"id\":\"sw_star\",\"source\":\"can_message\",\"can_id\":\"0x448\",\"bus\":0,\"exec_mode\":\"one_shot\",\"cooldown_ms\":500,\"from\":\"* * * * * 0*\",\"to\":\"* * * * * 1*\"},\"action\":{\"type\":\"precondition\",\"trigger_id\":\"sw_star\",\"precon_mode\":\"persistent\",\"precon_press\":\"short\"}}]}"
+
 static cando_rule_set_t g_cando_rules = {0};
 
 void cando_set_reverse_engineering_mode(bool enable)
@@ -3366,151 +3368,149 @@ static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_
             step->tx_len = idx;
         }
 
-        static void cando_parse_action_json(cJSON *r, cJSON *act_obj, cando_action_t *act)
-        {
-            if (!act) return;
-            memset(act, 0, sizeof(cando_action_t));
+static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *act)
+{
+    if (!act) return;
+    memset(act, 0, sizeof(cando_action_t));
 
-            cJSON *trig_id = act_obj ? cJSON_GetObjectItem(act_obj, "trigger_id") : cJSON_GetObjectItem(r, "trigger_id");
-            if (trig_id && trig_id->valuestring) {
-                strncpy(act->trigger_id, trig_id->valuestring, sizeof(act->trigger_id) - 1);
-            } else {
-                strcpy(act->trigger_id, "any");
-            }
+    cJSON *trig_id = act_obj ? cJSON_GetObjectItem(act_obj, "trigger_id") : cJSON_GetObjectItem(r, "trigger_id");
+    if (trig_id && trig_id->valuestring) {
+        strncpy(act->trigger_id, trig_id->valuestring, sizeof(act->trigger_id) - 1);
+    } else {
+        strcpy(act->trigger_id, "any");
+    }
 
-            cJSON *act_type_obj = act_obj ? cJSON_GetObjectItem(act_obj, "type") : cJSON_GetObjectItem(r, "action_type");
-            if (act_type_obj && act_type_obj->valuestring) {
-                if (strcmp(act_type_obj->valuestring, "can_tx") == 0) {
-                    act->type = CANDO_ACT_CAN_TX;
-                } else if (strcmp(act_type_obj->valuestring, "popup") == 0) {
-                    act->type = CANDO_ACT_POPUP;
-                } else if (strcmp(act_type_obj->valuestring, "precondition") == 0) {
-                    act->type = CANDO_ACT_PRECONDITION;
-                } else if (strcmp(act_type_obj->valuestring, "climate_target") == 0) {
-                    act->type = CANDO_ACT_CLIMATE_TARGET;
-                } else if (strcmp(act_type_obj->valuestring, "delay") == 0) {
-                    act->type = CANDO_ACT_DELAY;
-                } else if (strcmp(act_type_obj->valuestring, "mqtt") == 0) {
-                    act->type = CANDO_ACT_MQTT;
-                } else if (strcmp(act_type_obj->valuestring, "webhook") == 0) {
-                    act->type = CANDO_ACT_WEBHOOK;
-                } else {
-                    act->type = CANDO_ACT_CAN_TX;
-                }
-            } else {
-                act->type = CANDO_ACT_CAN_TX;
-            }
+    cJSON *act_type_obj = act_obj ? cJSON_GetObjectItem(act_obj, "type") : cJSON_GetObjectItem(r, "action_type");
+    if (act_type_obj && act_type_obj->valuestring) {
+        if (strcmp(act_type_obj->valuestring, "can_tx") == 0) {
+            act->type = CANDO_ACT_CAN_TX;
+        } else if (strcmp(act_type_obj->valuestring, "popup") == 0) {
+            act->type = CANDO_ACT_POPUP;
+        } else if (strcmp(act_type_obj->valuestring, "precondition") == 0) {
+            act->type = CANDO_ACT_PRECONDITION;
+        } else if (strcmp(act_type_obj->valuestring, "climate_target") == 0) {
+            act->type = CANDO_ACT_CLIMATE_TARGET;
+        } else if (strcmp(act_type_obj->valuestring, "delay") == 0) {
+            act->type = CANDO_ACT_DELAY;
+        } else if (strcmp(act_type_obj->valuestring, "mqtt") == 0) {
+            act->type = CANDO_ACT_MQTT;
+        } else if (strcmp(act_type_obj->valuestring, "webhook") == 0) {
+            act->type = CANDO_ACT_WEBHOOK;
+        } else {
+            act->type = CANDO_ACT_CAN_TX;
+        }
+    } else {
+        act->type = CANDO_ACT_CAN_TX;
+    }
 
-            cJSON *tt = act_obj ? cJSON_GetObjectItem(act_obj, "target_temp_c") : cJSON_GetObjectItem(r, "target_temp_c");
-            if (tt && cJSON_IsNumber(tt)) {
-                act->target_temp_c = (float)tt->valuedouble;
-            } else {
-                act->target_temp_c = 21.0f;
-            }
+    cJSON *tt = act_obj ? cJSON_GetObjectItem(act_obj, "target_temp_c") : cJSON_GetObjectItem(r, "target_temp_c");
+    if (tt && cJSON_IsNumber(tt)) {
+        act->target_temp_c = (float)tt->valuedouble;
+    } else {
+        act->target_temp_c = 21.0f;
+    }
 
-            cJSON *cz = act_obj ? cJSON_GetObjectItem(act_obj, "climate_zone") : cJSON_GetObjectItem(r, "climate_zone");
-            if (cz && cz->valuestring) {
-                strncpy(act->climate_zone, cz->valuestring, sizeof(act->climate_zone) - 1);
-            } else {
-                strcpy(act->climate_zone, "driver");
-            }
+    cJSON *cz = act_obj ? cJSON_GetObjectItem(act_obj, "climate_zone") : cJSON_GetObjectItem(r, "climate_zone");
+    if (cz && cz->valuestring) {
+        strncpy(act->climate_zone, cz->valuestring, sizeof(act->climate_zone) - 1);
+    } else {
+        strcpy(act->climate_zone, "driver");
+    }
 
-            cJSON *sync_on_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_sync_on") : cJSON_GetObjectItem(r, "climate_sync_on");
-            act->climate_sync_on = (sync_on_obj && cJSON_IsTrue(sync_on_obj));
+    cJSON *sync_on_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_sync_on") : cJSON_GetObjectItem(r, "climate_sync_on");
+    act->climate_sync_on = (sync_on_obj && cJSON_IsTrue(sync_on_obj));
 
-            cJSON *drv_only_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_driver_only") : cJSON_GetObjectItem(r, "climate_driver_only");
-            act->climate_driver_only = (drv_only_obj && cJSON_IsTrue(drv_only_obj));
+    cJSON *drv_only_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_driver_only") : cJSON_GetObjectItem(r, "climate_driver_only");
+    act->climate_driver_only = (drv_only_obj && cJSON_IsTrue(drv_only_obj));
 
-            cJSON *pop = act_obj ? cJSON_GetObjectItem(act_obj, "popup_message") : cJSON_GetObjectItem(r, "popup_message");
-            if (!pop && act_obj) pop = cJSON_GetObjectItem(act_obj, "track_popup");
-            if (!pop) pop = cJSON_GetObjectItem(r, "track_popup");
-            if (pop && pop->valuestring && strlen(pop->valuestring) > 0) {
-                act->popup_message = strdup(pop->valuestring);
-            }
+    cJSON *pop = act_obj ? cJSON_GetObjectItem(act_obj, "popup_message") : cJSON_GetObjectItem(r, "popup_message");
+    if (!pop && act_obj) pop = cJSON_GetObjectItem(act_obj, "track_popup");
+    if (!pop) pop = cJSON_GetObjectItem(r, "track_popup");
+    if (pop && pop->valuestring && strlen(pop->valuestring) > 0) {
+        act->popup_message = strdup(pop->valuestring);
+    }
 
-            cJSON *pm = act_obj ? cJSON_GetObjectItem(act_obj, "precon_mode") : cJSON_GetObjectItem(r, "precon_mode");
-            if (pm && pm->valuestring) {
-                strncpy(act->precon_mode, pm->valuestring, sizeof(act->precon_mode) - 1);
-            }
-            cJSON *pp = act_obj ? cJSON_GetObjectItem(act_obj, "precon_press") : cJSON_GetObjectItem(r, "precon_press");
-            if (pp && pp->valuestring) {
-                strncpy(act->precon_press, pp->valuestring, sizeof(act->precon_press) - 1);
-            }
+    cJSON *pm = act_obj ? cJSON_GetObjectItem(act_obj, "precon_mode") : cJSON_GetObjectItem(r, "precon_mode");
+    if (pm && pm->valuestring) {
+        strncpy(act->precon_mode, pm->valuestring, sizeof(act->precon_mode) - 1);
+    }
+    cJSON *pp = act_obj ? cJSON_GetObjectItem(act_obj, "precon_press") : cJSON_GetObjectItem(r, "precon_press");
+    if (pp && pp->valuestring) {
+        strncpy(act->precon_press, pp->valuestring, sizeof(act->precon_press) - 1);
+    }
 
-            cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
-            cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
-            cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
-            cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
-            cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
+    cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
+    cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
+    cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
+    cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
+    cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
 
-            uint32_t can_id_val = 0;
-            bool is_ext = false;
-            uint8_t target_bus = 0;
-            uint32_t delay_val = 10;
+    uint32_t can_id_val = 0;
+    bool is_ext = false;
+    uint8_t target_bus = 0;
+    uint32_t delay_val = 10;
 
-            if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
-                can_id_val = strtoul(txid->valuestring, NULL, 0);
-                is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
-            }
-            if (act_bus && cJSON_IsNumber(act_bus)) {
-                target_bus = (uint8_t)act_bus->valueint;
-            }
-            if (act_delay && cJSON_IsNumber(act_delay)) {
-                delay_val = (uint32_t)act_delay->valueint;
-            }
+    if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
+        can_id_val = strtoul(txid->valuestring, NULL, 0);
+        is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
+    }
+    if (act_bus && cJSON_IsNumber(act_bus)) {
+        target_bus = (uint8_t)act_bus->valueint;
+    }
+    if (act_delay && cJSON_IsNumber(act_delay)) {
+        delay_val = (uint32_t)act_delay->valueint;
+    }
 
-            uint32_t total_steps = 0;
-            if (steps_arr && cJSON_IsArray(steps_arr)) {
-                int num_items = cJSON_GetArraySize(steps_arr);
-                for (int k = 0; k < num_items; k++) {
-                    cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-                    cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-                    int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
-                    total_steps += r_cnt;
-                }
-            }
+    uint32_t total_steps = 0;
+    if (steps_arr && cJSON_IsArray(steps_arr)) {
+        int num_items = cJSON_GetArraySize(steps_arr);
+        for (int k = 0; k < num_items; k++) {
+            cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+            cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+            int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+            total_steps += r_cnt;
+        }
+    }
 
-            if (total_steps > 0 && total_steps <= 128) {
-                act->steps = calloc(total_steps, sizeof(cando_sequence_step_t));
-                if (act->steps) {
-                    uint8_t s_idx = 0;
-                    int num_items = cJSON_GetArraySize(steps_arr);
-                    for (int k = 0; k < num_items && s_idx < total_steps; k++) {
-                        cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-                        cJSON *sp = cJSON_GetObjectItem(st, "payload");
-                        cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-                        int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+    if (total_steps > 0 && total_steps <= 128) {
+        act->steps = calloc(total_steps, sizeof(cando_sequence_step_t));
+        if (act->steps) {
+            uint8_t s_idx = 0;
+            int num_items = cJSON_GetArraySize(steps_arr);
+            for (int k = 0; k < num_items && s_idx < total_steps; k++) {
+                cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+                cJSON *sp = cJSON_GetObjectItem(st, "payload");
+                cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
 
-                        cando_sequence_step_t parsed_step = {0};
-                        cando_parse_step_payload(sp ? sp->valuestring : "", &parsed_step);
+                cando_sequence_step_t parsed_step = {0};
+                cando_parse_step_payload(sp ? sp->valuestring : "", &parsed_step);
 
-                        for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
-                            cando_sequence_step_t *step = &act->steps[s_idx++];
-                            step->tx_can_id = can_id_val;
-                            step->is_ext = is_ext;
-                            step->target_bus = target_bus;
-                            step->delay_ms = delay_val;
-                            step->tx_len = parsed_step.tx_len;
-                            step->roll_byte_idx = parsed_step.roll_byte_idx;
-                            step->roll_mode = parsed_step.roll_mode;
-                            step->roll_counter = 0;
-                            memcpy(step->tx_data, parsed_step.tx_data, parsed_step.tx_len);
-                        }
-                    }
-                    act->step_count = s_idx;
-                }
-            } else if (txp && txp->valuestring && can_id_val > 0) {
-                act->step_count = 1;
-                act->steps = calloc(1, sizeof(cando_sequence_step_t));
-                if (act->steps) {
-                    cando_sequence_step_t *step = &act->steps[0];
+                for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
+                    cando_sequence_step_t *step = &act->steps[s_idx++];
                     step->tx_can_id = can_id_val;
                     step->is_ext = is_ext;
                     step->target_bus = target_bus;
                     step->delay_ms = delay_val;
-                    cando_parse_step_payload(txp->valuestring, step);
+                    step->tx_len = parsed_step.tx_len;
+                    step->roll_byte_idx = parsed_step.roll_byte_idx;
+                    step->roll_mode = parsed_step.roll_mode;
+                    step->roll_counter = 0;
+                    memcpy(step->tx_data, parsed_step.tx_data, parsed_step.tx_len);
                 }
             }
+            act->step_count = s_idx;
+        }
+    } else if (txp && txp->valuestring && can_id_val > 0) {
+        act->step_count = 1;
+        act->steps = calloc(1, sizeof(cando_sequence_step_t));
+        if (act->steps) {
+            cando_sequence_step_t *step = &act->steps[0];
+            step->tx_can_id = can_id_val;
+            step->is_ext = is_ext;
+            step->target_bus = target_bus;
+            step->delay_ms = delay_val;
+            cando_parse_step_payload(txp->valuestring, step);
         }
     }
 }

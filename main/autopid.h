@@ -27,6 +27,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "driver/twai.h"
+#include "cJSON.h"
 
 #define BUFFER_SIZE 1024
 #define QUEUE_SIZE 10

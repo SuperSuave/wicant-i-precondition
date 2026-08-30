@@ -14,16 +14,16 @@ idf_component_register(
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
     REQUIRES   "${requires}"         # optional, list the public requirements (component names)
     PRIV_REQUIRES       # optional, list the private requirements
-    EMBED_FILES "homepage.html"
+    EMBED_FILES "homepage.html.gz"
 )
 
 # Also ensure it runs during `ninja` or `make` if homepage_full.html is modified without a CMake reconfigure
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html.gz ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html
     COMMAND python ${CMAKE_SOURCE_DIR}/tools/minify_html.py ${CMAKE_CURRENT_SOURCE_DIR}/homepage_full.html ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/homepage_full.html
-    COMMENT "Minifying homepage_full.html -> homepage.html"
+    COMMENT "Minifying & Gzipping homepage_full.html -> homepage.html.gz"
 )
-add_custom_target(minify_html_target DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html)
+add_custom_target(minify_html_target DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html.gz)
 add_dependencies(${COMPONENT_LIB} minify_html_target)
 

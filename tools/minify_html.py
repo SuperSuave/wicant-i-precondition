@@ -70,11 +70,18 @@ def minify_html(src_path, dst_path):
     with open(dst_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(minified)
 
+    # 5. Gzip compress for firmware flash embedding
+    gz_path = dst_path if dst_path.endswith(".gz") else (dst_path + ".gz")
+    import gzip
+    with open(dst_path, "rb") as f_in, gzip.open(gz_path, "wb", compresslevel=9) as f_out:
+        f_out.write(f_in.read())
+
     orig_sz = os.path.getsize(src_path)
     min_sz = os.path.getsize(dst_path)
-    saved = orig_sz - min_sz
+    gz_sz = os.path.getsize(gz_path)
+    saved = orig_sz - gz_sz
     pct = (saved / orig_sz) * 100 if orig_sz > 0 else 0
-    print(f"Minified {src_path} -> {dst_path}: {orig_sz:,} B -> {min_sz:,} B (Saved {saved:,} B / {saved/1024:.1f} KB, -{pct:.1f}%)")
+    print(f"Minified & Gzipped {src_path} -> {gz_path}: {orig_sz:,} B -> {gz_sz:,} B (Saved {saved:,} B / {saved/1024:.1f} KB, -{pct:.1f}%)")
 
 if __name__ == "__main__":
     src = sys.argv[1] if len(sys.argv) > 1 else "main/homepage_full.html"

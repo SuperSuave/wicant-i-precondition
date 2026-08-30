@@ -984,6 +984,45 @@ static esp_err_t store_time_config_handler(httpd_req_t *req)
     return ESP_FAIL;
 }
 
+static esp_err_t set_capture_mode_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    int total_len = req->content_len;
+    if (total_len <= 0 || total_len > 256) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    char buf[256] = {0};
+    int rec = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    if (rec <= 0) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    buf[rec] = '\0';
+    cJSON *root = cJSON_Parse(buf);
+    if (root) {
+        cJSON *mode = cJSON_GetObjectItem(root, "mode");
+        if (mode) {
+            if (cJSON_IsNumber(mode)) {
+                cando_set_capture_mode((cando_capture_mode_t)mode->valueint);
+            } else if (cJSON_IsString(mode)) {
+                if (strcmp(mode->valuestring, "always_paused") == 0 || strcmp(mode->valuestring, "paused") == 0) {
+                    cando_set_capture_mode(CANDO_CAPTURE_ALWAYS_PAUSED);
+                } else if (strcmp(mode->valuestring, "disabled") == 0) {
+                    cando_set_capture_mode(CANDO_CAPTURE_DISABLED);
+                } else {
+                    cando_set_capture_mode(CANDO_CAPTURE_AUTO);
+                }
+            }
+        }
+        cJSON_Delete(root);
+        httpd_resp_sendstr(req, "Capture mode updated successfully");
+        return ESP_OK;
+    }
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
+}
+
 static esp_err_t store_auto_data_handler(httpd_req_t *req)
 {
     if (!req)
@@ -1930,6 +1969,13 @@ static const httpd_uri_t test_cando_action_uri = {
     .user_ctx  = NULL
 };
 
+static const httpd_uri_t set_capture_mode_uri = {
+    .uri       = "/set_capture_mode",
+    .method    = HTTP_POST,
+    .handler   = set_capture_mode_handler,
+    .user_ctx  = NULL
+};
+
 static const httpd_uri_t get_time_uri = {
     .uri       = "/get_time",
     .method    = HTTP_GET,
@@ -2773,6 +2819,7 @@ static httpd_handle_t config_server_init(void)
 		httpd_register_uri_handler(server, &store_cando_catalog_uri);
 		httpd_register_uri_handler(server, &load_cando_catalog_uri);
 		httpd_register_uri_handler(server, &test_cando_action_uri);
+		httpd_register_uri_handler(server, &set_capture_mode_uri);
 		httpd_register_uri_handler(server, &get_time_uri);
 		httpd_register_uri_handler(server, &set_time_uri);
 		httpd_register_uri_handler(server, &store_time_config_uri);
@@ -2820,6 +2867,7 @@ void config_server_restart(void)
 		httpd_register_uri_handler(server, &store_cando_catalog_uri);
 		httpd_register_uri_handler(server, &load_cando_catalog_uri);
 		httpd_register_uri_handler(server, &test_cando_action_uri);
+		httpd_register_uri_handler(server, &set_capture_mode_uri);
 		httpd_register_uri_handler(server, &get_time_uri);
 		httpd_register_uri_handler(server, &set_time_uri);
 		httpd_register_uri_handler(server, &store_time_config_uri);

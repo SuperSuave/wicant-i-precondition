@@ -429,12 +429,14 @@ value="Add ID" style="width: 100%;" /></td>
 </select>
 </div>
 <div style="display: flex; align-items: center; gap: 0.4rem;">
-<label><b>Sniffer Mode:</b></label>
-<select id="cando_rev_mode" onchange="toggleCandoRevMode(this.value);" style="width: auto; display: inline-block; padding: 4px 8px; border-radius: 6px;">
-<option value="disable">Disabled (Automations Active)</option>
-<option value="enable">Enabled (Pause for Sniffing)</option>
+<label><b>🔍 Capture Mode:</b></label>
+<select id="cando_capture_mode" onchange="toggleCandoCaptureMode(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
+<option value="auto">🤖 Auto (Pause on Capturing)</option>
+<option value="paused">⏸️ Always Paused</option>
+<option value="disabled">🚫 Disabled (Always Run)</option>
 </select>
 </div>
+<span id="cando_capture_active_badge" style="display: none; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; animation: pulse 2s infinite;">🕵🏼 Capturing Detected - Automations Paused</span>
 </div>
 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
 <span id="cando_catalog_badge" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;">Catalog: Initializing...</span>
@@ -2006,6 +2008,12 @@ document.getElementById("mqtt_en_div").style.display = "none";
 }
 if(obj.cando_stats && Array.isArray(obj.cando_stats)) {
 updateCandoActivityStats(obj.cando_stats);
+}
+if ("capture_active" in obj) {
+const badge = document.getElementById("cando_capture_active_badge");
+if (badge) {
+badge.style.display = obj.capture_active ? "inline-block" : "none";
+}
 }
 };
 xhttp.open("GET", "/check_status");
@@ -4793,6 +4801,7 @@ popup_message: ""
 function loadCandoRulesUI() {
 initCandoVehicleProfileUI();
 initUnitSystemUI();
+initCandoCaptureModeUI();
 loadCandoCatalog();
 fetch("/load_cando").then(res => res.json()).then(data => {
 const container = document.getElementById("cando_rules_container");
@@ -4810,8 +4819,31 @@ addCandoRuleUI(getDefaultPreconditionRule(), true);
 }
 });
 }
-function toggleCandoRevMode(val) {
-showNotification("Reverse Engineering Mode: " + val, "blue");
+function initCandoCaptureModeUI() {
+const saved = localStorage.getItem("wican_cando_capture_mode") || "auto";
+const sel = document.getElementById("cando_capture_mode");
+if (sel) sel.value = saved;
+fetch("/set_capture_mode", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ mode: saved })
+}).catch(() => {});
+}
+function toggleCandoCaptureMode(val) {
+localStorage.setItem("wican_cando_capture_mode", val);
+fetch("/set_capture_mode", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ mode: val })
+}).then(() => {
+let msg = "Capture Mode: 🤖 Auto (Pause on Capturing)";
+if (val === "paused") msg = "Capture Mode: ⏸️ Always Paused";
+if (val === "disabled") msg = "Capture Mode: 🚫 Disabled (Always Run)";
+showNotification(msg, "blue", 3000);
+checkStatus();
+}).catch(err => {
+showNotification("Failed to set Capture Mode: " + err, "red");
+});
 }
 function exportCandoRules() {
 fetch("/load_cando").then(res => res.json()).then(data => {

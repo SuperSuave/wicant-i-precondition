@@ -50,6 +50,7 @@
 #include "sleep_mode.h"
 #include "track_popup.h"
 #include "precondition.h"
+#include "comm_server.h"
 #include <time.h>
 #include <ctype.h>
 #include <strings.h>
@@ -3095,7 +3096,7 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
 void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 {
     if (!msg || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
-    if (g_cando_rules.reverse_engineering_mode) return;
+    if (cando_is_capture_active()) return;
 
     /* Cache latest cabin temperature status from E-GMP climate broadcast (0x380: D4=Driver, D5=Pass) */
     if (msg->identifier == 0x380 && msg->data_length_code >= 5) {
@@ -3810,5 +3811,44 @@ void cando_get_stats_json(cJSON *root)
         cJSON_AddItemToArray(cando_stats, st);
     }
     cJSON_AddItemToObject(root, "cando_stats", cando_stats);
+    cJSON_AddNumberToObject(root, "capture_mode", (int)g_cando_rules.capture_mode);
+    cJSON_AddBoolToObject(root, "capture_active", cando_is_capture_active());
+}
+
+void cando_set_capture_mode(cando_capture_mode_t mode)
+{
+    g_cando_rules.capture_mode = mode;
+    g_cando_rules.reverse_engineering_mode = (mode == CANDO_CAPTURE_ALWAYS_PAUSED);
+}
+
+cando_capture_mode_t cando_get_capture_mode(void)
+{
+    return g_cando_rules.capture_mode;
+}
+
+bool cando_is_capture_active(void)
+{
+    if (g_cando_rules.capture_mode == CANDO_CAPTURE_ALWAYS_PAUSED || g_cando_rules.reverse_engineering_mode) {
+        return true;
+    }
+    if (g_cando_rules.capture_mode == CANDO_CAPTURE_DISABLED) {
+        return false;
+    }
+    /* Auto mode: Check if protocol is SAVVYCAN or SLCAN and TCP socket is actively connected */
+    int8_t proto = config_server_protocol();
+    if ((proto == SAVVYCAN || proto == SLCAN) && tcp_port_open()) {
+        return true;
+    }
+    return false;
+}
+
+void cando_set_reverse_engineering_mode(bool enable)
+{
+    cando_set_capture_mode(enable ? CANDO_CAPTURE_ALWAYS_PAUSED : CANDO_CAPTURE_AUTO);
+}
+
+bool cando_get_reverse_engineering_mode(void)
+{
+    return cando_is_capture_active();
 }
 

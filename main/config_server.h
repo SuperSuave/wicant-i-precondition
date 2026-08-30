@@ -208,3 +208,4 @@ char *config_server_get_status_json(bool remove_sensitive_info);
 int8_t config_server_precon_button(void);
 int8_t config_server_precon_mode(void);
 int8_t config_server_precon_press(void);
+int8_t config_server_protocol(void);

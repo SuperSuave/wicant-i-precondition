@@ -255,10 +255,18 @@ typedef struct {
     cando_action_t action;  /* Primary action */
 } cando_rule_t;
 
-typedef struct {
+typedef enum {
+    CANDO_CAPTURE_AUTO = 0,
+    CANDO_CAPTURE_ALWAYS_PAUSED = 1,
+    CANDO_CAPTURE_DISABLED = 2
+} cando_capture_mode_t;
+
+typedef struct 
+{
     cando_rule_t *rules;
     uint32_t rule_count;
-    bool reverse_engineering_mode; /* Disables rule processing during high-throughput sniffing */
+    cando_capture_mode_t capture_mode; /* Capture Mode: Auto (SavvyCAN/SavvyLens), Always Paused, Disabled */
+    bool reverse_engineering_mode; /* Deprecated alias for ALWAYS_PAUSED */
     SemaphoreHandle_t mutex;
 } cando_rule_set_t;
 
@@ -270,6 +278,9 @@ esp_err_t cando_save_config(const char *json_str);
 char *cando_get_config(void);
 bool cando_test_single_action_json(const char *json_str);
 void cando_get_stats_json(cJSON *root);
+void cando_set_capture_mode(cando_capture_mode_t mode);
+cando_capture_mode_t cando_get_capture_mode(void);
+bool cando_is_capture_active(void);
 void cando_set_reverse_engineering_mode(bool enable);
 bool cando_get_reverse_engineering_mode(void);
 

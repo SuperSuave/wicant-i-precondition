@@ -49,6 +49,7 @@
 #include "wifi_network.h"
 #include "sleep_mode.h"
 #include "track_popup.h"
+#include "precondition.h"
 #include <time.h>
 #include <ctype.h>
 #include <strings.h>
@@ -2794,6 +2795,229 @@ bool cando_evaluate_trigger(cando_trigger_t *trig, const twai_message_t *msg, ui
     return false;
 }
 
+static void cando_format_popup_message(const char *template_str, char *out_buf, size_t out_len)
+{
+    if (!template_str || !out_buf || out_len == 0) return;
+
+    /* If template doesn't contain '{', copy directly */
+    if (strchr(template_str, '{') == NULL) {
+        strncpy(out_buf, template_str, out_len - 1);
+        out_buf[out_len - 1] = '\0';
+        return;
+    }
+
+    precondition_temperature_t temp = {0};
+    bool has_temp = precondition_get_battery_temperature(&temp);
+    float volt = 0.0f;
+    bool has_volt = (sleep_mode_get_voltage(&volt) == 1 || volt > 0.0f);
+    bool precon_active = precondition_is_active();
+
+    time_t now = time(NULL);
+    struct tm tm_info;
+    bool has_time = (localtime_r(&now, &tm_info) != NULL && tm_info.tm_year > 120);
+
+    const char *p = template_str;
+    size_t out_idx = 0;
+    out_buf[0] = '\0';
+
+    while (*p != '\0' && out_idx < (out_len - 1)) {
+        if (*p == '{') {
+            const char *end = strchr(p, '}');
+            if (end != NULL) {
+                size_t token_len = end - p - 1;
+                char token[32] = {0};
+                if (token_len < sizeof(token)) {
+                    strncpy(token, p + 1, token_len);
+                    token[token_len] = '\0';
+
+                    char replacement[32] = {0};
+                    bool matched = false;
+
+                    if (strcasecmp(token, "battery_temp") == 0 || strcasecmp(token, "battery_temp_c") == 0 || strcasecmp(token, "temp") == 0) {
+                        matched = true;
+                        if (has_temp) {
+                            snprintf(replacement, sizeof(replacement), "%d", (temp.min_c + temp.max_c) / 2);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "battery_temp_f") == 0 || strcasecmp(token, "temp_f") == 0) {
+                        matched = true;
+                        if (has_temp) {
+                            int f = (int)roundf(((temp.min_c + temp.max_c) / 2.0f * 9.0f / 5.0f) + 32.0f);
+                            snprintf(replacement, sizeof(replacement), "%d", f);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "battery_temp_min") == 0 || strcasecmp(token, "battery_temp_min_c") == 0 || strcasecmp(token, "temp_min") == 0) {
+                        matched = true;
+                        if (has_temp) {
+                            snprintf(replacement, sizeof(replacement), "%d", temp.min_c);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "battery_temp_max") == 0 || strcasecmp(token, "battery_temp_max_c") == 0 || strcasecmp(token, "temp_max") == 0) {
+                        matched = true;
+                        if (has_temp) {
+                            snprintf(replacement, sizeof(replacement), "%d", temp.max_c);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "battery_temp_min_f") == 0 || strcasecmp(token, "temp_min_f") == 0) {
+                        matched = true;
+                        if (has_temp) {
+                            int f = (int)roundf((temp.min_c * 9.0f / 5.0f) + 32.0f);
+                            snprintf(replacement, sizeof(replacement), "%d", f);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "battery_temp_max_f") == 0 || strcasecmp(token, "temp_max_f") == 0) {
+                        matched = true;
+                        if (has_temp) {
+                            int f = (int)roundf((temp.max_c * 9.0f / 5.0f) + 32.0f);
+                            snprintf(replacement, sizeof(replacement), "%d", f);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "voltage") == 0 || strcasecmp(token, "battery_voltage") == 0 || strcasecmp(token, "vbatt") == 0) {
+                        matched = true;
+                        if (has_volt) {
+                            snprintf(replacement, sizeof(replacement), "%.1f", volt);
+                        } else {
+                            strncpy(replacement, "--", sizeof(replacement) - 1);
+                        }
+                    } else if (strcasecmp(token, "status") == 0 || strcasecmp(token, "precon_status") == 0) {
+                        matched = true;
+                        strncpy(replacement, precon_active ? "ON" : "OFF", sizeof(replacement) - 1);
+                    } else if (strcasecmp(token, "time") == 0) {
+                        matched = true;
+                        if (has_time) {
+                            snprintf(replacement, sizeof(replacement), "%02d:%02d", tm_info.tm_hour, tm_info.tm_min);
+                        } else {
+                            strncpy(replacement, "--:--", sizeof(replacement) - 1);
+                        }
+                    }
+
+                    if (matched) {
+                        size_t r_len = strlen(replacement);
+                        if (out_idx + r_len < out_len) {
+                            strcpy(&out_buf[out_idx], replacement);
+                            out_idx += r_len;
+                        }
+                        p = end + 1;
+                        continue;
+                    }
+                }
+            }
+        }
+
+        out_buf[out_idx++] = *p++;
+    }
+
+    out_buf[out_idx] = '\0';
+}
+
+static uint8_t g_climate_driver_raw = 0;    /* 0x380 D4 (offset +56, 0.5C step) */
+static uint8_t g_climate_passenger_raw = 0; /* 0x380 D5 */
+static bool g_climate_has_reading = false;
+
+static void cando_execute_climate_target(float target_c, const char *zone, bool sync_on, bool driver_only)
+{
+    if (target_c < 14.0f) target_c = 14.0f;
+    if (target_c > 32.0f) target_c = 32.0f;
+
+    bool is_passenger = (zone && strcasecmp(zone, "passenger") == 0);
+    uint8_t cur_raw = 98; /* Default fallback 21.0C: (21 * 2) + 56 = 98 */
+
+    if (g_climate_has_reading) {
+        cur_raw = is_passenger ? g_climate_passenger_raw : g_climate_driver_raw;
+    }
+
+    uint8_t target_raw = (uint8_t)((int)roundf(target_c * 2.0f) + 56);
+    int delta = (int)target_raw - (int)cur_raw;
+
+    uint8_t cmd_byte = 0;
+    if (delta > 0) {
+        cmd_byte = is_passenger ? 0xD0 : 0x70; /* Pass Up (0xD0) / Driver Up (0x70) */
+    } else if (delta < 0) {
+        cmd_byte = is_passenger ? 0xE0 : 0xB0; /* Pass Dn (0xE0) / Driver Dn (0xB0) */
+    }
+
+    int steps = (delta > 0) ? delta : -delta;
+    if (steps > 20) steps = 20; /* Safety limit */
+
+    for (int i = 0; i < steps; i++) {
+        twai_message_t tx_msg = {
+            .identifier = 0x49F,
+            .extd = 0,
+            .data_length_code = 8,
+            .data = { cmd_byte, 0, 0, 0, 0, 0, 0, 0 }
+        };
+        /* Transmit 3x burst for ECU reception */
+        for (int r = 0; r < 3; r++) {
+            can_send(CAN_BUS_0, &tx_msg, 0);
+            vTaskDelay(pdMS_TO_TICKS(15));
+        }
+        /* Send idle release frame */
+        twai_message_t idle_msg = {
+            .identifier = 0x49F,
+            .extd = 0,
+            .data_length_code = 8,
+            .data = { 0 }
+        };
+        can_send(CAN_BUS_0, &idle_msg, 0);
+
+        if (i < (steps - 1) || sync_on || driver_only) {
+            vTaskDelay(pdMS_TO_TICKS(80));
+        }
+    }
+
+    /* Enforce SYNC ON if configured */
+    if (sync_on) {
+        twai_message_t sync_msg = {
+            .identifier = 0x4A0,
+            .extd = 0,
+            .data_length_code = 8,
+            .data = { 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00 }
+        };
+        for (int r = 0; r < 3; r++) {
+            can_send(CAN_BUS_0, &sync_msg, 0);
+            vTaskDelay(pdMS_TO_TICKS(15));
+        }
+        twai_message_t sync_idle = {
+            .identifier = 0x4A0,
+            .extd = 0,
+            .data_length_code = 8,
+            .data = { 0 }
+        };
+        can_send(CAN_BUS_0, &sync_idle, 0);
+
+        if (driver_only) {
+            vTaskDelay(pdMS_TO_TICKS(80));
+        }
+    }
+
+    /* Enforce Driver Only ON if configured */
+    if (driver_only) {
+        twai_message_t drv_msg = {
+            .identifier = 0x41D,
+            .extd = 0,
+            .data_length_code = 8,
+            .data = { 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00 }
+        };
+        for (int r = 0; r < 3; r++) {
+            can_send(CAN_BUS_0, &drv_msg, 0);
+            vTaskDelay(pdMS_TO_TICKS(15));
+        }
+        twai_message_t drv_idle = {
+            .identifier = 0x41D,
+            .extd = 0,
+            .data_length_code = 8,
+            .data = { 0 }
+        };
+        can_send(CAN_BUS_0, &drv_idle, 0);
+    }
+}
+
 static void cando_execute_action(cando_action_t *act, const char *matched_trig_id)
 {
     if (!act) return;
@@ -2805,21 +3029,50 @@ static void cando_execute_action(cando_action_t *act, const char *matched_trig_i
         }
     }
 
-    /* 1. Show dashboard track popup if configured */
+    /* 1. Show dashboard track popup if configured (evaluating dynamic tokens e.g. {battery_temp}, {voltage}) */
     if (act->popup_message && act->popup_message[0] != '\0') {
-        track_popup_show(act->popup_message);
+        char formatted_msg[128] = {0};
+        cando_format_popup_message(act->popup_message, formatted_msg, sizeof(formatted_msg));
+        track_popup_show(formatted_msg);
     }
 
-    /* 2. Execute sequence steps */
-    for (uint8_t s = 0; s < act->step_count; s++) {
-        cando_sequence_step_t *step = &act->steps[s];
-        twai_message_t tx_msg = {
-            .identifier = step->tx_can_id,
-            .extd = step->is_ext ? 1 : 0,
-            .data_length_code = step->tx_len
-        };
-        memcpy(tx_msg.data, step->tx_data, step->tx_len);
-        can_send((can_bus_t)step->target_bus, &tx_msg, 0);
+    /* 2. Battery Preconditioning Engine Action */
+    if (act->type == CANDO_ACT_PRECONDITION) {
+        precondition_action_execute(act->precon_mode, act->precon_press);
+    }
+
+    /* 3. Closed-Loop Climate Target Action */
+    if (act->type == CANDO_ACT_CLIMATE_TARGET) {
+        cando_execute_climate_target(act->target_temp_c, act->climate_zone, act->climate_sync_on, act->climate_driver_only);
+    }
+
+    /* 4. Execute sequence steps */
+    if (act->type == CANDO_ACT_CAN_TX || act->type == 0) {
+        for (uint8_t s = 0; s < act->step_count; s++) {
+            cando_sequence_step_t *step = &act->steps[s];
+            uint8_t payload[8] = {0};
+            if (step->tx_len > 0) {
+                memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
+            }
+            if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
+                if (step->roll_mode == CANDO_ROLL_SEQ3) {
+                    payload[step->roll_byte_idx] = (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
+                    step->roll_counter = (step->roll_counter + 1) % 3;
+                } else if (step->roll_mode == CANDO_ROLL_BYTE_INC) {
+                    payload[step->roll_byte_idx] = step->roll_counter++;
+                } else if (step->roll_mode == CANDO_ROLL_NIBBLE_INC) {
+                    payload[step->roll_byte_idx] = (uint8_t)((payload[step->roll_byte_idx] & 0xF0) | (step->roll_counter & 0x0F));
+                    step->roll_counter = (step->roll_counter + 1) & 0x0F;
+                }
+            }
+            twai_message_t tx_msg = {
+                .identifier = step->tx_can_id,
+                .extd = step->is_ext ? 1 : 0,
+                .data_length_code = step->tx_len
+            };
+            memcpy(tx_msg.data, payload, step->tx_len <= 8 ? step->tx_len : 8);
+            can_send((can_bus_t)step->target_bus, &tx_msg, 0);
+        }
     }
 }
 
@@ -2841,6 +3094,13 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 {
     if (!msg || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
     if (g_cando_rules.reverse_engineering_mode) return;
+
+    /* Cache latest cabin temperature status from E-GMP climate broadcast (0x380: D4=Driver, D5=Pass) */
+    if (msg->identifier == 0x380 && msg->data_length_code >= 5) {
+        g_climate_driver_raw = msg->data[3];    /* D4 (byte 3) */
+        g_climate_passenger_raw = msg->data[4]; /* D5 (byte 4) */
+        g_climate_has_reading = true;
+    }
 
     int64_t now_us = esp_timer_get_time();
 
@@ -2925,6 +3185,8 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 }
 
                 trig->last_triggered_us = now_us;
+                rule->exec_count++;
+                rule->last_exec_us = now_us;
 
                 /* Execute Actions (filtering by matched trigger ID) */
                 const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
@@ -3052,121 +3314,263 @@ static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_
                                     &trig->has_to);
     }
 
-    if (!trig->has_from && !trig->has_to) {
-        trig->any_change = true;
-    }
-}
-
-static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *act)
-{
-    memset(act, 0, sizeof(cando_action_t));
-
-    cJSON *trig_id = act_obj ? cJSON_GetObjectItem(act_obj, "trigger_id") : NULL;
-    if (trig_id && trig_id->valuestring) {
-        strncpy(act->trigger_id, trig_id->valuestring, sizeof(act->trigger_id) - 1);
-    }
-
-    cJSON *pop = act_obj ? cJSON_GetObjectItem(act_obj, "popup_message") : cJSON_GetObjectItem(r, "popup_message");
-    if (!pop && act_obj) pop = cJSON_GetObjectItem(act_obj, "track_popup");
-    if (!pop) pop = cJSON_GetObjectItem(r, "track_popup");
-    if (pop && pop->valuestring && strlen(pop->valuestring) > 0) {
-        act->popup_message = strdup(pop->valuestring);
-    }
-
-    cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
-    cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
-    cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
-    cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
-    cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
-
-    uint32_t can_id_val = 0;
-    bool is_ext = false;
-    uint8_t target_bus = 0;
-    uint32_t delay_val = 10;
-
-    if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
-        can_id_val = strtoul(txid->valuestring, NULL, 0);
-        is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
-    }
-    if (act_bus && cJSON_IsNumber(act_bus)) {
-        target_bus = (uint8_t)act_bus->valueint;
-    }
-    if (act_delay && cJSON_IsNumber(act_delay)) {
-        delay_val = (uint32_t)act_delay->valueint;
-    }
-
-    uint32_t total_steps = 0;
-    if (steps_arr && cJSON_IsArray(steps_arr)) {
-        int num_items = cJSON_GetArraySize(steps_arr);
-        for (int k = 0; k < num_items; k++) {
-            cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-            cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-            int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
-            total_steps += r_cnt;
+            if (!trig->has_from && !trig->has_to) {
+                trig->any_change = true;
+            }
         }
-    }
 
-    if (total_steps > 0 && total_steps <= 128) {
-        act->steps = calloc(total_steps, sizeof(cando_sequence_step_t));
-        if (act->steps) {
-            uint8_t s_idx = 0;
-            int num_items = cJSON_GetArraySize(steps_arr);
-            for (int k = 0; k < num_items && s_idx < total_steps; k++) {
-                cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-                cJSON *sp = cJSON_GetObjectItem(st, "payload");
-                cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-                int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+        static void cando_parse_step_payload(const char *payload_str, cando_sequence_step_t *step)
+        {
+            if (!step) return;
+            step->roll_byte_idx = -1;
+            step->roll_mode = CANDO_ROLL_NONE;
+            step->roll_counter = 0;
+            step->tx_len = 0;
+            memset(step->tx_data, 0, sizeof(step->tx_data));
 
-                uint8_t byte_data[8] = {0};
-                uint8_t byte_len = 0;
-                if (sp && sp->valuestring) {
-                    unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
-                    int parsed = sscanf(sp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
-                                        &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
-                    byte_len = (uint8_t)parsed;
-                    unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
-                    for (int m = 0; m < parsed; m++) {
-                        byte_data[m] = (uint8_t)pb[m];
+            if (!payload_str || payload_str[0] == '\0') return;
+
+            char buf[128];
+            strncpy(buf, payload_str, sizeof(buf) - 1);
+            buf[sizeof(buf) - 1] = '\0';
+
+            char *token = strtok(buf, " \t\r\n");
+            uint8_t idx = 0;
+            while (token != NULL && idx < 8) {
+                if (strcasecmp(token, "SEQ3") == 0 || strcasecmp(token, "~3") == 0 || strcasecmp(token, "SQ") == 0) {
+                    step->roll_byte_idx = idx;
+                    step->roll_mode = CANDO_ROLL_SEQ3;
+                    step->roll_counter = 0;
+                    step->tx_data[idx] = 0x0F;
+                } else if (strcasecmp(token, "INC") == 0 || strcasecmp(token, "ROLL") == 0 || strcmp(token, "++") == 0) {
+                    step->roll_byte_idx = idx;
+                    step->roll_mode = CANDO_ROLL_BYTE_INC;
+                    step->roll_counter = 0;
+                    step->tx_data[idx] = 0x00;
+                } else if (strcasecmp(token, "*R") == 0 || strcasecmp(token, "R*") == 0) {
+                    step->roll_byte_idx = idx;
+                    step->roll_mode = CANDO_ROLL_NIBBLE_INC;
+                    step->roll_counter = 0;
+                    step->tx_data[idx] = 0x00;
+                } else {
+                    unsigned int byte_val = 0;
+                    if (sscanf(token, "%2x", &byte_val) == 1) {
+                        step->tx_data[idx] = (uint8_t)byte_val;
+                    } else {
+                        step->tx_data[idx] = 0x00;
                     }
                 }
+                idx++;
+                token = strtok(NULL, " \t\r\n");
+            }
+            step->tx_len = idx;
+        }
 
-                for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
-                    cando_sequence_step_t *step = &act->steps[s_idx++];
+        static void cando_parse_action_json(cJSON *r, cJSON *act_obj, cando_action_t *act)
+        {
+            if (!act) return;
+            memset(act, 0, sizeof(cando_action_t));
+
+            cJSON *trig_id = act_obj ? cJSON_GetObjectItem(act_obj, "trigger_id") : cJSON_GetObjectItem(r, "trigger_id");
+            if (trig_id && trig_id->valuestring) {
+                strncpy(act->trigger_id, trig_id->valuestring, sizeof(act->trigger_id) - 1);
+            } else {
+                strcpy(act->trigger_id, "any");
+            }
+
+            cJSON *act_type_obj = act_obj ? cJSON_GetObjectItem(act_obj, "type") : cJSON_GetObjectItem(r, "action_type");
+            if (act_type_obj && act_type_obj->valuestring) {
+                if (strcmp(act_type_obj->valuestring, "can_tx") == 0) {
+                    act->type = CANDO_ACT_CAN_TX;
+                } else if (strcmp(act_type_obj->valuestring, "popup") == 0) {
+                    act->type = CANDO_ACT_POPUP;
+                } else if (strcmp(act_type_obj->valuestring, "precondition") == 0) {
+                    act->type = CANDO_ACT_PRECONDITION;
+                } else if (strcmp(act_type_obj->valuestring, "climate_target") == 0) {
+                    act->type = CANDO_ACT_CLIMATE_TARGET;
+                } else if (strcmp(act_type_obj->valuestring, "delay") == 0) {
+                    act->type = CANDO_ACT_DELAY;
+                } else if (strcmp(act_type_obj->valuestring, "mqtt") == 0) {
+                    act->type = CANDO_ACT_MQTT;
+                } else if (strcmp(act_type_obj->valuestring, "webhook") == 0) {
+                    act->type = CANDO_ACT_WEBHOOK;
+                } else {
+                    act->type = CANDO_ACT_CAN_TX;
+                }
+            } else {
+                act->type = CANDO_ACT_CAN_TX;
+            }
+
+            cJSON *tt = act_obj ? cJSON_GetObjectItem(act_obj, "target_temp_c") : cJSON_GetObjectItem(r, "target_temp_c");
+            if (tt && cJSON_IsNumber(tt)) {
+                act->target_temp_c = (float)tt->valuedouble;
+            } else {
+                act->target_temp_c = 21.0f;
+            }
+
+            cJSON *cz = act_obj ? cJSON_GetObjectItem(act_obj, "climate_zone") : cJSON_GetObjectItem(r, "climate_zone");
+            if (cz && cz->valuestring) {
+                strncpy(act->climate_zone, cz->valuestring, sizeof(act->climate_zone) - 1);
+            } else {
+                strcpy(act->climate_zone, "driver");
+            }
+
+            cJSON *sync_on_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_sync_on") : cJSON_GetObjectItem(r, "climate_sync_on");
+            act->climate_sync_on = (sync_on_obj && cJSON_IsTrue(sync_on_obj));
+
+            cJSON *drv_only_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_driver_only") : cJSON_GetObjectItem(r, "climate_driver_only");
+            act->climate_driver_only = (drv_only_obj && cJSON_IsTrue(drv_only_obj));
+
+            cJSON *pop = act_obj ? cJSON_GetObjectItem(act_obj, "popup_message") : cJSON_GetObjectItem(r, "popup_message");
+            if (!pop && act_obj) pop = cJSON_GetObjectItem(act_obj, "track_popup");
+            if (!pop) pop = cJSON_GetObjectItem(r, "track_popup");
+            if (pop && pop->valuestring && strlen(pop->valuestring) > 0) {
+                act->popup_message = strdup(pop->valuestring);
+            }
+
+            cJSON *pm = act_obj ? cJSON_GetObjectItem(act_obj, "precon_mode") : cJSON_GetObjectItem(r, "precon_mode");
+            if (pm && pm->valuestring) {
+                strncpy(act->precon_mode, pm->valuestring, sizeof(act->precon_mode) - 1);
+            }
+            cJSON *pp = act_obj ? cJSON_GetObjectItem(act_obj, "precon_press") : cJSON_GetObjectItem(r, "precon_press");
+            if (pp && pp->valuestring) {
+                strncpy(act->precon_press, pp->valuestring, sizeof(act->precon_press) - 1);
+            }
+
+            cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
+            cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
+            cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
+            cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
+            cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
+
+            uint32_t can_id_val = 0;
+            bool is_ext = false;
+            uint8_t target_bus = 0;
+            uint32_t delay_val = 10;
+
+            if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
+                can_id_val = strtoul(txid->valuestring, NULL, 0);
+                is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
+            }
+            if (act_bus && cJSON_IsNumber(act_bus)) {
+                target_bus = (uint8_t)act_bus->valueint;
+            }
+            if (act_delay && cJSON_IsNumber(act_delay)) {
+                delay_val = (uint32_t)act_delay->valueint;
+            }
+
+            uint32_t total_steps = 0;
+            if (steps_arr && cJSON_IsArray(steps_arr)) {
+                int num_items = cJSON_GetArraySize(steps_arr);
+                for (int k = 0; k < num_items; k++) {
+                    cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+                    cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                    int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+                    total_steps += r_cnt;
+                }
+            }
+
+            if (total_steps > 0 && total_steps <= 128) {
+                act->steps = calloc(total_steps, sizeof(cando_sequence_step_t));
+                if (act->steps) {
+                    uint8_t s_idx = 0;
+                    int num_items = cJSON_GetArraySize(steps_arr);
+                    for (int k = 0; k < num_items && s_idx < total_steps; k++) {
+                        cJSON *st = cJSON_GetArrayItem(steps_arr, k);
+                        cJSON *sp = cJSON_GetObjectItem(st, "payload");
+                        cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                        int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
+
+                        cando_sequence_step_t parsed_step = {0};
+                        cando_parse_step_payload(sp ? sp->valuestring : "", &parsed_step);
+
+                        for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
+                            cando_sequence_step_t *step = &act->steps[s_idx++];
+                            step->tx_can_id = can_id_val;
+                            step->is_ext = is_ext;
+                            step->target_bus = target_bus;
+                            step->delay_ms = delay_val;
+                            step->tx_len = parsed_step.tx_len;
+                            step->roll_byte_idx = parsed_step.roll_byte_idx;
+                            step->roll_mode = parsed_step.roll_mode;
+                            step->roll_counter = 0;
+                            memcpy(step->tx_data, parsed_step.tx_data, parsed_step.tx_len);
+                        }
+                    }
+                    act->step_count = s_idx;
+                }
+            } else if (txp && txp->valuestring && can_id_val > 0) {
+                act->step_count = 1;
+                act->steps = calloc(1, sizeof(cando_sequence_step_t));
+                if (act->steps) {
+                    cando_sequence_step_t *step = &act->steps[0];
                     step->tx_can_id = can_id_val;
                     step->is_ext = is_ext;
                     step->target_bus = target_bus;
                     step->delay_ms = delay_val;
-                    step->tx_len = byte_len;
-                    memcpy(step->tx_data, byte_data, byte_len);
+                    cando_parse_step_payload(txp->valuestring, step);
                 }
-            }
-            act->step_count = s_idx;
-        }
-    } else if (txp && txp->valuestring && can_id_val > 0) {
-        act->step_count = 1;
-        act->steps = calloc(1, sizeof(cando_sequence_step_t));
-        if (act->steps) {
-            cando_sequence_step_t *step = &act->steps[0];
-            step->tx_can_id = can_id_val;
-            step->is_ext = is_ext;
-            step->target_bus = target_bus;
-            step->delay_ms = delay_val;
-            unsigned int b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0, b7=0;
-            int parsed = sscanf(txp->valuestring, "%2x %2x %2x %2x %2x %2x %2x %2x",
-                                &b0, &b1, &b2, &b3, &b4, &b5, &b6, &b7);
-            step->tx_len = (uint8_t)parsed;
-            unsigned int pb[8] = {b0, b1, b2, b3, b4, b5, b6, b7};
-            for (int m = 0; m < parsed; m++) {
-                step->tx_data[m] = (uint8_t)pb[m];
             }
         }
     }
+}
+
+static void cando_init_default_precondition_rule(void)
+{
+    if (g_cando_rules.rule_count > 0 && g_cando_rules.rules) return;
+
+    g_cando_rules.rules = calloc(1, sizeof(cando_rule_t));
+    if (!g_cando_rules.rules) return;
+
+    cando_rule_t *rule = &g_cando_rules.rules[0];
+    rule->name = strdup("E-GMP Battery Preconditioning");
+    rule->enabled = true;
+    rule->trigger_count = 1;
+    rule->triggers = calloc(1, sizeof(cando_trigger_t));
+    if (rule->triggers) {
+        cando_trigger_t *trig = &rule->triggers[0];
+        memset(trig, 0, sizeof(cando_trigger_t));
+        strncpy(trig->id, "sw_star", sizeof(trig->id) - 1);
+        trig->source = CANDO_TRIG_CAN_MESSAGE;
+        trig->can_id = 0x448;
+        trig->bus = 0;
+        trig->exec_mode = CANDO_EXEC_ONE_SHOT;
+        trig->cooldown_ms = 500;
+        trig->timeout_reset_ms = 2000;
+        trig->has_to = true;
+        trig->data_len = 6;
+        trig->match_data[5] = 0x10;
+        trig->match_mask[5] = 0xF0;
+        trig->has_from = true;
+        trig->from_len = 6;
+        trig->from_data[5] = 0x00;
+        trig->from_mask[5] = 0xF0;
+        rule->trigger = *trig;
+    }
+
+    rule->action_count = 1;
+    rule->actions = calloc(1, sizeof(cando_action_t));
+    if (rule->actions) {
+        cando_action_t *act = &rule->actions[0];
+        memset(act, 0, sizeof(cando_action_t));
+        act->type = CANDO_ACT_PRECONDITION;
+        strncpy(act->trigger_id, "sw_star", sizeof(act->trigger_id) - 1);
+        act->popup_message = NULL;
+        strncpy(act->precon_mode, "persistent", sizeof(act->precon_mode) - 1);
+        strncpy(act->precon_press, "short", sizeof(act->precon_press) - 1);
+        rule->action = *act;
+    }
+
+    g_cando_rules.rule_count = 1;
 }
 
 esp_err_t cando_load_config(void)
 {
     FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
-    if (!f) return ESP_OK;
+    if (!f) {
+        cando_init_default_precondition_rule();
+        return ESP_OK;
+    }
 
     fseek(f, 0, SEEK_END);
     long sz = ftell(f);
@@ -3174,6 +3578,7 @@ esp_err_t cando_load_config(void)
 
     if (sz <= 0) {
         fclose(f);
+        cando_init_default_precondition_rule();
         return ESP_OK;
     }
 
@@ -3188,7 +3593,10 @@ esp_err_t cando_load_config(void)
 
     cJSON *root = cJSON_Parse(buf);
     free(buf);
-    if (!root) return ESP_FAIL;
+    if (!root) {
+        cando_init_default_precondition_rule();
+        return ESP_FAIL;
+    }
 
     cJSON *rules_arr = cJSON_GetObjectItem(root, "rules");
     if (rules_arr && cJSON_IsArray(rules_arr)) {
@@ -3220,6 +3628,10 @@ esp_err_t cando_load_config(void)
                     cJSON *r = cJSON_GetArrayItem(rules_arr, i);
                     cando_rule_t *rule = &g_cando_rules.rules[i];
                     rule->enabled = true;
+                    cJSON *en = cJSON_GetObjectItem(r, "enabled");
+                    if (en && cJSON_IsBool(en)) {
+                        rule->enabled = cJSON_IsTrue(en);
+                    }
 
                     cJSON *name = cJSON_GetObjectItem(r, "name");
                     if (name && name->valuestring) {
@@ -3265,7 +3677,11 @@ esp_err_t cando_load_config(void)
                     g_cando_rules.rule_count++;
                 }
             }
+        } else {
+            cando_init_default_precondition_rule();
         }
+    } else {
+        cando_init_default_precondition_rule();
     }
     cJSON_Delete(root);
     return ESP_OK;
@@ -3286,7 +3702,7 @@ char *cando_get_config(void)
 {
     FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
     if (!f) {
-        return strdup("{\"rules\":[]}");
+        return strdup(DEFAULT_CANDO_JSON);
     }
     fseek(f, 0, SEEK_END);
     long sz = ftell(f);
@@ -3294,16 +3710,105 @@ char *cando_get_config(void)
 
     if (sz <= 0) {
         fclose(f);
-        return strdup("{\"rules\":[]}");
+        return strdup(DEFAULT_CANDO_JSON);
     }
 
     char *buf = malloc(sz + 1);
     if (!buf) {
         fclose(f);
-        return strdup("{\"rules\":[]}");
+        return strdup(DEFAULT_CANDO_JSON);
     }
     size_t n = fread(buf, 1, sz, f);
     fclose(f);
     buf[n] = '\0';
     return buf;
 }
+
+bool cando_test_single_action_json(const char *json_str)
+{
+    if (!json_str || strlen(json_str) == 0) return false;
+
+    cJSON *root = cJSON_Parse(json_str);
+    if (!root) return false;
+
+    cando_action_t act;
+    memset(&act, 0, sizeof(cando_action_t));
+    cando_parse_single_action(root, root, &act);
+
+    /* 1. Show dashboard track popup if configured (evaluating dynamic tokens e.g. {battery_temp}, {voltage}) */
+    if (act.popup_message && act.popup_message[0] != '\0') {
+        char formatted_msg[128] = {0};
+        cando_format_popup_message(act.popup_message, formatted_msg, sizeof(formatted_msg));
+        track_popup_show(formatted_msg);
+    }
+
+    /* 2. Battery Preconditioning Engine Action */
+    if (act.type == CANDO_ACT_PRECONDITION) {
+        precondition_action_execute(act.precon_mode, act.precon_press);
+    }
+
+    /* 3. Closed-Loop Climate Target Action */
+    if (act.type == CANDO_ACT_CLIMATE_TARGET) {
+        cando_execute_climate_target(act.target_temp_c, act.climate_zone, act.climate_sync_on, act.climate_driver_only);
+    }
+
+    /* 4. Execute sequence steps */
+    if (act.type == CANDO_ACT_CAN_TX || act.type == 0) {
+        for (uint8_t s = 0; s < act.step_count; s++) {
+            cando_sequence_step_t *step = &act.steps[s];
+            uint8_t payload[8] = {0};
+            if (step->tx_len > 0) {
+                memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
+            }
+            if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
+                if (step->roll_mode == CANDO_ROLL_SEQ3) {
+                    payload[step->roll_byte_idx] = (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
+                    step->roll_counter = (step->roll_counter + 1) % 3;
+                } else if (step->roll_mode == CANDO_ROLL_BYTE_INC) {
+                    payload[step->roll_byte_idx] = step->roll_counter++;
+                } else if (step->roll_mode == CANDO_ROLL_NIBBLE_INC) {
+                    payload[step->roll_byte_idx] = (uint8_t)((payload[step->roll_byte_idx] & 0xF0) | (step->roll_counter & 0x0F));
+                    step->roll_counter = (step->roll_counter + 1) & 0x0F;
+                }
+            }
+            twai_message_t tx_msg = {
+                .identifier = step->tx_can_id,
+                .extd = step->is_ext ? 1 : 0,
+                .data_length_code = step->tx_len
+            };
+            memcpy(tx_msg.data, payload, step->tx_len <= 8 ? step->tx_len : 8);
+            can_send((can_bus_t)step->target_bus, &tx_msg, 0);
+            if (step->delay_ms > 0 && s < (act.step_count - 1)) {
+                vTaskDelay(pdMS_TO_TICKS(step->delay_ms));
+            }
+        }
+    }
+
+    if (act.steps) {
+        free(act.steps);
+    }
+    if (act.popup_message) {
+        free(act.popup_message);
+    }
+
+    cJSON_Delete(root);
+    return true;
+}
+
+void cando_get_stats_json(cJSON *root)
+{
+    if (!root) return;
+    cJSON *cando_stats = cJSON_CreateArray();
+    int64_t now_us = esp_timer_get_time();
+    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
+        cJSON *st = cJSON_CreateObject();
+        cJSON_AddNumberToObject(st, "index", i);
+        cJSON_AddStringToObject(st, "name", g_cando_rules.rules[i].name ? g_cando_rules.rules[i].name : "");
+        cJSON_AddNumberToObject(st, "count", g_cando_rules.rules[i].exec_count);
+        int64_t age_ms = (g_cando_rules.rules[i].last_exec_us > 0) ? (now_us - g_cando_rules.rules[i].last_exec_us) / 1000 : -1;
+        cJSON_AddNumberToObject(st, "age_ms", age_ms);
+        cJSON_AddItemToArray(cando_stats, st);
+    }
+    cJSON_AddItemToObject(root, "cando_stats", cando_stats);
+}
+

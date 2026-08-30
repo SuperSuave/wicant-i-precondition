@@ -780,6 +780,41 @@ static esp_err_t load_cando_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static esp_err_t test_cando_action_handler(httpd_req_t *req)
+{
+    if (!req) return ESP_ERR_INVALID_ARG;
+    int total_len = req->content_len;
+    if (total_len <= 0 || total_len > 4096) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    char *buffer = malloc(total_len + 1);
+    if (!buffer) {
+        httpd_resp_send_500(req);
+        return ESP_ERR_NO_MEM;
+    }
+    int cur_len = 0;
+    while (cur_len < total_len) {
+        int received = httpd_req_recv(req, buffer + cur_len, total_len - cur_len);
+        if (received <= 0) {
+            free(buffer);
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        cur_len += received;
+    }
+    buffer[total_len] = '\0';
+    bool ok = cando_test_single_action_json(buffer);
+    free(buffer);
+    if (ok) {
+        httpd_resp_sendstr(req, "Action executed successfully.");
+        return ESP_OK;
+    } else {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+}
+
 static esp_err_t get_time_handler(httpd_req_t *req)
 {
     if (!req) return ESP_ERR_INVALID_ARG;
@@ -1147,6 +1182,8 @@ char *config_server_get_status_json(bool remove_sensitive_info)
 	}
 	uptime_str[sizeof(uptime_str) - 1] = '\0';
 	cJSON_AddStringToObject(root, "uptime", uptime_str);
+
+	cando_get_stats_json(root);
 
 	cJSON_AddStringToObject(root, "mqtt_en", device_config.mqtt_en);
 	if (!remove_sensitive_info)
@@ -1800,6 +1837,13 @@ static const httpd_uri_t load_cando_uri = {
     .uri       = "/load_cando",
     .method    = HTTP_GET,
     .handler   = load_cando_handler,
+    .user_ctx  = NULL
+};
+
+static const httpd_uri_t test_cando_action_uri = {
+    .uri       = "/test_cando_action",
+    .method    = HTTP_POST,
+    .handler   = test_cando_action_handler,
     .user_ctx  = NULL
 };
 
@@ -2643,6 +2687,7 @@ static httpd_handle_t config_server_init(void)
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
 		httpd_register_uri_handler(server, &load_cando_uri);
+		httpd_register_uri_handler(server, &test_cando_action_uri);
 		httpd_register_uri_handler(server, &get_time_uri);
 		httpd_register_uri_handler(server, &set_time_uri);
 		httpd_register_uri_handler(server, &store_time_config_uri);
@@ -2687,6 +2732,7 @@ void config_server_restart(void)
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
 		httpd_register_uri_handler(server, &load_cando_uri);
+		httpd_register_uri_handler(server, &test_cando_action_uri);
 		httpd_register_uri_handler(server, &get_time_uri);
 		httpd_register_uri_handler(server, &set_time_uri);
 		httpd_register_uri_handler(server, &store_time_config_uri);

@@ -1089,3 +1089,34 @@ bool precondition_get_battery_temperature(precondition_temperature_t *out) {
 
     return xQueuePeek(battery_temperature_queue, out, 0) == pdTRUE;
 }
+
+void precondition_toggle(void) {
+    sm_send_event(&precon_sm, EV_TOGGLE);
+}
+
+bool precondition_is_active(void) {
+    return sm_in_state(&precon_sm, &S_REQUESTED);
+}
+
+void precondition_action_execute(const char *mode_str, const char *press_str) {
+    if (mode_str && mode_str[0] != '\0') {
+        if (strcmp(mode_str, "persistent") == 0) {
+            precon_config.mode = PERSISTENT;
+            persistent_settings_init();
+        } else if (strcmp(mode_str, "continuous") == 0) {
+            precon_config.mode = CONTINUOUS;
+        } else if (strcmp(mode_str, "once") == 0) {
+            precon_config.mode = ONCE;
+        }
+    }
+
+    if (press_str && press_str[0] != '\0') {
+        if (strcmp(press_str, "long") == 0) {
+            precon_config.press_type = PRESS_LONG;
+        } else {
+            precon_config.press_type = PRESS_SHORT;
+        }
+    }
+
+    sm_send_event(&precon_sm, EV_TOGGLE);
+}

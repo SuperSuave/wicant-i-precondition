@@ -16,6 +16,22 @@ def minify_html(src_path, dst_path):
     with open(src_path, "r", encoding="utf-8") as f:
         content = f.read()
 
+    # 0. Sync cando_catalog.json if present
+    catalog_path = os.path.join(os.path.dirname(src_path), "cando_catalog.json")
+    if os.path.exists(catalog_path):
+        try:
+            with open(catalog_path, "r", encoding="utf-8") as cf:
+                catalog_data = cf.read().strip()
+            # Replace catalog block if marked
+            cat_pattern = r'/\* CANDO_CATALOG_START \*/.*?/\* CANDO_CATALOG_END \*/'
+            replacement = f'/* CANDO_CATALOG_START */\n    const CANDO_CATALOG = {catalog_data};\n    /* CANDO_CATALOG_END */'
+            if re.search(cat_pattern, content, flags=re.DOTALL):
+                content = re.sub(cat_pattern, replacement, content, flags=re.DOTALL)
+                with open(src_path, "w", encoding="utf-8", newline="\n") as f:
+                    f.write(content)
+        except Exception as e:
+            print(f"Warning: Failed to sync {catalog_path}: {e}")
+
     # 1. Remove HTML comments
     content = re.sub(r'<!--(?!\[if).*?-->', '', content, flags=re.DOTALL)
 

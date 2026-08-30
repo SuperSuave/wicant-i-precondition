@@ -483,7 +483,6 @@
         <embed src="/logo.svg" class="logo" />
         <button class="tablinks" onclick="openTab(event, 'status_view')" id="defaultOpen"><b>Status</b></button>
         <button class="tablinks" onclick="openTab(event, 'wifi_settings')"><b>Settings</b></button>
-        <button class="tablinks" onclick="openTab(event, 'buttons_tab')"><b>Buttons</b></button>
         <button class="tablinks" onclick="openTab(event, 'automate')"><b>Automate</b></button>
         <button class="tablinks" onclick="openTab(event, 'monitor')"><b>Monitor</b></button>
         <button class="tablinks" onclick="openTab(event, 'power_saving_tab')"><b>Power Saving</b></button>
@@ -648,7 +647,7 @@
 
                 <div class="divider"></div>
 
-                <div class="section-title">CAN</div>
+                <div class="section-title">CAN &amp; Port Settings</div>
                 <table class="form-table">
                     <tr>
                         <td>CAN Bitrate:</td>
@@ -662,7 +661,7 @@
                                 <option value="100K">100K</option>
                                 <option value="125K">125K</option>
                                 <option value="250K">250K</option>
-                                <option value="500K">500K</option>
+                                <option value="500K" selected="selected">500K</option>
                                 <option value="800K">800K</option>
                                 <option value="1000K">1000K</option>
                             </select>
@@ -711,6 +710,15 @@
                             <select name="can1_en" id="can1_en">
                                 <option value="enable" selected="selected">Enable</option>
                                 <option value="disable">Disable</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="can1_row" style="display:none">
+                        <td>CAN Connection Mode:</td>
+                        <td>
+                            <select id="can_fwd_mode" name="can_fwd_mode" onchange="submit_enable();">
+                                <option value="mitm">MITM (forward between buses)</option>
+                                <option value="parallel">Parallel (no forwarding)</option>
                             </select>
                         </td>
                     </tr>
@@ -883,24 +891,45 @@
 
         <div id="automate" class="tabcontent">
             <!-- "CAN Do" Rule Builder: Trigger -> Condition -> Action -->
-            <div class="section-title" style="margin-top:1rem;">CAN Do Automations (Trigger &rarr; Condition &rarr; Action)</div>
-            <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <label><b>Reverse Engineering Mode:</b></label>
-                <select id="cando_rev_mode" onchange="toggleCandoRevMode(this.value);" style="width: auto; display: inline-block;">
-                    <option value="disable">Disabled (Automations Active)</option>
-                    <option value="enable">Enabled (Pause Rules for Sniffing)</option>
-                </select>
+            <div class="section-title" style="margin-top:1rem;">CAN Do Automations</div>
+            <div style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label><b>🚗 Vehicle:</b></label>
+                        <select id="cando_vehicle_profile" onchange="changeCandoVehicleProfile(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
+                            <option value="all_egmp">All E-GMP (Universal)</option>
+                            <option value="kia_ev6">Kia EV6 / EV6 GT</option>
+                            <option value="hyundai_ioniq5">Hyundai Ioniq 5 / Ioniq 5 N</option>
+                            <option value="hyundai_ioniq6">Hyundai Ioniq 6</option>
+                            <option value="genesis_gv60">Genesis GV60</option>
+                            <option value="kia_ev9">Kia EV9</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label><b>🌡️ Units:</b></label>
+                        <select id="cando_unit_system" onchange="changeUnitSystem(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
+                            <option value="metric">°C (Metric)</option>
+                            <option value="imperial">°F (Imperial)</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <label><b>Sniffer Mode:</b></label>
+                        <select id="cando_rev_mode" onchange="toggleCandoRevMode(this.value);" style="width: auto; display: inline-block; padding: 4px 8px; border-radius: 6px;">
+                            <option value="disable">Disabled (Automations Active)</option>
+                            <option value="enable">Enabled (Pause for Sniffing)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 5px 10px; border-radius: 5px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 170px; margin: 0;">
+                    <button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)" style="margin: 0; padding: 6px 14px; font-size: 0.85rem; font-weight: 700;">+ New CAN Do</button>
+                    <button type="button" class="system-button" onclick="exportCandoRules()" style="margin: 0; background: #0284c7; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">📥 Backup</button>
+                    <button type="button" class="system-button" onclick="document.getElementById('cando_import_file').click()" style="margin: 0; background: #475569; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">📤 Restore</button>
+                    <input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)" style="display: none;" />
+                </div>
             </div>
 
             <div id="cando_rules_container"></div>
-
-            <div class="button-group" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                <button type="button" class="primary-button" onclick="addCandoRuleUI()">+ CAN Do Rule</button>
-                <button type="button" class="store" id="cando_store_btn" onclick="saveCandoRulesUI()">Store CAN Do Rules</button>
-                <button type="button" class="system-button" onclick="exportCandoRules()" style="background: #0284c7; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer;">📥 Backup Rules</button>
-                <button type="button" class="system-button" onclick="document.getElementById('cando_import_file').click()" style="background: #475569; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer;">📤 Restore Rules</button>
-                <input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)" style="display: none;" />
-            </div>
 
             <div class="section-title" style="margin-top:1rem;">Home Assistant</div>
             <table class="form-table">
@@ -1383,72 +1412,6 @@
             </table>
         </div>
 
-        <div id="buttons_tab" class="tabcontent">
-            <div class="section-title">Buttons</div>
-            <table class="form-table">
-                <tr>
-                    <td>Preconditioning Mode:</td>
-                    <td>
-                        <select id="precon_mode" name="precon_mode" onchange="submit_enable();">
-                            <option value="persistent">Persistent</option>
-                            <option value="continuous">Continuous</option>
-                            <option value="once">Once</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Preconditioning Activation Button:</td>
-                    <td>
-                        <select id="precon_button" name="precon_button" onchange="submit_enable();">
-                            <option value="disabled">Disabled</option>
-                            <option value="sw_star">Star Button (Steering Wheel)</option>
-                            <option value="avn_star">Star Button (Climate Bar)</option>
-                            <option value="avn_tuner_in">Tuner Press (Climate Bar)</option>
-                            <option value="avn_vol_in">Volume Press (Climate Bar)</option>
-                            <option value="ev6_avn_setup">Setup (EV6 Climate Bar)</option>
-                            <option class="precon_button_extra" value="sw_mode">Mode (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_speak">Speak (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_call">Call (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_vol_in">Volume Press (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_vol_up">Volume Up (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_vol_down">Volume Down (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_skip_up">Skip Up (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_skip_down">Skip Down (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="sw_ok">OK (Steering Wheel)</option>
-                            <option class="precon_button_extra" value="avn_map">Map (Climate Bar)</option>
-                            <option class="precon_button_extra" value="avn_nav">Nav (Climate Bar)</option>
-                            <option class="precon_button_extra" value="avn_media">Media (Climate Bar)</option>
-                            <option class="precon_button_extra" value="avn_tuner_up">Tuner Up (Climate Bar)</option>
-                            <option class="precon_button_extra" value="avn_tuner_down">Tuner Down (Climate Bar)</option>
-                        </select>
-                        <br />
-                        <label style="font-weight: normal;">
-                            <input type="checkbox" id="precon_button_show_all" onchange="togglePreconButtonOptions();" />
-                            Show all button options
-                        </label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Preconditioning Press Type:</td>
-                    <td>
-                        <select id="precon_press" name="precon_press" onchange="submit_enable();">
-                            <option value="short">Short Press</option>
-                            <option value="long">Long Press (hold 1s)</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr class="can1_row" style="display:none">
-                    <td>CAN Connection Mode:</td>
-                    <td>
-                        <select id="can_fwd_mode" name="can_fwd_mode" onchange="submit_enable();">
-                            <option value="mitm">MITM (forward between buses)</option>
-                            <option value="parallel">Parallel (no forwarding)</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
         <input id="submit_button" name="submit_button" type="button" onclick="postConfig()" value="Submit Changes" disabled />
     </div>
     
@@ -1457,31 +1420,9 @@
         document.addEventListener('DOMContentLoaded', (event) => {
             document.getElementById("submit_button").disabled = true;
 
-            syncPreconButtonToggle();
             fetchDeviceTime();
             loadCandoRulesUI();
         });
-
-        // If the currently selected button is one of the extra options, show
-        // the full list so the selection stays visible. Called on load and
-        // again after the device config populates the dropdown value.
-        function syncPreconButtonToggle() {
-            const preconSelect = document.getElementById("precon_button");
-            const selectedOption = preconSelect.options[preconSelect.selectedIndex];
-            if (selectedOption && selectedOption.classList.contains("precon_button_extra")) {
-                document.getElementById("precon_button_show_all").checked = true;
-            }
-            togglePreconButtonOptions();
-        }
-
-        // Client-side only: show or hide the extra preconditioning button
-        // options. Does not affect the value submitted to the device.
-        function togglePreconButtonOptions() {
-            const showAll = document.getElementById("precon_button_show_all").checked;
-            document.querySelectorAll(".precon_button_extra").forEach(option => {
-                option.hidden = !showAll;
-            });
-        }
 		let latest_car_models = null;
         function loadCarModels(data) {
             const carModelSelect = document.getElementById("car_model");
@@ -2481,8 +2422,29 @@ function loadAutoTable(jsonData) {
 		for(i = 0; i < tablinks.length; i++) {
 			tablinks[i].className = tablinks[i].className.replace(" active", "");
 		}
-		document.getElementById(tabName).style.display = "block";
-		evt.currentTarget.className += " active";
+		const targetTab = document.getElementById(tabName);
+		if (targetTab) {
+			targetTab.style.display = "block";
+		}
+
+		if (evt && evt.currentTarget) {
+			evt.currentTarget.className += " active";
+		} else {
+			const btn = document.querySelector(`.tablinks[onclick*="'${tabName}'"]`);
+			if (btn) btn.className += " active";
+		}
+
+		try {
+			localStorage.setItem("wican_active_tab", tabName);
+			if (window.history && window.history.replaceState) {
+				history.replaceState(null, null, "#" + tabName);
+			}
+		} catch (e) {}
+
+		// Reset scroll position to top
+		window.scrollTo(0, 0);
+		const contentDiv = document.querySelector(".content");
+		if (contentDiv) contentDiv.scrollTop = 0;
 	}
 
 	function sta_enable() {}
@@ -2584,7 +2546,27 @@ function loadAutoTable(jsonData) {
             document.getElementById("mqtt_elm327_log").value = "disable";
 		}
 	}
-	document.getElementById("defaultOpen").click();
+	function initActiveTab() {
+		let savedTab = null;
+		try {
+			savedTab = localStorage.getItem("wican_active_tab");
+		} catch (e) {}
+
+		if (window.location.hash) {
+			const hashTab = window.location.hash.substring(1);
+			if (document.getElementById(hashTab)) {
+				savedTab = hashTab;
+			}
+		}
+
+		if (savedTab && document.getElementById(savedTab)) {
+			openTab(null, savedTab);
+		} else {
+			const defaultBtn = document.getElementById("defaultOpen");
+			if (defaultBtn) defaultBtn.click();
+		}
+	}
+	initActiveTab();
 
 	function formatAge(ageMs) {
         const seconds = Math.max(0, Math.round(ageMs / 1000));
@@ -2659,6 +2641,9 @@ function loadAutoTable(jsonData) {
 				document.getElementById("mqtt_en_div").style.display = "block";
 			} else if(document.getElementById("mqtt_en").value == "disable") {
 				document.getElementById("mqtt_en_div").style.display = "none";
+			}
+			if(obj.cando_stats && Array.isArray(obj.cando_stats)) {
+				updateCandoActivityStats(obj.cando_stats);
 			}
 		};
 		xhttp.open("GET", "/check_status");
@@ -2954,9 +2939,6 @@ function loadAutoTable(jsonData) {
         }
 		obj["mqtt_status_topic"] = document.getElementById("mqtt_status_topic").value;
 		obj["mqtt_elm327_log"] = document.getElementById("mqtt_elm327_log").value;
-        obj["precon_mode"] = document.getElementById("precon_mode").value;
-        obj["precon_button"] = document.getElementById("precon_button").value;
-        obj["precon_press"] = document.getElementById("precon_press").value;
 		var configJSON = JSON.stringify(obj);
 		const xhttp = new XMLHttpRequest();
 		xhttp.onload = function() {
@@ -3272,11 +3254,6 @@ function loadAutoTable(jsonData) {
 			document.getElementById("mqtt_rx_topic").value = obj.mqtt_rx_topic;
 			document.getElementById("mqtt_status_topic").value = obj.mqtt_status_topic;
 			document.getElementById("mqtt_elm327_log").value = obj.mqtt_elm327_log;
-            document.getElementById("precon_mode").value = obj.precon_mode;
-            document.getElementById("precon_button").value = obj.precon_button;
-            // config saved by older firmware has no precon_press key
-            document.getElementById("precon_press").value = obj.precon_press || "short";
-            syncPreconButtonToggle();
 			if(obj.batt_alert_time == "1") {
 				document.getElementById("batt_alert_time").selectedIndex = "0";
 			} else if(obj.batt_alert_time == "6") {
@@ -3566,18 +3543,989 @@ function loadAutoTable(jsonData) {
 		document.getElementById("store_canflt_button").disabled = true;
 	}
 
-    // Pre-populated catalog of known standard & vehicle signals
-    const CANDO_KNOWN_PIDS = [
-        { name: "Engine RPM", can_id: "0x7DF", payload: "02 01 0C 00 00 00 00 00" },
-        { name: "Vehicle Speed", can_id: "0x7DF", payload: "02 01 0D 00 00 00 00 00" },
-        { name: "Engine Coolant Temp", can_id: "0x7DF", payload: "02 01 05 00 00 00 00 00" },
-        { name: "Throttle Position", can_id: "0x7DF", payload: "02 01 11 00 00 00 00 00" },
-        { name: "Battery State of Charge (SoC)", can_id: "0x7E0", payload: "03 22 10 01 00 00 00 00" },
-        { name: "Door Lock/Unlock Status", can_id: "0x2C0", payload: "02 10 03 00 00 00 00 00" },
-        { name: "Steering Wheel Seek Left", can_id: "0x652", payload: "FF 7F FF FF 07 00 00 00\nFF 3F FF FF 07 00 00 00" }
-    ];
+    /* CANDO_CATALOG_START */
+    const CANDO_CATALOG = {
+  "vehicles": [
+    { "id": "all_egmp", "name": "All E-GMP Vehicles (Universal)" },
+    { "id": "kia_ev6", "name": "Kia EV6 / EV6 GT" },
+    { "id": "hyundai_ioniq5", "name": "Hyundai Ioniq 5 / Ioniq 5 N" },
+    { "id": "hyundai_ioniq6", "name": "Hyundai Ioniq 6" },
+    { "id": "genesis_gv60", "name": "Genesis GV60" },
+    { "id": "kia_ev9", "name": "Kia EV9" }
+  ],
+  "trigger_presets": [
+    {
+      "id": "sw_star",
+      "name": "Steering Wheel: Star (*) Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * 0*",
+      "to_payload": "* * * * * 1*"
+    },
+    {
+      "id": "sw_mode",
+      "name": "Steering Wheel: Mode Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * 0*",
+      "to_payload": "* * 4*"
+    },
+    {
+      "id": "sw_speak",
+      "name": "Steering Wheel: Voice / Speak Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * *0",
+      "to_payload": "* * *1"
+    },
+    {
+      "id": "sw_call",
+      "name": "Steering Wheel: Call / Phone Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * *0",
+      "to_payload": "* * *4"
+    },
+    {
+      "id": "sw_vol_in",
+      "name": "Steering Wheel: Volume Press / Mute",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * *0",
+      "to_payload": "* * * *1"
+    },
+    {
+      "id": "sw_vol_up",
+      "name": "Steering Wheel: Volume Up",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * *0",
+      "to_payload": "* * * * *1"
+    },
+    {
+      "id": "sw_vol_down",
+      "name": "Steering Wheel: Volume Down",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * 0*",
+      "to_payload": "* * * 4*"
+    },
+    {
+      "id": "sw_skip_up",
+      "name": "Steering Wheel: Seek / Skip Up",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * 0*",
+      "to_payload": "* * * 1*"
+    },
+    {
+      "id": "sw_skip_down",
+      "name": "Steering Wheel: Seek / Skip Down",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * *0",
+      "to_payload": "* * * *4"
+    },
+    {
+      "id": "sw_ok",
+      "name": "Steering Wheel: OK Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * 0*",
+      "to_payload": "* * * * * * 1*"
+    },
+    {
+      "id": "avn_star",
+      "name": "AVN / Dash: Star (*) Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Dashboard / Center Console",
+      "can_id": "0x652",
+      "bus": 0,
+      "from_payload": "* *0",
+      "to_payload": "* *4"
+    },
+    {
+      "id": "ev6_mode_strip",
+      "name": "AVN / Dash: EV6 Touch Bar Mode Switch",
+      "tags": ["kia_ev6"],
+      "category": "Dashboard / Center Console",
+      "can_id": "0x652",
+      "bus": 0,
+      "from_payload": "* * * 0*",
+      "to_payload": "* * * 5*"
+    },
+    {
+      "id": "camera_btn",
+      "name": "Dash: 360° Surround View Camera Button",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Dashboard / Center Console",
+      "can_id": "0x476",
+      "bus": 0,
+      "from_payload": "* * 42",
+      "to_payload": "* * 52"
+    },
+    {
+      "id": "cluster_bright_up",
+      "name": "Dash: Cluster Brightness Up",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+      "category": "Dashboard / Center Console",
+      "can_id": "0x474",
+      "bus": 0,
+      "from_payload": "* * * * * * * 0A",
+      "to_payload": "* * * * * * * 4A"
+    },
+    {
+      "id": "cluster_bright_down",
+      "name": "Dash: Cluster Brightness Down",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+      "category": "Dashboard / Center Console",
+      "can_id": "0x474",
+      "bus": 0,
+      "from_payload": "* * * * * * * 0A",
+      "to_payload": "* * * * * * * 8A"
+    },
+    {
+      "id": "heated_wheel_btn",
+      "name": "Console: Heated Steering Wheel State Change",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x418",
+      "bus": 0,
+      "from_payload": "* * 00",
+      "to_payload": "* * 01"
+    },
+    {
+      "id": "driver_seat_heat",
+      "name": "Console: Driver Seat Heating Active",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x496",
+      "bus": 0,
+      "from_payload": "12",
+      "to_payload": "42"
+    },
+    {
+      "id": "pass_seat_heat",
+      "name": "Console: Passenger Seat Heating Active",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x475",
+      "bus": 0,
+      "from_payload": "12",
+      "to_payload": "42"
+    },
+    {
+      "id": "climate_sync_toggle",
+      "name": "Climate: SYNC Button State Change",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x4A0",
+      "bus": 0,
+      "from_payload": "* * * 0B",
+      "to_payload": "* * * 0F"
+    },
+    {
+      "id": "climate_driver_only",
+      "name": "Climate: Driver Only / Heat Mode Toggled",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x41D",
+      "bus": 0,
+      "from_payload": "* * * * 0D",
+      "to_payload": "* * * * 0F"
+    },
+    {
+      "id": "climate_rear_defog",
+      "name": "Climate: Rear Defogger & Heated Mirrors Active",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x541",
+      "bus": 0,
+      "from_payload": "* * * * 0*",
+      "to_payload": "* * * * 1*"
+    },
+    {
+      "id": "climate_temp_status",
+      "name": "Climate: Cabin Target Temperature Change",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Comfort & Climate",
+      "can_id": "0x380",
+      "bus": 0,
+      "from_payload": "",
+      "to_payload": ""
+    },
+    {
+      "id": "car_ready_state",
+      "name": "Vehicle: Car READY State Transition",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x038",
+      "bus": 0,
+      "from_payload": "*0",
+      "to_payload": "*4"
+    },
+    {
+      "id": "car_power_on",
+      "name": "Vehicle: Car Power Turned ON",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x435",
+      "bus": 0,
+      "from_payload": "* * * * * * * FF",
+      "to_payload": "* * * * * * * 00"
+    },
+    {
+      "id": "charge_door_open",
+      "name": "Vehicle: Charge Port Door Opened",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x3AA",
+      "bus": 0,
+      "from_payload": "* * * * 00",
+      "to_payload": "* * * * 02"
+    },
+    {
+      "id": "trunk_open_trig",
+      "name": "Vehicle: Trunk Opened",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x414",
+      "bus": 0,
+      "from_payload": "* * * 00",
+      "to_payload": "* * * 01"
+    },
+    {
+      "id": "hood_open_trig",
+      "name": "Vehicle: Hood Opened",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x541",
+      "bus": 0,
+      "from_payload": "* * 0*",
+      "to_payload": "* * 2*"
+    },
+    {
+      "id": "sunroof_open_trig",
+      "name": "Vehicle: Sunroof Open / Tilt State",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x541",
+      "bus": 0,
+      "from_payload": "* * * * * * * 0*",
+      "to_payload": "* * * * * * * 2*"
+    },
+    {
+      "id": "hazard_lights_trig",
+      "name": "Vehicle: Hazard Warning Lights Active",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x541",
+      "bus": 0,
+      "from_payload": "* * * * 0*",
+      "to_payload": "* * * * 2*"
+    },
+    {
+      "id": "wipers_active_trig",
+      "name": "Vehicle: Windshield Wipers Active",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x541",
+      "bus": 0,
+      "from_payload": "* * * 0*",
+      "to_payload": "* * * 1*"
+    },
+    {
+      "id": "driver_door_open_trig",
+      "name": "Vehicle: Driver Door Opened",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x521",
+      "bus": 0,
+      "from_payload": "00",
+      "to_payload": "01"
+    },
+    {
+      "id": "pass_door_open_trig",
+      "name": "Vehicle: Passenger Door Opened",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x521",
+      "bus": 0,
+      "from_payload": "*0",
+      "to_payload": "*4"
+    },
+    {
+      "id": "brake_pedal_press",
+      "name": "Vehicle: Brake Pedal Pressed",
+      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x412",
+      "bus": 0,
+      "from_payload": "* * * * * * 00",
+      "to_payload": "* * * * * * 04"
+    }
+  ],
+  "action_presets": [
+    {
+      "category": "⚡ Battery Preconditioning",
+      "presets": [
+        {
+          "name": "Toggle Persistent Preconditioning (21°C / 70°F)",
+          "name_imperial": "Toggle Persistent Preconditioning (70°F / 21°C)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "precondition",
+          "precon_mode": "persistent",
+          "precon_press": "short",
+          "popup_message": ""
+        },
+        {
+          "name": "Toggle Continuous Preconditioning (High Demand)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "precondition",
+          "precon_mode": "continuous",
+          "precon_press": "short",
+          "popup_message": ""
+        },
+        {
+          "name": "Single Run Preconditioning Cycle (Once)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "precondition",
+          "precon_mode": "once",
+          "precon_press": "short",
+          "popup_message": ""
+        }
+      ]
+    },
+    {
+      "category": "💬 Cluster OSD Popups",
+      "presets": [
+        {
+          "name": "Cluster Toast: Live Batt Temp & Voltage (°C)",
+          "name_imperial": "Cluster Toast: Live Batt Temp & Voltage (°F)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "popup",
+          "popup_message": "Batt: {battery_temp}C ({voltage}V)",
+          "popup_message_imperial": "Batt: {battery_temp_f}F ({voltage}V)"
+        },
+        {
+          "name": "Cluster Toast: Live Batt Temp & Voltage (°F)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "popup",
+          "popup_message": "Batt: {battery_temp_f}F ({voltage}V)"
+        },
+        {
+          "name": "Cluster Toast: Min / Max Temp Range",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "popup",
+          "popup_message": "Batt: {temp_min}C to {temp_max}C"
+        },
+        {
+          "name": "Cluster Toast: Preconditioning Status & Temp",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "popup",
+          "popup_message": "Precon: {status} ({battery_temp}C)",
+          "popup_message_imperial": "Precon: {status} ({battery_temp_f}F)"
+        },
+        {
+          "name": "Cluster Toast: Charge Port Opened",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "popup",
+          "popup_message": "CHARGE PORT OPEN"
+        },
+        {
+          "name": "Cluster Toast: Sport Mode Active",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "popup",
+          "popup_message": "SPORT MODE ACTIVE"
+        }
+      ]
+    },
+    {
+      "category": "🔌 EV Charging Limits",
+      "presets": [
+        {
+          "name": "Charging: Set AC & DC Max Charge Limit (Both)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4C5",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Charge Limit: 80%",
+          "options": [
+            { "label": "50%", "payload": "00 00 00 00 64 64 00 00", "popup": "Charge Limit: 50%" },
+            { "label": "60%", "payload": "00 00 00 00 78 78 00 00", "popup": "Charge Limit: 60%" },
+            { "label": "70%", "payload": "00 00 00 00 8C 8C 00 00", "popup": "Charge Limit: 70%" },
+            { "label": "80%", "payload": "00 00 00 00 A0 A0 00 00", "popup": "Charge Limit: 80%", "default": true },
+            { "label": "90%", "payload": "00 00 00 00 B4 B4 00 00", "popup": "Charge Limit: 90%" },
+            { "label": "100%", "payload": "00 00 00 00 C8 C8 00 00", "popup": "Charge Limit: 100%" }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 A0 A0 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Charging: Set AC Level 2 Charge Limit",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4C5",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "AC Limit: 80%",
+          "options": [
+            { "label": "50%", "payload": "00 00 00 00 64 00 00 00", "popup": "AC Limit: 50%" },
+            { "label": "60%", "payload": "00 00 00 00 78 00 00 00", "popup": "AC Limit: 60%" },
+            { "label": "70%", "payload": "00 00 00 00 8C 00 00 00", "popup": "AC Limit: 70%" },
+            { "label": "80%", "payload": "00 00 00 00 A0 00 00 00", "popup": "AC Limit: 80%", "default": true },
+            { "label": "90%", "payload": "00 00 00 00 B4 00 00 00", "popup": "AC Limit: 90%" },
+            { "label": "100%", "payload": "00 00 00 00 C8 00 00 00", "popup": "AC Limit: 100%" }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 A0 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Charging: Set DC Fast Charge Limit",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4C5",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "DC Limit: 80%",
+          "options": [
+            { "label": "50%", "payload": "00 00 00 00 00 64 00 00", "popup": "DC Limit: 50%" },
+            { "label": "60%", "payload": "00 00 00 00 00 78 00 00", "popup": "DC Limit: 60%" },
+            { "label": "70%", "payload": "00 00 00 00 00 8C 00 00", "popup": "DC Limit: 70%" },
+            { "label": "80%", "payload": "00 00 00 00 00 A0 00 00", "popup": "DC Limit: 80%", "default": true },
+            { "label": "90%", "payload": "00 00 00 00 00 B4 00 00", "popup": "DC Limit: 90%" },
+            { "label": "100%", "payload": "00 00 00 00 00 C8 00 00", "popup": "DC Limit: 100%" }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 00 A0 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "💺 Seats & Steering Wheel Comfort",
+      "presets": [
+        {
+          "name": "Seat Heating: Driver Seat Heating Level",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Dr Seat Heat: High",
+          "options": [
+            { "label": "Off (Clear)", "payload": "00 00 00 00 20 00 00 00", "popup": "Dr Seat Heat: Off" },
+            { "label": "Low (1)", "payload": "00 00 00 00 60 00 00 00", "popup": "Dr Seat Heat: Low" },
+            { "label": "Med (2)", "payload": "00 00 00 00 70 00 00 00", "popup": "Dr Seat Heat: Med" },
+            { "label": "High (3)", "payload": "00 00 00 00 80 00 00 00", "popup": "Dr Seat Heat: High", "default": true }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 80 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Seat Heating: Passenger Seat Heating Level",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Pass Seat Heat: High",
+          "options": [
+            { "label": "Off (Clear)", "payload": "00 00 00 00 02 00 00 00", "popup": "Pass Seat Heat: Off" },
+            { "label": "Low (1)", "payload": "00 00 00 00 06 00 00 00", "popup": "Pass Seat Heat: Low" },
+            { "label": "Med (2)", "payload": "00 00 00 00 07 00 00 00", "popup": "Pass Seat Heat: Med" },
+            { "label": "High (3)", "payload": "00 00 00 00 08 00 00 00", "popup": "Pass Seat Heat: High", "default": true }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 08 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Seat Heating: Both Seats Heating Level",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Seats: Heat High",
+          "options": [
+            { "label": "Off (Clear)", "payload": "00 00 00 00 22 00 00 00", "popup": "Seats: Heat Off" },
+            { "label": "Low (1)", "payload": "00 00 00 00 66 00 00 00", "popup": "Seats: Heat Low" },
+            { "label": "Med (2)", "payload": "00 00 00 00 77 00 00 00", "popup": "Seats: Heat Med" },
+            { "label": "High (3)", "payload": "00 00 00 00 88 00 00 00", "popup": "Seats: Heat High", "default": true }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 88 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Seat Cooling: Driver Seat Ventilation Level",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Dr Vent: High",
+          "options": [
+            { "label": "Off (Clear)", "payload": "00 00 00 00 20 00 00 00", "popup": "Dr Vent: Off" },
+            { "label": "Low (1)", "payload": "00 00 00 00 30 00 00 00", "popup": "Dr Vent: Low" },
+            { "label": "Med (2)", "payload": "00 00 00 00 40 00 00 00", "popup": "Dr Vent: Med" },
+            { "label": "High (3)", "payload": "00 00 00 00 50 00 00 00", "popup": "Dr Vent: High", "default": true }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 50 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Seat Cooling: Passenger Seat Ventilation Level",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Pass Vent: High",
+          "options": [
+            { "label": "Off (Clear)", "payload": "00 00 00 00 02 00 00 00", "popup": "Pass Vent: Off" },
+            { "label": "Low (1)", "payload": "00 00 00 00 03 00 00 00", "popup": "Pass Vent: Low" },
+            { "label": "Med (2)", "payload": "00 00 00 00 04 00 00 00", "popup": "Pass Vent: Med" },
+            { "label": "High (3)", "payload": "00 00 00 00 05 00 00 00", "popup": "Pass Vent: High", "default": true }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 05 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Seat Cooling: Both Seats Ventilation Level",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Seats: Vent High",
+          "options": [
+            { "label": "Off (Clear)", "payload": "00 00 00 00 22 00 00 00", "popup": "Seats: Vent Off" },
+            { "label": "Low (1)", "payload": "00 00 00 00 33 00 00 00", "popup": "Seats: Vent Low" },
+            { "label": "Med (2)", "payload": "00 00 00 00 44 00 00 00", "popup": "Seats: Vent Med" },
+            { "label": "High (3)", "payload": "00 00 00 00 55 00 00 00", "popup": "Seats: Vent High", "default": true }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 55 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Steering Wheel: Heated Wheel Toggle",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x418",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Heated Wheel Toggle",
+          "steps": [
+            { "payload": "00 00 01 00 00 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "❄️ Cabin Climate Control",
+      "presets": [
+        {
+          "name": "Climate: Set Target Cabin Temperature",
+          "name_imperial": "Climate: Set Target Cabin Temp",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "climate_target",
+          "climate_zone": "driver",
+          "target_temp_c": 21.0,
+          "climate_sync_on": true,
+          "climate_driver_only": false,
+          "popup_message": "Climate: Set to 21°C (70°F)",
+          "popup_message_imperial": "Climate: Set to 70°F (21°C)",
+          "options": [
+            { "label": "18.0°C (64°F)", "label_imperial": "64°F (18.0°C)", "target_temp_c": 18.0, "popup": "Climate: 18°C", "popup_imperial": "Climate: 64°F" },
+            { "label": "19.0°C (66°F)", "label_imperial": "66°F (19.0°C)", "target_temp_c": 19.0, "popup": "Climate: 19°C", "popup_imperial": "Climate: 66°F" },
+            { "label": "20.0°C (68°F)", "label_imperial": "68°F (20.0°C)", "target_temp_c": 20.0, "popup": "Climate: 20°C", "popup_imperial": "Climate: 68°F" },
+            { "label": "21.0°C (70°F)", "label_imperial": "70°F (21.0°C)", "target_temp_c": 21.0, "popup": "Climate: 21°C", "popup_imperial": "Climate: 70°F", "default": true },
+            { "label": "22.0°C (72°F)", "label_imperial": "72°F (22.0°C)", "target_temp_c": 22.0, "popup": "Climate: 22°C", "popup_imperial": "Climate: 72°F" },
+            { "label": "23.0°C (73°F)", "label_imperial": "73°F (23.0°C)", "target_temp_c": 23.0, "popup": "Climate: 23°C", "popup_imperial": "Climate: 73°F" },
+            { "label": "24.0°C (75°F)", "label_imperial": "75°F (24.0°C)", "target_temp_c": 24.0, "popup": "Climate: 24°C", "popup_imperial": "Climate: 75°F" }
+          ]
+        },
+        {
+          "name": "Climate: SYNC Mode Toggle",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x4A0",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Climate: SYNC ON",
+          "options": [
+            { "label": "Turn ON", "payload": "00 00 00 0F 00 00 00 00", "popup": "Climate: SYNC ON", "default": true },
+            { "label": "Turn OFF", "payload": "00 00 00 07 00 00 00 00", "popup": "Climate: SYNC OFF" }
+          ],
+          "steps": [
+            { "payload": "00 00 00 0F 00 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Climate: Driver Only Mode",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x41D",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Driver Only: ON",
+          "options": [
+            { "label": "Turn ON", "payload": "00 00 00 00 0F 00 00 00", "popup": "Driver Only: ON", "default": true },
+            { "label": "Turn OFF", "payload": "00 00 00 00 0C 00 00 00", "popup": "Driver Only: OFF" }
+          ],
+          "steps": [
+            { "payload": "00 00 00 00 0F 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "🚗 Vehicle Actuators & Features",
+      "presets": [
+        {
+          "name": "Active Sound Design (ASD): Sound Profile",
+          "tags": ["kia_ev6", "genesis_gv60"],
+          "type": "can_tx",
+          "can_id": "0x658",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "ASD: Dynamic",
+          "options": [
+            { "label": "Off", "payload": "7F 7F AF 00 00 00 00 00", "popup": "ASD: Off" },
+            { "label": "Stylish", "payload": "87 87 AF 00 00 00 00 00", "popup": "ASD: Stylish" },
+            { "label": "Dynamic", "payload": "8B 8B AF 00 00 00 00 00", "popup": "ASD: Dynamic", "default": true },
+            { "label": "Cyber", "payload": "8F 8F AF 00 00 00 00 00", "popup": "ASD: Cyber" }
+          ],
+          "steps": [
+            { "payload": "8B 8B AF 00 00 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "Camera: Toggle 360° Surround View Camera",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x476",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Camera View",
+          "steps": [
+            { "payload": "00 00 52 00 00 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        },
+        {
+          "name": "E-GMP: Broadcast Keepalive / Wakeup",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x7DF",
+          "bus": 0,
+          "delay_ms": 10,
+          "popup_message": "Keepalive Ping",
+          "steps": [{ "payload": "02 01 00 00 00 00 00 00", "repeat": 3 }]
+        },
+        {
+          "name": "E-GMP: Multi-Frame Burst Sequence (x3)",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "can_tx",
+          "can_id": "0x652",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "",
+          "steps": [
+            { "payload": "00 00 01 00 00 00 00 00", "repeat": 3 },
+            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "🌐 Home Assistant & Cloud",
+      "presets": [
+        {
+          "name": "Home Assistant: Webhook Event Trigger",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "webhook",
+          "webhook_url": "http://homeassistant.local:8123/api/webhook/wican_event"
+        },
+        {
+          "name": "MQTT: Publish JSON Event Alert",
+          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "type": "mqtt",
+          "mqtt_topic": "wican/event/alert",
+          "mqtt_payload": "{\"event\": \"triggered\", \"status\": \"active\"}"
+        }
+      ]
+    }
+  ]
+};
+    /* CANDO_CATALOG_END */
 
-    function addCandoRuleUI(ruleData = {}, isCollapsed = false) {
+    function getSelectedVehicleProfile() {
+        const sel = document.getElementById("cando_vehicle_profile");
+        if (sel && sel.value) return sel.value;
+        return localStorage.getItem("wican_vehicle_profile") || "all_egmp";
+    }
+
+    function initCandoVehicleProfileUI() {
+        const saved = localStorage.getItem("wican_vehicle_profile") || "all_egmp";
+        const sel = document.getElementById("cando_vehicle_profile");
+        if (sel) sel.value = saved;
+    }
+
+    function changeCandoVehicleProfile(vehicleId) {
+        localStorage.setItem("wican_vehicle_profile", vehicleId);
+        refreshAllCandoPresetDropdowns();
+        const sel = document.getElementById("cando_vehicle_profile");
+        const vName = sel ? (sel.selectedOptions[0]?.text || vehicleId) : vehicleId;
+        showNotification("Vehicle catalog profile set to: " + vName, "green", 3000);
+    }
+
+    function getUnitSystem() {
+        const sel = document.getElementById("cando_unit_system");
+        if (sel && sel.value) return sel.value;
+        return localStorage.getItem("wican_unit_system") || "metric";
+    }
+
+    function initUnitSystemUI() {
+        const saved = localStorage.getItem("wican_unit_system") || "metric";
+        const sel = document.getElementById("cando_unit_system");
+        if (sel) sel.value = saved;
+    }
+
+    function changeUnitSystem(unit) {
+        localStorage.setItem("wican_unit_system", unit);
+        refreshAllCandoPresetDropdowns();
+        // Update all visible target temp unit labels and option pill renderings
+        document.querySelectorAll(".cando-target-temp-unit").forEach(span => {
+            span.textContent = (unit === "imperial") ? "°F" : "°C";
+        });
+        document.querySelectorAll(".cando-act-preset-picker").forEach(picker => {
+            if (picker.value) applyCandoActionPreset(picker);
+        });
+        showNotification("Unit preference set to: " + (unit === "imperial" ? "Imperial (°F)" : "Metric (°C)"), "green", 3000);
+    }
+
+    function getCustomTrigPresets() {
+        try {
+            return JSON.parse(localStorage.getItem("wican_custom_trig_presets") || "[]");
+        } catch (e) { return []; }
+    }
+
+    function saveCustomTrigPreset(presetObj) {
+        const list = getCustomTrigPresets();
+        list.push(presetObj);
+        localStorage.setItem("wican_custom_trig_presets", JSON.stringify(list));
+        refreshAllCandoPresetDropdowns();
+    }
+
+    function getCustomActPresets() {
+        try {
+            return JSON.parse(localStorage.getItem("wican_custom_act_presets") || "[]");
+        } catch (e) { return []; }
+    }
+
+    function saveCustomActPreset(presetObj) {
+        const list = getCustomActPresets();
+        list.push(presetObj);
+        localStorage.setItem("wican_custom_act_presets", JSON.stringify(list));
+        refreshAllCandoPresetDropdowns();
+    }
+
+    function getFilteredTriggerPresets() {
+        const vId = getSelectedVehicleProfile();
+        const catalogTrigs = CANDO_CATALOG.trigger_presets || [];
+        const filtered = catalogTrigs.filter(p => {
+            if (vId === "all_egmp") return true;
+            return !p.tags || p.tags.includes("all_egmp") || p.tags.includes(vId);
+        });
+        const custom = getCustomTrigPresets();
+        return { builtIn: filtered, custom: custom };
+    }
+
+    function getFilteredActionPresets() {
+        const vId = getSelectedVehicleProfile();
+        const catalogCats = CANDO_CATALOG.action_presets || [];
+        const filteredCats = catalogCats.map(cat => {
+            return {
+                category: cat.category,
+                presets: cat.presets.filter(p => {
+                    if (vId === "all_egmp") return true;
+                    return !p.tags || p.tags.includes("all_egmp") || p.tags.includes(vId);
+                })
+            };
+        }).filter(c => c.presets.length > 0);
+
+        const custom = getCustomActPresets();
+        if (custom.length > 0) {
+            filteredCats.push({
+                category: "⭐ Custom Saved Templates",
+                presets: custom
+            });
+        }
+        return filteredCats;
+    }
+
+    function renderTrigPresetOptionsHTML(selectedIdxStr = "") {
+        const { builtIn, custom } = getFilteredTriggerPresets();
+        let html = '<option value="">-- Select Button Preset --</option>';
+        if (custom.length > 0) {
+            html += '<optgroup label="⭐ Custom Presets">';
+            custom.forEach((p, idx) => {
+                const val = `c_${idx}`;
+                html += `<option value="${val}" ${selectedIdxStr === val ? "selected" : ""}>⭐ ${p.name}</option>`;
+            });
+            html += '</optgroup>';
+        }
+        html += '<optgroup label="🚗 E-GMP Vehicle Buttons">';
+        builtIn.forEach((p, idx) => {
+            const val = `b_${idx}`;
+            html += `<option value="${val}" ${selectedIdxStr === val ? "selected" : ""}>${p.name}</option>`;
+        });
+        html += '</optgroup>';
+        return html;
+    }
+
+    function renderActPresetOptionsHTML(selectedValStr = "") {
+        const isImperial = (getUnitSystem() === "imperial");
+        const cats = getFilteredActionPresets();
+        let html = '<option value="">-- Choose Pre-Configured Template (Optional) --</option>';
+        cats.forEach((cat, catIdx) => {
+            html += `<optgroup label="${cat.category}">`;
+            cat.presets.forEach((p, pIdx) => {
+                const val = `${catIdx}:${pIdx}`;
+                const name = (isImperial && p.name_imperial) ? p.name_imperial : p.name;
+                html += `<option value="${val}" ${selectedValStr === val ? "selected" : ""}>${name}</option>`;
+            });
+            html += '</optgroup>';
+        });
+        return html;
+    }
+
+    function refreshAllCandoPresetDropdowns() {
+        document.querySelectorAll(".cando-trig-preset-picker").forEach(picker => {
+            const curVal = picker.value;
+            picker.innerHTML = renderTrigPresetOptionsHTML(curVal);
+        });
+        document.querySelectorAll(".cando-act-preset-picker").forEach(picker => {
+            const curVal = picker.value;
+            picker.innerHTML = renderActPresetOptionsHTML(curVal);
+        });
+    }
+
+    function saveCurrentTriggerAsPreset(btn) {
+        const item = btn.closest(".cando-trigger-item");
+        if (!item) return;
+        const canId = item.querySelector(".cando-trig-can-id")?.value.trim() || "0x448";
+        const bus = parseInt(item.querySelector(".cando-trig-bus")?.value || "0");
+        const toPayload = getByteGridString(item, "cando-trig-to");
+        const fromPayload = getByteGridString(item, "cando-trig-from");
+
+        const defaultName = item.querySelector(".cando-trig-id")?.value.trim() || "Custom Button";
+        const name = prompt("Enter a name for this custom trigger preset:", defaultName);
+        if (!name || !name.trim()) return;
+
+        saveCustomTrigPreset({
+            id: name.toLowerCase().replace(/\s+/g, "_"),
+            name: name.trim(),
+            can_id: canId,
+            bus: bus,
+            to_payload: toPayload,
+            from_payload: fromPayload
+        });
+
+        showNotification("Saved custom trigger preset: " + name, "green", 3500);
+    }
+
+    function saveCurrentActionAsPreset(btn) {
+        const item = btn.closest(".cando-action-item");
+        if (!item) return;
+        const actData = extractCandoActionData(item);
+        const name = prompt("Enter a name for this custom action template:", "My Action Template");
+        if (!name || !name.trim()) return;
+
+        actData.name = name.trim();
+        saveCustomActPreset(actData);
+
+        showNotification("Saved custom action template: " + name, "green", 3500);
+    }
+
+    function updateCandoRuleStatusBadge(cb) {
+        const badge = cb.parentElement.querySelector(".cando-status-badge");
+        if (!badge) return;
+        if (cb.checked) {
+            badge.textContent = "ACTIVE";
+            badge.style.background = "#dcfce7";
+            badge.style.color = "#15803d";
+            badge.style.borderColor = "#86efac";
+        } else {
+            badge.textContent = "PAUSED";
+            badge.style.background = "#f1f5f9";
+            badge.style.color = "#64748b";
+            badge.style.borderColor = "#cbd5e1";
+        }
+    }
+
+    function toggleCandoSection(headerElem) {
+        const sectionBox = headerElem.closest(".cando-section-box");
+        if (!sectionBox) return;
+        const body = sectionBox.querySelector(".cando-section-body");
+        const toggleBtn = sectionBox.querySelector(".cando-sec-toggle-btn");
+        if (!body) return;
+        const isHidden = body.classList.contains("hidden") || body.style.display === "none";
+        if (isHidden) {
+            body.classList.remove("hidden");
+            body.style.display = "block";
+            if (toggleBtn) toggleBtn.textContent = "▲";
+        } else {
+            body.classList.add("hidden");
+            body.style.display = "none";
+            if (toggleBtn) toggleBtn.textContent = "▼";
+        }
+    }
+
+    function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false) {
         const container = document.getElementById("cando_rules_container");
         if (!container) return;
 
@@ -3589,136 +4537,157 @@ function loadAutoTable(jsonData) {
         ruleDiv.style.marginBottom = "1.5rem";
         ruleDiv.style.backgroundColor = "#fafafa";
 
+        const isEnabled = ruleData.enabled !== false;
+
         ruleDiv.innerHTML = `
             <!-- Header -->
             <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCandoHeaderClick(event, this)">
-                <div class="header-left" style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="header-left" style="display: flex; align-items: center; gap: 0.5rem; flex-grow: 1; margin-right: 0.5rem;">
                     <button type="button" class="collapse-btn cando-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem;" onclick="event.stopPropagation(); toggleCandoRuleCard(this);">${isCollapsed ? "▼" : "▲"}</button>
-                    <span class="pid-title" style="font-size: 1.05rem; color: #1e293b;">
-                        ⚡ <b class="cando-title-text">${ruleData.name || "New Automation"}</b>
-                    </span>
+                    <div class="cando-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
+                        <span style="position: absolute; left: 8px; pointer-events: none; font-size: 0.9rem; color: #64748b;">⚡</span>
+                        <input type="text" class="cando-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name (Click to edit)" title="Click to rename this CAN Do" onclick="event.stopPropagation();" style="font-size: 1rem; font-weight: 700; color: #0f172a; border: 1.5px solid ${isCollapsed ? '#e2e8f0' : '#cbd5e1'}; background: ${isCollapsed ? '#f8fafc' : '#ffffff'}; padding: 4px 8px 4px 26px; border-radius: 6px; width: 100%; transition: all 0.2s; box-shadow: ${isCollapsed ? 'none' : '0 1px 2px rgba(0,0,0,0.05)'};" onfocus="this.style.borderColor='#2563eb'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.15)';" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.05)';">
+                    </div>
                 </div>
-                <div class="header-right" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); toggleCandoRuleCard(this);" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0;">${isCollapsed ? "Edit" : "Collapse"}</button>
-                    <button type="button" class="delete-btn" onclick="event.stopPropagation(); this.closest('.pid-entry').remove();" style="margin: 0;">Delete Rule</button>
+                <div class="header-right" style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
+                    <span class="cando-activity-badge" style="padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-family: monospace; transition: all 0.3s;" title="Live trigger activity">Idle</span>
+                    <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="cando-rule-enabled" ${isEnabled ? 'checked' : ''} onchange="updateCandoRuleStatusBadge(this)" style="cursor: pointer; width: 16px; height: 16px; accent-color: #16a34a;">
+                        <span class="cando-status-badge" style="padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${isEnabled ? '#dcfce7' : '#f1f5f9'}; color: ${isEnabled ? '#15803d' : '#64748b'}; border: 1px solid ${isEnabled ? '#86efac' : '#cbd5e1'};">
+                            ${isEnabled ? 'ACTIVE' : 'PAUSED'}
+                        </span>
+                    </label>
+                    <button type="button" class="system-button" onclick="event.stopPropagation(); moveCandoRule(this, -1);" style="padding: 0.35rem 0.45rem; font-size: 0.75rem; width: auto; min-width: auto; margin: 0; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer;" title="Move CAN Do Up">▲</button>
+                    <button type="button" class="system-button" onclick="event.stopPropagation(); moveCandoRule(this, 1);" style="padding: 0.35rem 0.45rem; font-size: 0.75rem; width: auto; min-width: auto; margin: 0; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer;" title="Move CAN Do Down">▼</button>
+                    <button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); handleCandoEditSave(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; background: ${isCollapsed ? '#3b82f6' : '#16a34a'}; color: white; border: none; font-weight: 600; cursor: pointer;" title="${isCollapsed ? 'Edit this CAN Do' : 'Save changes to this CAN Do'}">${isCollapsed ? "✏️ Edit" : "💾 Save"}</button>
+                    <button type="button" class="delete-btn" onclick="event.stopPropagation(); this.closest('.pid-entry').remove();" style="margin: 0; padding: 0.35rem 0.65rem;">✕ Delete</button>
                 </div>
             </div>
 
             <div class="cando-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
-                <div style="margin-bottom: 0.8rem; margin-top: 0.5rem;">
-                    <label><b>Rule Name:</b></label>
-                    <input type="text" class="cando-name" value="${ruleData.name || ""}" placeholder="e.g. Steering Seek Left Automation" style="width: 100%; margin-top: 0.2rem;">
-                </div>
-
-                <!-- Known Signal Quick Picker -->
-                <div style="background: #e0f2fe; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>💡 <b>Preset Signal Picker:</b></span>
-                    <select class="cando-pid-picker" onchange="applyCandoPidPreset(this)" style="flex-grow: 1;">
-                        <option value="">-- Add Known Signal / PID as Trigger + Action --</option>
-                        ${CANDO_KNOWN_PIDS.map((p, idx) => `<option value="${idx}">${p.name} (${p.can_id})</option>`).join("")}
-                    </select>
-                </div>
-
-                <!-- BLOCK: EXECUTION CONTROL & LOOP SAFEGUARDS -->
-                <div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-                        <span style="font-weight: bold; color: #334155; font-size: 0.95rem;">⚙️ Execution Mode &amp; Loop Safeguards</span>
-                        <span style="font-size: 0.78rem; color: #64748b;">(Anti-Duplication &amp; Latching Protection)</span>
+                <!-- BLOCK 0: EXECUTION CONTROL & LOOP SAFEGUARDS -->
+                <div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
+                            <span style="font-weight: bold; color: #334155; font-size: 0.95rem;">⚙️ Execution Mode &amp; Loop Safeguards</span>
+                            <span style="font-size: 0.78rem; color: #64748b; margin-left: 0.3rem;">(Anti-Duplication &amp; Latching Protection)</span>
+                        </div>
                     </div>
-                    <table class="compact-form-table">
-                        <tr>
-                            <td style="width: 28%;">Execution Mode:</td>
-                            <td>
-                                <select class="cando-exec-mode" onchange="toggleCandoExecModeUI(this)">
-                                    <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>⚡ Edge-Triggered (On Change only - Recommended)</option>
-                                    <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>🔒 One-Shot &amp; Latch (Fire once until reset/timeout)</option>
-                                    <option value="poll_verify" ${ruleData.exec_mode === "poll_verify" ? "selected" : ""}>🔄 Poll &amp; Verify (Wait for confirmation status CAN ID)</option>
-                                    <option value="continuous" ${ruleData.exec_mode === "continuous" ? "selected" : ""}>🔁 Continuous (Fire on every matching message)</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Anti-Loop Cooldown (ms):</td>
-                            <td>
-                                <input type="number" class="cando-cooldown-ms" value="${ruleData.cooldown_ms !== undefined ? ruleData.cooldown_ms : 500}" min="0" max="60000" placeholder="500">
-                                <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">Min delay between triggers to prevent bus floods</span>
-                            </td>
-                        </tr>
-                        <tr class="cando-latch-row ${(!ruleData.exec_mode || ruleData.exec_mode === 'on_change' || ruleData.exec_mode === 'continuous') ? 'hidden' : ''}">
-                            <td>Auto Re-Arm Timeout (ms):</td>
-                            <td>
-                                <input type="number" class="cando-timeout-reset-ms" value="${ruleData.timeout_reset_ms !== undefined ? ruleData.timeout_reset_ms : 2000}" min="0" max="3600000" placeholder="2000">
-                                <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">Auto re-arms latch after inactivity (0 = manual reset only)</span>
-                            </td>
-                        </tr>
-                        <tr class="cando-latch-row ${(!ruleData.exec_mode || ruleData.exec_mode === 'on_change' || ruleData.exec_mode === 'continuous') ? 'hidden' : ''}">
-                            <td>Reset / Re-Arm CAN ID:</td>
-                            <td>
-                                <input type="text" class="cando-reset-can-id" value="${ruleData.reset_can_id || ''}" placeholder="e.g. 0x2C0 (Optional release frame)">
-                            </td>
-                        </tr>
-                        <tr class="cando-verify-row ${ruleData.exec_mode === 'poll_verify' ? '' : 'hidden'}">
-                            <td>Confirmation CAN ID:</td>
-                            <td>
-                                <input type="text" class="cando-verify-can-id" value="${ruleData.verify_can_id || ''}" placeholder="e.g. 0x7E8">
-                            </td>
-                        </tr>
-                        <tr class="cando-verify-row ${ruleData.exec_mode === 'poll_verify' ? '' : 'hidden'}">
-                            <td style="vertical-align: middle;">Expected Confirm Payload:</td>
-                            <td>
-                                ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
-                            </td>
-                        </tr>
-                    </table>
+                    <div class="cando-section-body" style="margin-top: 0.6rem;">
+                        <table class="compact-form-table">
+                            <tr>
+                                <td style="width: 28%;">Execution Mode:</td>
+                                <td>
+                                    <select class="cando-exec-mode" onchange="toggleCandoExecModeUI(this)">
+                                        <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>⚡ Edge-Triggered (On Change only - Recommended)</option>
+                                        <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>🔒 One-Shot &amp; Latch (Fire once until reset/timeout)</option>
+                                        <option value="poll_verify" ${ruleData.exec_mode === "poll_verify" ? "selected" : ""}>🔄 Poll &amp; Verify (Wait for confirmation status CAN ID)</option>
+                                        <option value="continuous" ${ruleData.exec_mode === "continuous" ? "selected" : ""}>🔁 Continuous (Fire on every matching message)</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Anti-Loop Cooldown (ms):</td>
+                                <td>
+                                    <input type="number" class="cando-cooldown-ms" value="${ruleData.cooldown_ms !== undefined ? ruleData.cooldown_ms : 500}" min="0" max="60000" placeholder="500">
+                                    <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">Min delay between triggers to prevent bus floods</span>
+                                </td>
+                            </tr>
+                            <tr class="cando-latch-row ${(!ruleData.exec_mode || ruleData.exec_mode === 'on_change' || ruleData.exec_mode === 'continuous') ? 'hidden' : ''}">
+                                <td>Auto Re-Arm Timeout (ms):</td>
+                                <td>
+                                    <input type="number" class="cando-timeout-reset-ms" value="${ruleData.timeout_reset_ms !== undefined ? ruleData.timeout_reset_ms : 2000}" min="0" max="3600000" placeholder="2000">
+                                    <span style="font-size: 0.75rem; color: #64748b; margin-left: 6px;">Auto re-arms latch after inactivity (0 = manual reset only)</span>
+                                </td>
+                            </tr>
+                            <tr class="cando-latch-row ${(!ruleData.exec_mode || ruleData.exec_mode === 'on_change' || ruleData.exec_mode === 'continuous') ? 'hidden' : ''}">
+                                <td>Reset / Re-Arm CAN ID:</td>
+                                <td>
+                                    <input type="text" class="cando-reset-can-id" value="${ruleData.reset_can_id || ''}" placeholder="e.g. 0x2C0 (Optional release frame)">
+                                </td>
+                            </tr>
+                            <tr class="cando-verify-row ${ruleData.exec_mode === 'poll_verify' ? '' : 'hidden'}">
+                                <td>Confirmation CAN ID:</td>
+                                <td>
+                                    <input type="text" class="cando-verify-can-id" value="${ruleData.verify_can_id || ''}" placeholder="e.g. 0x7E8">
+                                </td>
+                            </tr>
+                            <tr class="cando-verify-row ${ruleData.exec_mode === 'poll_verify' ? '' : 'hidden'}">
+                                <td style="vertical-align: middle;">Expected Confirm Payload:</td>
+                                <td>
+                                    ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- BLOCK 1: TRIGGERS (WHEN...) -->
-                <div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                        <div>
+                <div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #c2410c; font-size: 1rem;">🟠 1. TRIGGERS ("WHEN...")</span>
-                            <span style="font-size: 0.8rem; color: #9a3412; margin-left: 0.5rem;">(Fires when ANY trigger occurs)</span>
+                            <span style="font-size: 0.8rem; color: #9a3412; margin-left: 0.3rem;">(Fires when ANY trigger occurs)</span>
                         </div>
-                        <button type="button" class="system-button" onclick="addCandoTriggerItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #ea580c; color: white;">+ Add Trigger</button>
+                        <button type="button" class="system-button" onclick="event.stopPropagation(); addCandoTriggerItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #ea580c; color: white;">+ Add Trigger</button>
                     </div>
-                    <div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                    <div class="cando-section-body" style="margin-top: 0.6rem;">
+                        <div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                    </div>
                 </div>
 
                 <!-- BLOCK 2: CONDITIONS (AND IF...) -->
-                <div class="cando-section-box" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                        <div>
+                <div class="cando-section-box" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #1d4ed8; font-size: 1rem;">🔵 2. CONDITIONS ("AND IF...")</span>
-                            <span style="font-size: 0.8rem; color: #1e40af; margin-left: 0.5rem;">(Optional - must pass to run actions)</span>
+                            <span style="font-size: 0.8rem; color: #1e40af; margin-left: 0.3rem;">(Optional - must pass to run actions)</span>
                         </div>
-                        <button type="button" class="system-button" onclick="addCandoConditionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #2563eb; color: white;">+ Add Condition</button>
+                        <button type="button" class="system-button" onclick="event.stopPropagation(); addCandoConditionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #2563eb; color: white;">+ Add Condition</button>
                     </div>
-                    <div class="cando-conditions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                    <div class="cando-section-body" style="margin-top: 0.6rem;">
+                        <div class="cando-conditions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                    </div>
                 </div>
 
                 <!-- BLOCK 3: ACTIONS (THEN DO...) -->
-                <div class="cando-section-box" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 1rem; border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-                        <div>
+                <div class="cando-section-box" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 0.8rem 1rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #047857; font-size: 1rem;">🟢 3. ACTIONS ("THEN DO...")</span>
-                            <span style="font-size: 0.8rem; color: #065f46; margin-left: 0.5rem;">(Executed in sequence)</span>
+                            <span style="font-size: 0.8rem; color: #065f46; margin-left: 0.3rem;">(Executed in sequence)</span>
                         </div>
-                        <button type="button" class="system-button" onclick="addCandoActionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #059669; color: white;">+ Add Action</button>
+                        <button type="button" class="system-button" onclick="event.stopPropagation(); addCandoActionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #059669; color: white;">+ Add Action</button>
                     </div>
-                    <div class="cando-actions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                    <div class="cando-section-body" style="margin-top: 0.6rem;">
+                        <div class="cando-actions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.2rem; padding-top: 0.8rem; border-top: 1px dashed #cbd5e1;">
+                    <button type="button" class="system-button" onclick="testCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; background: #0d9488; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;" title="Test all actions in this CAN Do rule">▶ Test All Actions</button>
+                    <button type="button" class="system-button" onclick="duplicateCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; background: #6366f1; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;" title="Duplicate this CAN Do rule">📋 Clone CAN Do</button>
+                    <button type="button" class="system-button" onclick="saveCandoRulesUI(this)" style="padding: 0.4rem 1.1rem; font-size: 0.85rem; background: #16a34a; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">💾 Save CAN Do</button>
                 </div>
             </div>
         `;
 
-        const nameInput = ruleDiv.querySelector(".cando-name");
-        const titleText = ruleDiv.querySelector(".cando-title-text");
-        if (nameInput && titleText) {
-            nameInput.addEventListener("input", () => {
-                titleText.textContent = nameInput.value.trim() || "New Automation";
-            });
-        }
-
         container.appendChild(ruleDiv);
+
+        if (shouldScroll) {
+            ruleDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+            setTimeout(() => {
+                const nameInput = ruleDiv.querySelector(".cando-name");
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.select();
+                }
+            }, 250);
+        }
 
         // Populate Triggers (supports array or legacy single trigger)
         const trigContainer = ruleDiv.querySelector(".cando-triggers-container");
@@ -3734,6 +4703,8 @@ function loadAutoTable(jsonData) {
         const actContainer = ruleDiv.querySelector(".cando-actions-container");
         const actions = ruleData.actions || (ruleData.action ? [ruleData.action] : [{ type: "can_tx" }]);
         actions.forEach(act => renderCandoActionItem(actContainer, act));
+
+        updateCandoRuleTriggerDropdowns(ruleDiv);
     }
 
     // --- BYTE GRID HELPER FUNCTIONS (D1 - D8) ---
@@ -3742,64 +4713,66 @@ function loadAutoTable(jsonData) {
         let html = `<div class="${prefixClass}-grid" style="display: inline-flex; gap: 5px; align-items: flex-end; flex-wrap: wrap; margin-top: 4px;">`;
         for (let i = 0; i < 8; i++) {
             const rawVal = rawBytes[i] || "";
-            const val = (rawVal === "**" || rawVal === "*") ? "" : rawVal;
+            let val = (rawVal === "**" || rawVal === "*") ? "" : rawVal;
+            if (val === "SEQ3") val = "~3";
+            if (val === "INC" || val === "ROLL") val = "++";
             html += `
                 <div style="display: flex; flex-direction: column; align-items: center;">
                     <span style="font-size: 0.68rem; font-weight: 700; color: #475569; margin-bottom: 2px;">D${i + 1}</span>
-                    <input type="text" class="${prefixClass}-byte" data-idx="${i}" maxlength="2" value="${val}" placeholder="*" 
+                    <input type="text" class="${prefixClass}-byte" data-idx="${i}" maxlength="4" value="${val}" placeholder="*" 
                            oninput="handleByteInput(this)" onkeydown="handleByteKeyDown(event, this)" onpaste="handleBytePaste(event, this)"
-                           style="width: 36px; text-align: center; font-family: monospace; font-weight: bold; font-size: 0.88rem; padding: 4px 2px; text-transform: uppercase; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc;">
+                           title="Hex byte (e.g. 0F), wildcard (*), 3-step roll (~3/SEQ3), or increment (++)"
+                           style="width: 32px; height: 26px; text-align: center; font-family: monospace; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; background: #ffffff;">
                 </div>
             `;
         }
         html += `
-            <button type="button" onclick="clearByteInputs(this, '${prefixClass}')" style="padding: 4px 7px; font-size: 0.72rem; height: 28px; margin-bottom: 1px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer;" title="Clear all bytes">Clear</button>
+            <button type="button" class="system-button" style="padding: 2px 6px; font-size: 0.7rem; height: 26px; background: #94a3b8; color: #ffffff; border: none; border-radius: 4px; margin-left: 4px;" onclick="clearByteInputs(this, '${prefixClass}')">Clear</button>
         </div>`;
         return html;
     }
 
+    function handleByteInput(input) {
+        input.value = input.value.replace(/[^0-9a-fA-F*~+sSqQrR]/g, "").toUpperCase();
+        if (input.value.length >= 2) {
+            const grid = input.closest("[class$='-grid']");
+            const idx = parseInt(input.getAttribute("data-idx"));
+            if (idx < 7 && grid) {
+                const nextInput = grid.querySelector(`[data-idx="${idx + 1}"]`);
+                if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                }
+            }
+        }
+    }
+
     function handleBytePaste(event, input) {
         event.preventDefault();
-        const clipboardData = event.clipboardData || window.clipboardData;
-        const pastedData = clipboardData ? clipboardData.getData('Text') : "";
-        if (!pastedData) return;
-
-        let cleaned = pastedData.trim();
-        let hexTokens = [];
-        if (cleaned.includes(" ")) {
-            hexTokens = cleaned.split(/\s+/);
-        } else if (/^[0-9A-Fa-f*]+$/.test(cleaned) && cleaned.length > 2) {
-            for (let i = 0; i < cleaned.length && i < 16; i += 2) {
-                hexTokens.push(cleaned.substr(i, 2));
-            }
-        } else {
-            hexTokens = [cleaned];
-        }
-
+        const pasteData = (event.clipboardData || window.clipboardData).getData("text");
+        if (!pasteData) return;
+        const clean = pasteData.replace(/0x/gi, "").replace(/[^0-9a-fA-F*~+sSqQrR]/g, " ").trim();
+        const bytes = clean.split(/\s+/);
         const grid = input.closest("[class$='-grid']");
         if (!grid) return;
         const startIdx = parseInt(input.getAttribute("data-idx")) || 0;
-        const inputs = grid.querySelectorAll("input[type='text']");
-
-        for (let i = 0; i < hexTokens.length && (startIdx + i) < inputs.length; i++) {
-            let tok = hexTokens[i].toUpperCase();
-            inputs[startIdx + i].value = (tok === "**" || tok === "*") ? "" : tok;
-        }
-
-        const nextFocus = Math.min(startIdx + hexTokens.length, inputs.length - 1);
-        if (inputs[nextFocus]) inputs[nextFocus].focus();
-    }
-
-    function handleByteInput(input) {
-        input.value = input.value.toUpperCase();
-        if (input.value.length === 2) {
-            const grid = input.closest("[class$='-grid']");
-            const nextIdx = parseInt(input.getAttribute("data-idx")) + 1;
-            const nextInput = grid ? grid.querySelector(`[data-idx="${nextIdx}"]`) : null;
-            if (nextInput) {
-                nextInput.focus();
-                nextInput.select();
+        bytes.forEach((b, i) => {
+            const curIdx = startIdx + i;
+            if (curIdx < 8) {
+                const target = grid.querySelector(`[data-idx="${curIdx}"]`);
+                if (target) {
+                    let bv = b.toUpperCase();
+                    if (bv === "SEQ3") bv = "~3";
+                    if (bv === "INC" || bv === "ROLL") bv = "++";
+                    target.value = bv;
+                }
             }
+        });
+        const lastIdx = Math.min(startIdx + bytes.length, 7);
+        const nextInput = grid.querySelector(`[data-idx="${lastIdx}"]`);
+        if (nextInput) {
+            nextInput.focus();
+            nextInput.select();
         }
     }
 
@@ -3832,6 +4805,44 @@ function loadAutoTable(jsonData) {
         }
     }
 
+    // --- TRIGGER ID & ACTION BRANCHING HELPERS ---
+    function getCandoRuleTriggerIds(ruleCard) {
+        if (!ruleCard) return [];
+        const inputs = ruleCard.querySelectorAll(".cando-trigger-item .cando-trig-id");
+        const ids = [];
+        inputs.forEach((inp, idx) => {
+            const val = inp.value.trim();
+            if (val && !ids.includes(val)) {
+                ids.push(val);
+            }
+        });
+        return ids;
+    }
+
+    function updateCandoRuleTriggerDropdowns(ruleCard) {
+        if (!ruleCard) return;
+        const ids = getCandoRuleTriggerIds(ruleCard);
+        const actionSelects = ruleCard.querySelectorAll(".cando-action-item .cando-act-trig-id");
+        actionSelects.forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = `<option value="">Any Trigger (Default)</option>`;
+            ids.forEach(tid => {
+                const opt = document.createElement("option");
+                opt.value = tid;
+                opt.textContent = tid;
+                if (tid === currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+            if (currentVal && !ids.includes(currentVal)) {
+                const opt = document.createElement("option");
+                opt.value = currentVal;
+                opt.textContent = currentVal;
+                opt.selected = true;
+                select.appendChild(opt);
+            }
+        });
+    }
+
     function getByteGridString(container, prefixClass) {
         const grid = container.querySelector(`.${prefixClass}-grid`);
         if (!grid) return "";
@@ -3842,6 +4853,12 @@ function loadAutoTable(jsonData) {
             let v = inp.value.trim().toUpperCase();
             if (!v || v === "*") {
                 bytes.push("**");
+            } else if (v === "~3" || v === "SQ" || v === "SEQ3") {
+                bytes.push("SEQ3");
+                hasAny = true;
+            } else if (v === "++" || v === "INC" || v === "ROLL") {
+                bytes.push("INC");
+                hasAny = true;
             } else if (v.length === 1) {
                 bytes.push("*" + v);
                 hasAny = true;
@@ -3863,7 +4880,10 @@ function loadAutoTable(jsonData) {
         const bytes = (payloadStr || "").trim().split(/\s+/);
         const inputs = grid.querySelectorAll(`.${prefixClass}-byte`);
         inputs.forEach((inp, idx) => {
-            inp.value = (bytes[idx] && bytes[idx] !== "**" && bytes[idx] !== "*") ? bytes[idx] : "";
+            let b = bytes[idx];
+            if (b === "SEQ3") b = "~3";
+            if (b === "INC" || b === "ROLL") b = "++";
+            inp.value = (b && b !== "**" && b !== "*") ? b : "";
         });
     }
 
@@ -3872,17 +4892,30 @@ function loadAutoTable(jsonData) {
         const card = buttonElem.closest(".cando-rule-card");
         const container = card.querySelector(".cando-triggers-container");
         renderCandoTriggerItem(container, { source: "can_msg" });
+        updateCandoRuleTriggerDropdowns(card);
     }
 
     function renderCandoTriggerItem(container, data = {}) {
-        const source = data.source || "can_msg";
+        const source = data.source || "preset";
         const itemDiv = document.createElement("div");
         itemDiv.className = "cando-trigger-item";
         itemDiv.style.background = "#ffffff";
         itemDiv.style.border = "1px solid #fed7aa";
         itemDiv.style.borderRadius = "6px";
-        itemDiv.style.padding = "0.8rem";
-        itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+        // Match initial preset index if data.id matches a known preset
+        const { builtIn, custom } = getFilteredTriggerPresets();
+        let selectedPresetVal = "";
+        if (data.id) {
+            const cIdx = custom.findIndex(p => p.id === data.id);
+            if (cIdx !== -1) {
+                selectedPresetVal = `c_${cIdx}`;
+            } else {
+                const bIdx = builtIn.findIndex(p => p.id === data.id);
+                if (bIdx !== -1) {
+                    selectedPresetVal = `b_${bIdx}`;
+                }
+            }
+        }
 
         itemDiv.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #fed7aa; padding-bottom: 0.4rem;">
@@ -3890,17 +4923,18 @@ function loadAutoTable(jsonData) {
                     <span style="font-weight: 600; font-size: 0.9rem; color: #ea580c;">⚡ Trigger:</span>
                     <label style="font-size: 0.8rem; color: #9a3412; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
                         ID:
-                        <input type="text" class="cando-trig-id" value="${data.id || ""}" placeholder="e.g. lock_btn" style="width: 110px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #fed7aa; border-radius: 4px; background: #fff7ed;">
+                        <input type="text" class="cando-trig-id" value="${data.id || ""}" placeholder="e.g. sw_star" oninput="updateCandoRuleTriggerDropdowns(this.closest('.cando-rule-card'))" style="width: 110px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #fed7aa; border-radius: 4px; background: #fff7ed;">
                     </label>
                 </div>
-                <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-trigger-item').remove();">✕ Remove</button>
+                <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-trigger-item').remove(); updateCandoRuleTriggerDropdowns(card);">✕ Remove</button>
             </div>
             <table class="compact-form-table">
                 <tr>
                     <td style="width: 25%;">Trigger Source:</td>
                     <td>
                         <select class="cando-trig-source" onchange="toggleCandoTrigItemUI(this)">
-                            <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Incoming CAN Message</option>
+                            <option value="preset" ${source === "preset" || !data.source ? "selected" : ""}>Presets</option>
+                            <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom / Raw CAN Message</option>
                             <option value="clock" ${source === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
                             <option value="interval" ${source === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
                             <option value="voltage" ${source === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
@@ -3908,11 +4942,22 @@ function loadAutoTable(jsonData) {
                         </select>
                     </td>
                 </tr>
-                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
-                    <td>Trigger CAN ID (Hex):</td>
-                    <td><input type="text" class="cando-trig-can-id" value="${data.can_id || "0x2C0"}" placeholder="0x2C0"></td>
+                <tr class="trig-field-preset ${source === "preset" || !data.source ? "" : "hidden"}">
+                    <td>Buttons:</td>
+                    <td>
+                        <div style="display: flex; gap: 0.4rem; align-items: center;">
+                            <select class="cando-trig-preset-picker" onchange="applyCandoTrigPreset(this)" style="width: 100%; font-weight: 600; color: #1e293b;">
+                                ${renderTrigPresetOptionsHTML(selectedPresetVal)}
+                            </select>
+                            <button type="button" class="system-button" onclick="saveCurrentTriggerAsPreset(this)" style="padding: 3px 8px; font-size: 0.74rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; white-space: nowrap; cursor: pointer;" title="Save current CAN ID and payload pattern as a custom reusable preset">⭐ Save as Preset</button>
+                        </div>
+                    </td>
                 </tr>
-                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
+                    <td>Trigger CAN ID (Hex):</td>
+                    <td><input type="text" class="cando-trig-can-id" value="${data.can_id || "0x448"}" placeholder="0x448"></td>
+                </tr>
+                <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
                     <td>Bus:</td>
                     <td>
                         <select class="cando-trig-bus">
@@ -3921,19 +4966,19 @@ function loadAutoTable(jsonData) {
                         </select>
                     </td>
                 </tr>
-                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
                     <td style="vertical-align: middle;">From Payload (D1–D8, Optional):</td>
                     <td>
                         ${renderByteInputsHTML("cando-trig-from", data.from_payload || "")}
                     </td>
                 </tr>
-                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
                     <td style="vertical-align: middle;">To Payload (D1–D8, Optional):</td>
                     <td>
                         ${renderByteInputsHTML("cando-trig-to", data.to_payload || data.match_payload || "")}
                     </td>
                 </tr>
-                <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
                     <td colspan="2" style="font-size: 0.78rem; color: #6b7280; padding-top: 2px;">
                         💡 <i><b>Byte Grid D1 – D8:</b> Enter exact hex (e.g. <code>A5</code>), wildcard high/low nibble (e.g. <code>3*</code> or <code>*F</code>), or leave blank/<code>*</code> for any. Fill either <b>From</b> or <b>To</b>, or leave both blank to trigger on <b>any change</b>.</i>
                     </td>
@@ -3971,11 +5016,18 @@ function loadAutoTable(jsonData) {
     function toggleCandoTrigItemUI(selectElem) {
         const item = selectElem.closest(".cando-trigger-item");
         const val = selectElem.value;
-        item.querySelectorAll(".trig-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg"));
+        item.querySelectorAll(".trig-field-preset").forEach(el => el.classList.toggle("hidden", val !== "preset"));
+        item.querySelectorAll(".trig-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg" && val !== "preset"));
         item.querySelectorAll(".trig-field-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
         item.querySelectorAll(".trig-field-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
         item.querySelectorAll(".trig-field-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
         item.querySelectorAll(".trig-field-expr").forEach(el => el.classList.toggle("hidden", val !== "state_change"));
+        if (val === "preset") {
+            const picker = item.querySelector(".cando-trig-preset-picker");
+            if (picker && picker.value !== "") {
+                applyCandoTrigPreset(picker);
+            }
+        }
     }
 
     // --- CONDITION SUB-ITEMS ---
@@ -4117,7 +5169,7 @@ function loadAutoTable(jsonData) {
     function addCandoPayloadStep(buttonElem) {
         const card = buttonElem.closest(".cando-action-item");
         const container = card.querySelector(".cando-payload-steps-container");
-        renderCandoPayloadStep(container, { payload: "00 00 00 00 00 00 00 00", repeat: 1 });
+        renderCandoPayloadStep(container, { payload: "", repeat: 1 });
         renumberCandoPayloadSteps(container);
     }
 
@@ -4140,10 +5192,15 @@ function loadAutoTable(jsonData) {
         const card = buttonElem.closest(".cando-rule-card");
         const container = card.querySelector(".cando-actions-container");
         renderCandoActionItem(container, { type: "can_tx" });
+        updateCandoRuleTriggerDropdowns(card);
     }
 
     function renderCandoActionItem(container, data = {}) {
         const type = data.type || "can_tx";
+        const ruleCard = container ? container.closest(".cando-rule-card") : null;
+        const availableIds = getCandoRuleTriggerIds(ruleCard);
+        const selVal = data.trigger_id || "";
+
         const itemDiv = document.createElement("div");
         itemDiv.className = "cando-action-item";
         itemDiv.style.background = "#ffffff";
@@ -4157,18 +5214,39 @@ function loadAutoTable(jsonData) {
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
                     <span style="font-weight: 600; font-size: 0.9rem; color: #059669;">🎯 Action Step:</span>
                     <label style="font-size: 0.8rem; color: #065f46; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
-                        Run For Trigger ID:
-                        <input type="text" class="cando-act-trig-id" value="${data.trigger_id || ""}" placeholder="Any Trigger (Default)" style="width: 140px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #86efac; border-radius: 4px; background: #f0fdf4;">
+                        Run For:
+                        <select class="cando-act-trig-id" style="width: auto; min-width: 140px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #86efac; border-radius: 4px; background: #f0fdf4; color: #065f46; font-weight: 600;">
+                            <option value="">Any Trigger (Default)</option>
+                            ${availableIds.map(tid => `<option value="${tid}" ${selVal === tid ? "selected" : ""}>Trigger: ${tid}</option>`).join("")}
+                            ${(selVal && !availableIds.includes(selVal)) ? `<option value="${selVal}" selected>Trigger: ${selVal}</option>` : ""}
+                        </select>
                     </label>
                 </div>
-                <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-action-item').remove();">✕ Remove</button>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <button type="button" class="system-button" onclick="testCandoActionUI(this)" style="padding: 0.2rem 0.6rem; font-size: 0.78rem; background: #059669; color: #ffffff; border: none; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Execute this action immediately on the vehicle CAN bus">▶ Test Action</button>
+                    <button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-action-item').remove();">✕ Remove</button>
+                </div>
             </div>
             <table class="compact-form-table">
+                <tr>
+                    <td style="width: 25%; vertical-align: top; padding-top: 6px;">Action Template:</td>
+                    <td>
+                        <div style="display: flex; gap: 0.4rem; align-items: center;">
+                            <select class="cando-act-preset-picker" onchange="applyCandoActionPreset(this)" style="width: 100%; border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 600; color: #166534;">
+                                ${renderActPresetOptionsHTML()}
+                            </select>
+                            <button type="button" class="system-button" onclick="saveCurrentActionAsPreset(this)" style="padding: 3px 8px; font-size: 0.74rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; white-space: nowrap; cursor: pointer;" title="Save current action configuration as a custom reusable template">⭐ Save as Template</button>
+                        </div>
+                        <div class="cando-act-options-container" style="display: none; margin-top: 6px; padding: 4px 8px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px;"></div>
+                    </td>
+                </tr>
                 <tr>
                     <td style="width: 25%;">Action Type:</td>
                     <td>
                         <select class="cando-act-type" onchange="toggleCandoActItemUI(this)">
                             <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
+                            <option value="climate_target" ${type === "climate_target" ? "selected" : ""}>🎯 Target Cabin Temperature (Closed-Loop 0x49F / 0x380)</option>
+                            <option value="precondition" ${type === "precondition" ? "selected" : ""}>⚡ Battery Preconditioning (Toggle / Run)</option>
                             <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
                             <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
                             <option value="mqtt" ${type === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
@@ -4176,10 +5254,73 @@ function loadAutoTable(jsonData) {
                         </select>
                     </td>
                 </tr>
-                <tr class="act-field-popup ${type === "can_tx" || type === "popup" ? "" : "hidden"}">
-                    <td>Dashboard Popup Text (OSD):</td>
+                <tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
+                    <td>Target Temperature:</td>
                     <td>
-                        <input type="text" class="cando-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. ⚡ Climate Started! (Optional cluster popup)" style="width: 100%;">
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" class="cando-act-target-temp" value="${data.target_temp_c !== undefined ? data.target_temp_c : 21.0}" step="0.5" min="14" max="32" style="width: 70px;">
+                            <span class="cando-target-temp-unit" style="font-size: 0.85rem; font-weight: 600; color: #475569;">${getUnitSystem() === "imperial" ? "°F" : "°C"}</span>
+                            <span style="font-size: 0.8rem; color: #64748b;">(Auto-steps 0x49F up/down to match target from 0x380)</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
+                    <td>Climate Zone:</td>
+                    <td>
+                        <select class="cando-act-climate-zone">
+                            <option value="driver" ${(!data.climate_zone || data.climate_zone === "driver") ? "selected" : ""}>Driver Zone</option>
+                            <option value="passenger" ${data.climate_zone === "passenger" ? "selected" : ""}>Passenger Zone</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
+                    <td style="vertical-align: top; padding-top: 6px;">Climate Options:</td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" class="cando-act-climate-sync" ${data.climate_sync_on ? "checked" : ""}>
+                                <span><b>Enforce SYNC Mode ON</b> (0x4A0)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; user-select: none;">
+                                <input type="checkbox" class="cando-act-climate-drv-only" ${data.climate_driver_only ? "checked" : ""}>
+                                <span><b>Enforce Driver Only Mode</b> (0x41D)</span>
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="act-field-precon ${type === "precondition" ? "" : "hidden"}">
+                    <td>Preconditioning Mode:</td>
+                    <td>
+                        <select class="cando-act-precon-mode">
+                            <option value="persistent" ${(!data.precon_mode || data.precon_mode === "persistent") ? "selected" : ""}>Persistent (Maintain temp &amp; restart on car READY)</option>
+                            <option value="continuous" ${data.precon_mode === "continuous" ? "selected" : ""}>Continuous (Maintain temp while car is ON)</option>
+                            <option value="once" ${data.precon_mode === "once" ? "selected" : ""}>Once (Single preconditioning cycle)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="act-field-precon ${type === "precondition" ? "" : "hidden"}">
+                    <td>Press Type:</td>
+                    <td>
+                        <select class="cando-act-precon-press">
+                            <option value="short" ${(!data.precon_press || data.precon_press === "short") ? "selected" : ""}>Short Press</option>
+                            <option value="long" ${data.precon_press === "long" ? "selected" : ""}>Long Press (hold 1s)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="act-field-popup ${type === "can_tx" || type === "popup" || type === "climate_target" ? "" : "hidden"}">
+                    <td style="vertical-align: top; padding-top: 6px;">Dashboard Popup Text (OSD):</td>
+                    <td>
+                        <input type="text" class="cando-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" style="width: 100%; margin-bottom: 4px;">
+                        <div style="font-size: 0.74rem; color: #475569; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; user-select: none;">
+                            <span style="font-weight: 600; color: #334155;">Insert Live Variable:</span>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{battery_temp}')">{battery_temp} (°C)</code>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{battery_temp_f}')">{battery_temp_f} (°F)</code>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{temp_min}')">{temp_min}</code>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{temp_max}')">{temp_max}</code>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{voltage}')">{voltage}</code>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{status}')">{status}</code>
+                            <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{time}')">{time}</code>
+                        </div>
                     </td>
                 </tr>
                 <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
@@ -4196,21 +5337,22 @@ function loadAutoTable(jsonData) {
                     </td>
                 </tr>
                 <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
-                    <td>Inter-Frame Delay (ms):</td>
-                    <td><input type="number" class="cando-act-delay-ms" value="${data.delay_ms || 10}"></td>
+                    <td>Inter-Step Delay (ms):</td>
+                    <td><input type="number" class="cando-act-delay-ms" value="${data.delay_ms || 10}" min="0" max="5000"></td>
                 </tr>
                 <tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
-                    <td colspan="2" style="padding-top: 0.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                            <span style="font-weight: 700; font-size: 0.85rem; color: #065f46;">Payload Step(s) [D1–D8]:</span>
-                            <button type="button" class="system-button" style="padding: 2px 8px; font-size: 0.78rem; background: #059669; color: #ffffff; border: none; border-radius: 4px;" onclick="addCandoPayloadStep(this)">+ Add Step</button>
-                        </div>
+                    <td style="vertical-align: top; padding-top: 6px;">Sequence Steps (8-Byte Payload):</td>
+                    <td>
                         <div class="cando-payload-steps-container"></div>
+                        <div style="margin-top: 6px; display: flex; gap: 6px; align-items: center;">
+                            <button type="button" class="system-button" onclick="addCandoPayloadStep(this)" style="padding: 2px 8px; font-size: 0.78rem;">+ Add Step</button>
+                            <span style="font-size: 0.72rem; color: #64748b;">(Steps execute sequentially with Inter-Step Delay)</span>
+                        </div>
                     </td>
                 </tr>
                 <tr class="act-field-delay ${type === "delay" ? "" : "hidden"}">
-                    <td>Wait Duration (ms):</td>
-                    <td><input type="number" class="cando-act-wait-ms" value="${data.wait_ms || 500}" placeholder="e.g. 500"></td>
+                    <td>Wait / Sleep (ms):</td>
+                    <td><input type="number" class="cando-act-wait-ms" value="${data.wait_ms || 500}" min="10" max="60000"></td>
                 </tr>
                 <tr class="act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
                     <td>MQTT Topic:</td>
@@ -4248,8 +5390,7 @@ function loadAutoTable(jsonData) {
                     renderCandoPayloadStep(stepsContainer, { payload: p, repeat: repeat });
                 });
             } else {
-                renderCandoPayloadStep(stepsContainer, { payload: "FF 7F FF FF 07 00 00 00", repeat: 3 });
-                renderCandoPayloadStep(stepsContainer, { payload: "FF 3F FF FF 07 00 00 00", repeat: 3 });
+                renderCandoPayloadStep(stepsContainer, { payload: "", repeat: 1 });
             }
         }
     }
@@ -4258,10 +5399,222 @@ function loadAutoTable(jsonData) {
         const item = selectElem.closest(".cando-action-item");
         const val = selectElem.value;
         item.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_tx"));
-        item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", val !== "can_tx" && val !== "popup"));
+        item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", val !== "can_tx" && val !== "popup" && val !== "climate_target"));
+        item.querySelectorAll(".act-field-climate").forEach(el => el.classList.toggle("hidden", val !== "climate_target"));
+        item.querySelectorAll(".act-field-precon").forEach(el => el.classList.toggle("hidden", val !== "precondition"));
         item.querySelectorAll(".act-field-delay").forEach(el => el.classList.toggle("hidden", val !== "delay"));
         item.querySelectorAll(".act-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "mqtt"));
         item.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
+    }
+
+    function applyCandoActionPreset(selectElem) {
+        const val = selectElem.value;
+        const item = selectElem.closest(".cando-action-item");
+        if (!item) return;
+        const optionsBox = item.querySelector(".cando-act-options-container");
+        if (!val) {
+            if (optionsBox) {
+                optionsBox.innerHTML = "";
+                optionsBox.style.display = "none";
+            }
+            return;
+        }
+        const [catIdx, pIdx] = val.split(":").map(Number);
+        const cats = getFilteredActionPresets();
+        const preset = cats[catIdx]?.presets[pIdx];
+        if (!preset) return;
+        const isImperial = (getUnitSystem() === "imperial");
+
+        // Set Action Type
+        const typeSelect = item.querySelector(".cando-act-type");
+        if (typeSelect) {
+            typeSelect.value = preset.type || "can_tx";
+            toggleCandoActItemUI(typeSelect);
+        }
+
+        // Climate Target
+        if (preset.target_temp_c !== undefined) {
+            const tt = item.querySelector(".cando-act-target-temp");
+            if (tt) tt.value = preset.target_temp_c;
+        }
+        if (preset.climate_zone) {
+            const cz = item.querySelector(".cando-act-climate-zone");
+            if (cz) cz.value = preset.climate_zone;
+        }
+        if (preset.climate_sync_on !== undefined) {
+            const cs = item.querySelector(".cando-act-climate-sync");
+            if (cs) cs.checked = preset.climate_sync_on;
+        }
+        if (preset.climate_driver_only !== undefined) {
+            const cdo = item.querySelector(".cando-act-climate-drv-only");
+            if (cdo) cdo.checked = preset.climate_driver_only;
+        }
+
+        // Preconditioning
+        if (preset.precon_mode) {
+            const pm = item.querySelector(".cando-act-precon-mode");
+            if (pm) pm.value = preset.precon_mode;
+        }
+        if (preset.precon_press) {
+            const pp = item.querySelector(".cando-act-precon-press");
+            if (pp) pp.value = preset.precon_press;
+        }
+
+        // Popup message
+        if (preset.popup_message !== undefined) {
+            const pop = item.querySelector(".cando-act-popup-msg");
+            if (pop) {
+                pop.value = (isImperial && preset.popup_message_imperial) ? preset.popup_message_imperial : preset.popup_message;
+            }
+        }
+
+        // CAN ID, bus, delay
+        if (preset.can_id) {
+            const cid = item.querySelector(".cando-act-can-id");
+            if (cid) cid.value = preset.can_id;
+        }
+        if (preset.bus !== undefined) {
+            const b = item.querySelector(".cando-act-bus");
+            if (b) b.value = preset.bus.toString();
+        }
+        if (preset.delay_ms !== undefined) {
+            const d = item.querySelector(".cando-act-delay-ms");
+            if (d) d.value = preset.delay_ms;
+        }
+        if (preset.wait_ms !== undefined) {
+            const w = item.querySelector(".cando-act-wait-ms");
+            if (w) w.value = preset.wait_ms;
+        }
+        if (preset.mqtt_topic) {
+            const mt = item.querySelector(".cando-act-mqtt-topic");
+            if (mt) mt.value = preset.mqtt_topic;
+        }
+        if (preset.mqtt_payload) {
+            const mp = item.querySelector(".cando-act-mqtt-payload");
+            if (mp) mp.value = preset.mqtt_payload;
+        }
+        if (preset.webhook_url) {
+            const wu = item.querySelector(".cando-act-webhook-url");
+            if (wu) wu.value = preset.webhook_url;
+        }
+
+        // Check if preset has options (e.g. 50%, 60%, 70%, 80%, 90%, 100% or temps)
+        if (preset.options && Array.isArray(preset.options) && preset.options.length > 0) {
+            const defaultOptIdx = Math.max(0, preset.options.findIndex(o => o.default === true));
+            if (optionsBox) {
+                optionsBox.style.display = "block";
+                optionsBox.innerHTML = `
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.76rem; font-weight: 700; color: #166534;">Target Value:</span>
+                        ${preset.options.map((opt, i) => {
+                            const label = (isImperial && opt.label_imperial) ? opt.label_imperial : opt.label;
+                            return `
+                            <button type="button" class="system-button cando-opt-pill-btn" 
+                                    onclick="applyCandoOptionPill(this, ${catIdx}, ${pIdx}, ${i})"
+                                    style="padding: 2px 8px; font-size: 0.78rem; border-radius: 4px; font-weight: 700; margin: 0; cursor: pointer;
+                                           background: ${i === defaultOptIdx ? '#16a34a' : '#ffffff'}; color: ${i === defaultOptIdx ? '#ffffff' : '#166534'}; border: 1px solid #86efac; transition: all 0.2s;">
+                                ${label}
+                            </button>
+                            `;
+                        }).join("")}
+                    </div>
+                `;
+            }
+            const activeOpt = preset.options[defaultOptIdx] || preset.options[0];
+            if (activeOpt && activeOpt.payload) {
+                const stepsContainer = item.querySelector(".cando-payload-steps-container");
+                if (stepsContainer) {
+                    stepsContainer.innerHTML = "";
+                    renderCandoPayloadStep(stepsContainer, { payload: activeOpt.payload, repeat: 3 });
+                    renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 1 });
+                }
+            }
+            if (activeOpt && activeOpt.target_temp_c !== undefined) {
+                const tt = item.querySelector(".cando-act-target-temp");
+                if (tt) tt.value = activeOpt.target_temp_c;
+            }
+            if (activeOpt) {
+                const pop = item.querySelector(".cando-act-popup-msg");
+                if (pop) {
+                    if (isImperial && activeOpt.popup_imperial) pop.value = activeOpt.popup_imperial;
+                    else if (activeOpt.popup) pop.value = activeOpt.popup;
+                }
+            }
+        } else {
+            if (optionsBox) {
+                optionsBox.innerHTML = "";
+                optionsBox.style.display = "none";
+            }
+            // Populate standard steps
+            if (preset.steps && Array.isArray(preset.steps)) {
+                const stepsContainer = item.querySelector(".cando-payload-steps-container");
+                if (stepsContainer) {
+                    stepsContainer.innerHTML = "";
+                    preset.steps.forEach(s => renderCandoPayloadStep(stepsContainer, s));
+                }
+            }
+        }
+
+        const pName = (isImperial && preset.name_imperial) ? preset.name_imperial : preset.name;
+        showNotification("Applied action template: " + pName, "green", 3500);
+    }
+
+    function applyCandoOptionPill(btn, catIdx, pIdx, optIdx) {
+        const item = btn.closest(".cando-action-item");
+        if (!item) return;
+        const cats = getFilteredActionPresets();
+        const preset = cats[catIdx]?.presets[pIdx];
+        const opt = preset?.options ? preset.options[optIdx] : null;
+        if (!opt) return;
+        const isImperial = (getUnitSystem() === "imperial");
+
+        // Update active button styling
+        const box = item.querySelector(".cando-act-options-container");
+        if (box) {
+            box.querySelectorAll(".cando-opt-pill-btn").forEach((b, i) => {
+                const isCur = (i === optIdx);
+                b.style.background = isCur ? "#16a34a" : "#ffffff";
+                b.style.color = isCur ? "#ffffff" : "#166534";
+            });
+        }
+
+        // Apply payload to byte steps (3x burst + idle release)
+        if (opt.payload) {
+            const stepsContainer = item.querySelector(".cando-payload-steps-container");
+            if (stepsContainer) {
+                stepsContainer.innerHTML = "";
+                renderCandoPayloadStep(stepsContainer, { payload: opt.payload, repeat: 3 });
+                renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 1 });
+            }
+        }
+
+        // Apply target temp
+        if (opt.target_temp_c !== undefined) {
+            const tt = item.querySelector(".cando-act-target-temp");
+            if (tt) tt.value = opt.target_temp_c;
+        }
+
+        // Apply popup
+        if (isImperial && opt.popup_imperial) {
+            const pop = item.querySelector(".cando-act-popup-msg");
+            if (pop) pop.value = opt.popup_imperial;
+        } else if (opt.popup) {
+            const pop = item.querySelector(".cando-act-popup-msg");
+            if (pop) pop.value = opt.popup;
+        }
+
+        const label = (isImperial && opt.label_imperial) ? opt.label_imperial : opt.label;
+        const pName = (isImperial && preset.name_imperial) ? preset.name_imperial : preset.name;
+        showNotification(`Selected ${pName}: ${label}`, "green", 2500);
+    }
+
+    function insertCandoPopupToken(elem, token) {
+        const row = elem.closest("tr");
+        if (!row) return;
+        const input = row.querySelector(".cando-act-popup-msg");
+        if (!input) return;
+        input.value = (input.value ? input.value + " " : "") + token;
+        input.focus();
     }
 
     function toggleCandoExecModeUI(selectElem) {
@@ -4275,48 +5628,48 @@ function loadAutoTable(jsonData) {
     }
 
     // Preset application handler
-    function applyCandoPidPreset(selectElem) {
-        const idx = selectElem.value;
-        if (idx === "") return;
-        const pid = CANDO_KNOWN_PIDS[parseInt(idx)];
-        const card = selectElem.closest(".cando-rule-card");
-        if (!card || !pid) return;
-
-        // Populate / update first trigger or create one
-        let trigContainer = card.querySelector(".cando-triggers-container");
-        let firstTrig = trigContainer.querySelector(".cando-trigger-item");
-        if (!firstTrig) {
-            renderCandoTriggerItem(trigContainer, { source: "can_msg", can_id: pid.can_id, to_payload: pid.payload.split("\n")[0] });
+    function applyCandoTrigPreset(selectElem) {
+        const val = selectElem.value;
+        if (!val) return;
+        const { builtIn, custom } = getFilteredTriggerPresets();
+        let pid = null;
+        if (val.startsWith("c_")) {
+            const idx = parseInt(val.substring(2));
+            pid = custom[idx];
+        } else if (val.startsWith("b_")) {
+            const idx = parseInt(val.substring(2));
+            pid = builtIn[idx];
         } else {
-            const src = firstTrig.querySelector(".cando-trig-source");
-            if (src) { src.value = "can_msg"; toggleCandoTrigItemUI(src); }
-            const cid = firstTrig.querySelector(".cando-trig-can-id");
-            if (cid) cid.value = pid.can_id;
-            populateByteGrid(firstTrig, "cando-trig-to", pid.payload.split("\n")[0]);
-            populateByteGrid(firstTrig, "cando-trig-from", "");
+            const idx = parseInt(val);
+            pid = builtIn[idx];
         }
+        const item = selectElem.closest(".cando-trigger-item");
+        const card = selectElem.closest(".cando-rule-card");
+        if (!item || !pid) return;
 
-        // Populate / update first action or create one
-        let actContainer = card.querySelector(".cando-actions-container");
-        let firstAct = actContainer.querySelector(".cando-action-item");
-        if (!firstAct) {
-            renderCandoActionItem(actContainer, { type: "can_tx", can_id: pid.can_id, payload: pid.payload });
-        } else {
-            const typ = firstAct.querySelector(".cando-act-type");
-            if (typ) { typ.value = "can_tx"; toggleCandoActItemUI(typ); }
-            const acid = firstAct.querySelector(".cando-act-can-id");
-            if (acid) acid.value = pid.can_id;
-            const stepsContainer = firstAct.querySelector(".cando-payload-steps-container");
-            if (stepsContainer) {
-                stepsContainer.innerHTML = "";
-                const lines = pid.payload.split("\n");
-                lines.forEach(l => {
-                    if (l.trim()) renderCandoPayloadStep(stepsContainer, { payload: l.trim(), repeat: 3 });
-                });
+        const idInput = item.querySelector(".cando-trig-id");
+        if (idInput) idInput.value = pid.id || "";
+        const cid = item.querySelector(".cando-trig-can-id");
+        if (cid) cid.value = pid.can_id;
+        const bus = item.querySelector(".cando-trig-bus");
+        if (bus) bus.value = pid.bus !== undefined ? pid.bus : 0;
+        populateByteGrid(item, "cando-trig-to", pid.to_payload || "");
+        populateByteGrid(item, "cando-trig-from", pid.from_payload || "");
+
+        if (card) {
+            updateCandoRuleTriggerDropdowns(card);
+            // Update rule name if default
+            const nameInput = card.querySelector(".cando-name");
+            if (nameInput && (!nameInput.value || nameInput.value === "New CAN Do" || nameInput.value === "New Automation")) {
+                nameInput.value = pid.name.replace(/\s*\(0x\w+\)/, "") + " CAN Do";
             }
         }
 
-        showNotification("Pre-filled rule with known signal: " + pid.name, "green");
+        showNotification("Applied button preset: " + pid.name, "green");
+    }
+
+    function applyCandoPidPreset(selectElem) {
+        applyCandoTrigPreset(selectElem);
     }
 
     // Card toggle collapse helpers
@@ -4326,19 +5679,53 @@ function loadAutoTable(jsonData) {
         const body = card.querySelector(".cando-rule-body");
         const editBtn = card.querySelector(".cando-edit-btn");
         const toggleBtn = card.querySelector(".cando-toggle-btn");
+        const nameInput = card.querySelector(".cando-name");
         if (!body) return;
 
         const isHidden = body.classList.contains("hidden") || body.style.display === "none";
         if (isHidden) {
             body.classList.remove("hidden");
             body.style.display = "block";
-            if (editBtn) editBtn.textContent = "Collapse";
+            if (editBtn) {
+                editBtn.textContent = "💾 Save";
+                editBtn.style.background = "#16a34a";
+                editBtn.title = "Save changes and collapse";
+            }
             if (toggleBtn) toggleBtn.textContent = "▲";
+            if (nameInput) {
+                nameInput.style.borderColor = "#cbd5e1";
+                nameInput.style.backgroundColor = "#ffffff";
+                nameInput.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+            }
         } else {
             body.classList.add("hidden");
             body.style.display = "none";
-            if (editBtn) editBtn.textContent = "Edit";
+            if (editBtn) {
+                editBtn.textContent = "✏️ Edit";
+                editBtn.style.background = "#3b82f6";
+                editBtn.title = "Edit this CAN Do";
+            }
             if (toggleBtn) toggleBtn.textContent = "▼";
+            if (nameInput) {
+                nameInput.style.borderColor = "#e2e8f0";
+                nameInput.style.backgroundColor = "#f8fafc";
+                nameInput.style.boxShadow = "none";
+            }
+        }
+    }
+
+    function handleCandoEditSave(btn) {
+        const card = btn.closest(".cando-rule-card");
+        if (!card) return;
+        const body = card.querySelector(".cando-rule-body");
+        const isHidden = body ? (body.classList.contains("hidden") || body.style.display === "none") : false;
+
+        if (isHidden) {
+            // Expand to edit
+            toggleCandoRuleCard(btn);
+        } else {
+            // Save and collapse
+            saveCandoRulesUI(btn);
         }
     }
 
@@ -4349,106 +5736,295 @@ function loadAutoTable(jsonData) {
         toggleCandoRuleCard(headerElem);
     }
 
+    function filterCandoRules(query) {
+        const q = (query || "").toLowerCase().trim();
+        const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+        cards.forEach(card => {
+            if (!q) {
+                card.style.display = "";
+                return;
+            }
+            const name = (card.querySelector(".cando-name")?.value || "").toLowerCase();
+            const textContent = card.innerText.toLowerCase();
+            const inputs = Array.from(card.querySelectorAll("input, select")).map(i => (i.value || "").toLowerCase()).join(" ");
+            if (name.includes(q) || textContent.includes(q) || inputs.includes(q)) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+        });
+    }
+
+    function moveCandoRule(btn, direction) {
+        const card = btn.closest(".cando-rule-card");
+        if (!card) return;
+        if (direction === -1) {
+            const prev = card.previousElementSibling;
+            if (prev && prev.classList.contains("cando-rule-card")) {
+                card.parentElement.insertBefore(card, prev);
+            }
+        } else if (direction === 1) {
+            const next = card.nextElementSibling;
+            if (next && next.classList.contains("cando-rule-card")) {
+                card.parentElement.insertBefore(next, card);
+            }
+        }
+    }
+
+    function updateCandoActivityStats(statsArray) {
+        if (!statsArray || !Array.isArray(statsArray)) return;
+        const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+        statsArray.forEach((st, idx) => {
+            const card = cards[idx];
+            if (!card) return;
+            const badge = card.querySelector(".cando-activity-badge");
+            if (!badge) return;
+
+            if (st.count === 0 || st.age_ms === -1) {
+                badge.textContent = "Idle";
+                badge.style.background = "#f8fafc";
+                badge.style.color = "#64748b";
+                badge.style.borderColor = "#e2e8f0";
+                badge.style.boxShadow = "none";
+            } else {
+                const ageSec = Math.round(st.age_ms / 1000);
+                let ageStr = `${ageSec}s ago`;
+                if (ageSec > 60) {
+                    ageStr = `${Math.floor(ageSec / 60)}m ago`;
+                }
+                badge.textContent = `⚡ ${st.count}x (${ageStr})`;
+
+                // Highlight if fired recently (< 4s)
+                if (st.age_ms >= 0 && st.age_ms < 4000) {
+                    badge.style.background = "#dcfce7";
+                    badge.style.color = "#15803d";
+                    badge.style.borderColor = "#22c55e";
+                    badge.style.boxShadow = "0 0 8px rgba(34, 197, 94, 0.4)";
+                } else {
+                    badge.style.background = "#f1f5f9";
+                    badge.style.color = "#334155";
+                    badge.style.borderColor = "#cbd5e1";
+                    badge.style.boxShadow = "none";
+                }
+            }
+        });
+    }
+
+    function extractCandoActionData(item) {
+        const steps = [];
+        const payloadLines = [];
+        item.querySelectorAll(".cando-payload-step-item").forEach(stepItem => {
+            const p = getByteGridString(stepItem, "cando-step-byte");
+            const rep = parseInt(stepItem.querySelector(".cando-step-repeat")?.value || "1");
+            if (p) {
+                steps.push({ payload: p, repeat: rep });
+                payloadLines.push(rep > 1 ? `${p} [x${rep}]` : p);
+            }
+        });
+
+        return {
+            trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",
+            popup_message: item.querySelector(".cando-act-popup-msg")?.value.trim() || "",
+            type: item.querySelector(".cando-act-type")?.value || "can_tx",
+            precon_mode: item.querySelector(".cando-act-precon-mode")?.value || "persistent",
+            precon_press: item.querySelector(".cando-act-precon-press")?.value || "short",
+            target_temp_c: parseFloat(item.querySelector(".cando-act-target-temp")?.value || "21.0"),
+            climate_zone: item.querySelector(".cando-act-climate-zone")?.value || "driver",
+            climate_sync_on: item.querySelector(".cando-act-climate-sync")?.checked || false,
+            climate_driver_only: item.querySelector(".cando-act-climate-drv-only")?.checked || false,
+            can_id: item.querySelector(".cando-act-can-id")?.value || "",
+            steps: steps,
+            payload: payloadLines.join("\n"),
+            bus: parseInt(item.querySelector(".cando-act-bus")?.value || "0"),
+            delay_ms: parseInt(item.querySelector(".cando-act-delay-ms")?.value || "10"),
+            wait_ms: parseInt(item.querySelector(".cando-act-wait-ms")?.value || "500"),
+            mqtt_topic: item.querySelector(".cando-act-mqtt-topic")?.value || "",
+            mqtt_payload: item.querySelector(".cando-act-mqtt-payload")?.value || "",
+            webhook_url: item.querySelector(".cando-act-webhook-url")?.value || ""
+        };
+    }
+
+    function testCandoActionUI(btn) {
+        const item = btn.closest(".cando-action-item");
+        if (!item) return;
+        const actData = extractCandoActionData(item);
+        const originalText = btn.textContent;
+        btn.textContent = "⏳ Running...";
+        btn.disabled = true;
+
+        fetch("/test_cando_action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(actData)
+        }).then(res => {
+            if (!res.ok) throw new Error("Status " + res.status);
+            return res.text();
+        }).then(msg => {
+            btn.textContent = "✓ Executed!";
+            btn.style.background = "#15803d";
+            showNotification(`Action (${actData.type}) executed on CAN bus successfully!`, "green", 3500);
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = "#059669";
+                btn.disabled = false;
+            }, 2000);
+        }).catch(err => {
+            btn.textContent = "✕ Failed";
+            btn.style.background = "#dc2626";
+            showNotification("Failed to execute action: " + err, "red", 4000);
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = "#059669";
+                btn.disabled = false;
+            }, 2000);
+        });
+    }
+
+    async function testCandoRuleUI(btn) {
+        const card = btn.closest(".cando-rule-card");
+        if (!card) return;
+        const actionItems = card.querySelectorAll(".cando-action-item");
+        if (actionItems.length === 0) {
+            showNotification("No actions defined to test in this CAN Do.", "yellow", 3000);
+            return;
+        }
+
+        const originalText = btn.textContent;
+        btn.textContent = "⏳ Running...";
+        btn.disabled = true;
+
+        try {
+            for (let i = 0; i < actionItems.length; i++) {
+                const actData = extractCandoActionData(actionItems[i]);
+                const res = await fetch("/test_cando_action", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(actData)
+                });
+                if (!res.ok) throw new Error("Step " + (i + 1) + " failed");
+            }
+            btn.textContent = "✓ Executed!";
+            btn.style.background = "#15803d";
+            showNotification(`Executed ${actionItems.length} action(s) successfully on CAN bus!`, "green", 3500);
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = "#0d9488";
+                btn.disabled = false;
+            }, 2000);
+        } catch (err) {
+            btn.textContent = "✕ Failed";
+            btn.style.background = "#dc2626";
+            showNotification("Failed to execute all rule actions: " + err, "red", 4000);
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = "#0d9488";
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+
+    function extractCandoRuleData(card) {
+        if (!card) return null;
+        const execMode = card.querySelector(".cando-exec-mode")?.value || "on_change";
+        const cooldownMs = parseInt(card.querySelector(".cando-cooldown-ms")?.value || "500");
+        const timeoutResetMs = parseInt(card.querySelector(".cando-timeout-reset-ms")?.value || "2000");
+        const resetCanId = card.querySelector(".cando-reset-can-id")?.value || "";
+        const verifyCanId = card.querySelector(".cando-verify-can-id")?.value || "";
+        const verifyPayload = getByteGridString(card, "cando-verify");
+
+        const triggers = [];
+        card.querySelectorAll(".cando-trigger-item").forEach(item => {
+            const fromPayload = getByteGridString(item, "cando-trig-from");
+            const toPayload = getByteGridString(item, "cando-trig-to");
+            triggers.push({
+                id: item.querySelector(".cando-trig-id")?.value.trim() || "",
+                source: item.querySelector(".cando-trig-source")?.value || "preset",
+                can_id: item.querySelector(".cando-trig-can-id")?.value || "",
+                from_payload: fromPayload,
+                to_payload: toPayload,
+                match_payload: toPayload,
+                bus: parseInt(item.querySelector(".cando-trig-bus")?.value || "0"),
+                time: item.querySelector(".cando-trig-time")?.value || "",
+                interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
+                voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
+                voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
+                expression: item.querySelector(".cando-trig-expr")?.value || ""
+            });
+        });
+
+        const conditions = [];
+        card.querySelectorAll(".cando-condition-item").forEach(item => {
+            const days = [];
+            item.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
+            const condCanPayload = getByteGridString(item, "cando-cond-can");
+            conditions.push({
+                type: item.querySelector(".cando-cond-type")?.value || "param_range",
+                invert: item.querySelector(".cando-cond-invert")?.checked || false,
+                expression: item.querySelector(".cando-cond-expr")?.value || "",
+                can_id: item.querySelector(".cando-cond-can-id")?.value || "",
+                match_payload: condCanPayload,
+                days: days,
+                start_time: item.querySelector(".cando-cond-start-time")?.value || "",
+                end_time: item.querySelector(".cando-cond-end-time")?.value || "",
+                voltage_val: item.querySelector(".cando-cond-voltage-val")?.value || "",
+                voltage_dir: item.querySelector(".cando-cond-voltage-dir")?.value || "above"
+            });
+        });
+
+        const actions = [];
+        card.querySelectorAll(".cando-action-item").forEach(item => {
+            actions.push(extractCandoActionData(item));
+        });
+
+        // Maintain legacy trigger/condition/action for backward compatibility
+        const primaryTrig = triggers[0] || { source: "preset" };
+        const primaryCond = conditions[0] || { type: "none" };
+        const primaryAct = actions[0] || { type: "precondition" };
+
+        const isRuleEnabled = card.querySelector(".cando-rule-enabled") ? card.querySelector(".cando-rule-enabled").checked : true;
+
+        return {
+            name: card.querySelector(".cando-name")?.value || "New CAN Do",
+            enabled: isRuleEnabled,
+            exec_mode: execMode,
+            cooldown_ms: cooldownMs,
+            timeout_reset_ms: timeoutResetMs,
+            reset_can_id: resetCanId,
+            verify_can_id: verifyCanId,
+            verify_payload: verifyPayload,
+            triggers: triggers,
+            conditions: conditions,
+            actions: actions,
+            trigger: primaryTrig,
+            condition: primaryCond,
+            action: primaryAct
+        };
+    }
+
+    function duplicateCandoRuleUI(btn) {
+        const card = btn.closest(".cando-rule-card");
+        if (!card) return;
+        const ruleData = extractCandoRuleData(card);
+        if (!ruleData) return;
+
+        // Clone name with (Copy) suffix
+        if (ruleData.name) {
+            ruleData.name = ruleData.name.replace(/\s*\(Copy(\s+\d+)?\)$/, "") + " (Copy)";
+        } else {
+            ruleData.name = "New CAN Do (Copy)";
+        }
+
+        addCandoRuleUI(ruleData, false, true);
+        showNotification("Duplicated CAN Do: " + ruleData.name, "green", 3500);
+    }
+
     // Save & Load
-    function saveCandoRulesUI() {
+    function saveCandoRulesUI(sourceElem) {
         const rules = [];
         const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
         cards.forEach(card => {
-            const execMode = card.querySelector(".cando-exec-mode")?.value || "on_change";
-            const cooldownMs = parseInt(card.querySelector(".cando-cooldown-ms")?.value || "500");
-            const timeoutResetMs = parseInt(card.querySelector(".cando-timeout-reset-ms")?.value || "2000");
-            const resetCanId = card.querySelector(".cando-reset-can-id")?.value || "";
-            const verifyCanId = card.querySelector(".cando-verify-can-id")?.value || "";
-            const verifyPayload = getByteGridString(card, "cando-verify");
-
-            const triggers = [];
-            card.querySelectorAll(".cando-trigger-item").forEach(item => {
-                const fromPayload = getByteGridString(item, "cando-trig-from");
-                const toPayload = getByteGridString(item, "cando-trig-to");
-                triggers.push({
-                    id: item.querySelector(".cando-trig-id")?.value.trim() || "",
-                    source: item.querySelector(".cando-trig-source")?.value || "can_msg",
-                    can_id: item.querySelector(".cando-trig-can-id")?.value || "",
-                    from_payload: fromPayload,
-                    to_payload: toPayload,
-                    match_payload: toPayload,
-                    bus: parseInt(item.querySelector(".cando-trig-bus")?.value || "0"),
-                    time: item.querySelector(".cando-trig-time")?.value || "",
-                    interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
-                    voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
-                    voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
-                    expression: item.querySelector(".cando-trig-expr")?.value || ""
-                });
-            });
-
-            const conditions = [];
-            card.querySelectorAll(".cando-condition-item").forEach(item => {
-                const days = [];
-                item.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
-                const condCanPayload = getByteGridString(item, "cando-cond-can");
-                conditions.push({
-                    type: item.querySelector(".cando-cond-type")?.value || "param_range",
-                    invert: item.querySelector(".cando-cond-invert")?.checked || false,
-                    expression: item.querySelector(".cando-cond-expr")?.value || "",
-                    can_id: item.querySelector(".cando-cond-can-id")?.value || "",
-                    match_payload: condCanPayload,
-                    days: days,
-                    start_time: item.querySelector(".cando-cond-start-time")?.value || "",
-                    end_time: item.querySelector(".cando-cond-end-time")?.value || "",
-                    voltage_val: item.querySelector(".cando-cond-voltage-val")?.value || "",
-                    voltage_dir: item.querySelector(".cando-cond-voltage-dir")?.value || "above"
-                });
-            });
-
-            const actions = [];
-            card.querySelectorAll(".cando-action-item").forEach(item => {
-                const steps = [];
-                const payloadLines = [];
-                item.querySelectorAll(".cando-payload-step-item").forEach(stepItem => {
-                    const p = getByteGridString(stepItem, "cando-step-byte");
-                    const rep = parseInt(stepItem.querySelector(".cando-step-repeat")?.value || "1");
-                    if (p) {
-                        steps.push({ payload: p, repeat: rep });
-                        payloadLines.push(rep > 1 ? `${p} [x${rep}]` : p);
-                    }
-                });
-
-                actions.push({
-                    trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",
-                    popup_message: item.querySelector(".cando-act-popup-msg")?.value.trim() || "",
-                    type: item.querySelector(".cando-act-type")?.value || "can_tx",
-                    can_id: item.querySelector(".cando-act-can-id")?.value || "",
-                    steps: steps,
-                    payload: payloadLines.join("\n"),
-                    bus: parseInt(item.querySelector(".cando-act-bus")?.value || "0"),
-                    delay_ms: parseInt(item.querySelector(".cando-act-delay-ms")?.value || "10"),
-                    wait_ms: parseInt(item.querySelector(".cando-act-wait-ms")?.value || "500"),
-                    mqtt_topic: item.querySelector(".cando-act-mqtt-topic")?.value || "",
-                    mqtt_payload: item.querySelector(".cando-act-mqtt-payload")?.value || "",
-                    webhook_url: item.querySelector(".cando-act-webhook-url")?.value || ""
-                });
-            });
-
-            // Maintain legacy trigger/condition/action for backward compatibility
-            const primaryTrig = triggers[0] || { source: "can_msg" };
-            const primaryCond = conditions[0] || { type: "none" };
-            const primaryAct = actions[0] || { type: "can_tx" };
-
-            rules.push({
-                name: card.querySelector(".cando-name")?.value || "",
-                exec_mode: execMode,
-                cooldown_ms: cooldownMs,
-                timeout_reset_ms: timeoutResetMs,
-                reset_can_id: resetCanId,
-                verify_can_id: verifyCanId,
-                verify_payload: verifyPayload,
-                triggers: triggers,
-                conditions: conditions,
-                actions: actions,
-                trigger: primaryTrig,
-                condition: primaryCond,
-                action: primaryAct
-            });
+            const ruleData = extractCandoRuleData(card);
+            if (ruleData) rules.push(ruleData);
         });
 
         fetch("/store_cando", {
@@ -4456,32 +6032,105 @@ function loadAutoTable(jsonData) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ rules: rules })
         }).then(res => res.text()).then(msg => {
-            showNotification("CAN Do automations saved successfully!", "green");
-            // Collapse all rule cards and show Edit button
-            cards.forEach(card => {
-                const body = card.querySelector(".cando-rule-body");
-                const editBtn = card.querySelector(".cando-edit-btn");
-                const toggleBtn = card.querySelector(".cando-toggle-btn");
+            showNotification("CAN Do saved successfully!", "green");
+            const targetCard = sourceElem ? sourceElem.closest(".cando-rule-card") : null;
+            if (targetCard) {
+                // Collapse specifically the saved CAN Do
+                const body = targetCard.querySelector(".cando-rule-body");
+                const editBtn = targetCard.querySelector(".cando-edit-btn");
+                const toggleBtn = targetCard.querySelector(".cando-toggle-btn");
+                const nameInput = targetCard.querySelector(".cando-name");
                 if (body) {
                     body.classList.add("hidden");
                     body.style.display = "none";
                 }
-                if (editBtn) editBtn.textContent = "Edit";
+                if (editBtn) {
+                    editBtn.textContent = "✏️ Edit";
+                    editBtn.style.background = "#3b82f6";
+                    editBtn.title = "Edit this CAN Do";
+                }
                 if (toggleBtn) toggleBtn.textContent = "▼";
-            });
+                if (nameInput) {
+                    nameInput.style.borderColor = "#e2e8f0";
+                    nameInput.style.backgroundColor = "#f8fafc";
+                    nameInput.style.boxShadow = "none";
+                }
+            } else {
+                cards.forEach(card => {
+                    const body = card.querySelector(".cando-rule-body");
+                    const editBtn = card.querySelector(".cando-edit-btn");
+                    const toggleBtn = card.querySelector(".cando-toggle-btn");
+                    const nameInput = card.querySelector(".cando-name");
+                    if (body) {
+                        body.classList.add("hidden");
+                        body.style.display = "none";
+                    }
+                    if (editBtn) {
+                        editBtn.textContent = "✏️ Edit";
+                        editBtn.style.background = "#3b82f6";
+                        editBtn.title = "Edit this CAN Do";
+                    }
+                    if (toggleBtn) toggleBtn.textContent = "▼";
+                    if (nameInput) {
+                        nameInput.style.borderColor = "#e2e8f0";
+                        nameInput.style.backgroundColor = "#f8fafc";
+                        nameInput.style.boxShadow = "none";
+                    }
+                });
+            }
         }).catch(err => {
-            showNotification("Failed to save CAN Do rules: " + err, "red");
+            showNotification("Failed to save CAN Do: " + err, "red");
         });
     }
 
+    function getDefaultPreconditionRule() {
+        return {
+            name: "E-GMP Battery Preconditioning",
+            enabled: true,
+            exec_mode: "one_shot",
+            cooldown_ms: 500,
+            timeout_reset_ms: 2000,
+            triggers: [
+                {
+                    id: "sw_star",
+                    source: "preset",
+                    can_id: "0x448",
+                    bus: 0,
+                    to_payload: "* * * * * 1*",
+                    from_payload: "* * * * * 0*"
+                }
+            ],
+            actions: [
+                {
+                    trigger_id: "sw_star",
+                    type: "precondition",
+                    precon_mode: "persistent",
+                    precon_press: "short",
+                    popup_message: ""
+                }
+            ]
+        };
+    }
+
     function loadCandoRulesUI() {
+        initCandoVehicleProfileUI();
+        initUnitSystemUI();
         fetch("/load_cando").then(res => res.json()).then(data => {
-            if (data && data.rules && Array.isArray(data.rules)) {
-                const container = document.getElementById("cando_rules_container");
-                if (container) container.innerHTML = "";
+            const container = document.getElementById("cando_rules_container");
+            if (container) container.innerHTML = "";
+            if (data && data.rules && Array.isArray(data.rules) && data.rules.length > 0) {
                 data.rules.forEach(r => addCandoRuleUI(r, true));
+            } else {
+                // Default loaded automation on new installs
+                addCandoRuleUI(getDefaultPreconditionRule(), true);
             }
-        }).catch(err => console.log("No saved CAN Do rules found:", err));
+        }).catch(err => {
+            console.log("No saved CAN Do rules found, initializing default rule:", err);
+            const container = document.getElementById("cando_rules_container");
+            if (container && container.children.length === 0) {
+                addCandoRuleUI(getDefaultPreconditionRule(), true);
+            }
+        });
     }
 
 	function toggleCandoRevMode(val) {
@@ -4517,7 +6166,7 @@ function loadAutoTable(jsonData) {
                 if (data && Array.isArray(data.rules)) {
                     const container = document.getElementById("cando_rules_container");
                     if (container) container.innerHTML = "";
-                    data.rules.forEach(r => addCandoRuleUI(r, false));
+                    data.rules.forEach(r => addCandoRuleUI(r, true));
                     fetch("/store_cando", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },

@@ -196,6 +196,13 @@ typedef struct {
     int64_t last_triggered_us; /* Timestamp of last execution */
 } cando_trigger_t;
 
+typedef enum {
+    CANDO_ROLL_NONE = 0,
+    CANDO_ROLL_SEQ3,        /* Cycles 0x0F -> 0x1F -> 0x2F (e.g. E-GMP 0x2CF Climate Temp) */
+    CANDO_ROLL_BYTE_INC,    /* Cycles 0x00 -> 0xFF */
+    CANDO_ROLL_NIBBLE_INC   /* Cycles low nibble 0x0 -> 0xF */
+} cando_roll_mode_t;
+
 typedef struct {
     uint8_t target_bus;     /* Target bus to play CAN frame (CAN_BUS_0 or CAN_BUS_1) */
     uint32_t tx_can_id;     /* Response CAN ID */
@@ -203,11 +210,31 @@ typedef struct {
     uint8_t tx_data[8];     /* Payload bytes to play */
     uint8_t tx_len;         /* Payload byte length (0-8) */
     uint32_t delay_ms;      /* Delay before transmitting frame */
+    int8_t roll_byte_idx;   /* -1 if no rolling byte, or 0..7 index of rolling byte */
+    cando_roll_mode_t roll_mode;
+    uint8_t roll_counter;   /* Dynamic sequence counter state */
 } cando_sequence_step_t;
 
+typedef enum {
+    CANDO_ACT_CAN_TX = 0,
+    CANDO_ACT_POPUP,
+    CANDO_ACT_PRECONDITION,
+    CANDO_ACT_CLIMATE_TARGET,
+    CANDO_ACT_DELAY,
+    CANDO_ACT_MQTT,
+    CANDO_ACT_WEBHOOK
+} cando_action_type_t;
+
 typedef struct {
+    cando_action_type_t type;
     char trigger_id[32];    /* Only execute if triggered by this trigger_id (empty/NULL = any) */
     char *popup_message;    /* Optional dashboard track popup text (via track_popup_show) */
+    char precon_mode[16];   /* "persistent", "continuous", "once" */
+    char precon_press[16];  /* "short", "long" */
+    float target_temp_c;    /* Target temperature in Celsius (e.g. 21.0) */
+    char climate_zone[16];  /* "driver" or "passenger" */
+    bool climate_sync_on;   /* Optional: Enforce SYNC Mode ON (0x4A0) */
+    bool climate_driver_only;/* Optional: Enforce Driver Only Mode (0x41D) */
     cando_sequence_step_t *steps;
     uint8_t step_count;
     char *mqtt_topic;       /* Optional MQTT topic for notification alert */
@@ -217,6 +244,8 @@ typedef struct {
 typedef struct {
     char *name;             /* Rule descriptive name */
     bool enabled;           /* Rule active flag */
+    uint32_t exec_count;    /* Number of times this rule has fired */
+    int64_t last_exec_us;   /* Timestamp of last execution (esp_timer_get_time) */
     cando_trigger_t *triggers; /* Multiple trigger definitions (OR) */
     uint8_t trigger_count;
     cando_trigger_t trigger;/* Primary trigger */
@@ -238,6 +267,8 @@ bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t 
 esp_err_t cando_load_config(void);
 esp_err_t cando_save_config(const char *json_str);
 char *cando_get_config(void);
+bool cando_test_single_action_json(const char *json_str);
+void cando_get_stats_json(cJSON *root);
 void cando_set_reverse_engineering_mode(bool enable);
 bool cando_get_reverse_engineering_mode(void);
 

@@ -58,6 +58,13 @@ int8_t config_server_precon_button(void) { return cfg_button; }
 int8_t config_server_precon_mode(void) { return cfg_mode; }
 int8_t config_server_precon_press(void) { return cfg_press; }
 
+// ---- track_popup stubs ----
+void track_popup_init(void) {}
+void track_popup_tick(void) {}
+void track_popup_rx(const twai_message_t *msg, can_bus_t rx_bus) { (void)msg; (void)rx_bus; }
+fwd_result_t track_popup_fwd(twai_message_t *msg, can_bus_t fwd_bus) { (void)msg; (void)fwd_bus; return FWD_PASSTHROUGH; }
+bool track_popup_show(const char *utf8_text) { (void)utf8_text; return true; }
+
 #include "persistent_settings.c"
 #include "precondition.c"
 

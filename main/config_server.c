@@ -1949,7 +1949,7 @@ static const httpd_uri_t system_reboot = {
     .handler   = system_reboot_handler,
     .user_ctx  = NULL    // Pass server data as context
 };
-static const httpd_uri_t precondition_toggle = {
+static const httpd_uri_t precondition_toggle_uri = {
     .uri       = "/precondition_toggle",
     .method    = HTTP_POST,
     .handler   = precondition_toggle_handler,
@@ -2833,7 +2833,7 @@ static httpd_handle_t config_server_init(void)
         httpd_register_uri_handler(server, &ws);
         httpd_register_uri_handler(server, &file_upload);
 		httpd_register_uri_handler(server, &system_reboot);
-		httpd_register_uri_handler(server, &precondition_toggle);
+		httpd_register_uri_handler(server, &precondition_toggle_uri);
 		httpd_register_uri_handler(server, &store_canflt_uri);
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);
@@ -2882,7 +2882,7 @@ void config_server_restart(void)
         httpd_register_uri_handler(server, &ws);
         httpd_register_uri_handler(server, &file_upload);
 		httpd_register_uri_handler(server, &system_reboot);
-		httpd_register_uri_handler(server, &precondition_toggle);
+		httpd_register_uri_handler(server, &precondition_toggle_uri);
 		httpd_register_uri_handler(server, &store_canflt_uri);
 		httpd_register_uri_handler(server, &load_canflt_uri);
 		httpd_register_uri_handler(server, &store_cando_uri);

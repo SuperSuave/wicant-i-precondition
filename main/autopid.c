@@ -2671,16 +2671,6 @@ void autopid_init(char* id)
 
 static cando_rule_set_t g_cando_rules = {0};
 
-void cando_set_reverse_engineering_mode(bool enable)
-{
-    g_cando_rules.reverse_engineering_mode = enable;
-}
-
-bool cando_get_reverse_engineering_mode(void)
-{
-    return g_cando_rules.reverse_engineering_mode;
-}
-
 static bool cando_parse_payload_pattern(const char *str, uint8_t *data, uint8_t *mask, uint8_t *len, bool *has_filter)
 {
     if (!str || !data || !mask || !len || !has_filter) return false;

@@ -8,7 +8,6 @@
 #include "hsm.h"
 #include "precondition.h"
 #include "persistent_settings.h"
-#include "track_popup.h"
 #include "config_server.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"

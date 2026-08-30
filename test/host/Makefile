@@ -17,7 +17,7 @@
 MAIN := ../../main
 
 # firmware files tests compile against (copied into build/src)
-FW_FILES := hsm.c hsm.h precondition.c precondition.h persistent_settings.c persistent_settings.h
+FW_FILES := hsm.c hsm.h precondition.c precondition.h persistent_settings.c persistent_settings.h track_popup.h
 # firmware sources linked into every test binary (tests that #include a
 # source instead, for introspection, don't list it here)
 LINK_SRCS := build/src/hsm.c

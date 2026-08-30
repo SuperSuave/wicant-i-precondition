@@ -14,6 +14,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "can.h"
+#include "hsm.h"
 #include "config_server.h"
 
 // ---- stubs ----

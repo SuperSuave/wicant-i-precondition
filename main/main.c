@@ -262,6 +262,7 @@ static void precondition_task(void *arg)
 		if(dev_status_is_bit_set(DEV_AWAKE_BIT))
 		{
 			precondition_tick();
+			cando_process_timer_tick();
 		}
 		// Doing it this way (rather than a periodic 40ms timer) has the advantage
 		// of ensuring at least 40ms elapse between each tick, even if the task
@@ -543,6 +544,7 @@ void app_main(void)
 	// must run after config_server_start: entering the initial state reads the
 	// precon mode from the config
 	precondition_init();
+	cando_load_config();
 	slcan_init(&send_to_host);
 
 	int8_t can_datarate = config_server_get_can_rate();

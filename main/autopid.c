@@ -2739,13 +2739,11 @@ bool cando_evaluate_trigger(cando_trigger_t *trig, const twai_message_t *msg, ui
         if (trig->is_ext != (msg->extd != 0)) return false;
 
         /* Check From payload filter (previous frame state) */
-        if (trig->has_from) {
-            if (!trig->has_last_payload) {
-                return false;
-            }
+        if (trig->has_from && trig->has_last_payload) {
             for (uint8_t i = 0; i < trig->from_len; i++) {
                 if (trig->from_mask[i] != 0) {
-                    if ((trig->last_payload[i] & trig->from_mask[i]) != (trig->from_data[i] & trig->from_mask[i])) {
+                    if (i >= sizeof(trig->last_payload) ||
+                        (trig->last_payload[i] & trig->from_mask[i]) != (trig->from_data[i] & trig->from_mask[i])) {
                         return false;
                     }
                 }
@@ -3107,7 +3105,11 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
         for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
             cando_trigger_t *trig = &trig_list[t_idx];
 
-            /* Check for reset CAN ID frame to re-arm latched one-shot or pending verify rule */
+            if (trig->source != CANDO_TRIG_CAN_MESSAGE) continue;
+            if (trig->bus != bus || trig->can_id != msg->identifier) continue;
+            if (trig->is_ext != (msg->extd != 0)) continue;
+
+            /* Check for explicit reset CAN ID frame to re-arm latched one-shot */
             if (trig->reset_can_id > 0 && msg->identifier == trig->reset_can_id) {
                 trig->triggered_latched = false;
                 trig->pending_verify = false;
@@ -3137,16 +3139,50 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 }
             }
 
+            /* Determine whether payload actually changed from last received frame */
+            bool payload_changed = !trig->has_last_payload ||
+                                   (memcmp(trig->last_payload, msg->data, msg->data_length_code) != 0);
+
+            /* Evaluate trigger condition (checking from -> to transition) */
             bool eval_passed = cando_evaluate_trigger(trig, msg, bus);
 
-            /* Update payload history for this trigger if it matches trigger CAN ID & bus */
-            if (trig->source == CANDO_TRIG_CAN_MESSAGE && trig->can_id == msg->identifier && trig->bus == bus) {
-                memcpy(trig->last_payload, msg->data, msg->data_length_code);
-                trig->has_last_payload = true;
+            /* Check if incoming frame matches "release/idle" state to automatically re-arm ONE_SHOT triggers */
+            if (!eval_passed && trig->triggered_latched) {
+                bool is_release_state = false;
+                if (trig->has_from) {
+                    bool from_matches = true;
+                    for (uint8_t f = 0; f < trig->from_len; f++) {
+                        if (trig->from_mask[f] != 0) {
+                            if (f >= msg->data_length_code || (msg->data[f] & trig->from_mask[f]) != (trig->from_data[f] & trig->from_mask[f])) {
+                                from_matches = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (from_matches) is_release_state = true;
+                } else if (trig->has_to) {
+                    bool still_to = true;
+                    for (uint8_t t = 0; t < trig->data_len; t++) {
+                        if (trig->match_mask[t] != 0) {
+                            if (t >= msg->data_length_code || (msg->data[t] & trig->match_mask[t]) != (trig->match_data[t] & trig->match_mask[t])) {
+                                still_to = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!still_to) is_release_state = true;
+                }
+                if (is_release_state) {
+                    trig->triggered_latched = false; /* Button released: automatically re-armed! */
+                }
             }
 
+            /* Store current payload for subsequent transition checks */
+            memcpy(trig->last_payload, msg->data, msg->data_length_code);
+            trig->has_last_payload = true;
+
             if (eval_passed) {
-                /* Enforce cooldown_ms (default minimum 50ms anti-loop safeguard) */
+                /* Enforce cooldown_ms (default 500ms for button triggers) */
                 uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
                 if (trig->last_triggered_us > 0) {
                     if ((now_us - trig->last_triggered_us) < ((int64_t)cd_ms * 1000)) {
@@ -3154,7 +3190,7 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                     }
                 }
 
-                /* One-Shot Latching */
+                /* One-Shot Latching (re-armed on release or timeout) */
                 if (trig->exec_mode == CANDO_EXEC_ONE_SHOT) {
                     if (trig->triggered_latched) {
                         continue;
@@ -3172,7 +3208,7 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
 
                 /* On-Change Edge Triggering */
                 if (trig->exec_mode == CANDO_EXEC_ON_CHANGE) {
-                    if (trig->has_last_payload && memcmp(trig->last_payload, msg->data, msg->data_length_code) == 0) {
+                    if (!payload_changed) {
                         continue;
                     }
                 }
@@ -3180,6 +3216,9 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 trig->last_triggered_us = now_us;
                 rule->exec_count++;
                 rule->last_exec_us = now_us;
+
+                ESP_LOGI("CANDO", "Trigger fired: rule '%s' (ID: %s) on CAN 0x%03lX",
+                         rule->name ? rule->name : "Unnamed", trig->id, (unsigned long)msg->identifier);
 
                 /* Execute Actions (filtering by matched trigger ID) */
                 const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
@@ -3284,7 +3323,7 @@ static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_
 
     if (cid && cid->valuestring && strlen(cid->valuestring) > 0) {
         trig->can_id = strtoul(cid->valuestring, NULL, 0);
-        trig->is_ext = (trig->can_id > 0x7FF) || (strlen(cid->valuestring) > 5);
+        trig->is_ext = (trig->can_id > 0x7FF);
     }
     if (bus_item && cJSON_IsNumber(bus_item)) {
         trig->bus = (uint8_t)bus_item->valueint;
@@ -3443,7 +3482,7 @@ static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *
 
     if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
         can_id_val = strtoul(txid->valuestring, NULL, 0);
-        is_ext = (can_id_val > 0x7FF) || (strlen(txid->valuestring) > 5);
+        is_ext = (can_id_val > 0x7FF);
     }
     if (act_bus && cJSON_IsNumber(act_bus)) {
         target_bus = (uint8_t)act_bus->valueint;
@@ -3824,9 +3863,9 @@ bool cando_is_capture_active(void)
     if (g_cando_rules.capture_mode == CANDO_CAPTURE_DISABLED) {
         return false;
     }
-    /* Auto mode: Check if protocol is SAVVYCAN or SLCAN and TCP socket is actively connected */
+    /* Auto mode: Only pause if protocol is SAVVYCAN (GVRET) and TCP socket is actively connected */
     int8_t proto = config_server_protocol();
-    if ((proto == SAVVYCAN || proto == SLCAN) && tcp_port_open()) {
+    if (proto == SAVVYCAN && tcp_port_open()) {
         return true;
     }
     return false;

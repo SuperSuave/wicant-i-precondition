@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=1024">
 <title>WiCAN</title>
 <script>
-(function() {
+(function () {
 try {
 const t = localStorage.getItem("wican_theme");
 if (t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) || (t === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
@@ -13,10 +13,10 @@ document.documentElement.setAttribute("data-theme", "dark");
 } else if (t === "light") {
 document.documentElement.setAttribute("data-theme", "light");
 }
-} catch(e) {}
+} catch (e) { }
 })();
 </script>
-<style>:root{--md-sys-color-primary:#00629e;--md-sys-color-on-primary:#ffffff;--md-sys-color-primary-container:#cfe5ff;--md-sys-color-on-primary-container:#001d35;--md-sys-color-secondary:#526070;--md-sys-color-secondary-container:#d6e4f7;--md-sys-color-on-secondary-container:#0f1d2a;--md-sys-color-tertiary:#695779;--md-sys-color-tertiary-container:#f1dbff;--md-sys-color-on-tertiary-container:#241532;--md-sys-color-error:#ba1a1a;--md-sys-color-error-container:#ffdad6;--md-sys-color-on-error-container:#410002;--md-sys-color-background:#f8f9fa;--md-sys-color-on-background:#191c20;--md-sys-color-surface:#f8f9fa;--md-sys-color-on-surface:#191c20;--md-sys-color-surface-variant:#e0e3e8;--md-sys-color-on-surface-variant:#44474e;--md-sys-color-outline:#74777f;--md-sys-color-outline-variant:#c4c7d0;--md-sys-color-surface-container-lowest:#ffffff;--md-sys-color-surface-container-low:#f2f4f7;--md-sys-color-surface-container:#eceef2;--md-sys-color-surface-container-high:#e6e8ed;--md-sys-color-surface-container-highest:#e0e3e8;--m3-tonal-when-bg:#fff1e5;--m3-tonal-when-border:#fed7aa;--m3-tonal-when-color:#c2410c;--m3-tonal-cond-bg:#e8f2fe;--m3-tonal-cond-border:#bfdbfe;--m3-tonal-cond-color:#0284c7;--m3-tonal-act-bg:#e6f6f2;--m3-tonal-act-border:#a7f3d0;--m3-tonal-act-color:#047857;--m3-tonal-choose-bg:#e0f7fa;--m3-tonal-choose-border:#99f6e4;--m3-tonal-choose-color:#0f766e;--m3-tonal-ifthen-bg:#fffbeb;--m3-tonal-ifthen-border:#fde68a;--m3-tonal-ifthen-color:#b45309;--primary-color:var(--md-sys-color-primary);--primary-light:var(--md-sys-color-primary-container);--primary-dark:#004b7b;--background-color:var(--md-sys-color-background);--white:var(--md-sys-color-surface-container-lowest);--card-bg:var(--md-sys-color-surface-container-lowest);--text-color:var(--md-sys-color-on-surface-variant);--text-heading:var(--md-sys-color-on-surface);--text-muted:var(--md-sys-color-outline);--border-color:var(--md-sys-color-outline-variant);--input-bg:var(--md-sys-color-surface-container-lowest);--input-border:var(--md-sys-color-outline-variant);--gray-100:var(--md-sys-color-surface-container-low);--gray-200:var(--md-sys-color-surface-container);--gray-300:var(--md-sys-color-outline-variant);--gray-400:var(--md-sys-color-outline);--gray-500:#64748b;--gray-600:var(--md-sys-color-on-surface-variant);--gray-700:var(--md-sys-color-on-surface);--shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.03);--shadow-md:0 4px 14px rgba(0,0,0,0.06),0 2px 4px rgba(0,0,0,0.03);--shadow-lg:0 10px 25px rgba(0,0,0,0.1),0 4px 10px rgba(0,0,0,0.05);--transition:all 0.2s cubic-bezier(0.2,0,0,1);--m3-shape-xs:4px;--m3-shape-sm:8px;--m3-shape-md:12px;--m3-shape-lg:16px;--m3-shape-full:9999px;}[data-theme="dark"]{--md-sys-color-primary:#9ecafe;--md-sys-color-on-primary:#003257;--md-sys-color-primary-container:#00497a;--md-sys-color-on-primary-container:#d1e4ff;--md-sys-color-secondary:#bac8db;--md-sys-color-secondary-container:#2b3947;--md-sys-color-on-secondary-container:#d5e4f7;--md-sys-color-tertiary:#d5bee6;--md-sys-color-tertiary-container:#504060;--md-sys-color-on-tertiary-container:#f1dbff;--md-sys-color-error:#ffb4ab;--md-sys-color-error-container:#93000a;--md-sys-color-on-error-container:#ffdad6;--md-sys-color-background:#111318;--md-sys-color-on-background:#e2e2e6;--md-sys-color-surface:#111318;--md-sys-color-on-surface:#e2e2e6;--md-sys-color-surface-variant:#44474e;--md-sys-color-on-surface-variant:#c4c7d0;--md-sys-color-outline:#8e9099;--md-sys-color-outline-variant:#282d36;--md-sys-color-surface-container-lowest:#0c0e13;--md-sys-color-surface-container-low:#171a20;--md-sys-color-surface-container:#1b1f26;--md-sys-color-surface-container-high:#242932;--md-sys-color-surface-container-highest:#2e3440;--m3-tonal-when-bg:#281404;--m3-tonal-when-border:#7c2d12;--m3-tonal-when-color:#fdba74;--m3-tonal-cond-bg:#091c33;--m3-tonal-cond-border:#0369a1;--m3-tonal-cond-color:#93c5fd;--m3-tonal-act-bg:#05241d;--m3-tonal-act-border:#065f46;--m3-tonal-act-color:#6ee7b7;--m3-tonal-choose-bg:#062323;--m3-tonal-choose-border:#115e59;--m3-tonal-choose-color:#5eead4;--m3-tonal-ifthen-bg:#291a03;--m3-tonal-ifthen-border:#854d0e;--m3-tonal-ifthen-color:#fde047;--primary-color:var(--md-sys-color-primary);--primary-light:var(--md-sys-color-primary-container);--primary-dark:#b8d8ff;--background-color:var(--md-sys-color-background);--white:var(--md-sys-color-surface-container);--card-bg:var(--md-sys-color-surface-container);--text-color:var(--md-sys-color-on-surface-variant);--text-heading:var(--md-sys-color-on-surface);--text-muted:var(--md-sys-color-outline);--border-color:var(--md-sys-color-outline-variant);--input-bg:var(--md-sys-color-surface-container-low);--input-border:var(--md-sys-color-outline-variant);--gray-100:var(--md-sys-color-surface-container-low);--gray-200:var(--md-sys-color-surface-container);--gray-300:var(--md-sys-color-surface-container-high);--gray-400:var(--md-sys-color-outline);--gray-500:var(--md-sys-color-outline);--gray-600:var(--md-sys-color-on-surface-variant);--gray-700:var(--md-sys-color-on-surface);--shadow-sm:0 1px 3px rgba(0,0,0,0.4);--shadow-md:0 4px 14px rgba(0,0,0,0.5);--shadow-lg:0 10px 25px rgba(0,0,0,0.6);}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--md-sys-color-primary:#9ecafe;--md-sys-color-on-primary:#003257;--md-sys-color-primary-container:#00497a;--md-sys-color-on-primary-container:#d1e4ff;--md-sys-color-secondary:#bac8db;--md-sys-color-secondary-container:#2b3947;--md-sys-color-on-secondary-container:#d5e4f7;--md-sys-color-tertiary:#d5bee6;--md-sys-color-tertiary-container:#504060;--md-sys-color-on-tertiary-container:#f1dbff;--md-sys-color-error:#ffb4ab;--md-sys-color-error-container:#93000a;--md-sys-color-on-error-container:#ffdad6;--md-sys-color-background:#111318;--md-sys-color-on-background:#e2e2e6;--md-sys-color-surface:#111318;--md-sys-color-on-surface:#e2e2e6;--md-sys-color-surface-variant:#44474e;--md-sys-color-on-surface-variant:#c4c7d0;--md-sys-color-outline:#8e9099;--md-sys-color-outline-variant:#282d36;--md-sys-color-surface-container-lowest:#0c0e13;--md-sys-color-surface-container-low:#171a20;--md-sys-color-surface-container:#1b1f26;--md-sys-color-surface-container-high:#242932;--md-sys-color-surface-container-highest:#2e3440;--m3-tonal-when-bg:#281404;--m3-tonal-when-border:#7c2d12;--m3-tonal-when-color:#fdba74;--m3-tonal-cond-bg:#091c33;--m3-tonal-cond-border:#0369a1;--m3-tonal-cond-color:#93c5fd;--m3-tonal-act-bg:#05241d;--m3-tonal-act-border:#065f46;--m3-tonal-act-color:#6ee7b7;--m3-tonal-choose-bg:#062323;--m3-tonal-choose-border:#115e59;--m3-tonal-choose-color:#5eead4;--m3-tonal-ifthen-bg:#291a03;--m3-tonal-ifthen-border:#854d0e;--m3-tonal-ifthen-color:#fde047;--primary-color:var(--md-sys-color-primary);--primary-light:var(--md-sys-color-primary-container);--primary-dark:#b8d8ff;--background-color:var(--md-sys-color-background);--white:var(--md-sys-color-surface-container);--card-bg:var(--md-sys-color-surface-container);--text-color:var(--md-sys-color-on-surface-variant);--text-heading:var(--md-sys-color-on-surface);--text-muted:var(--md-sys-color-outline);--border-color:var(--md-sys-color-outline-variant);--input-bg:var(--md-sys-color-surface-container-low);--input-border:var(--md-sys-color-outline-variant);--gray-100:var(--md-sys-color-surface-container-low);--gray-200:var(--md-sys-color-surface-container);--gray-300:var(--md-sys-color-surface-container-high);--gray-400:var(--md-sys-color-outline);--gray-500:var(--md-sys-color-outline);--gray-600:var(--md-sys-color-on-surface-variant);--gray-700:var(--md-sys-color-on-surface);--shadow-sm:0 1px 3px rgba(0,0,0,0.4);--shadow-md:0 4px 14px rgba(0,0,0,0.5);--shadow-lg:0 10px 25px rgba(0,0,0,0.6);}}*{box-sizing:border-box;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;display:flex;background-color:var(--background-color);margin:0;overflow-x:hidden;color:var(--text-color);line-height:1.5;-webkit-font-smoothing:antialiased;}.sidebar{height:100vh;width:250px;background-color:var(--md-sys-color-surface-container-low);border-right:1px solid var(--border-color);padding:1.25rem 0.75rem;position:fixed;overflow-y:auto;display:flex;flex-direction:column;box-sizing:border-box;gap:4px;z-index:100;}.sidebar button{background-color:transparent;border:none;outline:none;cursor:pointer;padding:0.75rem 1.1rem;text-align:center;width:100%;border-radius:var(--m3-shape-full);transition:var(--transition);font-size:0.9rem;font-weight:500;color:var(--md-sys-color-on-surface-variant);display:flex;align-items:center;justify-content:center;gap:0.75rem;box-sizing:border-box;}.sidebar button:hover{background-color:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface);}.sidebar button.active{background-color:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font-weight:700;}.logo{width:78%;max-width:100%;height:auto;display:block;margin:1.5rem auto 1rem;padding:0;}.content{margin-left:250px;padding:2rem;width:calc(100% - 250px);max-width:1240px;}.tabcontent{display:none;padding:2rem;border-radius:var(--m3-shape-lg);background-color:var(--white);border:1px solid var(--border-color);box-shadow:var(--shadow-sm);margin-bottom:2rem;}.section-title{font-size:1.35rem;font-weight:700;margin:0 0 1.25rem;color:var(--text-heading);padding-bottom:0.6rem;border-bottom:1px solid var(--border-color);letter-spacing:-0.01em;}.divider{margin:1.5rem 0;border-bottom:1px solid var(--border-color);}.form-table{width:100%;border-collapse:separate;border-spacing:0 0.5rem;font-weight:500;}.form-table td{padding:0.6rem 0.75rem;vertical-align:middle;color:var(--text-color);}.form-table td:first-child{width:38%;font-weight:500;color:var(--text-heading);}.compact-form-table{width:100%;border-collapse:separate;border-spacing:0 4px;}.compact-form-table td{padding:4px 6px;vertical-align:middle;font-size:0.85rem;color:var(--text-color);}.compact-form-table td:first-child{width:25%;font-weight:600;color:var(--text-heading);white-space:nowrap;}input,input[type="text"],input[type="password"],input[type="number"],select{width:100%;padding:0.6rem 0.85rem;border:1px solid var(--border-color);border-radius:var(--m3-shape-sm);font-size:0.9rem;transition:var(--transition);background-color:var(--input-bg);color:var(--text-heading);outline:none;box-sizing:border-box;}input:focus,input[type="text"]:focus,input[type="password"]:focus,input[type="number"]:focus,select:focus{border-color:var(--md-sys-color-primary);box-shadow:0 0 0 3px rgba(0,98,158,0.18);}[data-theme="dark"] input:focus,[data-theme="dark"] select:focus{box-shadow:0 0 0 3px rgba(158,202,254,0.22);}input:disabled,select:disabled,input:read-only:not(.editable-readonly),input[readonly]:not(.editable-readonly){background-color:var(--md-sys-color-surface-container-low) !important;color:var(--text-muted) !important;border-color:var(--border-color) !important;cursor:not-allowed;}select option,select optgroup{background-color:var(--input-bg);color:var(--text-heading);}.slider-container{display:flex;align-items:center;gap:12px;color:var(--text-heading);}input[type="range"]{width:100%;accent-color:var(--md-sys-color-primary);background:var(--gray-200);border-radius:var(--m3-shape-full);height:6px;cursor:pointer;}input[type="checkbox"]{width:1.15rem;height:1.15rem;accent-color:var(--md-sys-color-primary);cursor:pointer;margin:0 0.4rem 0 0;vertical-align:middle;}button,input[type="button"],.system-button,.store{padding:0.55rem 1.25rem;border:1px solid transparent;border-radius:var(--m3-shape-full);background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);font-size:0.88rem;font-weight:600;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:0.45rem;box-sizing:border-box;text-decoration:none;}button:hover,input[type="button"]:hover,.system-button:hover,.store:hover{opacity:0.92;box-shadow:var(--shadow-sm);}button:disabled,input[type="button"]:disabled,.system-button:disabled,.store:disabled{background-color:var(--gray-200) !important;color:var(--text-muted) !important;border-color:var(--border-color) !important;cursor:not-allowed;opacity:0.7;box-shadow:none;}.delete-btn,button.delete-btn{background-color:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;border-radius:var(--m3-shape-sm);font-weight:600;}.delete-btn:hover,button.delete-btn:hover{opacity:0.88;}button[onclick*="moveCando"],.cando-rule-card button.system-button[title*="Move"],.cando-rule-card button.system-button[title*="move"]{border-radius:var(--m3-shape-sm);padding:0;width:26px;height:26px;background:var(--md-sys-color-surface-container-high);color:var(--text-heading);border:1px solid var(--border-color);}button[onclick*="moveCando"]:hover,.cando-rule-card button.system-button[title*="Move"]:hover{background:var(--md-sys-color-surface-container-highest);border-color:var(--md-sys-color-outline);}.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.25rem;margin-bottom:1.75rem;}.dash-card{background:var(--white);border:1px solid var(--border-color);border-radius:var(--m3-shape-lg);padding:1.4rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;justify-content:space-between;transition:var(--transition);}.dash-card:hover{box-shadow:var(--shadow-md);border-color:var(--md-sys-color-outline);}.dash-card-header{display:flex;align-items:center;justify-content:space-between;font-size:0.95rem;font-weight:700;color:var(--text-heading);margin-bottom:0.85rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border-color);}.dash-badge{font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:var(--m3-shape-full);letter-spacing:0.02em;}.badge-green{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}[data-theme="dark"] .badge-green{background:#052e16;color:#86efac;border-color:#166534;}.badge-blue{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}[data-theme="dark"] .badge-blue{background:#172554;color:#93c5fd;border-color:#1e40af;}.badge-yellow{background:#fef9c3;color:#854d0e;border:1px solid #fef08a;}[data-theme="dark"] .badge-yellow{background:#422006;color:#fde047;border-color:#854d0e;}.badge-red{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}[data-theme="dark"] .badge-red{background:#450a0a;color:#fca5a5;border-color:#991b1b;}.badge-gray{background:var(--gray-100);color:var(--text-muted);border:1px solid var(--border-color);}.dash-pill{font-size:0.78rem;font-weight:600;padding:3px 10px;border-radius:var(--m3-shape-sm);}.dash-progress-track{width:100%;height:8px;background:var(--gray-200);border-radius:var(--m3-shape-full);overflow:hidden;}.dash-progress-fill{height:100%;border-radius:var(--m3-shape-full);transition:width 0.4s ease,background 0.4s ease;}.dash-action-btn{border-radius:var(--m3-shape-full);font-weight:700;padding:0.55rem 1.25rem;cursor:pointer;border:1px solid transparent;background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);box-shadow:var(--shadow-sm);transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:6px;}.dash-action-btn:hover{opacity:0.92;box-shadow:var(--shadow-md);transform:translateY(-1px);}.dash-action-btn.btn-danger{background-color:var(--md-sys-color-error) !important;color:var(--md-sys-color-on-error) !important;border-color:var(--md-sys-color-error) !important;}.dash-outline-btn{border:1px solid var(--border-color);background:var(--gray-100);color:var(--text-heading);border-radius:var(--m3-shape-full);font-weight:600;padding:0.4rem 1rem;}.dash-outline-btn:hover{background:var(--gray-200);border-color:var(--md-sys-color-outline);}.pid-entry,.cando-rule-card{border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-lg) !important;padding:1.35rem;margin-bottom:1.6rem;background-color:var(--card-bg) !important;box-shadow:var(--shadow-sm);transition:var(--transition);}[data-theme="dark"] .cando-rule-card,[data-theme="dark"] .pid-entry{background-color:var(--md-sys-color-surface-container-high) !important;border:1px solid var(--md-sys-color-outline-variant) !important;box-shadow:0 4px 16px rgba(0,0,0,0.35);}.cando-rule-card:hover{box-shadow:var(--shadow-md);border-color:var(--md-sys-color-outline) !important;transform:translateY(-1px);}[data-theme="dark"] .cando-rule-card:hover{border-color:var(--md-sys-color-outline) !important;box-shadow:0 6px 20px rgba(0,0,0,0.45);}.pid-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;border-bottom:1px solid var(--border-color);padding-bottom:0.6rem;cursor:pointer;}.hidden{display:none !important;}.cando-name{font-size:1rem;font-weight:700;color:var(--text-heading) !important;border:1.5px solid var(--border-color) !important;background:var(--input-bg) !important;padding:4px 10px 4px 30px !important;border-radius:var(--m3-shape-sm);width:100%;transition:var(--transition);}.cando-name:focus{border-color:var(--md-sys-color-primary) !important;box-shadow:0 0 0 3px rgba(37,99,235,0.2) !important;}.cando-summary-pill{margin-left:2rem;font-size:0.76rem;color:var(--text-muted);display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;}.cando-summary-val{color:var(--text-heading);}.cando-activity-badge{padding:2px 8px;border-radius:var(--m3-shape-sm);font-size:0.72rem;font-weight:700;background:var(--gray-100);color:var(--text-muted);border:1px solid var(--border-color);font-family:monospace;transition:var(--transition);white-space:nowrap;}.cando-section-box{border:1px solid var(--border-color) !important;background:var(--md-sys-color-surface-container-low) !important;padding:0.9rem 1.1rem 0 1.1rem;border-radius:var(--m3-shape-md);margin-bottom:1rem;overflow:hidden;}.cando-trigger-item,.cando-condition-item,.cando-action-item{background:var(--white) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-md);padding:0.9rem;box-shadow:var(--shadow-sm);color:var(--text-color) !important;}.cando-trigger-item > div:first-child,.cando-condition-item > div:first-child,.cando-action-item > div:first-child{border-bottom:1px dashed var(--border-color) !important;}.cando-section-box span[style*="color:#c2410c"]{color:var(--m3-tonal-when-color) !important;}.cando-section-box span[style*="color:#1d4ed8"],.cando-section-box span[style*="color:#2563eb"]{color:var(--m3-tonal-cond-color) !important;}.cando-section-box span[style*="color:#047857"]{color:var(--m3-tonal-act-color) !important;}.cando-trig-count-badge{background:var(--m3-tonal-when-bg) !important;color:var(--m3-tonal-when-color) !important;border:1px solid var(--m3-tonal-when-border) !important;}.cando-cond-count-badge{background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;}.cando-act-count-badge{background:var(--m3-tonal-act-bg) !important;color:var(--m3-tonal-act-color) !important;border:1px solid var(--m3-tonal-act-border) !important;}button[onclick*="showCreateConditionBlockMenu"],button[onclick*="showWrapConditionMenu"]{background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;border-radius:var(--m3-shape-sm);}button[onclick*="showCreateConditionBlockMenu"]:hover,button[onclick*="showWrapConditionMenu"]:hover{opacity:0.88;}.cando-section-box button[onclick*="addCandoTriggerItem"],.cando-section-box button[onclick*="showAddConditionMenu"],.cando-section-box button[onclick*="showAddActionMenu"],.cando-attached-add-btn,.cando-group-add-btn,button[onclick*="addCandoOptionToChooseBlock"],button[data-branch="then"],button[data-branch="else"],button[onclick*="addCandoPayloadStep"]{background:var(--md-sys-color-surface-container-low) !important;color:var(--md-sys-color-primary) !important;border:none !important;border-top:1px dashed var(--border-color) !important;border-radius:0 !important;font-weight:700;cursor:pointer;transition:var(--transition);display:flex !important;align-items:center !important;justify-content:center !important;text-align:center !important;width:100% !important;padding:0.55rem 1rem !important;gap:0.4rem !important;box-sizing:border-box !important;}.cando-section-box button[onclick*="addCandoTriggerItem"]:hover,.cando-section-box button[onclick*="showAddConditionMenu"]:hover,.cando-section-box button[onclick*="showAddActionMenu"]:hover,.cando-attached-add-btn:hover,.cando-group-add-btn:hover,button[onclick*="addCandoOptionToChooseBlock"]:hover,button[data-branch="then"]:hover,button[data-branch="else"]:hover,button[onclick*="addCandoPayloadStep"]:hover{background:var(--md-sys-color-surface-container-highest) !important;border-top-color:var(--md-sys-color-primary) !important;color:var(--md-sys-color-primary) !important;}.cando-condition-group,.cando-condition-block{border-radius:var(--m3-shape-md);padding:0.9rem;box-shadow:var(--shadow-sm);border:1.5px dashed var(--border-color);background:var(--md-sys-color-surface-container-high);}.cando-condition-group[data-group-type="and"],.cando-condition-block[data-group-type="and"]{background:var(--m3-tonal-cond-bg) !important;border-color:var(--m3-tonal-cond-border) !important;}.cando-condition-group[data-group-type="or"],.cando-condition-block[data-group-type="or"]{background:var(--md-sys-color-tertiary-container) !important;border-color:var(--md-sys-color-tertiary) !important;}.cando-condition-group[data-group-type="not"],.cando-condition-block[data-group-type="not"]{background:var(--md-sys-color-error-container) !important;border-color:var(--md-sys-color-error) !important;}.cando-group-conditions-box,.cando-opt-actions-box,.cando-ifthen-conditions-box,.cando-ifthen-then-box,.cando-ifthen-else-box,.cando-payload-steps-box{background:var(--white) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-sm) !important;overflow:hidden;box-shadow:var(--shadow-sm);}.cando-group-conditions-container,.cando-opt-actions-container,.cando-ifthen-conditions-container,.cando-ifthen-then-container,.cando-ifthen-else-container{background:transparent !important;border:none !important;padding:0.65rem;}.cando-choose-block{background:var(--m3-tonal-choose-bg) !important;border:1.5px dashed var(--m3-tonal-choose-border) !important;border-radius:var(--m3-shape-md);padding:0.9rem 1.1rem;overflow:hidden;}.cando-choose-block > div:first-child{border-bottom:1px dashed var(--m3-tonal-choose-border) !important;}.cando-choose-option-item{background:var(--white) !important;border:1px solid var(--m3-tonal-choose-border) !important;border-radius:var(--m3-shape-sm);padding:0.8rem;}.cando-choose-option-item > div:first-child{border-bottom:1px dashed var(--m3-tonal-choose-border) !important;}.cando-opt-actions-container{background:transparent !important;}.cando-choose-convert-banner{background:var(--m3-tonal-choose-bg) !important;border:1px dashed var(--m3-tonal-choose-border) !important;border-radius:var(--m3-shape-sm);color:var(--m3-tonal-choose-color) !important;}.cando-ifthen-block{background:var(--m3-tonal-ifthen-bg) !important;border:1.5px dashed var(--m3-tonal-ifthen-border) !important;border-radius:var(--m3-shape-md);padding:0.9rem 1.1rem;}.cando-ifthen-block > div:first-child{border-bottom:1px dashed var(--m3-tonal-ifthen-border) !important;}.cando-btn-move,button[onclick*="moveCandoItem"],button[onclick*="moveStep"]{height:26px !important;width:26px !important;padding:0 !important;font-size:0.75rem !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--md-sys-color-surface-container-high) !important;color:var(--text-color) !important;border:1px solid var(--border-color) !important;transition:var(--transition) !important;}.cando-btn-move:hover,button[onclick*="moveCandoItem"]:hover,button[onclick*="moveStep"]:hover{background:var(--md-sys-color-surface-container-highest) !important;color:var(--text-heading) !important;}.cando-btn-sim-trig,button[onclick*="testCandoTriggerUI"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-when-bg) !important;color:var(--m3-tonal-when-color) !important;border:1px solid var(--m3-tonal-when-border) !important;transition:var(--transition) !important;}.cando-btn-test-cond,button[onclick*="testCandoConditionUI"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;transition:var(--transition) !important;}.cando-btn-test-act,button[onclick*="testCandoActionUI"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-act-bg) !important;color:var(--m3-tonal-act-color) !important;border:1px solid var(--m3-tonal-act-border) !important;transition:var(--transition) !important;}.cando-btn-create-block,button[onclick*="showCreateConditionBlockMenu"],button[onclick*="showWrapConditionMenu"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;transition:var(--transition) !important;}.delete-btn,button.delete-btn{height:26px !important;padding:0 8px !important;font-size:0.75rem !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;margin:0 !important;background:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;transition:var(--transition) !important;}.cando-step-btn-move{padding:1px 5px !important;font-size:0.7rem !important;background:var(--m3-tonal-act-bg) !important;color:var(--m3-tonal-act-color) !important;border:1px solid var(--m3-tonal-act-border) !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;}.cando-step-btn-del{padding:1px 6px !important;font-size:0.7rem !important;background:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;margin:0 0 0 0.2rem !important;}.cando-step-repeat{width:46px !important;height:24px !important;text-align:center !important;padding:2px 4px !important;border-radius:var(--m3-shape-xs) !important;border:1px solid var(--m3-tonal-act-border) !important;background:var(--input-bg) !important;color:var(--text-heading) !important;}.cando-preset-toolbar-wrap{display:flex;flex-direction:column;gap:0.45rem;max-width:475px;width:100%;}.cando-preset-action-bar{display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;}.cando-preset-action-bar button,button[onclick*="saveCurrentActionAsPreset"],button[onclick*="saveCurrentTriggerAsPreset"],button[onclick*="saveCurrentConditionAsPreset"],.cando-save-preset-btn,.cando-edit-preset-btn,.cando-del-preset-btn{height:32px !important;padding:0 12px !important;font-size:0.8rem !important;font-weight:600 !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;gap:0.3rem !important;flex-shrink:0 !important;white-space:nowrap !important;cursor:pointer !important;box-sizing:border-box !important;transition:var(--transition) !important;}.cando-edit-preset-btn{background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;}.cando-edit-preset-btn:hover{filter:brightness(0.95);}.cando-save-preset-btn{background:var(--m3-tonal-ifthen-bg) !important;color:var(--m3-tonal-ifthen-color) !important;border:1px solid var(--m3-tonal-ifthen-border) !important;}.cando-save-preset-btn:hover{filter:brightness(0.95);}.cando-del-preset-btn{background:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;}.cando-del-preset-btn:hover{filter:brightness(0.95);}.compact-form-table select,.compact-form-table input[type="text"]:not([class*="-byte"]):not(.cando-trig-for-sec):not(.cando-step-repeat):not(.cando-act-target-temp):not(.cando-trig-id):not(.cando-ha-icon),.compact-form-table input[type="number"]:not([class*="-byte"]):not(.cando-trig-for-sec):not(.cando-step-repeat):not(.cando-act-target-temp):not(.cando-trig-id),.cando-trig-preset-picker,.cando-act-preset-picker,.cando-cond-preset-picker,.cando-trig-source,.cando-act-type,.cando-cond-type,.cando-exec-mode,.cando-trig-bus,.cando-act-bus,.cando-trig-voltage-dir,.cando-act-precon-press{width:100% !important;max-width:475px !important;min-width:0 !important;height:45px !important;font-size:0.92rem !important;padding:0 14px !important;box-sizing:border-box !important;}.cando-trig-id{background-color:var(--input-bg) !important;color:var(--text-heading) !important;border:1px solid var(--border-color) !important;}select.cando-group-type{width:140px !important;max-width:100% !important;height:30px !important;font-size:0.82rem !important;padding:0 8px !important;}select.cando-opt-trig-id{width:auto !important;max-width:220px !important;min-width:140px !important;height:30px !important;font-size:0.8rem !important;padding:0 8px !important;background-color:var(--input-bg) !important;color:var(--text-heading) !important;border:1px solid var(--border-color) !important;}.cando-connector-pill,.cando-connector-divider span[style*="background:"]{border-radius:var(--m3-shape-full) !important;font-weight:800 !important;color:#ffffff !important;}input[class*="-byte"],.byte-input,.cando-trig-byte,.cando-verify-byte,.cando-act-byte,.cando-cond-byte{background-color:var(--input-bg) !important;color:var(--text-heading) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-xs) !important;}.cando-payload-step-item{background:var(--m3-tonal-act-bg) !important;border:1px solid var(--m3-tonal-act-border) !important;border-radius:var(--m3-shape-sm);padding:0.55rem 0.8rem;}.cando-payload-step-item .cando-step-label{color:var(--m3-tonal-act-color) !important;}.cando-settings-dropdown{position:relative;display:inline-block;}.cando-dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--md-sys-color-surface-container-highest);border:1px solid var(--border-color);border-radius:var(--m3-shape-md);box-shadow:var(--shadow-lg);z-index:10000;padding:6px 0;min-width:280px;}.cando-dropdown-menu.show{display:block;}.cando-floating-menu{display:block !important;background:var(--md-sys-color-surface-container-highest) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-md) !important;box-shadow:var(--shadow-lg) !important;z-index:999999 !important;padding:6px 0;min-width:260px;box-sizing:border-box;}.cando-menu-item{width:100%;display:flex;align-items:center;gap:10px;padding:8px 14px;border:none;background:none;font-size:0.86rem;font-weight:500;color:var(--text-heading);text-align:left;cursor:pointer;transition:var(--transition);box-sizing:border-box;}.cando-menu-item:hover{background:var(--md-sys-color-surface-container);color:var(--text-heading);}.cando-menu-header{padding:6px 14px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);background:var(--md-sys-color-surface-container-high);border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color);margin:4px 0;}.cando-menu-header:first-child{border-top:none;margin-top:-4px;}.cando-menu-row{padding:6px 14px;display:flex;flex-direction:column;gap:4px;}.cando-menu-row label{font-size:0.78rem;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:5px;}#table2,#can_flt_table{width:100%;border-collapse:separate;border-spacing:0;margin:1rem 0;border:1px solid var(--border-color);border-radius:var(--m3-shape-md);overflow:hidden;}#table2 th,#table2 td,#can_flt_table th,#can_flt_table td{padding:0.75rem 1rem;border-bottom:1px solid var(--border-color);border-right:1px solid var(--border-color);color:var(--text-heading);}#table2 th,#can_flt_table th{background-color:var(--md-sys-color-surface-container-high);font-weight:600;text-align:left;color:var(--text-heading);}#table2 tr:last-child td,#can_flt_table tr:last-child td{border-bottom:none;}#table2 td:last-child,#table2 th:last-child,#can_flt_table td:last-child,#can_flt_table th:last-child{border-right:none;}#table2 tr:nth-child(even){background-color:var(--gray-100);}.sta-net-card{background:var(--white);border:1px solid var(--border-color);border-radius:var(--m3-shape-sm);}.notification-container{position:fixed;top:1rem;right:1.5rem;z-index:100000;padding:0.85rem 1.4rem;font-weight:600;font-size:0.9rem;display:none;border-radius:var(--m3-shape-md);box-shadow:var(--shadow-lg);transition:var(--transition);}.notification-container.show{display:block;}@media (max-width:768px){.sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border-color);}.content{margin-left:0;width:100%;padding:1rem;}.form-table td{display:block;width:100%;}.form-table td:first-child{padding-bottom:0.25rem;}}</style>
+<style>:root{--md-sys-color-primary:#00629e;--md-sys-color-on-primary:#ffffff;--md-sys-color-primary-container:#cfe5ff;--md-sys-color-on-primary-container:#001d35;--md-sys-color-secondary:#526070;--md-sys-color-secondary-container:#d6e4f7;--md-sys-color-on-secondary-container:#0f1d2a;--md-sys-color-tertiary:#695779;--md-sys-color-tertiary-container:#f1dbff;--md-sys-color-on-tertiary-container:#241532;--md-sys-color-error:#ba1a1a;--md-sys-color-error-container:#ffdad6;--md-sys-color-on-error-container:#410002;--md-sys-color-background:#f8f9fa;--md-sys-color-on-background:#191c20;--md-sys-color-surface:#f8f9fa;--md-sys-color-on-surface:#191c20;--md-sys-color-surface-variant:#e0e3e8;--md-sys-color-on-surface-variant:#44474e;--md-sys-color-outline:#74777f;--md-sys-color-outline-variant:#c4c7d0;--md-sys-color-surface-container-lowest:#ffffff;--md-sys-color-surface-container-low:#f2f4f7;--md-sys-color-surface-container:#eceef2;--md-sys-color-surface-container-high:#e6e8ed;--md-sys-color-surface-container-highest:#e0e3e8;--m3-tonal-when-bg:#fff1e5;--m3-tonal-when-border:#fed7aa;--m3-tonal-when-color:#c2410c;--m3-tonal-cond-bg:#e8f2fe;--m3-tonal-cond-border:#bfdbfe;--m3-tonal-cond-color:#0284c7;--m3-tonal-act-bg:#e6f6f2;--m3-tonal-act-border:#a7f3d0;--m3-tonal-act-color:#047857;--m3-tonal-choose-bg:#e0f7fa;--m3-tonal-choose-border:#99f6e4;--m3-tonal-choose-color:#0f766e;--m3-tonal-ifthen-bg:#fffbeb;--m3-tonal-ifthen-border:#fde68a;--m3-tonal-ifthen-color:#b45309;--primary-color:var(--md-sys-color-primary);--primary-light:var(--md-sys-color-primary-container);--primary-dark:#004b7b;--background-color:var(--md-sys-color-background);--white:var(--md-sys-color-surface-container-lowest);--card-bg:var(--md-sys-color-surface-container-lowest);--text-color:var(--md-sys-color-on-surface-variant);--text-heading:var(--md-sys-color-on-surface);--text-muted:var(--md-sys-color-outline);--border-color:var(--md-sys-color-outline-variant);--input-bg:var(--md-sys-color-surface-container-lowest);--input-border:var(--md-sys-color-outline-variant);--gray-100:var(--md-sys-color-surface-container-low);--gray-200:var(--md-sys-color-surface-container);--gray-300:var(--md-sys-color-outline-variant);--gray-400:var(--md-sys-color-outline);--gray-500:#64748b;--gray-600:var(--md-sys-color-on-surface-variant);--gray-700:var(--md-sys-color-on-surface);--shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.03);--shadow-md:0 4px 14px rgba(0,0,0,0.06),0 2px 4px rgba(0,0,0,0.03);--shadow-lg:0 10px 25px rgba(0,0,0,0.1),0 4px 10px rgba(0,0,0,0.05);--transition:all 0.2s cubic-bezier(0.2,0,0,1);--m3-shape-xs:4px;--m3-shape-sm:8px;--m3-shape-md:12px;--m3-shape-lg:16px;--m3-shape-full:9999px;}[data-theme="dark"]{--md-sys-color-primary:#9ecafe;--md-sys-color-on-primary:#003257;--md-sys-color-primary-container:#00497a;--md-sys-color-on-primary-container:#d1e4ff;--md-sys-color-secondary:#bac8db;--md-sys-color-secondary-container:#2b3947;--md-sys-color-on-secondary-container:#d5e4f7;--md-sys-color-tertiary:#d5bee6;--md-sys-color-tertiary-container:#504060;--md-sys-color-on-tertiary-container:#f1dbff;--md-sys-color-error:#ffb4ab;--md-sys-color-error-container:#93000a;--md-sys-color-on-error-container:#ffdad6;--md-sys-color-background:#111318;--md-sys-color-on-background:#e2e2e6;--md-sys-color-surface:#111318;--md-sys-color-on-surface:#e2e2e6;--md-sys-color-surface-variant:#44474e;--md-sys-color-on-surface-variant:#c4c7d0;--md-sys-color-outline:#8e9099;--md-sys-color-outline-variant:#282d36;--md-sys-color-surface-container-lowest:#0c0e13;--md-sys-color-surface-container-low:#171a20;--md-sys-color-surface-container:#1b1f26;--md-sys-color-surface-container-high:#242932;--md-sys-color-surface-container-highest:#2e3440;--m3-tonal-when-bg:#281404;--m3-tonal-when-border:#7c2d12;--m3-tonal-when-color:#fdba74;--m3-tonal-cond-bg:#091c33;--m3-tonal-cond-border:#0369a1;--m3-tonal-cond-color:#93c5fd;--m3-tonal-act-bg:#05241d;--m3-tonal-act-border:#065f46;--m3-tonal-act-color:#6ee7b7;--m3-tonal-choose-bg:#062323;--m3-tonal-choose-border:#115e59;--m3-tonal-choose-color:#5eead4;--m3-tonal-ifthen-bg:#291a03;--m3-tonal-ifthen-border:#854d0e;--m3-tonal-ifthen-color:#fde047;--primary-color:var(--md-sys-color-primary);--primary-light:var(--md-sys-color-primary-container);--primary-dark:#b8d8ff;--background-color:var(--md-sys-color-background);--white:var(--md-sys-color-surface-container);--card-bg:var(--md-sys-color-surface-container);--text-color:var(--md-sys-color-on-surface-variant);--text-heading:var(--md-sys-color-on-surface);--text-muted:var(--md-sys-color-outline);--border-color:var(--md-sys-color-outline-variant);--input-bg:var(--md-sys-color-surface-container-low);--input-border:var(--md-sys-color-outline-variant);--gray-100:var(--md-sys-color-surface-container-low);--gray-200:var(--md-sys-color-surface-container);--gray-300:var(--md-sys-color-surface-container-high);--gray-400:var(--md-sys-color-outline);--gray-500:var(--md-sys-color-outline);--gray-600:var(--md-sys-color-on-surface-variant);--gray-700:var(--md-sys-color-on-surface);--shadow-sm:0 1px 3px rgba(0,0,0,0.4);--shadow-md:0 4px 14px rgba(0,0,0,0.5);--shadow-lg:0 10px 25px rgba(0,0,0,0.6);}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--md-sys-color-primary:#9ecafe;--md-sys-color-on-primary:#003257;--md-sys-color-primary-container:#00497a;--md-sys-color-on-primary-container:#d1e4ff;--md-sys-color-secondary:#bac8db;--md-sys-color-secondary-container:#2b3947;--md-sys-color-on-secondary-container:#d5e4f7;--md-sys-color-tertiary:#d5bee6;--md-sys-color-tertiary-container:#504060;--md-sys-color-on-tertiary-container:#f1dbff;--md-sys-color-error:#ffb4ab;--md-sys-color-error-container:#93000a;--md-sys-color-on-error-container:#ffdad6;--md-sys-color-background:#111318;--md-sys-color-on-background:#e2e2e6;--md-sys-color-surface:#111318;--md-sys-color-on-surface:#e2e2e6;--md-sys-color-surface-variant:#44474e;--md-sys-color-on-surface-variant:#c4c7d0;--md-sys-color-outline:#8e9099;--md-sys-color-outline-variant:#282d36;--md-sys-color-surface-container-lowest:#0c0e13;--md-sys-color-surface-container-low:#171a20;--md-sys-color-surface-container:#1b1f26;--md-sys-color-surface-container-high:#242932;--md-sys-color-surface-container-highest:#2e3440;--m3-tonal-when-bg:#281404;--m3-tonal-when-border:#7c2d12;--m3-tonal-when-color:#fdba74;--m3-tonal-cond-bg:#091c33;--m3-tonal-cond-border:#0369a1;--m3-tonal-cond-color:#93c5fd;--m3-tonal-act-bg:#05241d;--m3-tonal-act-border:#065f46;--m3-tonal-act-color:#6ee7b7;--m3-tonal-choose-bg:#062323;--m3-tonal-choose-border:#115e59;--m3-tonal-choose-color:#5eead4;--m3-tonal-ifthen-bg:#291a03;--m3-tonal-ifthen-border:#854d0e;--m3-tonal-ifthen-color:#fde047;--primary-color:var(--md-sys-color-primary);--primary-light:var(--md-sys-color-primary-container);--primary-dark:#b8d8ff;--background-color:var(--md-sys-color-background);--white:var(--md-sys-color-surface-container);--card-bg:var(--md-sys-color-surface-container);--text-color:var(--md-sys-color-on-surface-variant);--text-heading:var(--md-sys-color-on-surface);--text-muted:var(--md-sys-color-outline);--border-color:var(--md-sys-color-outline-variant);--input-bg:var(--md-sys-color-surface-container-low);--input-border:var(--md-sys-color-outline-variant);--gray-100:var(--md-sys-color-surface-container-low);--gray-200:var(--md-sys-color-surface-container);--gray-300:var(--md-sys-color-surface-container-high);--gray-400:var(--md-sys-color-outline);--gray-500:var(--md-sys-color-outline);--gray-600:var(--md-sys-color-on-surface-variant);--gray-700:var(--md-sys-color-on-surface);--shadow-sm:0 1px 3px rgba(0,0,0,0.4);--shadow-md:0 4px 14px rgba(0,0,0,0.5);--shadow-lg:0 10px 25px rgba(0,0,0,0.6);}}*{box-sizing:border-box;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;display:flex;background-color:var(--background-color);margin:0;overflow-x:hidden;color:var(--text-color);line-height:1.5;-webkit-font-smoothing:antialiased;}.sidebar{height:100vh;width:250px;background-color:var(--md-sys-color-surface-container-low);border-right:1px solid var(--border-color);padding:1.25rem 0.75rem;position:fixed;overflow-y:auto;display:flex;flex-direction:column;box-sizing:border-box;gap:4px;z-index:100;}.sidebar button{background-color:transparent;border:none;outline:none;cursor:pointer;padding:0.75rem 1.1rem;text-align:center;width:100%;border-radius:var(--m3-shape-full);transition:var(--transition);font-size:0.9rem;font-weight:500;color:var(--md-sys-color-on-surface-variant);display:flex;align-items:center;justify-content:center;gap:0.75rem;box-sizing:border-box;}.sidebar button:hover{background-color:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface);}.sidebar button.active{background-color:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font-weight:700;}.logo{width:78%;max-width:100%;height:auto;display:block;margin:1.5rem auto 1rem;padding:0;}.content{margin-left:250px;padding:2rem;width:calc(100% - 250px);max-width:1240px;}.tabcontent{display:none;padding:2rem;border-radius:var(--m3-shape-lg);background-color:var(--white);border:1px solid var(--border-color);box-shadow:var(--shadow-sm);margin-bottom:2rem;}.section-title{font-size:1.35rem;font-weight:700;margin:0 0 1.25rem;color:var(--text-heading);padding-bottom:0.6rem;border-bottom:1px solid var(--border-color);letter-spacing:-0.01em;}.divider{margin:1.5rem 0;border-bottom:1px solid var(--border-color);}.form-table{width:100%;border-collapse:separate;border-spacing:0 0.5rem;font-weight:500;}.form-table td{padding:0.6rem 0.75rem;vertical-align:middle;color:var(--text-color);}.form-table td:first-child{width:38%;font-weight:500;color:var(--text-heading);}.compact-form-table{width:100%;border-collapse:separate;border-spacing:0 4px;}.compact-form-table td{padding:4px 6px;vertical-align:middle;font-size:0.85rem;color:var(--text-color);}.compact-form-table td:first-child{width:25%;font-weight:600;color:var(--text-heading);white-space:nowrap;}input,input[type="text"],input[type="password"],input[type="number"],select{width:100%;padding:0.6rem 0.85rem;border:1px solid var(--border-color);border-radius:var(--m3-shape-sm);font-size:0.9rem;transition:var(--transition);background-color:var(--input-bg);color:var(--text-heading);outline:none;box-sizing:border-box;}input:focus,input[type="text"]:focus,input[type="password"]:focus,input[type="number"]:focus,select:focus{border-color:var(--md-sys-color-primary);box-shadow:0 0 0 3px rgba(0,98,158,0.18);}[data-theme="dark"] input:focus,[data-theme="dark"] select:focus{box-shadow:0 0 0 3px rgba(158,202,254,0.22);}input:disabled,select:disabled,input:read-only:not(.editable-readonly),input[readonly]:not(.editable-readonly){background-color:var(--md-sys-color-surface-container-low) !important;color:var(--text-muted) !important;border-color:var(--border-color) !important;cursor:not-allowed;}select option,select optgroup{background-color:var(--input-bg);color:var(--text-heading);}.slider-container{display:flex;align-items:center;gap:12px;color:var(--text-heading);}input[type="range"]{width:100%;accent-color:var(--md-sys-color-primary);background:var(--gray-200);border-radius:var(--m3-shape-full);height:6px;cursor:pointer;}input[type="checkbox"]{width:1.15rem;height:1.15rem;accent-color:var(--md-sys-color-primary);cursor:pointer;margin:0 0.4rem 0 0;vertical-align:middle;}button,input[type="button"],.system-button,.store{padding:0.55rem 1.25rem;border:1px solid transparent;border-radius:var(--m3-shape-full);background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);font-size:0.88rem;font-weight:600;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:0.45rem;box-sizing:border-box;text-decoration:none;}button:hover,input[type="button"]:hover,.system-button:hover,.store:hover{opacity:0.92;box-shadow:var(--shadow-sm);}button:disabled,input[type="button"]:disabled,.system-button:disabled,.store:disabled{background-color:var(--gray-200) !important;color:var(--text-muted) !important;border-color:var(--border-color) !important;cursor:not-allowed;opacity:0.7;box-shadow:none;}.delete-btn,button.delete-btn{background-color:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;border-radius:var(--m3-shape-sm);font-weight:600;}.delete-btn:hover,button.delete-btn:hover{opacity:0.88;}button[onclick*="moveCando"],.cando-rule-card button.system-button[title*="Move"],.cando-rule-card button.system-button[title*="move"]{border-radius:var(--m3-shape-sm);padding:0;width:26px;height:26px;background:var(--md-sys-color-surface-container-high);color:var(--text-heading);border:1px solid var(--border-color);}button[onclick*="moveCando"]:hover,.cando-rule-card button.system-button[title*="Move"]:hover{background:var(--md-sys-color-surface-container-highest);border-color:var(--md-sys-color-outline);}.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.25rem;margin-bottom:1.75rem;}.dash-card{background:var(--card-bg,var(--white));border:1px solid var(--border-color);border-radius:var(--m3-shape-lg);padding:1.4rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;justify-content:space-between;transition:var(--transition);}[data-theme="dark"] .dash-card{background:var(--md-sys-color-surface-container-high);border-color:var(--md-sys-color-outline-variant);}.dash-card:hover{box-shadow:var(--shadow-md);border-color:var(--md-sys-color-outline);}.dash-card-header{display:flex;align-items:center;justify-content:space-between;font-size:0.95rem;font-weight:700;color:var(--text-heading);margin-bottom:0.85rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border-color);}.dash-metric-row{display:flex;align-items:baseline;gap:8px;margin-bottom:0.5rem;}.dash-metric-val{font-size:1.9rem;font-weight:800;color:var(--text-heading);font-family:monospace;line-height:1.1;}.dash-metric-label{font-size:0.8rem;color:var(--text-muted);font-weight:500;}.dash-subtext{font-size:0.82rem;color:var(--text-color);margin-bottom:0.4rem;}.dash-meta-text{font-size:0.76rem;color:var(--text-muted);}.dash-kv-list{font-size:0.84rem;display:flex;flex-direction:column;gap:0.35rem;margin-bottom:0.6rem;}.dash-kv-row{display:flex;justify-content:space-between;align-items:center;}.dash-kv-label{color:var(--text-muted);}.dash-kv-val{color:var(--text-heading);font-weight:600;}.dash-badge{font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:var(--m3-shape-full);letter-spacing:0.02em;}.badge-green{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;}[data-theme="dark"] .badge-green{background:#052e16;color:#86efac;border-color:#166534;}.badge-blue{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}[data-theme="dark"] .badge-blue{background:#172554;color:#93c5fd;border-color:#1e40af;}.badge-yellow{background:#fef9c3;color:#854d0e;border:1px solid #fef08a;}[data-theme="dark"] .badge-yellow{background:#422006;color:#fde047;border-color:#854d0e;}.badge-red{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}[data-theme="dark"] .badge-red{background:#450a0a;color:#fca5a5;border-color:#991b1b;}.badge-gray{background:var(--md-sys-color-surface-container-high);color:var(--text-muted);border:1px solid var(--border-color);}.dash-pill{font-size:0.78rem;font-weight:600;padding:3px 10px;border-radius:var(--m3-shape-sm);}.dash-pill-primary{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border:1px solid var(--md-sys-color-outline-variant);}.dash-pill-neutral{background:var(--md-sys-color-surface-container-high);color:var(--text-color);border:1px solid var(--border-color);}.dash-progress-track{width:100%;height:8px;background:var(--md-sys-color-surface-container-highest);border-radius:var(--m3-shape-full);overflow:hidden;}.dash-progress-fill{height:100%;border-radius:var(--m3-shape-full);transition:width 0.4s ease,background 0.4s ease;}.dash-action-btn{border-radius:var(--m3-shape-full);font-weight:700;padding:0.55rem 1.25rem;cursor:pointer;border:1px solid transparent;background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);box-shadow:var(--shadow-sm);transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:6px;}.dash-action-btn:hover{opacity:0.92;box-shadow:var(--shadow-md);transform:translateY(-1px);}.dash-action-btn.btn-danger{background-color:var(--md-sys-color-error) !important;color:var(--md-sys-color-on-error) !important;border-color:var(--md-sys-color-error) !important;}.dash-outline-btn{border:1px solid var(--border-color);background:var(--md-sys-color-surface-container-low);color:var(--text-heading);border-radius:var(--m3-shape-full);font-weight:600;padding:0.4rem 1rem;transition:var(--transition);}.dash-outline-btn:hover{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:var(--md-sys-color-primary);}.pid-entry,.cando-rule-card{border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-lg) !important;padding:1.35rem;margin-bottom:1.6rem;background-color:var(--card-bg) !important;box-shadow:var(--shadow-sm);transition:var(--transition);}[data-theme="dark"] .cando-rule-card,[data-theme="dark"] .pid-entry{background-color:var(--md-sys-color-surface-container-high) !important;border:1px solid var(--md-sys-color-outline-variant) !important;box-shadow:0 4px 16px rgba(0,0,0,0.35);}.cando-rule-card:hover{box-shadow:var(--shadow-md);border-color:var(--md-sys-color-outline) !important;transform:translateY(-1px);}[data-theme="dark"] .cando-rule-card:hover{border-color:var(--md-sys-color-outline) !important;box-shadow:0 6px 20px rgba(0,0,0,0.45);}.pid-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;border-bottom:1px solid var(--border-color);padding-bottom:0.6rem;cursor:pointer;}.hidden{display:none !important;}.cando-name{font-size:1rem;font-weight:700;color:var(--text-heading) !important;border:1.5px solid var(--border-color) !important;background:var(--input-bg) !important;padding:4px 10px 4px 30px !important;border-radius:var(--m3-shape-sm);width:100%;transition:var(--transition);}.cando-name:focus{border-color:var(--md-sys-color-primary) !important;box-shadow:0 0 0 3px rgba(37,99,235,0.2) !important;}.cando-summary-pill{margin-left:2rem;font-size:0.76rem;color:var(--text-muted);display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;}.cando-summary-val{color:var(--text-heading);}.cando-activity-badge{padding:2px 8px;border-radius:var(--m3-shape-sm);font-size:0.72rem;font-weight:700;background:var(--gray-100);color:var(--text-muted);border:1px solid var(--border-color);font-family:monospace;transition:var(--transition);white-space:nowrap;}.cando-section-box{border:1px solid var(--border-color) !important;background:var(--md-sys-color-surface-container-low) !important;padding:0.9rem 1.1rem 0 1.1rem;border-radius:var(--m3-shape-md);margin-bottom:1rem;overflow:hidden;}.cando-trigger-item,.cando-condition-item,.cando-action-item{background:var(--white) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-md);padding:0.9rem;box-shadow:var(--shadow-sm);color:var(--text-color) !important;}.cando-trigger-item>div:first-child,.cando-condition-item>div:first-child,.cando-action-item>div:first-child{border-bottom:1px dashed var(--border-color) !important;}.cando-section-box span[style*="color:#c2410c"]{color:var(--m3-tonal-when-color) !important;}.cando-section-box span[style*="color:#1d4ed8"],.cando-section-box span[style*="color:#2563eb"]{color:var(--m3-tonal-cond-color) !important;}.cando-section-box span[style*="color:#047857"]{color:var(--m3-tonal-act-color) !important;}.cando-trig-count-badge{background:var(--m3-tonal-when-bg) !important;color:var(--m3-tonal-when-color) !important;border:1px solid var(--m3-tonal-when-border) !important;}.cando-cond-count-badge{background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;}.cando-act-count-badge{background:var(--m3-tonal-act-bg) !important;color:var(--m3-tonal-act-color) !important;border:1px solid var(--m3-tonal-act-border) !important;}button[onclick*="showCreateConditionBlockMenu"],button[onclick*="showWrapConditionMenu"]{background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;border-radius:var(--m3-shape-sm);}button[onclick*="showCreateConditionBlockMenu"]:hover,button[onclick*="showWrapConditionMenu"]:hover{opacity:0.88;}.cando-section-box button[onclick*="addCandoTriggerItem"],.cando-section-box button[onclick*="showAddConditionMenu"],.cando-section-box button[onclick*="showAddActionMenu"],.cando-attached-add-btn,.cando-group-add-btn,button[onclick*="addCandoOptionToChooseBlock"],button[data-branch="then"],button[data-branch="else"],button[onclick*="addCandoPayloadStep"]{background:var(--md-sys-color-surface-container-low) !important;color:var(--md-sys-color-primary) !important;border:none !important;border-top:1px dashed var(--border-color) !important;border-radius:0 !important;font-weight:700;cursor:pointer;transition:var(--transition);display:flex !important;align-items:center !important;justify-content:center !important;text-align:center !important;width:100% !important;padding:0.55rem 1rem !important;gap:0.4rem !important;box-sizing:border-box !important;}.cando-section-box button[onclick*="addCandoTriggerItem"]:hover,.cando-section-box button[onclick*="showAddConditionMenu"]:hover,.cando-section-box button[onclick*="showAddActionMenu"]:hover,.cando-attached-add-btn:hover,.cando-group-add-btn:hover,button[onclick*="addCandoOptionToChooseBlock"]:hover,button[data-branch="then"]:hover,button[data-branch="else"]:hover,button[onclick*="addCandoPayloadStep"]:hover{background:var(--md-sys-color-surface-container-highest) !important;border-top-color:var(--md-sys-color-primary) !important;color:var(--md-sys-color-primary) !important;}.cando-condition-group,.cando-condition-block{border-radius:var(--m3-shape-md);padding:0.9rem;box-shadow:var(--shadow-sm);border:1.5px dashed var(--border-color);background:var(--md-sys-color-surface-container-high);}.cando-condition-group[data-group-type="and"],.cando-condition-block[data-group-type="and"]{background:var(--m3-tonal-cond-bg) !important;border-color:var(--m3-tonal-cond-border) !important;}.cando-condition-group[data-group-type="or"],.cando-condition-block[data-group-type="or"]{background:var(--md-sys-color-tertiary-container) !important;border-color:var(--md-sys-color-tertiary) !important;}.cando-condition-group[data-group-type="not"],.cando-condition-block[data-group-type="not"]{background:var(--md-sys-color-error-container) !important;border-color:var(--md-sys-color-error) !important;}.cando-group-conditions-box,.cando-opt-actions-box,.cando-ifthen-conditions-box,.cando-ifthen-then-box,.cando-ifthen-else-box,.cando-payload-steps-box{background:var(--white) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-sm) !important;overflow:hidden;box-shadow:var(--shadow-sm);}.cando-group-conditions-container,.cando-opt-actions-container,.cando-ifthen-conditions-container,.cando-ifthen-then-container,.cando-ifthen-else-container{background:transparent !important;border:none !important;padding:0.65rem;}.cando-choose-block{background:var(--m3-tonal-choose-bg) !important;border:1.5px dashed var(--m3-tonal-choose-border) !important;border-radius:var(--m3-shape-md);padding:0.9rem 1.1rem;overflow:hidden;}.cando-choose-block>div:first-child{border-bottom:1px dashed var(--m3-tonal-choose-border) !important;}.cando-choose-option-item{background:var(--white) !important;border:1px solid var(--m3-tonal-choose-border) !important;border-radius:var(--m3-shape-sm);padding:0.8rem;}.cando-choose-option-item>div:first-child{border-bottom:1px dashed var(--m3-tonal-choose-border) !important;}.cando-opt-actions-container{background:transparent !important;}.cando-choose-convert-banner{background:var(--m3-tonal-choose-bg) !important;border:1px dashed var(--m3-tonal-choose-border) !important;border-radius:var(--m3-shape-sm);color:var(--m3-tonal-choose-color) !important;}.cando-ifthen-block{background:var(--m3-tonal-ifthen-bg) !important;border:1.5px dashed var(--m3-tonal-ifthen-border) !important;border-radius:var(--m3-shape-md);padding:0.9rem 1.1rem;}.cando-ifthen-block>div:first-child{border-bottom:1px dashed var(--m3-tonal-ifthen-border) !important;}.cando-btn-move,button[onclick*="moveCandoItem"],button[onclick*="moveStep"]{height:26px !important;width:26px !important;padding:0 !important;font-size:0.75rem !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--md-sys-color-surface-container-high) !important;color:var(--text-color) !important;border:1px solid var(--border-color) !important;transition:var(--transition) !important;}.cando-btn-move:hover,button[onclick*="moveCandoItem"]:hover,button[onclick*="moveStep"]:hover{background:var(--md-sys-color-surface-container-highest) !important;color:var(--text-heading) !important;}.cando-btn-sim-trig,button[onclick*="testCandoTriggerUI"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-when-bg) !important;color:var(--m3-tonal-when-color) !important;border:1px solid var(--m3-tonal-when-border) !important;transition:var(--transition) !important;}.cando-btn-test-cond,button[onclick*="testCandoConditionUI"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;transition:var(--transition) !important;}.cando-btn-test-act,button[onclick*="testCandoActionUI"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-act-bg) !important;color:var(--m3-tonal-act-color) !important;border:1px solid var(--m3-tonal-act-border) !important;transition:var(--transition) !important;}.cando-btn-create-block,button[onclick*="showCreateConditionBlockMenu"],button[onclick*="showWrapConditionMenu"]{height:26px !important;padding:0 9px !important;font-size:0.75rem !important;font-weight:700 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;transition:var(--transition) !important;}.delete-btn,button.delete-btn{height:26px !important;padding:0 8px !important;font-size:0.75rem !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;margin:0 !important;background:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;transition:var(--transition) !important;}.cando-step-btn-move{padding:1px 5px !important;font-size:0.7rem !important;background:var(--m3-tonal-act-bg) !important;color:var(--m3-tonal-act-color) !important;border:1px solid var(--m3-tonal-act-border) !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;}.cando-step-btn-del{padding:1px 6px !important;font-size:0.7rem !important;background:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;font-weight:600 !important;cursor:pointer !important;border-radius:var(--m3-shape-xs) !important;margin:0 0 0 0.2rem !important;}.cando-step-repeat{width:46px !important;height:24px !important;text-align:center !important;padding:2px 4px !important;border-radius:var(--m3-shape-xs) !important;border:1px solid var(--m3-tonal-act-border) !important;background:var(--input-bg) !important;color:var(--text-heading) !important;}.cando-preset-toolbar-wrap{display:flex;flex-direction:column;gap:0.45rem;max-width:475px;width:100%;}.cando-preset-action-bar{display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;}.cando-preset-action-bar button,button[onclick*="saveCurrentActionAsPreset"],button[onclick*="saveCurrentTriggerAsPreset"],button[onclick*="saveCurrentConditionAsPreset"],.cando-save-preset-btn,.cando-edit-preset-btn,.cando-del-preset-btn{height:32px !important;padding:0 12px !important;font-size:0.8rem !important;font-weight:600 !important;border-radius:var(--m3-shape-xs) !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;gap:0.3rem !important;flex-shrink:0 !important;white-space:nowrap !important;cursor:pointer !important;box-sizing:border-box !important;transition:var(--transition) !important;}.cando-edit-preset-btn{background:var(--m3-tonal-cond-bg) !important;color:var(--m3-tonal-cond-color) !important;border:1px solid var(--m3-tonal-cond-border) !important;}.cando-edit-preset-btn:hover{filter:brightness(0.95);}.cando-save-preset-btn{background:var(--m3-tonal-ifthen-bg) !important;color:var(--m3-tonal-ifthen-color) !important;border:1px solid var(--m3-tonal-ifthen-border) !important;}.cando-save-preset-btn:hover{filter:brightness(0.95);}.cando-del-preset-btn{background:var(--md-sys-color-error-container) !important;color:var(--md-sys-color-on-error-container) !important;border:1px solid var(--md-sys-color-error) !important;}.cando-del-preset-btn:hover{filter:brightness(0.95);}.compact-form-table select,.compact-form-table input[type="text"]:not([class*="-byte"]):not(.cando-trig-for-sec):not(.cando-step-repeat):not(.cando-act-target-temp):not(.cando-trig-id):not(.cando-ha-icon),.compact-form-table input[type="number"]:not([class*="-byte"]):not(.cando-trig-for-sec):not(.cando-step-repeat):not(.cando-act-target-temp):not(.cando-trig-id),.cando-trig-preset-picker,.cando-act-preset-picker,.cando-cond-preset-picker,.cando-trig-source,.cando-act-type,.cando-cond-type,.cando-exec-mode,.cando-trig-bus,.cando-act-bus,.cando-trig-voltage-dir,.cando-act-precon-press{width:100% !important;max-width:475px !important;min-width:0 !important;height:45px !important;font-size:0.92rem !important;padding:0 14px !important;box-sizing:border-box !important;}.cando-trig-id{background-color:var(--input-bg) !important;color:var(--text-heading) !important;border:1px solid var(--border-color) !important;}select.cando-group-type{width:140px !important;max-width:100% !important;height:30px !important;font-size:0.82rem !important;padding:0 8px !important;}select.cando-opt-trig-id{width:auto !important;max-width:220px !important;min-width:140px !important;height:30px !important;font-size:0.8rem !important;padding:0 8px !important;background-color:var(--input-bg) !important;color:var(--text-heading) !important;border:1px solid var(--border-color) !important;}.cando-connector-pill,.cando-connector-divider span[style*="background:"]{border-radius:var(--m3-shape-full) !important;font-weight:800 !important;color:#ffffff !important;}input[class*="-byte"],.byte-input,.cando-trig-byte,.cando-verify-byte,.cando-act-byte,.cando-cond-byte{background-color:var(--input-bg) !important;color:var(--text-heading) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-xs) !important;}.cando-payload-step-item{background:var(--m3-tonal-act-bg) !important;border:1px solid var(--m3-tonal-act-border) !important;border-radius:var(--m3-shape-sm);padding:0.55rem 0.8rem;}.cando-payload-step-item .cando-step-label{color:var(--m3-tonal-act-color) !important;}.cando-settings-dropdown{position:relative;display:inline-block;}.cando-dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--md-sys-color-surface-container-highest);border:1px solid var(--border-color);border-radius:var(--m3-shape-md);box-shadow:var(--shadow-lg);z-index:10000;padding:6px 0;min-width:280px;}.cando-dropdown-menu.show{display:block;}.cando-floating-menu{display:block !important;background:var(--md-sys-color-surface-container-highest) !important;border:1px solid var(--border-color) !important;border-radius:var(--m3-shape-md) !important;box-shadow:var(--shadow-lg) !important;z-index:999999 !important;padding:6px 0;min-width:260px;box-sizing:border-box;}.cando-menu-item{width:100%;display:flex;align-items:center;gap:10px;padding:8px 14px;border:none;background:none;font-size:0.86rem;font-weight:500;color:var(--text-heading);text-align:left;cursor:pointer;transition:var(--transition);box-sizing:border-box;}.cando-menu-item:hover{background:var(--md-sys-color-surface-container);color:var(--text-heading);}.cando-menu-header{padding:6px 14px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);background:var(--md-sys-color-surface-container-high);border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color);margin:4px 0;}.cando-menu-header:first-child{border-top:none;margin-top:-4px;}.cando-menu-row{padding:6px 14px;display:flex;flex-direction:column;gap:4px;}.cando-menu-row label{font-size:0.78rem;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:5px;}#table2,#can_flt_table{width:100%;border-collapse:separate;border-spacing:0;margin:1rem 0;border:1px solid var(--border-color);border-radius:var(--m3-shape-md);overflow:hidden;}#table2 th,#table2 td,#can_flt_table th,#can_flt_table td{padding:0.75rem 1rem;border-bottom:1px solid var(--border-color);border-right:1px solid var(--border-color);color:var(--text-heading);}#table2 th,#can_flt_table th{background-color:var(--md-sys-color-surface-container-high);font-weight:600;text-align:left;color:var(--text-heading);}#table2 tr:last-child td,#can_flt_table tr:last-child td{border-bottom:none;}#table2 td:last-child,#table2 th:last-child,#can_flt_table td:last-child,#can_flt_table th:last-child{border-right:none;}#table2 tr:nth-child(even){background-color:var(--gray-100);}.sta-net-card{background:var(--white);border:1px solid var(--border-color);border-radius:var(--m3-shape-sm);}.notification-container{position:fixed;top:1rem;right:1.5rem;z-index:100000;padding:0.85rem 1.4rem;font-weight:600;font-size:0.9rem;display:none;border-radius:var(--m3-shape-md);box-shadow:var(--shadow-lg);transition:var(--transition);}.notification-container.show{display:block;}@media (max-width:768px){.sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border-color);}.content{margin-left:0;width:100%;padding:1rem;}.form-table td{display:block;width:100%;}.form-table td:first-child{padding-bottom:0.25rem;}}</style>
 </head>
 <body onload="Load();">
 <div class="sidebar">
@@ -28,9 +28,12 @@ document.documentElement.setAttribute("data-theme", "light");
 <button class="tablinks" onclick="openTab(event, 'connectivity_tab')">🌐 <b>Connectivity</b></button>
 <button class="tablinks" onclick="openTab(event, 'can_hardware_tab')">🔌 <b>CAN &amp; Hardware</b></button>
 <button class="tablinks" onclick="openTab(event, 'system_tab')">⚙️ <b>System &amp; Power</b></button>
-<div style="padding: 1rem 1.2rem; margin-top: auto; border-top: 1px solid var(--border-color, var(--gray-200));">
-<label for="theme_select" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted, var(--gray-600)); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;">Theme:</label>
-<select id="theme_select" onchange="setAppTheme(this.value);" style="padding: 5px 8px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; background: var(--input-bg); color: var(--text-heading, var(--gray-700)); border: 1px solid var(--input-border, var(--gray-300)); width: 100%;">
+<div
+style="padding: 1rem 1.2rem; margin-top: auto; border-top: 1px solid var(--border-color, var(--gray-200));">
+<label for="theme_select"
+style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted, var(--gray-600)); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;">Theme:</label>
+<select id="theme_select" onchange="setAppTheme(this.value);"
+style="padding: 5px 8px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; background: var(--input-bg); color: var(--text-heading, var(--gray-700)); border: 1px solid var(--input-border, var(--gray-300)); width: 100%;">
 <option value="system">💻 System Auto</option>
 <option value="light">☀️ Light</option>
 <option value="dark">🌙 Dark</option>
@@ -40,15 +43,21 @@ document.documentElement.setAttribute("data-theme", "light");
 <div class="content">
 <div id="notification" class="notification-container"></div>
 <div id="dashboard_tab" class="tabcontent">
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
+<div
+style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
 <div>
-<div class="section-title" style="margin: 0; border-bottom: none; padding-bottom: 0;">Live Dashboard</div>
-<div style="font-size: 0.82rem; color: #64748b; margin-top: 2px;">Real-time vehicle telemetry, power, and connectivity overview</div>
+<div class="section-title" style="margin: 0; border-bottom: none; padding-bottom: 0;">Live Dashboard
+</div>
+<div class="dash-meta-text" style="margin-top: 2px;">Real-time vehicle telemetry,
+power, and connectivity overview</div>
 </div>
 <div style="display: flex; align-items: center; gap: 0.6rem;">
-<span id="dash_profile_pill" class="dash-pill" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">🚗 All Gen5W</span>
-<span id="dash_time_pill" class="dash-pill" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">🕒 --:--:--</span>
-<button type="button" onclick="checkStatus(); showNotification('Refreshing dashboard telemetry...', 'blue', 1500);" class="system-button" style="padding: 4px 10px; font-size: 0.8rem; font-weight: 600; background: #2563eb; color: #ffffff; border: none; border-radius: 6px; cursor: pointer;">🔄 Refresh</button>
+<span id="dash_profile_pill" class="dash-pill dash-pill-primary">🚗 All Gen5W</span>
+<span id="dash_time_pill" class="dash-pill dash-pill-neutral">🕒 --:--:--</span>
+<button type="button"
+onclick="checkStatus(); showNotification('Refreshing dashboard telemetry...', 'blue', 1500);"
+class="dash-action-btn"
+style="padding: 4px 12px; font-size: 0.8rem; height: auto;">🔄 Refresh</button>
 </div>
 </div>
 <div class="dash-grid">
@@ -60,14 +69,16 @@ document.documentElement.setAttribute("data-theme", "light");
 </span>
 <span id="dash_batt_status_badge" class="dash-badge badge-green">Healthy</span>
 </div>
-<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.5rem;">
-<span id="dash_batt_voltage_val" style="font-size: 1.9rem; font-weight: 800; color: #0f172a; font-family: monospace;">--.- V</span>
-<span style="font-size: 0.8rem; color: #64748b;">Aux Voltage</span>
+<div class="dash-metric-row">
+<span id="dash_batt_voltage_val" class="dash-metric-val">--.- V</span>
+<span class="dash-metric-label">Aux Voltage</span>
 </div>
 <div class="dash-progress-track" style="margin-bottom: 0.6rem;">
-<div id="dash_batt_gauge" class="dash-progress-fill" style="width: 75%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+<div id="dash_batt_gauge" class="dash-progress-fill"
+style="width: 75%; background: linear-gradient(90deg, #10b981, #059669);"></div>
 </div>
-<div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #64748b; margin-bottom: 0.8rem;">
+<div
+style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.8rem;">
 <span>Low (&lt;12.0V)</span>
 <span>Normal (12.6V)</span>
 <span>Charging (14.2V+)</span>
@@ -82,14 +93,21 @@ document.documentElement.setAttribute("data-theme", "light");
 </span>
 <span id="dash_hv_state_badge" class="dash-badge badge-blue">CAN Active</span>
 </div>
-<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.5rem;">
-<span id="dash_hv_temp_val" style="font-size: 1.9rem; font-weight: 800; color: #0f172a; font-family: monospace;">--.- °C</span>
-<span id="dash_hv_temp_unit_label" style="font-size: 0.8rem; color: #64748b;">Cell Temp</span>
+<div
+style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.5rem;">
+<div style="display: flex; align-items: baseline; gap: 8px;">
+<span id="dash_hv_temp_val" class="dash-metric-val">--.- °C</span>
+<span id="dash_hv_temp_unit_label" class="dash-metric-label">Cell Temp</span>
 </div>
-<div id="dash_hv_subtext" style="font-size: 0.82rem; color: #475569; margin-bottom: 0.4rem;">
+<div style="display: flex; align-items: baseline; gap: 6px;">
+<span id="dash_hv_soc_val" class="dash-metric-val" style="font-size: 1.6rem;">--%</span>
+<span class="dash-metric-label">SoC</span>
+</div>
+</div>
+<div id="dash_hv_subtext" class="dash-subtext">
 Waiting for CAN bus telemetry...
 </div>
-<div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.8rem;">
+<div class="dash-meta-text" style="margin-bottom: 0.8rem;">
 Optimal fast charging gate: &gt; 21.0 °C (70 °F)
 </div>
 </div>
@@ -103,15 +121,16 @@ Optimal fast charging gate: &gt; 21.0 °C (70 °F)
 <span id="dash_precon_badge" class="dash-badge badge-gray">Inactive</span>
 </div>
 <div style="margin-bottom: 0.8rem;">
-<div style="font-size: 0.84rem; color: #334155; margin-bottom: 0.4rem;">
+<div style="font-size: 0.84rem; color: var(--text-heading); margin-bottom: 0.4rem;">
 State: <strong id="dash_precon_state_label">Idle / Standby</strong>
 </div>
-<div style="font-size: 0.78rem; color: #64748b;">
+<div class="dash-meta-text">
 Heats HV traction battery pack to optimal DC fast charging temperature.
 </div>
 </div>
 </div>
-<button type="button" id="dash_precon_toggle_btn" onclick="preconActivate()" class="dash-action-btn" style="width: 100%;">
+<button type="button" id="dash_precon_toggle_btn" onclick="preconActivate()" class="dash-action-btn"
+style="width: 100%;">
 ⚡ Activate Preconditioning
 </button>
 </div>
@@ -123,15 +142,16 @@ Heats HV traction battery pack to optimal DC fast charging temperature.
 </span>
 <span id="dash_cando_badge" class="dash-badge badge-green">Ready</span>
 </div>
-<div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.4rem;">
-<span id="dash_cando_count_val" style="font-size: 1.9rem; font-weight: 800; color: #0f172a;">--</span>
-<span style="font-size: 0.8rem; color: #64748b;">Configured Automations</span>
+<div class="dash-metric-row" style="margin-bottom: 0.4rem;">
+<span id="dash_cando_count_val" class="dash-metric-val">--</span>
+<span class="dash-metric-label">Configured Automations</span>
 </div>
-<div id="dash_cando_last_activity" style="font-size: 0.82rem; color: #475569; margin-bottom: 0.8rem;">
+<div id="dash_cando_last_activity" class="dash-subtext" style="margin-bottom: 0.8rem;">
 Monitoring CAN bus triggers in background
 </div>
 </div>
-<button type="button" onclick="openTab(event, 'automate')" class="dash-outline-btn" style="width: 100%; cursor: pointer;">
+<button type="button" onclick="openTab(event, 'automate')" class="dash-outline-btn"
+style="width: 100%; cursor: pointer;">
 Open Automation Rules ➔
 </button>
 </div>
@@ -143,22 +163,23 @@ Open Automation Rules ➔
 </span>
 <span id="dash_net_badge" class="dash-badge badge-blue">AP Mode</span>
 </div>
-<div style="font-size: 0.84rem; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.6rem;">
-<div style="display: flex; justify-content: space-between;">
-<span style="color: var(--text-muted);">Mode:</span>
-<strong id="dash_wifi_mode_text">AP</strong>
+<div class="dash-kv-list">
+<div class="dash-kv-row">
+<span class="dash-kv-label">Mode:</span>
+<strong id="dash_wifi_mode_text" class="dash-kv-val">AP</strong>
 </div>
-<div style="display: flex; justify-content: space-between;">
-<span style="color: var(--text-muted);">Station IP:</span>
-<strong id="dash_sta_ip_text" style="font-family: monospace;">192.168.3.1</strong>
+<div class="dash-kv-row">
+<span class="dash-kv-label">Station IP:</span>
+<strong id="dash_sta_ip_text" class="dash-kv-val" style="font-family: monospace;">192.168.3.1</strong>
 </div>
-<div style="display: flex; justify-content: space-between;">
-<span style="color: var(--text-muted);">MQTT Broker:</span>
-<strong id="dash_mqtt_status_text">Checking...</strong>
+<div class="dash-kv-row">
+<span class="dash-kv-label">MQTT Broker:</span>
+<strong id="dash_mqtt_status_text" class="dash-kv-val">Checking...</strong>
 </div>
 </div>
 </div>
-<button type="button" onclick="openTab(event, 'connectivity_tab')" class="dash-outline-btn" style="width: 100%; cursor: pointer;">
+<button type="button" onclick="openTab(event, 'connectivity_tab')" class="dash-outline-btn"
+style="width: 100%; cursor: pointer;">
 Configure Networks ➔
 </button>
 </div>
@@ -170,22 +191,23 @@ Configure Networks ➔
 </span>
 <span id="dash_can_state_badge" class="dash-badge badge-green">500K</span>
 </div>
-<div style="font-size: 0.84rem; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.6rem;">
-<div style="display: flex; justify-content: space-between;">
-<span style="color: var(--text-muted);">CAN Bitrate:</span>
-<strong id="dash_can_bitrate_text">500K (Normal)</strong>
+<div class="dash-kv-list">
+<div class="dash-kv-row">
+<span class="dash-kv-label">CAN Bitrate:</span>
+<strong id="dash_can_bitrate_text" class="dash-kv-val">500K (Normal)</strong>
 </div>
-<div style="display: flex; justify-content: space-between;">
-<span style="color: var(--text-muted);">Port / Protocol:</span>
-<strong id="dash_port_proto_text">3333 (TCP)</strong>
+<div class="dash-kv-row">
+<span class="dash-kv-label">Port / Protocol:</span>
+<strong id="dash_port_proto_text" class="dash-kv-val">3333 (TCP)</strong>
 </div>
-<div style="display: flex; justify-content: space-between;">
-<span style="color: var(--text-muted);">Firmware:</span>
-<strong id="dash_fw_ver_text">v1.00</strong>
+<div class="dash-kv-row">
+<span class="dash-kv-label">Firmware:</span>
+<strong id="dash_fw_ver_text" class="dash-kv-val">v1.00</strong>
 </div>
 </div>
 </div>
-<button type="button" onclick="openTab(event, 'monitor')" class="dash-outline-btn" style="width: 100%; cursor: pointer;">
+<button type="button" onclick="openTab(event, 'monitor')" class="dash-outline-btn"
+style="width: 100%; cursor: pointer;">
 Launch CAN Sniffer ➔
 </button>
 </div>
@@ -201,6 +223,7 @@ Launch CAN Sniffer ➔
 <div id="port_type_status">TCP</div>
 <div id="port_status">3333</div>
 <div id="batt_voltage">12.8V</div>
+<div id="battery_soc_status">Waiting for CAN data</div>
 <div id="battery_temp_status">Waiting for CAN data</div>
 <div id="precondition_requested_status">Loading...</div>
 <div id="precondition_active_status">Loading...</div>
@@ -210,15 +233,25 @@ Launch CAN Sniffer ➔
 </div>
 <div id="automate" class="tabcontent">
 <div class="section-title" style="margin-top:0.5rem;">🤖 CAN Do</div>
-<div style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+<div
+style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
 <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-<span id="cando_capture_active_badge" style="display: none; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; animation: pulse 2s infinite;" title="WiCAN detected an active SavvyCAN/GVRET sniffer connection on port 23. Automations are temporarily paused to keep your trace capture clean.">🕵🏼 Sniffer Active - Automations Paused</span>
+<span id="cando_capture_active_badge"
+style="display: none; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; animation: pulse 2s infinite;"
+title="WiCAN detected an active SavvyCAN/GVRET sniffer connection on port 23. Automations are temporarily paused to keep your trace capture clean.">🕵🏼
+Sniffer Active - Automations Paused</span>
 </div>
 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-<input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 160px; margin: 0;">
-<button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)" style="margin: 0; padding: 6px 16px; font-size: 0.85rem; font-weight: 700; background: #16a34a; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 4px;">➕ New CAN Do</button>
+<input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..."
+oninput="filterCandoRules(this.value)"
+style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 160px; margin: 0;">
+<button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)"
+style="margin: 0; padding: 6px 16px; font-size: 0.85rem; font-weight: 700; background: #16a34a; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 4px;">➕
+New CAN Do</button>
 <div class="cando-settings-dropdown" id="cando_settings_dropdown">
-<button type="button" class="system-button" onclick="toggleCandoSettingsMenu(event)" title="CAN Do Settings &amp; Presets" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+<button type="button" class="system-button" onclick="toggleCandoSettingsMenu(event)"
+title="CAN Do Settings &amp; Presets"
+style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
 ⚙️ Settings ▾
 </button>
 <div class="cando-dropdown-menu" id="cando_settings_menu">
@@ -256,28 +289,37 @@ Launch CAN Sniffer ➔
 </div>
 <div class="cando-menu-header">Preset Catalog</div>
 <div class="cando-menu-badge-container">
-<span id="cando_catalog_badge" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; display: inline-block;">Catalog: Initializing...</span>
+<span id="cando_catalog_badge"
+style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; display: inline-block;">Catalog:
+Initializing...</span>
 </div>
-<button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); syncCatalogFromGitHub(true);">
+<button type="button" class="cando-menu-item"
+onclick="closeCandoSettingsMenu(); syncCatalogFromGitHub(true);">
 <span class="menu-icon">🔄</span> Sync Online Presets
 </button>
-<button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); configureCatalogUrl();">
+<button type="button" class="cando-menu-item"
+onclick="closeCandoSettingsMenu(); configureCatalogUrl();">
 <span class="menu-icon">🌐</span> Configure Catalog URL
 </button>
-<button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); document.getElementById('cando_catalog_import_file').click();">
+<button type="button" class="cando-menu-item"
+onclick="closeCandoSettingsMenu(); document.getElementById('cando_catalog_import_file').click();">
 <span class="menu-icon">📁</span> Import Custom Catalog JSON
 </button>
 <div class="cando-menu-header">Backup &amp; Restore</div>
-<button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); exportCandoRules();">
+<button type="button" class="cando-menu-item"
+onclick="closeCandoSettingsMenu(); exportCandoRules();">
 <span class="menu-icon">📥</span> Backup CAN Do
 </button>
-<button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); document.getElementById('cando_import_file').click();">
+<button type="button" class="cando-menu-item"
+onclick="closeCandoSettingsMenu(); document.getElementById('cando_import_file').click();">
 <span class="menu-icon">📤</span> Restore CAN Do
 </button>
 </div>
 </div>
-<input type="file" id="cando_catalog_import_file" accept=".json" onchange="importCandoCatalogFile(this)" style="display: none;" />
-<input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)" style="display: none;" />
+<input type="file" id="cando_catalog_import_file" accept=".json"
+onchange="importCandoCatalogFile(this)" style="display: none;" />
+<input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)"
+style="display: none;" />
 </div>
 </div>
 <div id="cando_rules_container"></div>
@@ -307,12 +349,14 @@ Launch CAN Sniffer ➔
 </td>
 </tr>
 <tr>
-<td colspan="2" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">WebHook configuration is set in the Home Assistant integration.</td>
+<td colspan="2" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">WebHook
+configuration is set in the Home Assistant integration.</td>
 </tr>
 <tr>
 <td>WebHook Data Mode:</td>
 <td>
-<select id="webhook_data_mode" name="webhook_data_mode" onchange="enableAutoStoreButton();submit_enable();">
+<select id="webhook_data_mode" name="webhook_data_mode"
+onchange="enableAutoStoreButton();submit_enable();">
 <option value="full">Full Data (All Fields)</option>
 <option value="changed">Changed Values Only</option>
 </select>
@@ -326,12 +370,14 @@ Launch CAN Sniffer ➔
 <span id="webhook_stat_success" class="status-indicator status-connected">OK: 0</span>
 <span id="webhook_stat_fail" class="status-indicator status-disconnected">Fail: 0</span>
 <span id="webhook_stat_status" class="webhook-meta">Status: -</span>
-<span id="webhook_stat_last_post" class="webhook-meta" style="display:none;">Last: -</span>
+<span id="webhook_stat_last_post" class="webhook-meta" style="display:none;">Last:
+-</span>
 </div>
 <div id="webhook_error_row" class="webhook-stats-bottom">
 <span class="webhook-meta">Last error:</span>
 <span id="webhook_last_error" class="webhook-error-preview" title=""></span>
-<button id="webhook_error_details_btn" type="button" onclick="toggleWebhookErrorDetails();" class="webhook-details-btn">Details</button>
+<button id="webhook_error_details_btn" type="button"
+onclick="toggleWebhookErrorDetails();" class="webhook-details-btn">Details</button>
 </div>
 <div id="webhook_error_details" class="webhook-error-box" style="display:none;"></div>
 </div>
@@ -340,7 +386,8 @@ Launch CAN Sniffer ➔
 <tr style="display:none;">
 <td>MQTT HA Discovery:</td>
 <td>
-<select id="ha_discovery" name="ha_discovery" onchange="toggleSendToFields(); enableAutoStoreButton();submit_enable();">
+<select id="ha_discovery" name="ha_discovery"
+onchange="toggleSendToFields(); enableAutoStoreButton();submit_enable();">
 <option value="disable">Disable</option>
 </select>
 </td>
@@ -352,7 +399,8 @@ Launch CAN Sniffer ➔
 <tr>
 <td>Grouping:</td>
 <td>
-<select id="grouping" name="grouping" onchange="toggleDestinationAndCycle(); toggleSendToFields(); enableAutoStoreButton();submit_enable();">
+<select id="grouping" name="grouping"
+onchange="toggleDestinationAndCycle(); toggleSendToFields(); enableAutoStoreButton();submit_enable();">
 <option value="disable">Disable</option>
 <option value="enable">Enable</option>
 </select>
@@ -360,7 +408,8 @@ Launch CAN Sniffer ➔
 </tr>
 <tr>
 <td>Destination Type:</td>
-<td><select id="group_dest_type" name="group_dest_type" onchange="enableAutoStoreButton();submit_enable();">
+<td><select id="group_dest_type" name="group_dest_type"
+onchange="enableAutoStoreButton();submit_enable();">
 <option value="Default">Default</option>
 <option value="MQTT_Topic">MQTT Topic</option>
 </select>
@@ -369,19 +418,22 @@ Launch CAN Sniffer ➔
 <tr>
 <td>Destination:</td>
 <td>
-<input type="text" id="destination" name="destination" disabled oninput="enableAutoStoreButton();submit_enable();">
+<input type="text" id="destination" name="destination" disabled
+oninput="enableAutoStoreButton();submit_enable();">
 </td>
 </tr>
 <tr>
 <td>Cycle Time(ms):</td>
 <td>
-<input type="text" id="group_cycle" name="group_cycle" value="5000" disabled oninput="enableAutoStoreButton();submit_enable();">
+<input type="text" id="group_cycle" name="group_cycle" value="5000" disabled
+oninput="enableAutoStoreButton();submit_enable();">
 </td>
 </tr>
 <tr>
 <td>Polling:</td>
 <td>
-<select id="autopid_polling" name="autopid_polling" onchange="enableAutoStoreButton();submit_enable();">
+<select id="autopid_polling" name="autopid_polling"
+onchange="enableAutoStoreButton();submit_enable();">
 <option value="enable">Enable</option>
 <option value="disable">Disable</option>
 </select>
@@ -394,7 +446,8 @@ Launch CAN Sniffer ➔
 <tr>
 <td>Standard PIDs:</td>
 <td>
-<select id="standard_pids" name="standard_pids" onchange="toggleStandardPIDOptions();enableAutoStoreButton();submit_enable();">
+<select id="standard_pids" name="standard_pids"
+onchange="toggleStandardPIDOptions();enableAutoStoreButton();submit_enable();">
 <option value="disable">Disable</option>
 <option value="enable">Enable</option>
 </select>
@@ -403,7 +456,8 @@ Launch CAN Sniffer ➔
 <tr>
 <td>ECU Protocol:</td>
 <td>
-<select id="ecu_protocol" name="ecu_protocol" onchange="enableAutoStoreButton();submit_enable();">
+<select id="ecu_protocol" name="ecu_protocol"
+onchange="enableAutoStoreButton();submit_enable();">
 <option value="6">6- ISO 15765-4 (CAN 11bit/500K)</option>
 <option value="7">7- ISO 15765-4 (CAN 29bit/500K)</option>
 <option value="8">8- ISO 15765-4 (CAN 11bit/250K)</option>
@@ -417,8 +471,10 @@ Launch CAN Sniffer ➔
 <select id="available_pids" name="available_pids" disabled
 onchange="enableAutoStoreButton();submit_enable();" style="flex: 1;">
 </select>
-<button id="add_pid_button" onclick="addSelectedPID()" disabled style="margin-left: 5px;">Add PID</button>
-<button id="scan_pids_button" onclick="scanAvailablePIDs()" style="margin-left: 5px;">Scan PIDs</button>
+<button id="add_pid_button" onclick="addSelectedPID()" disabled style="margin-left: 5px;">Add
+PID</button>
+<button id="scan_pids_button" onclick="scanAvailablePIDs()" style="margin-left: 5px;">Scan
+PIDs</button>
 </td>
 </tr>
 </table>
@@ -431,7 +487,8 @@ onchange="enableAutoStoreButton();submit_enable();" style="flex: 1;">
 <tr>
 <td>Vehicle Specific:</td>
 <td>
-<select id="car_specific" name="car_specific" onchange="toggleCarModel(); toggleDestinationAndCycle(); enableAutoStoreButton();submit_enable();">
+<select id="car_specific" name="car_specific"
+onchange="toggleCarModel(); toggleDestinationAndCycle(); enableAutoStoreButton();submit_enable();">
 <option value="disable">Disable</option>
 <option value="enable">Enable</option>
 </select>
@@ -440,7 +497,8 @@ onchange="enableAutoStoreButton();submit_enable();" style="flex: 1;">
 <tr>
 <td>Vehicle Model:</td>
 <td style="display: flex; align-items: center; gap: 5px;">
-<select id="car_model" name="car_model" onchange="enableAutoStoreButton();submit_enable();" style="flex: 1;"></select>
+<select id="car_model" name="car_model" onchange="enableAutoStoreButton();submit_enable();"
+style="flex: 1;"></select>
 <button onclick="fetchVehicleProfiles()" style="margin-left: 5px;">Get Latest</button>
 </td>
 </tr>
@@ -448,7 +506,8 @@ onchange="enableAutoStoreButton();submit_enable();" style="flex: 1;">
 <td>Vehicle Profiles:</td>
 <td>
 <form id="car_data_form" enctype="multipart/form-data">
-<input id="car_data_file" name="car_data_file" type="file" onchange="loadLocalCarModels();submit_enable();" />
+<input id="car_data_file" name="car_data_file" type="file"
+onchange="loadLocalCarModels();submit_enable();" />
 </form>
 </td>
 </tr>
@@ -579,12 +638,15 @@ style="font-size: 100%;" /></td>
 <div class="divider"></div>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
 <div class="section-title" style="margin: 0;">Station Config (Saved Networks)</div>
-<button type="button" class="system-button" id="btn_add_wifi_net" onclick="addStaNetworkRow()" style="padding: 3px 10px; font-size: 0.78rem; font-weight: 700; background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; border-radius: 4px; cursor: pointer;">➕ Add Network</button>
+<button type="button" class="system-button" id="btn_add_wifi_net" onclick="addStaNetworkRow()"
+style="padding: 3px 10px; font-size: 0.78rem; font-weight: 700; background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; border-radius: 4px; cursor: pointer;">➕
+Add Network</button>
 </div>
 <div style="font-size: 0.76rem; color: #64748b; margin-bottom: 0.8rem;">
 WiCAN will automatically connect to available saved networks in priority order (top = highest priority).
 </div>
-<div id="sta_networks_container" style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.8rem;"></div>
+<div id="sta_networks_container"
+style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.8rem;"></div>
 <input type="hidden" id="ssid_value" name="ssid_value" value="" />
 <input type="hidden" id="pass_value" name="pass_value" value="" />
 <input type="hidden" id="sta_security" name="sta_security" value="wpa3" />
@@ -623,13 +685,7 @@ WiCAN will automatically connect to available saved networks in priority order (
 <tr>
 <td><label for="keep_alive"><b>Keep Alive:</b></label></td>
 <td class="slider-container">
-<input type="range"
-id="keep_alive"
-name="keep_alive"
-value="30"
-min="2"
-max="120"
-step="1"
+<input type="range" id="keep_alive" name="keep_alive" value="30" min="2" max="120" step="1"
 oninput="document.getElementById('keep_alive_value').textContent = this.value;submit_enable();">
 <span id="keep_alive_value">30</span>seconds
 </td>
@@ -666,7 +722,8 @@ onchange="alert_elm327()">
 <tr>
 <td>Passkey:</td>
 <td>
-<input type="number" id="ble_pass_value" name="ble_pass_value" value="000000" min="0" max="999999" />
+<input type="number" id="ble_pass_value" name="ble_pass_value" value="000000" min="0"
+max="999999" />
 </td>
 </tr>
 <tr>
@@ -680,13 +737,15 @@ onchange="alert_elm327()">
 </tr>
 </table>
 <div id="ble_warning_div" style="display: none; margin: 8px 0;">
-<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+<div
+style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 <div style="display: flex; align-items: center; margin-bottom: 6px;">
 <span data-lucide="alert-triangle" style="font-size: 16px; margin-right: 8px;"></span>
 <strong style="color: #92400e; font-size: 14px;">BLE Connection Warning</strong>
 </div>
 <div style="color: #78350f; font-size: 13px; line-height: 1.4;">
-When BLE connects, WiFi AP is disabled. To restore WiFi AP: disconnect BLE and power cycle device.
+When BLE connects, WiFi AP is disabled. To restore WiFi AP: disconnect BLE and power cycle
+device.
 </div>
 </div>
 </div>
@@ -778,7 +837,8 @@ When BLE connects, WiFi AP is disabled. To restore WiFi AP: disconnect BLE and p
 <tr>
 <td>TCP/UDP Port:</td>
 <td>
-<input type="number" id="tcp_port_value" name="tcp_port_value" value="3333" min="1" max="65535" />
+<input type="number" id="tcp_port_value" name="tcp_port_value" value="3333" min="1"
+max="65535" />
 </td>
 </tr>
 <tr>
@@ -811,14 +871,19 @@ When BLE connects, WiFi AP is disabled. To restore WiFi AP: disconnect BLE and p
 onclick="storeCANFLT()" value="Store" style="width: 100%;" /></th>
 </tr>
 <tr>
-<td style="width: 10%;"><input type="number" id="canId" min="0" max="536870912" style="width: 80%;"/></td>
-<td style="width: 20%;"><input type="text" id="name" maxlength="16" style="width: 90%;"/></td>
-<td style="width: 10%;"><input type="number" id="pid" style="width: 80%;"/></td>
-<td style="width: 10%;"><input type="number" id="pindex" style="width: 80%;"/></td>
-<td style="width: 10%;"><input type="number" id="startBit" min="0" max="63" style="width: 80%;"/></td>
-<td style="width: 10%;"><input type="number" id="bitLength" min="1" max="64" style="width: 80%;"/></td>
-<td style="width: 20%;"><input type="text" id="expression" maxlength="64" style="width: 90%;"/></td>
-<td style="width: 10%;"><input type="number" id="cycle" min="100" max="1000" style="width: 80%;"/></td>
+<td style="width: 10%;"><input type="number" id="canId" min="0" max="536870912"
+style="width: 80%;" /></td>
+<td style="width: 20%;"><input type="text" id="name" maxlength="16" style="width: 90%;" /></td>
+<td style="width: 10%;"><input type="number" id="pid" style="width: 80%;" /></td>
+<td style="width: 10%;"><input type="number" id="pindex" style="width: 80%;" /></td>
+<td style="width: 10%;"><input type="number" id="startBit" min="0" max="63"
+style="width: 80%;" /></td>
+<td style="width: 10%;"><input type="number" id="bitLength" min="1" max="64"
+style="width: 80%;" /></td>
+<td style="width: 20%;"><input type="text" id="expression" maxlength="64" style="width: 90%;" />
+</td>
+<td style="width: 10%;"><input type="number" id="cycle" min="100" max="1000"
+style="width: 80%;" /></td>
 <td><input id="add_row_button" name="add_row_button" type="button" onclick="addCANFLTRow()"
 value="Add ID" style="width: 100%;" /></td>
 </tr>
@@ -840,12 +905,7 @@ value="Add ID" style="width: 100%;" /></td>
 <tr>
 <td>Sleep Voltage:</td>
 <td class="slider-container">
-<input type="range"
-id="sleep_volt"
-name="sleep_volt"
-value="13.2"
-min="12.0"
-max="15.0"
+<input type="range" id="sleep_volt" name="sleep_volt" value="13.2" min="12.0" max="15.0"
 step="0.1"
 oninput="document.getElementById('sleep_volt_value').textContent = this.value;submit_enable();">
 <span id="sleep_volt_value">13.2</span>V
@@ -854,13 +914,7 @@ oninput="document.getElementById('sleep_volt_value').textContent = this.value;su
 <tr>
 <td>Sleep After:</td>
 <td class="slider-container">
-<input type="range"
-id="sleep_time"
-name="sleep_time"
-value="2"
-min="1"
-max="30"
-step="1"
+<input type="range" id="sleep_time" name="sleep_time" value="2" min="1" max="30" step="1"
 oninput="document.getElementById('sleep_time_value').textContent = this.value;submit_enable();">
 <span id="sleep_time_value">2</span>min
 </td>
@@ -890,13 +944,8 @@ oninput="document.getElementById('sleep_time_value').textContent = this.value;su
 <tr>
 <td><label for="batt_alert_volt"><b>Alert Voltage:</b></label></td>
 <td class="slider-container">
-<input type="range"
-id="batt_alert_volt"
-name="batt_alert_volt"
-value="11.0"
-min="8.0"
-max="15.0"
-step="0.1"
+<input type="range" id="batt_alert_volt" name="batt_alert_volt" value="11.0" min="8.0"
+max="15.0" step="0.1"
 oninput="document.getElementById('batt_alert_volt_value').textContent = this.value;submit_enable();">
 <span id="batt_alert_volt_value">11.0</span>V
 </td>
@@ -946,14 +995,18 @@ max="65535" /></td>
 <tr>
 <td>Device Current Time:</td>
 <td>
-<span id="device_time_display" style="font-family: monospace; font-weight: bold; font-size: 1rem; color: var(--md-sys-color-primary);">--:--:--</span>
-<span id="device_time_sync_badge" style="margin-left: 8px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: var(--md-sys-color-surface-container-high); color: var(--text-muted); border: 1px solid var(--border-color);">Checking...</span>
+<span id="device_time_display"
+style="font-family: monospace; font-weight: bold; font-size: 1rem; color: var(--md-sys-color-primary);">--:--:--</span>
+<span id="device_time_sync_badge"
+style="margin-left: 8px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: var(--md-sys-color-surface-container-high); color: var(--text-muted); border: 1px solid var(--border-color);">Checking...</span>
 </td>
 </tr>
 <tr>
 <td>Sync from Browser:</td>
 <td>
-<button type="button" class="system-button" onclick="syncTimeFromBrowser()" style="padding: 6px 14px; font-weight: bold; cursor: pointer;">🕒 Sync Clock from Browser</button>
+<button type="button" class="system-button" onclick="syncTimeFromBrowser()"
+style="padding: 6px 14px; font-weight: bold; cursor: pointer;">🕒 Sync Clock from
+Browser</button>
 </td>
 </tr>
 <tr>
@@ -968,7 +1021,8 @@ max="65535" /></td>
 <tr id="sntp_server_row" class="hidden">
 <td>NTP Server Address:</td>
 <td>
-<input type="text" id="sntp_server" value="pool.ntp.org" placeholder="pool.ntp.org" onchange="saveTimeConfigUI()">
+<input type="text" id="sntp_server" value="pool.ntp.org" placeholder="pool.ntp.org"
+onchange="saveTimeConfigUI()">
 </td>
 </tr>
 <tr>
@@ -987,7 +1041,8 @@ max="65535" /></td>
 <option value="JST-9">Asia / Tokyo (JST)</option>
 <option value="custom">Custom POSIX String...</option>
 </select>
-<input type="text" id="sntp_timezone" value="UTC0" placeholder="UTC0" onchange="saveTimeConfigUI()">
+<input type="text" id="sntp_timezone" value="UTC0" placeholder="UTC0"
+onchange="saveTimeConfigUI()">
 </td>
 </tr>
 </table>
@@ -997,7 +1052,8 @@ max="65535" /></td>
 <tr>
 <td>Theme Mode:</td>
 <td>
-<select id="system_theme_select" onchange="setAppTheme(this.value);" style="width: auto; min-width: 140px;">
+<select id="system_theme_select" onchange="setAppTheme(this.value);"
+style="width: auto; min-width: 140px;">
 <option value="system">💻 System (Auto)</option>
 <option value="light">☀️ Light Mode</option>
 <option value="dark">🌙 Dark Mode</option>
@@ -1010,13 +1066,16 @@ max="65535" /></td>
 <table class="form-table">
 <tr>
 <td>Download Configuration:</td>
-<td><input id="download_cfg_butt" name="download_cfg_butt" type="button" onclick="downloadCfg()" value="Download" class="system-button" /></td>
+<td><input id="download_cfg_butt" name="download_cfg_butt" type="button" onclick="downloadCfg()"
+value="Download" class="system-button" /></td>
 </tr>
 <tr>
 <td>Upload Configuration:</td>
 <td>
-<input type="button" onclick="document.getElementById('fileInput').click()" value="Upload" class="system-button" />
-<input type="file" id="fileInput" accept=".json" onchange="uploadCfg()" style="display: none;" />
+<input type="button" onclick="document.getElementById('fileInput').click()" value="Upload"
+class="system-button" />
+<input type="file" id="fileInput" accept=".json" onchange="uploadCfg()"
+style="display: none;" />
 </td>
 </tr>
 </table>
@@ -1026,7 +1085,8 @@ max="65535" /></td>
 <table class="form-table">
 <tr>
 <td><input id="ota_file" name="ota_file" type="file" accept=".bin" /></td>
-<td><input id="ota_submit_button" type="button" value="Update" onclick="otaClick()" class="system-button" /></td>
+<td><input id="ota_submit_button" type="button" value="Update" onclick="otaClick()"
+class="system-button" /></td>
 </tr>
 </table>
 </form>
@@ -1035,7 +1095,8 @@ max="65535" /></td>
 <table class="form-table">
 <tr>
 <td>Reboot WiCAN:</td>
-<td><input id="reboot_button" name="reboot_button" type="button" onclick="reboot()" value="Reboot" class="system-button" /></td>
+<td><input id="reboot_button" name="reboot_button" type="button" onclick="reboot()" value="Reboot"
+class="system-button" /></td>
 </tr>
 </table>
 <div class="divider"></div>
@@ -1062,12 +1123,14 @@ max="65535" /></td>
 <tr>
 <td>Designed By:</td>
 <td>
-<div id="made_by"><a href="https://www.meatpi.com/"><b>meatpi.com</b></a> and <a href="https://www.electroniqbuttons.com/"><b>electroniqbuttons.com</b></a></div>
+<div id="made_by"><a href="https://www.meatpi.com/"><b>meatpi.com</b></a> and <a
+href="https://www.electroniqbuttons.com/"><b>electroniqbuttons.com</b></a></div>
 </td>
 </tr>
 </table>
 </div>
-<input id="submit_button" name="submit_button" type="button" onclick="postConfig()" value="Submit Changes" disabled />
+<input id="submit_button" name="submit_button" type="button" onclick="postConfig()" value="Submit Changes"
+disabled />
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -1224,7 +1287,7 @@ return;
 }
 const file = fileInput.files[0];
 const reader = new FileReader();
-reader.onload = async function(event) {
+reader.onload = async function (event) {
 try {
 const jsonData = JSON.parse(event.target.result);
 let data;
@@ -1734,7 +1797,7 @@ const carModelField = document.getElementById("car_model");
 const standard_pidsValue = document.getElementById("standard_pids")?.value || 'disable';
 const ecu_protocolValue = document.getElementById("ecu_protocol")?.value || '6';
 const carModelValue = carModelField?.value || '';
-if (carSpecificValue== "enable" && (!carModelValue || carModelValue.length === 0 || carModelValue === "Not Selected")) {
+if (carSpecificValue == "enable" && (!carModelValue || carModelValue.length === 0 || carModelValue === "Not Selected")) {
 throw new Error("Car model must be selected");
 }
 let carData = {
@@ -1775,7 +1838,7 @@ if (!cycleField.disabled && (!/^\d+$/.test(cycleValue) || parseInt(cycleValue) <
 showNotification("Cycle must be a number greater than 1000", "red");
 return false;
 }
-if(entries?.length) {
+if (entries?.length) {
 entries.forEach((entry, index) => {
 const pidData = {
 Name: entry.querySelector('.name-input')?.value || '',
@@ -1806,7 +1869,7 @@ throw new Error("Send_to must be less than 64 characters");
 custom_pid_data.push(pidData);
 });
 }
-if(standardEntries?.length) {
+if (standardEntries?.length) {
 standardEntries.forEach((entry, index) => {
 const stdPIDData = {
 Name: entry.querySelector('.name-input')?.value || '',
@@ -1886,9 +1949,9 @@ sendToInput.disabled = (groupingValue === "Group ALL");
 var canData = [];
 function restoreCANFLTRow(id, n, p, pi, s, b, e, c) {
 var canId = id;
-if(canId < 0) {
+if (canId < 0) {
 canId = 0;
-} else if(canId > 536870912) {
+} else if (canId > 536870912) {
 canId = 536870912;
 }
 var name = n;
@@ -1940,11 +2003,11 @@ document.getElementById("cycle").value = "";
 function openTab(evt, tabName) {
 var i, tabcontent, tablinks;
 tabcontent = document.getElementsByClassName("tabcontent");
-for(i = 0; i < tabcontent.length; i++) {
+for (i = 0; i < tabcontent.length; i++) {
 tabcontent[i].style.display = "none";
 }
 tablinks = document.getElementsByClassName("tablinks");
-for(i = 0; i < tablinks.length; i++) {
+for (i = 0; i < tablinks.length; i++) {
 tablinks[i].className = tablinks[i].className.replace(" active", "");
 }
 const targetTab = document.getElementById(tabName);
@@ -1967,7 +2030,7 @@ localStorage.setItem("wican_active_tab", tabName);
 if (window.history && window.history.replaceState) {
 history.replaceState(null, null, "#" + tabName);
 }
-} catch (e) {}
+} catch (e) { }
 window.scrollTo(0, 0);
 const contentDiv = document.querySelector(".content");
 if (contentDiv) contentDiv.scrollTop = 0;
@@ -2113,10 +2176,10 @@ el.disabled = isApOnly;
 });
 }
 }
-function sta_enable() {}
+function sta_enable() { }
 function submit_enable() {
 console.log("sumbit_enable");
-if(document.getElementById("wifi_mode").value == "AP") {
+if (document.getElementById("wifi_mode").value == "AP") {
 document.getElementById("ssid_value").disabled = true;
 document.getElementById("pass_value").disabled = true;
 document.getElementById("sta_security").disabled = true;
@@ -2130,7 +2193,7 @@ document.getElementById("ble_status").disabled = true;
 document.getElementById("ble_status").selectedIndex = "1";
 }
 updateStaNetworksUI();
-if(document.getElementById("ble_status").selectedIndex == "0") {
+if (document.getElementById("ble_status").selectedIndex == "0") {
 document.getElementById("ble_warning_div").style.display = "block";
 document.getElementById("mqtt_en").value = "disable";
 document.getElementById("mqtt_en_div").style.display = "none";
@@ -2145,41 +2208,41 @@ document.getElementById("batt_alert").disabled = false;
 }
 const isApMode = (document.getElementById("wifi_mode").value == "AP");
 const apPass = document.getElementById("ap_pass_value").value;
-if(apPass.length < 8 || apPass.length > 63) {
+if (apPass.length < 8 || apPass.length > 63) {
 showNotification("AP password len, min=8 max=63", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(!isApMode && getStaNetworksData().length === 0 && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
+} else if (!isApMode && getStaNetworksData().length === 0 && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
 showNotification("At least 1 Station SSID required (min=1 max=32)", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 32) {
+} else if (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 32) {
 showNotification("MQTT TX Topic length, min=1 max=64", "red");
 document.getElementById("submit_button").disabled = true;
-}  else if(document.getElementById("mqtt_rx_topic").value.length < 1 || document.getElementById("mqtt_rx_topic").value.length > 32) {
+} else if (document.getElementById("mqtt_rx_topic").value.length < 1 || document.getElementById("mqtt_rx_topic").value.length > 32) {
 showNotification("MQTT RX Topic length, min=1 max=64", "red");
 document.getElementById("submit_button").disabled = true;
-}  else if(document.getElementById("mqtt_status_topic").value.length < 1 || document.getElementById("mqtt_status_topic").value.length > 32) {
+} else if (document.getElementById("mqtt_status_topic").value.length < 1 || document.getElementById("mqtt_status_topic").value.length > 32) {
 showNotification("MQTT Status Topic length, min=1 max=64", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("tcp_port_value").value > 65535 || document.getElementById("tcp_port_value").value < 1) {
+} else if (document.getElementById("tcp_port_value").value > 65535 || document.getElementById("tcp_port_value").value < 1) {
 showNotification("Port value, min=1 max=65535", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("batt_alert_port").value > 65535 || document.getElementById("batt_alert_port").value < 1) {
+} else if (document.getElementById("batt_alert_port").value > 65535 || document.getElementById("batt_alert_port").value < 1) {
 showNotification("Port value, min=1 max=65535", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("ble_pass_value").value.length != 6 || document.getElementById("ble_pass_value").value.charAt(0) == "0") {
+} else if (document.getElementById("ble_pass_value").value.length != 6 || document.getElementById("ble_pass_value").value.charAt(0) == "0") {
 showNotification("Passkey length, min=6 max=6, 1st number not 0", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("sleep_volt").value < 12 || document.getElementById("sleep_volt").value > 15) {
+} else if (document.getElementById("sleep_volt").value < 12 || document.getElementById("sleep_volt").value > 15) {
 showNotification("Sleep Voltage Value, min=12.0 max=15.0", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("batt_alert_volt").value < 8 || document.getElementById("batt_alert_volt").value > 15) {
+} else if (document.getElementById("batt_alert_volt").value < 8 || document.getElementById("batt_alert_volt").value > 15) {
 showNotification("Alert Voltage Value, min=8.0 max=15.0", "red");
 document.getElementById("submit_button").disabled = true;
 }
 else {
 document.getElementById("submit_button").disabled = false;
 }
-if(document.getElementById("protocol").value == "savvycan") {
+if (document.getElementById("protocol").value == "savvycan") {
 document.getElementById("tcp_port_value").value = "23";
 document.getElementById("tcp_port_value").disabled = true;
 document.getElementById("port_type").selectedIndex = "0";
@@ -2189,25 +2252,25 @@ document.getElementById("tcp_port_value").disabled = false;
 document.getElementById("port_type").selectedIndex = "0";
 document.getElementById("port_type").disabled = false;
 }
-if(document.getElementById("sleep_status").value == "enable") {
-if(document.getElementById("ble_status").selectedIndex != "0") {
+if (document.getElementById("sleep_status").value == "enable") {
+if (document.getElementById("ble_status").selectedIndex != "0") {
 document.getElementById("batt_alert").disabled = false;
 }
-} else if(document.getElementById("sleep_status").value == "disable") {
+} else if (document.getElementById("sleep_status").value == "disable") {
 document.getElementById("batt_alert").disabled = true;
 document.getElementById("batt_alert").selectedIndex = "1";
 }
-if(document.getElementById("batt_alert").value == "enable") {
+if (document.getElementById("batt_alert").value == "enable") {
 document.getElementById("batt_alert_div").style.display = "block";
-} else if(document.getElementById("batt_alert").value == "disable") {
+} else if (document.getElementById("batt_alert").value == "disable") {
 document.getElementById("batt_alert_div").style.display = "none";
 }
-if(document.getElementById("mqtt_en").value == "enable") {
+if (document.getElementById("mqtt_en").value == "enable") {
 document.getElementById("mqtt_en_div").style.display = "block";
-} else if(document.getElementById("mqtt_en").value == "disable") {
+} else if (document.getElementById("mqtt_en").value == "disable") {
 document.getElementById("mqtt_en_div").style.display = "none";
 }
-if(document.getElementById("protocol").value == "elm327") {
+if (document.getElementById("protocol").value == "elm327") {
 document.getElementById("mqtt_elm327_log").disabled = false;
 } else {
 document.getElementById("mqtt_elm327_log").disabled = true;
@@ -2218,7 +2281,7 @@ function initAppTheme() {
 let savedTheme = "system";
 try {
 savedTheme = localStorage.getItem("wican_theme") || "system";
-} catch (e) {}
+} catch (e) { }
 const sidebarSel = document.getElementById("theme_select");
 const systemSel = document.getElementById("system_theme_select");
 if (sidebarSel) sidebarSel.value = savedTheme;
@@ -2228,7 +2291,7 @@ applyAppTheme(savedTheme);
 function setAppTheme(theme) {
 try {
 localStorage.setItem("wican_theme", theme);
-} catch (e) {}
+} catch (e) { }
 const sidebarSel = document.getElementById("theme_select");
 const systemSel = document.getElementById("system_theme_select");
 if (sidebarSel) sidebarSel.value = theme;
@@ -2255,7 +2318,7 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () 
 let current = "system";
 try {
 current = localStorage.getItem("wican_theme") || "system";
-} catch (e) {}
+} catch (e) { }
 if (current === "system") {
 applyAppTheme("system");
 }
@@ -2265,7 +2328,7 @@ function initActiveTab() {
 let savedTab = null;
 try {
 savedTab = localStorage.getItem("wican_active_tab");
-} catch (e) {}
+} catch (e) { }
 if (window.location.hash) {
 const hashTab = window.location.hash.substring(1);
 if (document.getElementById(hashTab)) {
@@ -2329,17 +2392,25 @@ battBadgeEl.className = "dash-badge badge-red";
 }
 }
 const hvTempEl = document.getElementById("dash_hv_temp_val");
+const hvSocEl = document.getElementById("dash_hv_soc_val");
 const hvSubEl = document.getElementById("dash_hv_subtext");
 const hvBadgeEl = document.getElementById("dash_hv_state_badge");
 const unitSystem = (typeof getUnitSystem === "function") ? getUnitSystem() : "metric";
+if (hvSocEl) {
+if (obj.battery_soc_valid) {
+hvSocEl.textContent = `${obj.battery_soc_pct}%`;
+} else {
+hvSocEl.textContent = "--%";
+}
+}
 if (obj.battery_temp_valid) {
 const minC = parseFloat(obj.battery_temp_min_c);
 const maxC = parseFloat(obj.battery_temp_max_c);
 const avgC = (!isNaN(minC) && !isNaN(maxC)) ? ((minC + maxC) / 2) : minC;
 if (unitSystem === "imperial" && !isNaN(avgC)) {
-const avgF = (avgC * 9/5 + 32).toFixed(1);
-const minF = (!isNaN(minC)) ? (minC * 9/5 + 32).toFixed(1) : "--";
-const maxF = (!isNaN(maxC)) ? (maxC * 9/5 + 32).toFixed(1) : "--";
+const avgF = (avgC * 9 / 5 + 32).toFixed(1);
+const minF = (!isNaN(minC)) ? (minC * 9 / 5 + 32).toFixed(1) : "--";
+const maxF = (!isNaN(maxC)) ? (maxC * 9 / 5 + 32).toFixed(1) : "--";
 if (hvTempEl) hvTempEl.textContent = `${avgF} °F`;
 if (hvSubEl) hvSubEl.textContent = `Min: ${minF} °F | Max: ${maxF} °F (${formatAge(obj.battery_temp_age_ms)} ago)`;
 } else {
@@ -2371,14 +2442,14 @@ const preconStateLabel = document.getElementById("dash_precon_state_label");
 const preconBtn = document.getElementById("dash_precon_toggle_btn");
 if (obj.precondition_active) {
 if (preconBadge) { preconBadge.textContent = "Active / Heating"; preconBadge.className = "dash-badge badge-green"; }
-if (preconStateLabel) preconStateLabel.innerHTML = "<span style='color: #16a34a; font-weight: 700;'>🔥 Active (Heating Battery)</span>";
+if (preconStateLabel) preconStateLabel.innerHTML = "<span style='color: var(--m3-tonal-act-color); font-weight: 700;'>🔥 Active (Heating Battery)</span>";
 if (preconBtn) {
 preconBtn.textContent = "🛑 Stop Preconditioning";
 preconBtn.classList.add("btn-danger");
 }
 } else if (obj.precondition_starting || obj.precondition_requested) {
 if (preconBadge) { preconBadge.textContent = "Requested"; preconBadge.className = "dash-badge badge-yellow"; }
-if (preconStateLabel) preconStateLabel.innerHTML = "<span style='color: #d97706; font-weight: 700;'>⏳ Starting Precon...</span>";
+if (preconStateLabel) preconStateLabel.innerHTML = "<span style='color: var(--m3-tonal-when-color); font-weight: 700;'>⏳ Starting Precon...</span>";
 if (preconBtn) {
 preconBtn.textContent = "🛑 Stop Preconditioning";
 preconBtn.classList.add("btn-danger");
@@ -2446,11 +2517,11 @@ timePill.textContent = `🕒 ${devTime.textContent}`;
 }
 function checkStatus() {
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 var obj = JSON.parse(this.responseText);
-if(obj.wifi_mode == "APStation") {
+if (obj.wifi_mode == "APStation") {
 document.getElementById("wifi_mode_current").innerHTML = "AP+Station";
-} else if(obj.wifi_mode == "AP") {
+} else if (obj.wifi_mode == "AP") {
 document.getElementById("wifi_mode_current").innerHTML = "AP";
 }
 document.getElementById("sta_status").innerHTML = obj.sta_status;
@@ -2458,9 +2529,9 @@ document.getElementById("ap_channel_status").innerHTML = obj.ap_ch;
 document.getElementById("sta_ip").innerHTML = obj.sta_ip;
 document.getElementById("mdns").innerHTML = obj.mdns;
 document.getElementById("can_bitrate_status").innerHTML = obj.can_datarate;
-if(obj.can_mode == "normal") {
+if (obj.can_mode == "normal") {
 document.getElementById("can_mode_status").innerHTML = "Normal";
-} else if(obj.can_mode == "silent") {
+} else if (obj.can_mode == "silent") {
 document.getElementById("can_mode_status").innerHTML = "Silent";
 }
 if (obj.can_bus_count && obj.can_bus_count > 1) {
@@ -2478,10 +2549,15 @@ if (obj.can_fwd_mode) {
 document.getElementById("can_fwd_mode").value = obj.can_fwd_mode;
 }
 }
-if(obj.port_type == "tcp") {
+if (obj.port_type == "tcp") {
 document.getElementById("port_type_status").innerHTML = "TCP";
-} else if(obj.port_type == "udp") {
+} else if (obj.port_type == "udp") {
 document.getElementById("port_type_status").innerHTML = "UDP";
+}
+if (obj.battery_soc_valid) {
+document.getElementById("battery_soc_status").textContent = `${obj.battery_soc_pct}%; (${formatAge(obj.battery_soc_age_ms)} ago)`;
+} else {
+document.getElementById("battery_soc_status").textContent = "Waiting for CAN data";
 }
 if (obj.battery_temp_valid) {
 document.getElementById("battery_temp_status").textContent = `Min: ${obj.battery_temp_min_c} °C; Max: ${obj.battery_temp_max_c} °C; (${formatAge(obj.battery_temp_age_ms)} ago)`;
@@ -2497,17 +2573,17 @@ document.getElementById("hw_version").innerHTML = obj.hw_version;
 document.getElementById("git_version").innerHTML = obj.git_version;
 document.getElementById("protocol").value = obj.protocol;
 document.getElementById("batt_voltage").innerHTML = obj.batt_voltage;
-if(document.getElementById("batt_alert").value == "enable") {
+if (document.getElementById("batt_alert").value == "enable") {
 document.getElementById("batt_alert_div").style.display = "block";
-} else if(document.getElementById("batt_alert").value == "disable") {
+} else if (document.getElementById("batt_alert").value == "disable") {
 document.getElementById("batt_alert_div").style.display = "none";
 }
-if(document.getElementById("mqtt_en").value == "enable") {
+if (document.getElementById("mqtt_en").value == "enable") {
 document.getElementById("mqtt_en_div").style.display = "block";
-} else if(document.getElementById("mqtt_en").value == "disable") {
+} else if (document.getElementById("mqtt_en").value == "disable") {
 document.getElementById("mqtt_en_div").style.display = "none";
 }
-if(obj.cando_stats && Array.isArray(obj.cando_stats)) {
+if (obj.cando_stats && Array.isArray(obj.cando_stats)) {
 updateCandoActivityStats(obj.cando_stats);
 }
 if ("capture_active" in obj) {
@@ -2629,13 +2705,13 @@ detailsEl.style.display = 'none';
 }
 function loadCANFLT() {
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 if (this.responseText === "NONE") {
 return;
 }
 var obj = JSON.parse(this.responseText);
-if(this.responseText != "NONE") {
-if(Array.isArray(obj.can_flt)) {
+if (this.responseText != "NONE") {
+if (Array.isArray(obj.can_flt)) {
 obj.can_flt.forEach((item) => {
 restoreCANFLTRow(item["CANID"], item["Name"], item["PID"], item["PIDIndex"], item["StartBit"], item["BitLength"], item["Expression"], item["Cycle"]);
 });
@@ -2647,9 +2723,9 @@ xhttp.send();
 }
 function loadautoPIDCarData() {
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 console.log("Car models:", this.responseText);
-if(this.responseText != "NONE") {
+if (this.responseText != "NONE") {
 var obj = JSON.parse(this.responseText);
 const carModels = [];
 if (obj && Array.isArray(obj.cars)) {
@@ -2696,9 +2772,9 @@ xhttp.send();
 function loadautoPID() {
 console.log("Loading auto PID data..."); // Debug log
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 console.log("Server response:", this.responseText); // Debug log
-if(this.responseText !== "NONE") {
+if (this.responseText !== "NONE") {
 const data = JSON.parse(this.responseText);
 loadAutoTable(data);
 document.getElementById("custom_pid_store").disabled = true;
@@ -2706,7 +2782,7 @@ document.getElementById("custom_pid_store").disabled = true;
 console.log("No PID data found on server");
 }
 };
-xhttp.onerror = function(error) {
+xhttp.onerror = function (error) {
 console.error("Error loading auto PID:", error);
 };
 xhttp.open("GET", "/load_auto_pid");
@@ -2717,7 +2793,7 @@ var obj = {};
 obj["can_flt"] = canData;
 var canfltJSON = JSON.stringify(obj);
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 showNotification(this.responseText, "green");
 submit_enable();
 };
@@ -2777,39 +2853,39 @@ obj["mqtt_pass"] = document.getElementById("mqtt_pass").value;
 obj["keep_alive"] = document.getElementById("keep_alive").value;
 obj["mqtt_tx_topic"] = document.getElementById("mqtt_tx_topic").value;
 obj["ap_auto_disable"] = document.getElementById("ap_auto_disable").value;
-if(document.getElementById("mqtt_tx_en_checkbox").checked){
+if (document.getElementById("mqtt_tx_en_checkbox").checked) {
 obj["mqtt_tx_en"] = "enable";
-}else{
+} else {
 obj["mqtt_tx_en"] = "disable";
 }
 obj["mqtt_rx_topic"] = document.getElementById("mqtt_rx_topic").value;
-if(document.getElementById("mqtt_rx_en_checkbox").checked){
+if (document.getElementById("mqtt_rx_en_checkbox").checked) {
 obj["mqtt_rx_en"] = "enable";
-}else{
+} else {
 obj["mqtt_rx_en"] = "disable";
 }
 obj["mqtt_status_topic"] = document.getElementById("mqtt_status_topic").value;
 obj["mqtt_elm327_log"] = document.getElementById("mqtt_elm327_log").value;
 var configJSON = JSON.stringify(obj);
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 showNotification(this.responseText, "green");
 document.getElementById("submit_button").disabled = true;
 };
-xhttp.onerror = function() {
+xhttp.onerror = function () {
 showNotification("Failed to save configuration", "red");
 };
 xhttp.open("POST", "/store_config");
 xhttp.send(configJSON);
 }
 function otaClick() {
-if(document.getElementById("ota_file").files.length == 0) {
+if (document.getElementById("ota_file").files.length == 0) {
 showNotification("No files selected!", "red");
 alert("No files selected!");
 } else {
 document.getElementById("ota_submit_button").disabled = true;
 showNotification("Updating please wait...", "green");
-setTimeout(function() {
+setTimeout(function () {
 document.getElementById("ota_form").submit();
 }, 5000);
 }
@@ -2823,11 +2899,11 @@ xhttp.send("reboot");
 }
 function preconActivate() {
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 showNotification(this.responseText, "green");
 setTimeout(checkStatus, 200);
 };
-xhttp.onerror = function() {
+xhttp.onerror = function () {
 showNotification("Failed to toggle preconditioning", "red");
 };
 xhttp.open("POST", "/precondition_toggle");
@@ -2901,7 +2977,7 @@ const endpointMap = {
 const delay = 200;
 try {
 const reader = new FileReader();
-reader.onload = async function(e) {
+reader.onload = async function (e) {
 try {
 const jsonData = JSON.parse(e.target.result);
 let hasErrors = false;
@@ -2935,7 +3011,7 @@ fileInput.value = '';
 alert('Failed to parse configuration file');
 }
 };
-reader.onerror = function() {
+reader.onerror = function () {
 alert('Error reading file');
 };
 reader.readAsText(file);
@@ -2945,21 +3021,21 @@ alert('Upload failed');
 }
 function Load() {
 const xhttp = new XMLHttpRequest();
-xhttp.onload = function() {
+xhttp.onload = function () {
 var obj = JSON.parse(this.responseText);
-if(obj.wifi_mode == "APStation") {
+if (obj.wifi_mode == "APStation") {
 document.getElementById("wifi_mode").selectedIndex = "1";
 document.getElementById("ssid_value").disabled = false;
 document.getElementById("pass_value").disabled = false;
 document.getElementById("sta_security").disabled = false;
 document.getElementById("ap_auto_disable").disabled = false;
-} else if(obj.wifi_mode == "AP") {
+} else if (obj.wifi_mode == "AP") {
 document.getElementById("wifi_mode").selectedIndex = "0";
 document.getElementById("ssid_value").disabled = true;
 document.getElementById("pass_value").disabled = true;
 document.getElementById("ap_auto_disable").disabled = true;
 }
-if(obj.ap_auto_disable == "enable") {
+if (obj.ap_auto_disable == "enable") {
 document.getElementById("ap_auto_disable").selectedIndex = "0";
 } else {
 document.getElementById("ap_auto_disable").selectedIndex = "1";
@@ -2977,51 +3053,51 @@ const webhookModeFromCfg = obj.webhook_en || "enable";
 const hasWebhookOption = Array.from(webhookEnEl.options || []).some(o => o && o.value === webhookModeFromCfg);
 webhookEnEl.value = hasWebhookOption ? webhookModeFromCfg : "enable";
 }
-if(obj.can_datarate == "5K") {
+if (obj.can_datarate == "5K") {
 document.getElementById("can_datarate").selectedIndex = "0";
-} else if(obj.can_datarate == "10K") {
+} else if (obj.can_datarate == "10K") {
 document.getElementById("can_datarate").selectedIndex = "1";
-} else if(obj.can_datarate == "20K") {
+} else if (obj.can_datarate == "20K") {
 document.getElementById("can_datarate").selectedIndex = "2";
-} else if(obj.can_datarate == "25K") {
+} else if (obj.can_datarate == "25K") {
 document.getElementById("can_datarate").selectedIndex = "3";
-} else if(obj.can_datarate == "50K") {
+} else if (obj.can_datarate == "50K") {
 document.getElementById("can_datarate").selectedIndex = "4";
-} else if(obj.can_datarate == "100K") {
+} else if (obj.can_datarate == "100K") {
 document.getElementById("can_datarate").selectedIndex = "5";
-} else if(obj.can_datarate == "125K") {
+} else if (obj.can_datarate == "125K") {
 document.getElementById("can_datarate").selectedIndex = "6";
-} else if(obj.can_datarate == "250K") {
+} else if (obj.can_datarate == "250K") {
 document.getElementById("can_datarate").selectedIndex = "7";
-} else if(obj.can_datarate == "500K") {
+} else if (obj.can_datarate == "500K") {
 document.getElementById("can_datarate").selectedIndex = "8";
-} else if(obj.can_datarate == "800K") {
+} else if (obj.can_datarate == "800K") {
 document.getElementById("can_datarate").selectedIndex = "9";
-} else if(obj.can_datarate == "1000K") {
+} else if (obj.can_datarate == "1000K") {
 document.getElementById("can_datarate").selectedIndex = "10";
-} else if(obj.can_datarate == "auto") {
+} else if (obj.can_datarate == "auto") {
 document.getElementById("can_datarate").selectedIndex = "11";
 }
-if(obj.can_mode == "normal") {
+if (obj.can_mode == "normal") {
 document.getElementById("can_mode").selectedIndex = "0";
-} else if(obj.can_mode == "silent") {
+} else if (obj.can_mode == "silent") {
 document.getElementById("can_mode").selectedIndex = "1";
 }
-if(obj.port_type == "tcp") {
+if (obj.port_type == "tcp") {
 document.getElementById("port_type").selectedIndex = "0";
-} else if(obj.port_type == "udp") {
+} else if (obj.port_type == "udp") {
 document.getElementById("port_type").selectedIndex = "1";
 }
-if(obj.ble_status == "enable") {
+if (obj.ble_status == "enable") {
 document.getElementById("ble_status").selectedIndex = "0";
 document.getElementById("ble_warning_div").style.display = "block";
-} else if(obj.ble_status == "disable") {
+} else if (obj.ble_status == "disable") {
 document.getElementById("ble_status").selectedIndex = "1";
 document.getElementById("ble_warning_div").style.display = "none";
 }
-if(obj.sleep_status == "enable") {
+if (obj.sleep_status == "enable") {
 document.getElementById("sleep_status").selectedIndex = "0";
-} else if(obj.sleep_status == "disable") {
+} else if (obj.sleep_status == "disable") {
 document.getElementById("sleep_status").selectedIndex = "1";
 }
 if ("mqtt_tx_en" in obj) {
@@ -3076,29 +3152,29 @@ document.getElementById("mqtt_tx_topic").value = obj.mqtt_tx_topic;
 document.getElementById("mqtt_rx_topic").value = obj.mqtt_rx_topic;
 document.getElementById("mqtt_status_topic").value = obj.mqtt_status_topic;
 document.getElementById("mqtt_elm327_log").value = obj.mqtt_elm327_log;
-if(obj.batt_alert_time == "1") {
+if (obj.batt_alert_time == "1") {
 document.getElementById("batt_alert_time").selectedIndex = "0";
-} else if(obj.batt_alert_time == "6") {
+} else if (obj.batt_alert_time == "6") {
 document.getElementById("batt_alert_time").selectedIndex = "1";
-} else if(obj.batt_alert_time == "12") {
+} else if (obj.batt_alert_time == "12") {
 document.getElementById("batt_alert_time").selectedIndex = "2";
-} else if(obj.batt_alert_time == "24") {
+} else if (obj.batt_alert_time == "24") {
 document.getElementById("batt_alert_time").selectedIndex = "3";
 }
-if(document.getElementById("protocol").value == "savvycan") {
+if (document.getElementById("protocol").value == "savvycan") {
 document.getElementById("tcp_port_value").value = "23";
 document.getElementById("tcp_port_value").disabled = true;
 document.getElementById("port_type").selectedIndex = "0";
 document.getElementById("port_type").disabled = true;
 }
-if(document.getElementById("batt_alert").value == "enable") {
+if (document.getElementById("batt_alert").value == "enable") {
 document.getElementById("batt_alert_div").style.display = "block";
-} else if(document.getElementById("batt_alert").value == "disable") {
+} else if (document.getElementById("batt_alert").value == "disable") {
 document.getElementById("batt_alert_div").style.display = "none";
 }
-if(document.getElementById("mqtt_en").value == "enable") {
+if (document.getElementById("mqtt_en").value == "enable") {
 document.getElementById("mqtt_en_div").style.display = "block";
-} else if(document.getElementById("mqtt_en").value == "disable") {
+} else if (document.getElementById("mqtt_en").value == "disable") {
 document.getElementById("mqtt_en_div").style.display = "none";
 }
 loadCANFLT();
@@ -3106,7 +3182,7 @@ loadautoPIDCarData();
 loadautoPID();
 loadWebhookConfig();
 loadCandoRulesUI();
-document.getElementById("car_model").addEventListener('change', function() {
+document.getElementById("car_model").addEventListener('change', function () {
 document.querySelector('.specific-pid-entries').innerHTML = '';
 const selectedModel = this.value;
 if (latest_car_models && Array.isArray(latest_car_models.cars)) {
@@ -3139,16 +3215,16 @@ xhttp.send();
 function monitor_add_line(id, type, len, data, time) {
 var table = document.getElementById("table2");
 var nraw = -1;
-if(typeof monitor_add_line.msg_time == "undefined") {
+if (typeof monitor_add_line.msg_time == "undefined") {
 monitor_add_line.msg_time = [0];
 }
-for(var r = 1, n = table.rows.length; r < n; r++) {
-if(table.rows[r].cells[0].innerHTML == id) {
+for (var r = 1, n = table.rows.length; r < n; r++) {
+if (table.rows[r].cells[0].innerHTML == id) {
 nraw = r;
 break;
 }
 }
-if(nraw != -1) {
+if (nraw != -1) {
 table.rows[nraw].cells[0].innerHTML = id;
 table.rows[nraw].cells[1].innerHTML = type;
 table.rows[nraw].cells[2].innerHTML = len;
@@ -3184,7 +3260,7 @@ console.log(dr);
 alert("Please reboot device after Monitor, otherwise the device may not function as expected");
 ws_url = "ws://" + url.substr(7, url.length) + "ws";
 console.log(ws_url);
-if(document.getElementById("mon_button").value == "Start") {
+if (document.getElementById("mon_button").value == "Start") {
 ws = new WebSocket(ws_url);
 setTimeout(bindEvents, 1000);
 ws.addEventListener("open", (event) => {
@@ -3202,28 +3278,28 @@ ws_close();
 }
 }
 function bindEvents() {
-ws.onmessage = function(evt) {
+ws.onmessage = function (evt) {
 var received_msg = evt.data;
-if(received_msg[0] == "t") {
+if (received_msg[0] == "t") {
 var len = (received_msg[4] - "0") * 2;
 var data_str = "";
 var i;
-for(i = 0; i < len; i += 2) {
+for (i = 0; i < len; i += 2) {
 data_str += received_msg.substr(i + 5, 2) + " ";
 }
 monitor_add_line(received_msg.substr(1, 3) + "h", "Std", received_msg[4], data_str, 0);
-} else if(received_msg[0] == "T") {
+} else if (received_msg[0] == "T") {
 var len = (received_msg[9] - "0") * 2;
 var data_str = "";
 var i;
-for(i = 0; i < len; i += 2) {
+for (i = 0; i < len; i += 2) {
 data_str += received_msg.substr(i + 10, 2) + " ";
 }
 monitor_add_line(received_msg.substr(1, 8) + "h", "Ext", received_msg[9], data_str, 0);
-} else if(received_msg[0] == "r") {
+} else if (received_msg[0] == "r") {
 var len = (received_msg[4] - "0") * 2;
 monitor_add_line(received_msg.substr(1, 3) + "h", "RTR-Std", received_msg[4], 0, 0);
-} else if(received_msg[0] == "R") {
+} else if (received_msg[0] == "R") {
 var len = (received_msg[9] - "0") * 2;
 monitor_add_line(received_msg.substr(1, 8) + "h", "RTR-Ext", received_msg[9], 0, 0);
 }
@@ -3234,7 +3310,7 @@ ws.send("C" + cr);
 ws.close();
 }
 function mon_button_en(b) {
-if(b == 1) {
+if (b == 1) {
 document.getElementById("mon_button").value = "Start";
 document.getElementById("mon_datarate").disabled = false;
 document.getElementById("mon_filter").disabled = false;
@@ -3259,35 +3335,35 @@ var name = document.getElementById("name").value;
 var expression = document.getElementById("expression").value;
 var pid = parseInt(document.getElementById("pid").value);
 var pidi = parseInt(document.getElementById("pindex").value);
-if(isNaN(canId) || canId == "" || canId < 0 || canId > 536870912) {
+if (isNaN(canId) || canId == "" || canId < 0 || canId > 536870912) {
 alert("CAN ID must be a valid number between 0 and 536870912");
 return;
 }
-if(isNaN(startBit) || isNaN(bitLength) || startBit > 64 - bitLength || bitLength <= 0 || bitLength > 64 || startBit < 0 || startBit > 63) {
+if (isNaN(startBit) || isNaN(bitLength) || startBit > 64 - bitLength || bitLength <= 0 || bitLength > 64 || startBit < 0 || startBit > 63) {
 alert("startBit or bitLength error");
 return;
 }
-if(isNaN(cycle) || cycle < 100 || cycle > 10000) {
+if (isNaN(cycle) || cycle < 100 || cycle > 10000) {
 alert("cycle must be between 100 and 10000");
 return;
 }
-if(name.length < 1 || name.length > 16) {
+if (name.length < 1 || name.length > 16) {
 alert("Name must be between 1 and 16 characters in length.");
 return;
 }
-if(expression.length < 1 || expression.length > 64) {
+if (expression.length < 1 || expression.length > 64) {
 alert("Expression must be between 1 and 64 characters in length.");
 return;
 }
-if(isNaN(pid) || pid < -1 || pid > 255) {
+if (isNaN(pid) || pid < -1 || pid > 255) {
 alert("PID must be a number between -1 and 255");
 return;
 }
-if(isNaN(pidi) || pidi < 0 || pidi > 7) {
+if (isNaN(pidi) || pidi < 0 || pidi > 7) {
 alert("PID must be a number between 0 and 7");
 return;
 }
-if(isNameUnique(name)) {
+if (isNameUnique(name)) {
 var table = document.getElementById("can_flt_table");
 var row = table.insertRow(-1);
 var cell1 = row.insertCell(0);
@@ -3299,7 +3375,7 @@ var cell6 = row.insertCell(5);
 var cell7 = row.insertCell(6);
 var cell8 = row.insertCell(7);
 var cell9 = row.insertCell(8);
-if(table.rows.length - 1 >= 100) {
+if (table.rows.length - 1 >= 100) {
 alert("Maximum row limit (100) reached.");
 return;
 }
@@ -3339,7 +3415,7 @@ function deleteCANFLTRow(button) {
 var row = button.parentNode.parentNode;
 var canIdToDelete = row.cells[0].textContent;
 var indexToDelete = canData.findIndex((item) => item["CANID"] === parseInt(canIdToDelete));
-if(indexToDelete !== -1) {
+if (indexToDelete !== -1) {
 canData.splice(indexToDelete, 1);
 }
 row.parentNode.removeChild(row);
@@ -5518,7 +5594,7 @@ if (customSaved) {
 try {
 const customParsed = JSON.parse(customSaved);
 data = mergeCatalogData(data, customParsed);
-} catch (e) {}
+} catch (e) { }
 }
 CANDO_CATALOG = data;
 localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
@@ -5543,7 +5619,7 @@ if (customSaved) {
 try {
 const customParsed = JSON.parse(customSaved);
 data = mergeCatalogData(data, customParsed);
-} catch (e) {}
+} catch (e) { }
 }
 CANDO_CATALOG = data;
 localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
@@ -5653,7 +5729,7 @@ if (customSaved) {
 try {
 const customParsed = JSON.parse(customSaved);
 data = mergeCatalogData(data, customParsed);
-} catch (e) {}
+} catch (e) { }
 }
 CANDO_CATALOG = data;
 localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
@@ -5679,7 +5755,7 @@ function importCandoCatalogFile(inputElem) {
 const file = inputElem.files[0];
 if (!file) return;
 const reader = new FileReader();
-reader.onload = function(e) {
+reader.onload = function (e) {
 try {
 const data = JSON.parse(e.target.result);
 if (data && data.trigger_presets && data.action_presets) {
@@ -5773,13 +5849,13 @@ document.querySelectorAll(".cando-act-target-temp, .cando-act-pass-temp").forEac
 const currentVal = parseFloat(inp.value);
 if (!isNaN(currentVal)) {
 if (isImperial) {
-const fVal = Math.min(82, Math.max(62, Math.round(currentVal * 9/5 + 32)));
+const fVal = Math.min(82, Math.max(62, Math.round(currentVal * 9 / 5 + 32)));
 inp.min = "62";
 inp.max = "82";
 inp.step = "1";
 inp.value = fVal;
 } else {
-const cVal = Math.min(28.0, Math.max(17.0, Math.round(((currentVal - 32) * 5/9) * 2) / 2));
+const cVal = Math.min(28.0, Math.max(17.0, Math.round(((currentVal - 32) * 5 / 9) * 2) / 2));
 inp.min = "17.0";
 inp.max = "28.0";
 inp.step = "0.5";
@@ -6578,19 +6654,61 @@ actData.name = name.trim();
 saveCustomActPreset(actData);
 showNotification("Saved custom action template: " + name, "green", 3500);
 }
-function updateCandoRuleStatusBadge(cb) {
-const badge = cb.parentElement.querySelector(".cando-status-badge");
-if (!badge) return;
-if (cb.checked) {
-badge.textContent = "ACTIVE";
-badge.style.background = "#dcfce7";
-badge.style.color = "#15803d";
-badge.style.borderColor = "#86efac";
-} else {
-badge.textContent = "PAUSED";
+function autoSaveCandoRules(notifyText, color = "green") {
+const rules = [];
+const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+cards.forEach(card => {
+const ruleData = extractCandoRuleData(card);
+if (ruleData) rules.push(ruleData);
+});
+fetch("/store_cando", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ rules: rules })
+}).then(res => res.text()).then(msg => {
+if (notifyText) {
+showNotification(notifyText, color, 2500);
+}
+}).catch(err => {
+showNotification("Failed to save CAN Do: " + err, "red");
+});
+}
+function updateCandoRuleStatusToggle(cb) {
+const card = cb.closest(".cando-rule-card");
+const label = cb.closest(".cando-toggle-switch");
+const isChecked = cb.checked;
+if (label) {
+const track = label.querySelector(".cando-toggle-track");
+const thumb = label.querySelector(".cando-toggle-thumb");
+if (track) {
+track.style.backgroundColor = isChecked ? "#16a34a" : "#ef4444";
+}
+if (thumb) {
+thumb.style.left = isChecked ? "20px" : "2px";
+}
+label.title = isChecked ? "Active (Click to pause)" : "Paused (Click to activate)";
+}
+if (card) {
+const badge = card.querySelector(".cando-activity-badge");
+if (badge) {
+if (!isChecked) {
+badge.textContent = "Paused";
 badge.style.background = "#f1f5f9";
-badge.style.color = "#64748b";
+badge.style.color = "#94a3b8";
 badge.style.borderColor = "#cbd5e1";
+badge.style.boxShadow = "none";
+badge.title = "Automation paused";
+} else {
+badge.textContent = "Idle";
+badge.style.background = "#f8fafc";
+badge.style.color = "#64748b";
+badge.style.borderColor = "#e2e8f0";
+badge.style.boxShadow = "none";
+badge.title = "Live trigger activity";
+}
+}
+const nameVal = card.querySelector(".cando-name")?.value || "CAN Do";
+autoSaveCandoRules(`"${nameVal}" is now ${isChecked ? 'Active' : 'Paused'}`, isChecked ? "green" : "blue");
 }
 }
 function toggleCandoSection(headerElem) {
@@ -6628,7 +6746,7 @@ ruleDiv.innerHTML = `
 <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCandoHeaderClick(event, this)">
 <div class="header-left" style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; margin-right: 0.5rem;">
 <div style="display: flex; align-items: center; gap: 0.5rem;">
-<span class="cando-activity-badge" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-family: monospace; transition: all 0.3s; white-space: nowrap;" title="Live trigger activity">Idle</span>
+<span class="cando-activity-badge" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${isEnabled ? '#f8fafc' : '#f1f5f9'}; color: ${isEnabled ? '#64748b' : '#94a3b8'}; border: 1px solid ${isEnabled ? '#e2e8f0' : '#cbd5e1'}; font-family: monospace; transition: all 0.3s; white-space: nowrap;" title="${isEnabled ? 'Live trigger activity' : 'Automation paused'}">${isEnabled ? 'Idle' : 'Paused'}</span>
 <div class="cando-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
 <span style="position: absolute; left: 8px; pointer-events: none; font-size: 0.9rem; color: var(--text-muted);">⚡</span>
 <input type="text" class="cando-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name (Click to edit)" title="Click to rename this CAN Do" onclick="event.stopPropagation();">
@@ -6639,8 +6757,8 @@ ruleDiv.innerHTML = `
 <div class="header-right" style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
 <label class="cando-toggle-switch" onclick="event.stopPropagation();" title="${isEnabled ? 'Active (Click to pause)' : 'Paused (Click to activate)'}" style="position: relative; display: inline-flex; align-items: center; cursor: pointer; user-select: none; margin: 0 0.2rem 0 0;">
 <input type="checkbox" class="cando-rule-enabled" ${isEnabled ? "checked" : ""} onchange="updateCandoRuleStatusToggle(this)" style="position: absolute; opacity: 0; width: 0; height: 0; margin: 0;">
-<span class="cando-toggle-track" style="position: relative; display: inline-block; width: 38px; height: 20px; background-color: ${isEnabled ? '#16a34a' : '#ef4444'}; border-radius: 20px; transition: background-color 0.2s ease;">
-<span class="cando-toggle-thumb" style="position: absolute; height: 16px; width: 16px; left: ${isEnabled ? '20px' : '2px'}; bottom: 2px; background-color: white; border-radius: 50%; transition: left 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></span>
+<span class="cando-toggle-track" style="position: relative; display: inline-block; width: 38px; height: 20px; background-color: ${isEnabled ? '#16a34a' : '#ef4444'}; border-radius: 20px; transition: background-color 0.2s ease; pointer-events: none;">
+<span class="cando-toggle-thumb" style="position: absolute; height: 16px; width: 16px; left: ${isEnabled ? '20px' : '2px'}; bottom: 2px; background-color: white; border-radius: 50%; transition: left 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.25); pointer-events: none;"></span>
 </span>
 </label>
 <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, -1);" title="Move CAN Do Up">▲</button>
@@ -6650,11 +6768,11 @@ ruleDiv.innerHTML = `
 </div>
 </div>
 <div class="cando-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
-<div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
+<div class="cando-section-box" style="padding: 0.8rem 1rem; border-radius: var(--m3-shape-md); margin-bottom: 1rem;">
 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
 <div style="display: flex; align-items: center; gap: 0.4rem;">
-<span style="font-weight: bold; color: #334155; font-size: 0.95rem;">⚙️ Execution Mode &amp; Loop Safeguards</span>
-<span style="font-size: 0.78rem; color: #64748b; margin-left: 0.3rem;">(Anti-Duplication &amp; Latching Protection)</span>
+<span style="font-weight: bold; color: var(--text-heading); font-size: 0.95rem;">⚙️ Execution Mode &amp; Loop Safeguards</span>
+<span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 0.3rem;">(Anti-Duplication &amp; Latching Protection)</span>
 </div>
 </div>
 <div class="cando-section-body" style="margin-top: 0.6rem;">
@@ -6675,7 +6793,7 @@ ruleDiv.innerHTML = `
 <td>
 <div style="display: flex; flex-direction: column; gap: 4px;">
 <input type="number" class="cando-cooldown-ms" value="${ruleData.cooldown_ms !== undefined ? ruleData.cooldown_ms : 500}" min="0" max="60000" placeholder="500">
-<span style="font-size: 0.75rem; color: #64748b;">Min delay between triggers to prevent bus floods</span>
+<span style="font-size: 0.75rem; color: var(--text-muted);">Min delay between triggers to prevent bus floods</span>
 </div>
 </td>
 </tr>
@@ -6684,7 +6802,7 @@ ruleDiv.innerHTML = `
 <td>
 <div style="display: flex; flex-direction: column; gap: 4px;">
 <input type="number" class="cando-timeout-reset-ms" value="${ruleData.timeout_reset_ms !== undefined ? ruleData.timeout_reset_ms : 2000}" min="0" max="3600000" placeholder="2000">
-<span style="font-size: 0.75rem; color: #64748b;">Auto re-arms latch after inactivity (0 = manual reset only)</span>
+<span style="font-size: 0.75rem; color: var(--text-muted);">Auto re-arms latch after inactivity (0 = manual reset only)</span>
 </div>
 </td>
 </tr>
@@ -6710,22 +6828,22 @@ ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
 <td style="vertical-align: middle;">🏠 Home Assistant:</td>
 <td>
 <div style="display: flex; flex-direction: column; gap: 0.4rem;">
-<label style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.82rem; color: #0369a1; cursor: pointer;">
+<label style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.82rem; color: var(--md-sys-color-primary); cursor: pointer;">
 <input type="checkbox" class="cando-ha-expose" ${ruleData.ha_expose !== false ? 'checked' : ''} onchange="toggleCandoHaExposeUI(this)">
 <span>Expose as Button Entity to Home Assistant (Auto-Discovery)</span>
 </label>
 <div class="cando-ha-details-row" style="display: ${ruleData.ha_expose !== false ? 'flex' : 'none'}; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
 <div style="display: flex; align-items: center; gap: 0.3rem;">
-<span style="font-size: 0.76rem; color: #64748b; font-weight: 600;">MDI Icon:</span>
-<input type="text" class="cando-ha-icon" value="${ruleData.ha_icon || 'mdi:car-defrost-rear'}" placeholder="mdi:car-defrost-rear" style="width: 170px; font-size: 0.78rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+<span style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">MDI Icon:</span>
+<input type="text" class="cando-ha-icon" value="${ruleData.ha_icon || 'mdi:car-defrost-rear'}" placeholder="mdi:car-defrost-rear" style="width: 170px; font-size: 0.78rem; padding: 2px 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-heading); border-radius: var(--m3-shape-xs);">
 </div>
 <div style="display: flex; align-items: center; gap: 0.25rem;">
-<span style="font-size: 0.72rem; color: #94a3b8;">Quick:</span>
-<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-defrost-rear';" style="padding: 1px 5px; font-size: 0.7rem; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; border-radius: 3px; cursor: pointer;">Defrost</button>
-<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-electric';" style="padding: 1px 5px; font-size: 0.7rem; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 3px; cursor: pointer;">EV</button>
-<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:fan';" style="padding: 1px 5px; font-size: 0.7rem; background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; border-radius: 3px; cursor: pointer;">Climate</button>
-<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-door';" style="padding: 1px 5px; font-size: 0.7rem; background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; border-radius: 3px; cursor: pointer;">Trunk</button>
-<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-key';" style="padding: 1px 5px; font-size: 0.7rem; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; border-radius: 3px; cursor: pointer;">Key</button>
+<span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Quick:</span>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-defrost-rear';" style="padding: 1px 6px; font-size: 0.7rem; border-radius: var(--m3-shape-xs); cursor: pointer;">Defrost</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-electric';" style="padding: 1px 6px; font-size: 0.7rem; border-radius: var(--m3-shape-xs); cursor: pointer;">EV</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:fan';" style="padding: 1px 6px; font-size: 0.7rem; border-radius: var(--m3-shape-xs); cursor: pointer;">Climate</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-door';" style="padding: 1px 6px; font-size: 0.7rem; border-radius: var(--m3-shape-xs); cursor: pointer;">Trunk</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-key';" style="padding: 1px 6px; font-size: 0.7rem; border-radius: var(--m3-shape-xs); cursor: pointer;">Key</button>
 </div>
 </div>
 </div>
@@ -7011,6 +7129,7 @@ if (b === "INC" || b === "ROLL") b = "++";
 inp.value = (b && b !== "**" && b !== "*") ? b : "";
 });
 }
+const setByteGridString = populateByteGrid;
 function addCandoTriggerItem(buttonElem) {
 const card = buttonElem.closest(".cando-rule-card");
 const container = card.querySelector(".cando-triggers-container");
@@ -7027,24 +7146,35 @@ itemDiv.style.padding = "0.9rem";
 itemDiv.style.boxShadow = "var(--shadow-sm)";
 const { builtIn, custom } = getFilteredTriggerPresets();
 let selectedPresetVal = "";
+let matchedPreset = null;
 if (data.id) {
 const cIdx = custom.findIndex(p => p.id === data.id);
 if (cIdx !== -1) {
 selectedPresetVal = `c_${cIdx}`;
+matchedPreset = custom[cIdx];
 } else {
 const bIdx = builtIn.findIndex(p => p.id === data.id);
 if (bIdx !== -1) {
 selectedPresetVal = `b_${bIdx}`;
+matchedPreset = builtIn[bIdx];
 }
 }
 }
+if (!selectedPresetVal && (source === "preset" || !data.source) && builtIn.length > 0) {
+selectedPresetVal = "b_0";
+matchedPreset = builtIn[0];
+}
+const canId = data.can_id || (matchedPreset ? matchedPreset.can_id : "0x448");
+const busVal = data.bus !== undefined ? data.bus : (matchedPreset && matchedPreset.bus !== undefined ? matchedPreset.bus : 0);
+const fromPayload = data.from_payload !== undefined ? data.from_payload : (matchedPreset ? (matchedPreset.from_payload || "") : "");
+const toPayload = data.to_payload !== undefined ? data.to_payload : (data.match_payload !== undefined ? data.match_payload : (matchedPreset ? (matchedPreset.to_payload || "") : ""));
 itemDiv.innerHTML = `
 <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.5rem; border-bottom: 1px dashed #fed7aa; padding-bottom: 0.4rem;">
 <div style="display: flex; align-items: center; gap: 0.6rem;">
 <span style="font-weight: 700; font-size: 0.88rem; color: #ea580c;">⚡ Trigger:</span>
 <label class="cando-trig-id-container" style="font-size: 0.8rem; color: var(--m3-tonal-when-color); font-weight: 600; display: none; align-items: center; gap: 0.3rem;">
 ID:
-<input type="text" class="cando-trig-id" value="${data.id || ""}" placeholder="e.g. star_press" oninput="updateCandoRuleTriggerDropdowns(this.closest('.cando-rule-card')); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box;">
+<input type="text" class="cando-trig-id" value="${data.id || (matchedPreset ? matchedPreset.id : "") || ""}" placeholder="e.g. star_press" oninput="updateCandoRuleTriggerDropdowns(this.closest('.cando-rule-card')); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box;">
 </label>
 </div>
 <div style="display: flex; align-items: center; gap: 0.35rem;">
@@ -7060,7 +7190,7 @@ ID:
 <td>
 <select class="cando-trig-source" onchange="toggleCandoTrigItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
 <option value="preset" ${source === "preset" || !data.source ? "selected" : ""}>Presets</option>
-<option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom / Raw CAN Message</option>
+<option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom CAN Message</option>
 <option value="ha_mqtt" ${source === "ha_mqtt" || source === "mqtt_cmd" ? "selected" : ""}>🏠 Home Assistant / MQTT Command</option>
 <option value="clock" ${source === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
 <option value="interval" ${source === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
@@ -7094,27 +7224,27 @@ ${renderTrigPresetOptionsHTML(selectedPresetVal)}
 </tr>
 <tr class="trig-field-can ${source === "can_msg" ? "" : "hidden"}">
 <td>Trigger CAN ID (Hex):</td>
-<td><input type="text" class="cando-trig-can-id" value="${data.can_id || "0x448"}" placeholder="0x448" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
+<td><input type="text" class="cando-trig-can-id" value="${canId}" placeholder="0x448" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
 </tr>
 <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
 <td>Bus:</td>
 <td>
 <select class="cando-trig-bus">
-<option value="0" ${data.bus === 0 || !data.bus ? "selected" : ""}>CAN 0 (Primary)</option>
-<option value="1" ${data.bus === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
+<option value="0" ${busVal === 0 ? "selected" : ""}>CAN 0 (Primary)</option>
+<option value="1" ${busVal === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
 </select>
 </td>
 </tr>
 <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
 <td style="vertical-align: middle;">From Payload (D1–D8, Optional):</td>
 <td>
-${renderByteInputsHTML("cando-trig-from", data.from_payload || "")}
+${renderByteInputsHTML("cando-trig-from", fromPayload)}
 </td>
 </tr>
 <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
 <td style="vertical-align: middle;">To Payload (D1–D8, Optional):</td>
 <td>
-${renderByteInputsHTML("cando-trig-to", data.to_payload || data.match_payload || "")}
+${renderByteInputsHTML("cando-trig-to", toPayload)}
 </td>
 </tr>
 <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
@@ -7153,9 +7283,9 @@ ${renderByteInputsHTML("cando-trig-to", data.to_payload || data.match_payload ||
 <div style="display: flex; flex-direction: column; gap: 4px;">
 <div style="display: flex; align-items: center; gap: 8px;">
 <input type="number" class="cando-trig-for-sec" value="${data.for_sec !== undefined ? data.for_sec : (data.for_ms ? (data.for_ms / 1000) : 0)}" min="0" max="86400" step="0.5" style="width: 75px;" placeholder="0" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
-<span style="font-weight: 600; color: #9a3412; font-size: 0.85rem;">seconds</span>
+<span style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem;">seconds</span>
 </div>
-<span style="font-size: 0.75rem; color: #78716c;">(Must remain continuously active for this duration before firing. 0 = Instant)</span>
+<span style="font-size: 0.75rem; color: var(--text-muted);">(Must remain continuously active for this duration before firing. 0 = Instant)</span>
 </div>
 </td>
 </tr>
@@ -7670,9 +7800,9 @@ const hasPopupData = (type === "can_tx" || type === "popup" || data.popup_messag
 const isImperial = (getUnitSystem() === "imperial");
 let initialTemp = isImperial ? 72 : 21.0;
 if (data.target_temp_f !== undefined) {
-initialTemp = isImperial ? data.target_temp_f : Math.round(((data.target_temp_f - 32) * 5/9) * 2) / 2;
+initialTemp = isImperial ? data.target_temp_f : Math.round(((data.target_temp_f - 32) * 5 / 9) * 2) / 2;
 } else if (data.target_temp_c !== undefined) {
-initialTemp = isImperial ? Math.round(data.target_temp_c * 9/5 + 32) : data.target_temp_c;
+initialTemp = isImperial ? Math.round(data.target_temp_c * 9 / 5 + 32) : data.target_temp_c;
 }
 if (isImperial) {
 initialTemp = Math.min(82, Math.max(62, initialTemp));
@@ -7681,9 +7811,9 @@ initialTemp = Math.min(28.0, Math.max(17.0, initialTemp));
 }
 let initialPassTemp = initialTemp;
 if (data.pass_temp_f !== undefined) {
-initialPassTemp = isImperial ? data.pass_temp_f : Math.round(((data.pass_temp_f - 32) * 5/9) * 2) / 2;
+initialPassTemp = isImperial ? data.pass_temp_f : Math.round(((data.pass_temp_f - 32) * 5 / 9) * 2) / 2;
 } else if (data.pass_temp_c !== undefined) {
-initialPassTemp = isImperial ? Math.round(data.pass_temp_c * 9/5 + 32) : data.pass_temp_c;
+initialPassTemp = isImperial ? Math.round(data.pass_temp_c * 9 / 5 + 32) : data.pass_temp_c;
 }
 if (isImperial) {
 initialPassTemp = Math.min(82, Math.max(62, initialPassTemp));
@@ -8307,20 +8437,20 @@ if (showClimate) {
 const tt = item.querySelector(".cando-act-target-temp");
 if (tt) {
 if (isImperial) {
-const f = preset.target_temp_f !== undefined ? preset.target_temp_f : (preset.target_temp_c !== undefined ? Math.round(preset.target_temp_c * 9/5 + 32) : 72);
+const f = preset.target_temp_f !== undefined ? preset.target_temp_f : (preset.target_temp_c !== undefined ? Math.round(preset.target_temp_c * 9 / 5 + 32) : 72);
 tt.value = Math.min(82, Math.max(62, f));
 } else {
-const c = preset.target_temp_c !== undefined ? preset.target_temp_c : (preset.target_temp_f !== undefined ? Math.round(((preset.target_temp_f - 32) * 5/9) * 2) / 2 : 21.0);
+const c = preset.target_temp_c !== undefined ? preset.target_temp_c : (preset.target_temp_f !== undefined ? Math.round(((preset.target_temp_f - 32) * 5 / 9) * 2) / 2 : 21.0);
 tt.value = Math.min(28.0, Math.max(17.0, c));
 }
 }
 const pt = item.querySelector(".cando-act-pass-temp");
 if (pt) {
 if (isImperial) {
-const f = preset.pass_temp_f !== undefined ? preset.pass_temp_f : (preset.target_temp_f !== undefined ? preset.target_temp_f : (preset.target_temp_c !== undefined ? Math.round(preset.target_temp_c * 9/5 + 32) : 72));
+const f = preset.pass_temp_f !== undefined ? preset.pass_temp_f : (preset.target_temp_f !== undefined ? preset.target_temp_f : (preset.target_temp_c !== undefined ? Math.round(preset.target_temp_c * 9 / 5 + 32) : 72));
 pt.value = Math.min(82, Math.max(62, f));
 } else {
-const c = preset.pass_temp_c !== undefined ? preset.pass_temp_c : (preset.target_temp_c !== undefined ? preset.target_temp_c : (preset.target_temp_f !== undefined ? Math.round(((preset.target_temp_f - 32) * 5/9) * 2) / 2 : 21.0));
+const c = preset.pass_temp_c !== undefined ? preset.pass_temp_c : (preset.target_temp_c !== undefined ? preset.target_temp_c : (preset.target_temp_f !== undefined ? Math.round(((preset.target_temp_f - 32) * 5 / 9) * 2) / 2 : 21.0));
 pt.value = Math.min(28.0, Math.max(17.0, c));
 }
 }
@@ -8410,10 +8540,10 @@ if (activeOpt && (activeOpt.target_temp_c !== undefined || activeOpt.target_temp
 const tt = item.querySelector(".cando-act-target-temp");
 if (tt) {
 if (isImperial) {
-const f = activeOpt.target_temp_f !== undefined ? activeOpt.target_temp_f : Math.round(activeOpt.target_temp_c * 9/5 + 32);
+const f = activeOpt.target_temp_f !== undefined ? activeOpt.target_temp_f : Math.round(activeOpt.target_temp_c * 9 / 5 + 32);
 tt.value = Math.min(82, Math.max(62, f));
 } else {
-const c = activeOpt.target_temp_c !== undefined ? activeOpt.target_temp_c : Math.round(((activeOpt.target_temp_f - 32) * 5/9) * 2) / 2;
+const c = activeOpt.target_temp_c !== undefined ? activeOpt.target_temp_c : Math.round(((activeOpt.target_temp_f - 32) * 5 / 9) * 2) / 2;
 tt.value = Math.min(28.0, Math.max(17.0, c));
 }
 }
@@ -8470,10 +8600,10 @@ if (opt.target_temp_c !== undefined || opt.target_temp_f !== undefined) {
 const tt = item.querySelector(".cando-act-target-temp");
 if (tt) {
 if (isImperial) {
-const f = opt.target_temp_f !== undefined ? opt.target_temp_f : Math.round(opt.target_temp_c * 9/5 + 32);
+const f = opt.target_temp_f !== undefined ? opt.target_temp_f : Math.round(opt.target_temp_c * 9 / 5 + 32);
 tt.value = Math.min(82, Math.max(62, f));
 } else {
-const c = opt.target_temp_c !== undefined ? opt.target_temp_c : Math.round(((opt.target_temp_f - 32) * 5/9) * 2) / 2;
+const c = opt.target_temp_c !== undefined ? opt.target_temp_c : Math.round(((opt.target_temp_f - 32) * 5 / 9) * 2) / 2;
 tt.value = Math.min(28.0, Math.max(17.0, c));
 }
 }
@@ -8530,16 +8660,8 @@ const cid = item.querySelector(".cando-trig-can-id");
 if (cid) cid.value = pid.can_id;
 const bus = item.querySelector(".cando-trig-bus");
 if (bus && pid.bus !== undefined) bus.value = pid.bus.toString();
-if (pid.from_payload) {
-setByteGridString(item, "cando-trig-from", pid.from_payload);
-} else {
-setByteGridString(item, "cando-trig-from", "");
-}
-if (pid.to_payload) {
-setByteGridString(item, "cando-trig-to", pid.to_payload);
-} else {
-setByteGridString(item, "cando-trig-to", "");
-}
+populateByteGrid(item, "cando-trig-from", pid.from_payload || "");
+populateByteGrid(item, "cando-trig-to", pid.to_payload || "");
 showNotification("Applied trigger preset: " + pid.name, "orange", 3000);
 if (card) {
 updateCandoRuleTriggerDropdowns(card);
@@ -8923,12 +9045,23 @@ const card = cards[idx];
 if (!card) return;
 const badge = card.querySelector(".cando-activity-badge");
 if (!badge) return;
+const isRuleEnabled = card.querySelector(".cando-rule-enabled") ? card.querySelector(".cando-rule-enabled").checked : true;
+if (!isRuleEnabled) {
+badge.textContent = "Paused";
+badge.style.background = "#f1f5f9";
+badge.style.color = "#94a3b8";
+badge.style.borderColor = "#cbd5e1";
+badge.style.boxShadow = "none";
+badge.title = "Automation paused";
+return;
+}
 if (st.count === 0 || st.age_ms === -1) {
 badge.textContent = "Idle";
 badge.style.background = "#f8fafc";
 badge.style.color = "#64748b";
 badge.style.borderColor = "#e2e8f0";
 badge.style.boxShadow = "none";
+badge.title = "Live trigger activity";
 } else {
 const ageSec = Math.round(st.age_ms / 1000);
 let ageStr = `${ageSec}s ago`;
@@ -8936,6 +9069,7 @@ if (ageSec > 60) {
 ageStr = `${Math.floor(ageSec / 60)}m ago`;
 }
 badge.textContent = `⚡ ${st.count}x (${ageStr})`;
+badge.title = `Fired ${st.count} time(s), last ${ageStr}`;
 if (st.age_ms >= 0 && st.age_ms < 4000) {
 badge.style.background = "#dcfce7";
 badge.style.color = "#15803d";
@@ -8977,20 +9111,20 @@ let tempC = 21.0;
 let tempF = 72;
 if (isImperial) {
 tempF = Math.min(82, Math.max(62, isNaN(rawTemp) ? 72 : rawTemp));
-tempC = Math.round(((tempF - 32) * 5/9) * 2) / 2;
+tempC = Math.round(((tempF - 32) * 5 / 9) * 2) / 2;
 } else {
 tempC = Math.min(28.0, Math.max(17.0, isNaN(rawTemp) ? 21.0 : rawTemp));
-tempF = Math.round(tempC * 9/5 + 32);
+tempF = Math.round(tempC * 9 / 5 + 32);
 }
 const rawPassTemp = parseFloat(item.querySelector(".cando-act-pass-temp")?.value || (isImperial ? "72" : "21.0"));
 let passTempC = tempC;
 let passTempF = tempF;
 if (isImperial) {
 passTempF = Math.min(82, Math.max(62, isNaN(rawPassTemp) ? tempF : rawPassTemp));
-passTempC = Math.round(((passTempF - 32) * 5/9) * 2) / 2;
+passTempC = Math.round(((passTempF - 32) * 5 / 9) * 2) / 2;
 } else {
 passTempC = Math.min(28.0, Math.max(17.0, isNaN(rawPassTemp) ? tempC : rawPassTemp));
-passTempF = Math.round(passTempC * 9/5 + 32);
+passTempF = Math.round(passTempC * 9 / 5 + 32);
 }
 const presetPicker = item.querySelector(".cando-act-preset-picker");
 const selectedPresetVal = presetPicker?.value || "";
@@ -9396,7 +9530,7 @@ fetch("/set_capture_mode", {
 method: "POST",
 headers: { "Content-Type": "application/json" },
 body: JSON.stringify({ mode: saved })
-}).catch(() => {});
+}).catch(() => { });
 }
 function toggleCandoCaptureMode(val) {
 localStorage.setItem("wican_cando_capture_mode", val);
@@ -9435,7 +9569,7 @@ function importCandoRules(inputElem) {
 const file = inputElem.files[0];
 if (!file) return;
 const reader = new FileReader();
-reader.onload = function(e) {
+reader.onload = function (e) {
 try {
 const data = JSON.parse(e.target.result);
 if (data && Array.isArray(data.rules)) {
@@ -9544,7 +9678,7 @@ if (menu) {
 menu.classList.remove("show");
 }
 }
-document.addEventListener("click", function(e) {
+document.addEventListener("click", function (e) {
 const dropdown = document.getElementById("cando_settings_dropdown");
 if (dropdown && !dropdown.contains(e.target)) {
 closeCandoSettingsMenu();

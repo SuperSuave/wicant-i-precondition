@@ -4044,13 +4044,13 @@ void cando_publish_ha_discovery(void)
         char sanitized_name[64];
         sanitize_ha_identifier(rule->name, sanitized_name, sizeof(sanitized_name));
 
-        char disc_topic[160];
+        char disc_topic[192];
         snprintf(disc_topic, sizeof(disc_topic), "homeassistant/button/wican_%s/cando_%s/config", dev_id, sanitized_name);
 
-        char cmd_topic[96];
+        char cmd_topic[128];
         snprintf(cmd_topic, sizeof(cmd_topic), "wican/%s/cando/trigger", dev_id);
 
-        char uniq_id[96];
+        char uniq_id[160];
         snprintf(uniq_id, sizeof(uniq_id), "wican_%s_cando_%s", dev_id, sanitized_name);
 
         const char *icon = (rule->ha_icon[0] != '\0') ? rule->ha_icon : "mdi:car-cog";
@@ -4067,12 +4067,12 @@ void cando_publish_ha_discovery(void)
         cJSON *dev = cJSON_CreateObject();
         if (dev) {
             cJSON *ids = cJSON_CreateArray();
-            char dev_identifier[48];
+            char dev_identifier[64];
             snprintf(dev_identifier, sizeof(dev_identifier), "wican_%s", dev_id);
             cJSON_AddItemToArray(ids, cJSON_CreateString(dev_identifier));
             cJSON_AddItemToObject(dev, "identifiers", ids);
 
-            char dev_name[48];
+            char dev_name[64];
             snprintf(dev_name, sizeof(dev_name), "WiCAN %s", dev_id);
             cJSON_AddStringToObject(dev, "name", dev_name);
             cJSON_AddStringToObject(dev, "model", "WiCAN Vehicle Bridge");
@@ -4106,7 +4106,7 @@ void cando_unpublish_ha_rule(const char *rule_name)
     char sanitized_name[64];
     sanitize_ha_identifier(rule_name, sanitized_name, sizeof(sanitized_name));
 
-    char disc_topic[160];
+    char disc_topic[192];
     snprintf(disc_topic, sizeof(disc_topic), "homeassistant/button/wican_%s/cando_%s/config", dev_id, sanitized_name);
 
     /* Empty payload with retain=1 removes the entity in Home Assistant */

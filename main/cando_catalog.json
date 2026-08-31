@@ -1228,6 +1228,80 @@
       "category": "❄️ Cabin Climate Control",
       "presets": [
         {
+          "name": "Remote Climate Start (with Heated Seats & Steering Wheel)",
+          "name_imperial": "Remote Climate Start (+ Seats & Wheel)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
+          "type": "can_tx",
+          "can_id": "0x4A2",
+          "bus": 0,
+          "delay_ms": 50,
+          "popup_message": "Remote Climate Started",
+          "options": [
+            {
+              "label": "Start (+ Seats & Wheel)",
+              "payload": "00 00 FF F3 FF FF 7F 00",
+              "popup": "Climate + Warmers Started",
+              "default": true
+            },
+            {
+              "label": "Start (Climate Only)",
+              "payload": "00 00 FF 03 FF FF 00 00",
+              "popup": "Remote Climate Started"
+            },
+            {
+              "label": "Turn OFF",
+              "payload": "00 00 00 00 00 00 00 00",
+              "popup": "Remote Climate Stopped"
+            }
+          ],
+          "steps": [
+            {
+              "payload": "00 00 0F 03 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 FF F3 FF FF 7F 00",
+              "repeat": 10
+            }
+          ]
+        },
+        {
+          "name": "Vehicle: Deep Sleep Network Wake Pulse (C-CAN / M-CAN)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
+          "type": "can_tx",
+          "can_id": "0x604",
+          "bus": 0,
+          "delay_ms": 40,
+          "popup_message": "Vehicle Network Woken",
+          "options": [
+            {
+              "label": "Wake Pulse",
+              "payload": "4B 14 14 14 14 14 FF FF",
+              "default": true
+            }
+          ],
+          "steps": [
+            {
+              "payload": "4B 14 14 14 14 14 FF FF",
+              "repeat": 10
+            }
+          ]
+        },
+        {
           "name": "Climate: Set Target Cabin Temp",
           "name_imperial": "Climate: Set Target Cabin Temp",
           "tags": [

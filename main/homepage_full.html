@@ -454,26 +454,176 @@
             .form-table td:first-child {
                 padding-bottom: 0.25rem;
             }
-            .compact-form-table {
-                width: 100%;
-                border-collapse: collapse;
-            }
+        }
 
+        /* Global Compact Form Table for CAN Do Automations */
+        .compact-form-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+        }
+
+        .compact-form-table td {
+            padding: 3px 6px;
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
+
+        .compact-form-table td:first-child {
+            width: 25%;
+            font-weight: 600;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        .compact-form-table select {
+            width: 100%;
+            max-width: 440px;
+            height: 30px;
+            padding: 2px 8px;
+            font-size: 0.84rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            background-color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        .compact-form-table input[type="text"],
+        .compact-form-table input[type="number"] {
+            width: 100%;
+            max-width: 440px;
+            height: 30px;
+            padding: 2px 8px;
+            font-size: 0.84rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            background-color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
             .compact-form-table td {
                 padding: 3px;
                 vertical-align: middle;
                 font-size: 0.85rem;
             }
 
-            .compact-form-table input,
-            .compact-form-table select {
-                width: 95%;
-                padding: 2px 5px;
-                height: 24px;
-                font-size: 0.85rem;
-                border: 1px solid var(--gray-300);
-                border-radius: 4px;
+            .compact-form-table td:first-child {
+                width: 100%;
+                display: block;
             }
+
+            .compact-form-table select,
+            .compact-form-table input[type="text"],
+            .compact-form-table input[type="number"] {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+        /* CAN Do Settings Dropdown Menu */
+        .cando-settings-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cando-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            background: #ffffff;
+            min-width: 280px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            padding: 8px 0;
+        }
+
+        .cando-dropdown-menu.show {
+            display: block;
+        }
+
+        .cando-menu-header {
+            padding: 6px 14px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            margin: 4px 0;
+        }
+
+        .cando-menu-header:first-child {
+            border-top: none;
+            margin-top: -4px;
+        }
+
+        .cando-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border: none;
+            background: none;
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: #334155;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+            box-sizing: border-box;
+        }
+
+        .cando-menu-item:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .cando-menu-item .menu-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .cando-menu-badge-container {
+            padding: 6px 14px 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cando-menu-row {
+            padding: 6px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .cando-menu-row label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cando-menu-row select {
+            width: 100%;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #1e293b;
         }
     </style>
 </head>
@@ -899,44 +1049,82 @@
             <div class="section-title" style="margin-top:1rem;">CAN Do Automations</div>
             <div style="margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 0.4rem;">
-                        <label><b>🚗 Vehicle:</b></label>
-                        <select id="cando_vehicle_profile" onchange="changeCandoVehicleProfile(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
-                            <option value="all_egmp">All E-GMP (Universal)</option>
-                            <option value="kia_ev6">Kia EV6 / EV6 GT</option>
-                            <option value="hyundai_ioniq5">Hyundai Ioniq 5 / Ioniq 5 N</option>
-                            <option value="hyundai_ioniq6">Hyundai Ioniq 6</option>
-                            <option value="genesis_gv60">Genesis GV60</option>
-                            <option value="kia_ev9">Kia EV9</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.4rem;">
-                        <label><b>🌡️ Units:</b></label>
-                        <select id="cando_unit_system" onchange="changeUnitSystem(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
-                            <option value="metric">°C (Metric)</option>
-                            <option value="imperial">°F (Imperial)</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.4rem;">
-                        <label><b>CAN Do Mode:</b></label>
-                        <select id="cando_capture_mode" onchange="toggleCandoCaptureMode(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
-                            <option value="auto">🤖 Auto-Pause on SavvyCAN/Lens</option>
-                            <option value="paused">⏸️ Pause CAN Do's</option>
-                            <option value="disabled">⚡ Run CAN Do's</option>
-                        </select>
-                    </div>
                     <span id="cando_capture_active_badge" style="display: none; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; animation: pulse 2s infinite;" title="WiCAN detected an active SavvyCAN/GVRET sniffer connection on port 23. Automations are temporarily paused to keep your trace capture clean.">🕵🏼 Sniffer Active - Automations Paused</span>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                    <span id="cando_catalog_badge" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;">Catalog: Initializing...</span>
-                    <button type="button" class="system-button" onclick="syncCatalogFromGitHub(true)" title="Fetch latest presets from repository" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">🔄 Sync Presets</button>
-                    <button type="button" class="system-button" onclick="configureCatalogUrl()" title="Configure Catalog Repository URL" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 9px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">⚙️ URL</button>
-                    <button type="button" class="system-button" onclick="document.getElementById('cando_catalog_import_file').click()" title="Load custom cando_catalog.json file" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">📁 Custom Presets</button>
+                    <input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 160px; margin: 0;">
+                    <button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)" style="margin: 0; padding: 6px 16px; font-size: 0.85rem; font-weight: 700; background: #16a34a; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 4px;">➕ New CAN Do</button>
+                    
+                    <!-- Settings Dropdown -->
+                    <div class="cando-settings-dropdown" id="cando_settings_dropdown">
+                        <button type="button" class="system-button" onclick="toggleCandoSettingsMenu(event)" title="CAN Do Settings &amp; Presets" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            ⚙️ Settings ▾
+                        </button>
+                        <div class="cando-dropdown-menu" id="cando_settings_menu">
+                            <div class="cando-menu-header">Preferences</div>
+                            
+                            <div class="cando-menu-row">
+                                <label for="cando_vehicle_model">🚗 Make &amp; Model:</label>
+                                <select id="cando_vehicle_model" onchange="changeCandoVehicleModel(this.value);">
+                                    <option value="all_egmp">All Gen5W Models (Universal)</option>
+                                    <option value="hyundai_ioniq5">Hyundai Ioniq 5</option>
+                                    <option value="kia_ev6">Kia EV6</option>
+                                    <option value="hyundai_ioniq6">Hyundai Ioniq 6</option>
+                                </select>
+                            </div>
+                            
+                            <div class="cando-menu-row" id="cando_trim_row">
+                                <label for="cando_vehicle_trim">🏷️ Trim Level:</label>
+                                <select id="cando_vehicle_trim" onchange="changeCandoVehicleTrim(this.value);">
+                                    <option value="all_egmp">All Trims (Universal)</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" id="cando_vehicle_profile" value="all_egmp" />
+                            
+                            <div class="cando-menu-row">
+                                <label for="cando_unit_system">📏 Unit System:</label>
+                                <select id="cando_unit_system" onchange="changeUnitSystem(this.value);">
+                                    <option value="metric">Metric (°C, km/h, km, bar)</option>
+                                    <option value="imperial">Imperial (°F, mph, mi, psi)</option>
+                                </select>
+                            </div>
+
+                            <div class="cando-menu-row">
+                                <label for="cando_capture_mode">⚡ CAN Do Execution Mode:</label>
+                                <select id="cando_capture_mode" onchange="toggleCandoCaptureMode(this.value);">
+                                    <option value="auto">🤖 Auto-Pause on Sniffer</option>
+                                    <option value="paused">⏸️ Pause CAN Do's</option>
+                                    <option value="disabled">⚡ Run CAN Do's (Always)</option>
+                                </select>
+                            </div>
+
+                            <div class="cando-menu-header">Preset Catalog</div>
+                            <div class="cando-menu-badge-container">
+                                <span id="cando_catalog_badge" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; display: inline-block;">Catalog: Initializing...</span>
+                            </div>
+                            <button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); syncCatalogFromGitHub(true);">
+                                <span class="menu-icon">🔄</span> Sync Online Presets
+                            </button>
+                            <button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); configureCatalogUrl();">
+                                <span class="menu-icon">🌐</span> Configure Catalog URL
+                            </button>
+                            <button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); document.getElementById('cando_catalog_import_file').click();">
+                                <span class="menu-icon">📁</span> Import Custom Catalog JSON
+                            </button>
+                            
+                            <div class="cando-menu-header">Backup &amp; Restore</div>
+                            <button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); exportCandoRules();">
+                                <span class="menu-icon">📥</span> Backup CAN Do Automations
+                            </button>
+                            <button type="button" class="cando-menu-item" onclick="closeCandoSettingsMenu(); document.getElementById('cando_import_file').click();">
+                                <span class="menu-icon">📤</span> Restore CAN Do Automations
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden file inputs -->
                     <input type="file" id="cando_catalog_import_file" accept=".json" onchange="importCandoCatalogFile(this)" style="display: none;" />
-                    <input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 140px; margin: 0;">
-                    <button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)" style="margin: 0; padding: 6px 16px; font-size: 0.85rem; font-weight: 700; background: #16a34a; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">+ New CAN Do</button>
-                    <button type="button" class="system-button" onclick="exportCandoRules()" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">📥 Backup</button>
-                    <button type="button" class="system-button" onclick="document.getElementById('cando_import_file').click()" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">📤 Restore</button>
                     <input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)" style="display: none;" />
                 </div>
             </div>
@@ -3742,36 +3930,433 @@ function loadAutoTable(jsonData) {
 
     /* CANDO_CATALOG_START - Dynamic GitHub & SPIFFS Catalog Loader */
     const CANDO_DEFAULT_FALLBACK_CATALOG = {
+  "catalog_version": "2.5.0",
+  "infotainment_platform": "Gen5W (Standard-class Navigation 12.3\" Dual Display)",
+  "supported_model_years": "2022-2024 E-GMP",
   "vehicles": [
     {
       "id": "all_egmp",
-      "name": "All E-GMP Vehicles (Universal)"
+      "name": "All Gen5W Models",
+      "make": "Universal",
+      "model": "All Models",
+      "trim": "All Trims",
+      "region": "universal",
+      "family": "all_egmp",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "touch_bar",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Head-Up Display (HUD) Angle & Brightness Adjust",
+        "Ambient Lighting 64-Color RGB Palette Sync",
+        "V2L (Vehicle-to-Load) Discharge Cutoff SOC",
+        "Acoustic Vehicle Alerting System (VESS) Chime Mode",
+        "Smart Power Tailgate Height Limit Level"
+      ]
     },
     {
-      "id": "kia_ev6",
-      "name": "Kia EV6 / EV6 GT"
+      "id": "hi5_limited",
+      "name": "Limited",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "Limited",
+      "region": "us",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Driver Relaxation Comfort Seat 1-Touch Zero-G Tilt",
+        "Sliding Universal Island Console Forward/Aft Motor",
+        "Vision Glass Roof Power Sunshade Position",
+        "Augmented Reality HUD Calibration",
+        "Bose Premium Audio Surround Stage Profile"
+      ]
     },
     {
-      "id": "hyundai_ioniq5",
-      "name": "Hyundai Ioniq 5 / Ioniq 5 N"
+      "id": "hi5_sel",
+      "name": "SEL",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "SEL",
+      "region": "us",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Ambient Mood Lighting Dual Color Zone Sync",
+        "Power Folding Mirrors Position",
+        "Hands-Free Smart Liftgate Sensitivity"
+      ]
     },
     {
-      "id": "hyundai_ioniq6",
-      "name": "Hyundai Ioniq 6"
+      "id": "hi5_se",
+      "name": "SE / Standard Range",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "SE / Standard Range",
+      "region": "us",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Manual Climate Target Optimization",
+        "Drive Mode Eco/Normal/Sport Steering Weight"
+      ]
     },
     {
-      "id": "genesis_gv60",
-      "name": "Genesis GV60"
+      "id": "hi5_n",
+      "name": "Ioniq 5 N",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "Ioniq 5 N",
+      "region": "global",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "N Grin Shift (NGS) Boost Trigger",
+        "N Active Sound+ Ignition/Evolution/Supersonic Modes",
+        "N e-Shift Virtual Dual-Clutch Gear Shift Feel",
+        "N Drift Optimizer Torque Distribution Front/Rear",
+        "N Battery Preconditioning Drag vs Track Mode"
+      ]
     },
     {
-      "id": "kia_ev9",
-      "name": "Kia EV9"
+      "id": "hi5_ultimate",
+      "name": "Ultimate / Namsan",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "Ultimate / Namsan",
+      "region": "eu",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Digital Side Mirrors (DSM) Camera Display Brightness",
+        "Driver Relaxation Seat Zero-Gravity Recline",
+        "Vision Roof Electronic Sunshade Position",
+        "Smart Power Tailgate Height Adjustment"
+      ]
+    },
+    {
+      "id": "hi5_premium",
+      "name": "Premium / N-Line",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "Premium / N-Line",
+      "region": "eu",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Smart Tailgate Distance Sensor Trigger",
+        "Ambient Lighting Color Tone"
+      ]
+    },
+    {
+      "id": "hi5_advance",
+      "name": "Advance / SE Connect",
+      "make": "Hyundai",
+      "model": "Ioniq 5",
+      "trim": "Advance / SE Connect",
+      "region": "eu",
+      "family": "hyundai_ioniq5",
+      "features": [
+        "heated_seats",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "V2L External Adapter Release Trigger"
+      ]
+    },
+    {
+      "id": "ev6_gtline",
+      "name": "GT-Line",
+      "make": "Kia",
+      "model": "EV6",
+      "trim": "GT-Line",
+      "region": "us",
+      "family": "kia_ev6",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "touch_bar",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "EV6 Dual-Function Touch Strip Mode Override (Climate / Nav)",
+        "Augmented Reality HUD Blind-Spot Projection",
+        "Active Sound Design (ASD) Volume & Pitch Modulation",
+        "Meridian Horizon Sound 3D DSP Presets",
+        "Power Sunroof Tilt / Slide State"
+      ]
+    },
+    {
+      "id": "ev6_wind",
+      "name": "Wind",
+      "make": "Kia",
+      "model": "EV6",
+      "trim": "Wind",
+      "region": "us",
+      "family": "kia_ev6",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "touch_bar",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Smart Power Tailgate Proximity Auto-Open Toggle",
+        "Meridian Surround Stage Mode",
+        "HVAC Touch Strip Mode Memory"
+      ]
+    },
+    {
+      "id": "ev6_gt",
+      "name": "GT",
+      "make": "Kia",
+      "model": "EV6",
+      "trim": "GT",
+      "region": "global",
+      "family": "kia_ev6",
+      "features": [
+        "heated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "touch_bar",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Steering Wheel GT Neon Mode Button Customization",
+        "Electronic Controlled Suspension (ECS) Dynamic Damping",
+        "Electronic Limited Slip Differential (e-LSD) Drift Mode",
+        "GT Performance Sport Gauge Cluster Layout"
+      ]
+    },
+    {
+      "id": "ev6_light",
+      "name": "Light / Standard Range",
+      "make": "Kia",
+      "model": "EV6",
+      "trim": "Light / Standard Range",
+      "region": "us",
+      "family": "kia_ev6",
+      "features": [
+        "heated_seats",
+        "touch_bar",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Touch Strip HVAC/Media Switch",
+        "Virtual Engine Sound Pitch Adjust"
+      ]
+    },
+    {
+      "id": "ev6_gtline_s",
+      "name": "GT-Line S",
+      "make": "Kia",
+      "model": "EV6",
+      "trim": "GT-Line S",
+      "region": "eu",
+      "family": "kia_ev6",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "touch_bar",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Heated Outer Rear Seat Heat Levels",
+        "Touch Strip Dual-Mode Toggle",
+        "Meridian Audio Surround Profiles",
+        "Panoramic Power Tilt Sunroof"
+      ]
+    },
+    {
+      "id": "ev6_air",
+      "name": "Air",
+      "make": "Kia",
+      "model": "EV6",
+      "trim": "Air",
+      "region": "eu",
+      "family": "kia_ev6",
+      "features": [
+        "heated_seats",
+        "heated_wheel",
+        "touch_bar",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Touch Strip Mode Switch",
+        "Scheduled Preconditioning Auto-Start"
+      ]
+    },
+    {
+      "id": "hi6_limited",
+      "name": "Limited",
+      "make": "Hyundai",
+      "model": "Ioniq 6",
+      "trim": "Limited",
+      "region": "us",
+      "family": "hyundai_ioniq6",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Dual Color Ambient Speed-Linked Lighting",
+        "EV Sound Design (e-ASD) Spatial Audio",
+        "Power Tilt/Slide Sunroof Remote Open/Close",
+        "Hands-Free Smart Power Trunklid Calibration",
+        "Remote Smart Parking Assist 2 (RSPA 2) Diagnostics"
+      ]
+    },
+    {
+      "id": "hi6_sel",
+      "name": "SEL",
+      "make": "Hyundai",
+      "model": "Ioniq 6",
+      "trim": "SEL",
+      "region": "us",
+      "family": "hyundai_ioniq6",
+      "features": [
+        "heated_seats",
+        "power_tailgate",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Speed-Sensitive Dual Ambient Light Intensity",
+        "Smart Power Trunklid Proximity Alert"
+      ]
+    },
+    {
+      "id": "hi6_se",
+      "name": "SE",
+      "make": "Hyundai",
+      "model": "Ioniq 6",
+      "trim": "SE",
+      "region": "us",
+      "family": "hyundai_ioniq6",
+      "features": [
+        "heated_seats",
+        "power_tailgate",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Aerodynamic Active Air Flap (AAF) Diagnostics",
+        "Preconditioning Efficiency Optimization"
+      ]
+    },
+    {
+      "id": "hi6_ultimate",
+      "name": "Ultimate / First Edition",
+      "make": "Hyundai",
+      "model": "Ioniq 6",
+      "trim": "Ultimate / First Edition",
+      "region": "eu",
+      "family": "hyundai_ioniq6",
+      "features": [
+        "heated_seats",
+        "ventilated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "camera_360",
+        "sunroof",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Digital Side Mirrors (DSM) Angle & Defrost",
+        "Speed-Linked Interactive 64-Color Lighting",
+        "Power Sunroof Position Command"
+      ]
+    },
+    {
+      "id": "hi6_premium",
+      "name": "Premium",
+      "make": "Hyundai",
+      "model": "Ioniq 6",
+      "trim": "Premium",
+      "region": "eu",
+      "family": "hyundai_ioniq6",
+      "features": [
+        "heated_seats",
+        "heated_wheel",
+        "power_tailgate",
+        "asd",
+        "preconditioning"
+      ],
+      "_future_can_candidates": [
+        "Interactive Steering Wheel Pixel LED Indicators",
+        "Smart Trunk Opening Sensitivity"
+      ]
     }
   ],
   "trigger_presets": [
     {
       "id": "sw_star",
-      "name": "Steering Wheel: Star (\u2b50) Button",
+      "name": "Star (⭐) Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3788,7 +4373,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_mode",
-      "name": "Steering Wheel: Mode Button",
+      "name": "Mode Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3805,7 +4390,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_speak",
-      "name": "Steering Wheel: Voice / Speak Button",
+      "name": "Voice / Speak Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3822,7 +4407,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_call",
-      "name": "Steering Wheel: Call / Phone Button",
+      "name": "Call / Phone Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3839,7 +4424,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_vol_in",
-      "name": "Steering Wheel: Volume Press / Mute",
+      "name": "Volume Press / Mute",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3856,7 +4441,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_vol_up",
-      "name": "Steering Wheel: Volume Up",
+      "name": "Volume Up",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3873,7 +4458,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_vol_down",
-      "name": "Steering Wheel: Volume Down",
+      "name": "Volume Down",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3890,7 +4475,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_skip_up",
-      "name": "Steering Wheel: Seek / Skip Up",
+      "name": "Seek / Skip Up",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3907,7 +4492,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_skip_down",
-      "name": "Steering Wheel: Seek / Skip Down",
+      "name": "Seek / Skip Down",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3924,7 +4509,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sw_ok",
-      "name": "Steering Wheel: OK Button",
+      "name": "OK Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3941,7 +4526,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "avn_star",
-      "name": "AVN / Dash: Star (\u2b50) Button",
+      "name": "AVN Dash Star (⭐) Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -3958,10 +4543,11 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "ev6_mode_strip",
-      "name": "AVN / Dash: EV6 Touch Bar Mode Switch",
+      "name": "EV6 Touch Bar Mode Switch",
       "tags": [
         "kia_ev6"
       ],
+      "requires_feature": "touch_bar",
       "category": "Dashboard / Center Console",
       "can_id": "0x652",
       "bus": 0,
@@ -3970,15 +4556,14 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "camera_btn",
-      "name": "Dash: 360\u00b0 Surround View Camera Button",
+      "name": "360° Surround View Camera Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
         "hyundai_ioniq5",
-        "hyundai_ioniq6",
-        "genesis_gv60",
-        "kia_ev9"
+        "hyundai_ioniq6"
       ],
+      "requires_feature": "camera_360",
       "category": "Dashboard / Center Console",
       "can_id": "0x476",
       "bus": 0,
@@ -3987,13 +4572,11 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "cluster_bright_up",
-      "name": "Dash: Cluster Brightness Up",
+      "name": "Cluster Brightness Up",
       "tags": [
         "all_egmp",
         "kia_ev6",
-        "hyundai_ioniq5",
-        "genesis_gv60",
-        "kia_ev9"
+        "hyundai_ioniq5"
       ],
       "category": "Dashboard / Center Console",
       "can_id": "0x474",
@@ -4003,13 +4586,11 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "cluster_bright_down",
-      "name": "Dash: Cluster Brightness Down",
+      "name": "Cluster Brightness Down",
       "tags": [
         "all_egmp",
         "kia_ev6",
-        "hyundai_ioniq5",
-        "genesis_gv60",
-        "kia_ev9"
+        "hyundai_ioniq5"
       ],
       "category": "Dashboard / Center Console",
       "can_id": "0x474",
@@ -4019,14 +4600,13 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "heated_wheel_btn",
-      "name": "Console: Heated Steering Wheel State Change",
+      "name": "Heated Steering Wheel Button",
       "tags": [
         "all_egmp",
         "kia_ev6",
-        "hyundai_ioniq5",
-        "genesis_gv60",
-        "kia_ev9"
+        "hyundai_ioniq5"
       ],
+      "requires_feature": "heated_wheel",
       "category": "Comfort & Climate",
       "can_id": "0x418",
       "bus": 0,
@@ -4035,15 +4615,14 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "driver_seat_heat",
-      "name": "Console: Driver Seat Heating Active",
+      "name": "Driver Seat Heating Active",
       "tags": [
         "all_egmp",
         "kia_ev6",
         "hyundai_ioniq5",
-        "hyundai_ioniq6",
-        "genesis_gv60",
-        "kia_ev9"
+        "hyundai_ioniq6"
       ],
+      "requires_feature": "heated_seats",
       "category": "Comfort & Climate",
       "can_id": "0x496",
       "bus": 0,
@@ -4052,15 +4631,14 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "pass_seat_heat",
-      "name": "Console: Passenger Seat Heating Active",
+      "name": "Passenger Seat Heating Active",
       "tags": [
         "all_egmp",
         "kia_ev6",
         "hyundai_ioniq5",
-        "hyundai_ioniq6",
-        "genesis_gv60",
-        "kia_ev9"
+        "hyundai_ioniq6"
       ],
+      "requires_feature": "heated_seats",
       "category": "Comfort & Climate",
       "can_id": "0x475",
       "bus": 0,
@@ -4069,7 +4647,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "climate_sync_toggle",
-      "name": "Climate: SYNC Button State Change",
+      "name": "Climate SYNC Button Toggle",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4086,7 +4664,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "climate_driver_only",
-      "name": "Climate: Driver Only / Heat Mode Toggled",
+      "name": "Driver Only / Heat Mode Toggle",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4103,7 +4681,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "climate_rear_defog",
-      "name": "Climate: Rear Defogger & Heated Mirrors Active",
+      "name": "Rear Defogger & Mirrors Active",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4120,7 +4698,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "climate_temp_status",
-      "name": "Climate: Cabin Target Temperature Change",
+      "name": "Target Temperature Change",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4137,7 +4715,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "car_ready_state",
-      "name": "Vehicle: Car READY State Transition",
+      "name": "Car READY State Transition",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4154,7 +4732,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "car_power_on",
-      "name": "Vehicle: Car Power Turned ON",
+      "name": "Car Power Turned ON",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4171,7 +4749,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "charge_door_open",
-      "name": "Vehicle: Charge Port Door Opened",
+      "name": "Charge Port Door Opened",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4188,7 +4766,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "trunk_open_trig",
-      "name": "Vehicle: Trunk Opened",
+      "name": "Trunk Opened",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4205,7 +4783,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "hood_open_trig",
-      "name": "Vehicle: Hood Opened",
+      "name": "Hood Opened",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4222,7 +4800,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "sunroof_open_trig",
-      "name": "Vehicle: Sunroof Open / Tilt State",
+      "name": "Sunroof Open / Tilt State",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4239,7 +4817,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "hazard_lights_trig",
-      "name": "Vehicle: Hazard Warning Lights Active",
+      "name": "Hazard Warning Lights Active",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4256,7 +4834,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "wipers_active_trig",
-      "name": "Vehicle: Windshield Wipers Active",
+      "name": "Windshield Wipers Active",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4273,7 +4851,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "driver_door_open_trig",
-      "name": "Vehicle: Driver Door Opened",
+      "name": "Driver Door Opened",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4290,7 +4868,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "pass_door_open_trig",
-      "name": "Vehicle: Passenger Door Opened",
+      "name": "Passenger Door Opened",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4307,7 +4885,7 @@ function loadAutoTable(jsonData) {
     },
     {
       "id": "brake_pedal_press",
-      "name": "Vehicle: Brake Pedal Pressed",
+      "name": "Brake Pedal Pressed",
       "tags": [
         "all_egmp",
         "kia_ev6",
@@ -4325,11 +4903,10 @@ function loadAutoTable(jsonData) {
   ],
   "action_presets": [
     {
-      "category": "\u26a1 Battery Preconditioning",
+      "category": "⚡ Battery Preconditioning",
       "presets": [
         {
-          "name": "Toggle Persistent Preconditioning (21\u00b0C)",
-          "name_imperial": "Toggle Persistent Preconditioning (70\u00b0F)",
+          "name": "Persistent Preconditioning (21°C / 70°F)",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4344,7 +4921,7 @@ function loadAutoTable(jsonData) {
           "popup_message": ""
         },
         {
-          "name": "Toggle Continuous Preconditioning (High Demand)",
+          "name": "Continuous Preconditioning (High Demand)",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4359,7 +4936,7 @@ function loadAutoTable(jsonData) {
           "popup_message": ""
         },
         {
-          "name": "Single Run Preconditioning Cycle (Once)",
+          "name": "Single Cycle Preconditioning (Once)",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4376,11 +4953,10 @@ function loadAutoTable(jsonData) {
       ]
     },
     {
-      "category": "\ud83d\udcac Cluster OSD Popups",
+      "category": "💬 Cluster OSD Popups",
       "presets": [
         {
-          "name": "Cluster Toast: Live Batt Temp & Voltage (\u00b0C)",
-          "name_imperial": "Cluster Toast: Live Batt Temp & Voltage (\u00b0F)",
+          "name": "Live Batt Temp & Voltage",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4394,7 +4970,7 @@ function loadAutoTable(jsonData) {
           "popup_message_imperial": "Batt: {battery_temp_f}F ({voltage}V)"
         },
         {
-          "name": "Cluster Toast: Live Batt Temp & Voltage (\u00b0F)",
+          "name": "Min / Max Batt Temp Range",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4404,23 +4980,11 @@ function loadAutoTable(jsonData) {
             "kia_ev9"
           ],
           "type": "popup",
-          "popup_message": "Batt: {battery_temp_f}F ({voltage}V)"
+          "popup_message": "Batt: {temp_min}C to {temp_max}C",
+          "popup_message_imperial": "Batt: {temp_min}F to {temp_max}F"
         },
         {
-          "name": "Cluster Toast: Min / Max Temp Range",
-          "tags": [
-            "all_egmp",
-            "kia_ev6",
-            "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
-          ],
-          "type": "popup",
-          "popup_message": "Batt: {temp_min}C to {temp_max}C"
-        },
-        {
-          "name": "Cluster Toast: Preconditioning Status & Temp",
+          "name": "Preconditioning Status & Temp",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4434,7 +4998,7 @@ function loadAutoTable(jsonData) {
           "popup_message_imperial": "Precon: {status} ({battery_temp_f}F)"
         },
         {
-          "name": "Cluster Toast: Charge Port Opened",
+          "name": "Charge Port Opened Toast",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4447,7 +5011,7 @@ function loadAutoTable(jsonData) {
           "popup_message": "CHARGE PORT OPEN"
         },
         {
-          "name": "Cluster Toast: Sport Mode Active",
+          "name": "Sport Mode Active Toast",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4462,10 +5026,10 @@ function loadAutoTable(jsonData) {
       ]
     },
     {
-      "category": "\ud83d\udd0c EV Charging Limits",
+      "category": "🔌 EV Charging Limits",
       "presets": [
         {
-          "name": "Charging: Set AC & DC Max Charge Limit (Both)",
+          "name": "AC & DC Max Charge Limit (Both)",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4524,7 +5088,7 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Charging: Set AC Level 2 Charge Limit",
+          "name": "AC Level 2 Charge Limit",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4583,7 +5147,7 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Charging: Set DC Fast Charge Limit",
+          "name": "DC Fast Charge Limit",
           "tags": [
             "all_egmp",
             "kia_ev6",
@@ -4644,18 +5208,17 @@ function loadAutoTable(jsonData) {
       ]
     },
     {
-      "category": "\ud83d\udcba Seats & Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "presets": [
         {
-          "name": "Seat Heating: Driver Seat Heating Level",
+          "name": "Driver Seat Heating Level",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
+          "requires_feature": "heated_seats",
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
@@ -4696,15 +5259,14 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Seat Heating: Passenger Seat Heating Level",
+          "name": "Passenger Seat Heating Level",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
+          "requires_feature": "heated_seats",
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
@@ -4745,15 +5307,14 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Seat Heating: Both Seats Heating Level",
+          "name": "Both Seats Heating Level",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
+          "requires_feature": "heated_seats",
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
@@ -4794,15 +5355,14 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Seat Cooling: Driver Seat Ventilation Level",
+          "name": "Driver Seat Ventilation Level",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
+          "requires_feature": "ventilated_seats",
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
@@ -4843,15 +5403,14 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Seat Cooling: Passenger Seat Ventilation Level",
+          "name": "Passenger Seat Ventilation Level",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
+          "requires_feature": "ventilated_seats",
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
@@ -4892,15 +5451,14 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Seat Cooling: Both Seats Ventilation Level",
+          "name": "Both Seats Ventilation Level",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
+          "requires_feature": "ventilated_seats",
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
@@ -4941,14 +5499,13 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Steering Wheel: Heated Wheel Toggle",
+          "name": "Heated Steering Wheel Toggle",
           "tags": [
             "all_egmp",
             "kia_ev6",
-            "hyundai_ioniq5",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq5"
           ],
+          "requires_feature": "heated_wheel",
           "type": "can_tx",
           "can_id": "0x418",
           "bus": 0,
@@ -4968,18 +5525,15 @@ function loadAutoTable(jsonData) {
       ]
     },
     {
-      "category": "\u2744\ufe0f Cabin Climate Control",
+      "category": "❄️ Cabin Climate Control",
       "presets": [
         {
-          "name": "Remote Climate Start (with Heated Seats & Steering Wheel)",
-          "name_imperial": "Remote Climate Start (+ Seats & Wheel)",
+          "name": "Remote Climate Start (+ Seats & Wheel)",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "can_tx",
           "can_id": "0x4A2",
@@ -5016,14 +5570,12 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Vehicle: Deep Sleep Network Wake Pulse (C-CAN / M-CAN)",
+          "name": "Deep Sleep Network Wake Pulse",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "can_tx",
           "can_id": "0x604",
@@ -5045,15 +5597,12 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Climate: Set Target Cabin Temp",
-          "name_imperial": "Climate: Set Target Cabin Temp",
+          "name": "Set Target Cabin Temp",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "climate_target",
           "climate_zone": "driver",
@@ -5063,18 +5612,16 @@ function loadAutoTable(jsonData) {
           "pass_temp_f": 70,
           "climate_sync_on": true,
           "climate_driver_only": false,
-          "popup_message": "Climate: 21\u00b0C",
-          "popup_message_imperial": "Climate: 70\u00b0F"
+          "popup_message": "Climate: 21°C",
+          "popup_message_imperial": "Climate: 70°F"
         },
         {
-          "name": "Climate: SYNC Mode Toggle",
+          "name": "SYNC Mode Toggle",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "can_tx",
           "can_id": "0x4A0",
@@ -5106,14 +5653,12 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Climate: Driver Only Mode",
+          "name": "Driver Only Mode",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "can_tx",
           "can_id": "0x41D",
@@ -5147,14 +5692,14 @@ function loadAutoTable(jsonData) {
       ]
     },
     {
-      "category": "\ud83d\ude97 Vehicle Actuators & Features",
+      "category": "🚗 Vehicle Actuators & Features",
       "presets": [
         {
-          "name": "Active Sound Design (ASD): Sound Profile",
+          "name": "Active Sound Design (ASD) Profile",
           "tags": [
-            "kia_ev6",
-            "genesis_gv60"
+            "kia_ev6"
           ],
+          "requires_feature": "asd",
           "type": "can_tx",
           "can_id": "0x658",
           "bus": 0,
@@ -5195,14 +5740,13 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "Camera: Toggle 360\u00b0 Surround View Camera",
+          "name": "360° Surround View Camera",
           "tags": [
             "all_egmp",
             "kia_ev6",
-            "hyundai_ioniq5",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq5"
           ],
+          "requires_feature": "camera_360",
           "type": "can_tx",
           "can_id": "0x476",
           "bus": 0,
@@ -5220,14 +5764,12 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "E-GMP: Broadcast Keepalive / Wakeup",
+          "name": "Keepalive / Wakeup Ping",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "can_tx",
           "can_id": "0x7DF",
@@ -5242,14 +5784,12 @@ function loadAutoTable(jsonData) {
           ]
         },
         {
-          "name": "E-GMP: Multi-Frame Burst Sequence (x3)",
+          "name": "Multi-Frame Burst Sequence (x3)",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "can_tx",
           "can_id": "0x652",
@@ -5270,30 +5810,26 @@ function loadAutoTable(jsonData) {
       ]
     },
     {
-      "category": "\ud83c\udf10 Home Assistant & Cloud",
+      "category": "🌐 Home Assistant & Cloud",
       "presets": [
         {
-          "name": "Home Assistant: Webhook Event Trigger",
+          "name": "Home Assistant Webhook Event",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "webhook",
           "webhook_url": "http://homeassistant.local:8123/api/webhook/wican_event"
         },
         {
-          "name": "MQTT: Publish JSON Event Alert",
+          "name": "MQTT JSON Event Alert",
           "tags": [
             "all_egmp",
             "kia_ev6",
             "hyundai_ioniq5",
-            "hyundai_ioniq6",
-            "genesis_gv60",
-            "kia_ev9"
+            "hyundai_ioniq6"
           ],
           "type": "mqtt",
           "mqtt_topic": "wican/event/alert",
@@ -5421,21 +5957,39 @@ function loadAutoTable(jsonData) {
         };
     }
 
+    function getCatalogVehicles() {
+        if (CANDO_CATALOG && Array.isArray(CANDO_CATALOG.vehicles) && CANDO_CATALOG.vehicles.length > 0) {
+            return CANDO_CATALOG.vehicles;
+        }
+        return CANDO_DEFAULT_FALLBACK_CATALOG.vehicles || [];
+    }
+
     async function loadCandoCatalog() {
         // 1. Check local cache first for instant UI response
         try {
             const cached = localStorage.getItem("wican_cando_catalog");
             if (cached) {
                 const parsed = JSON.parse(cached);
-                if (parsed && parsed.trigger_presets && parsed.action_presets) {
+                if (parsed && parsed.catalog_version === CANDO_DEFAULT_FALLBACK_CATALOG.catalog_version && Array.isArray(parsed.vehicles) && parsed.vehicles.length >= 10) {
                     CANDO_CATALOG = parsed;
                     updateCatalogStatusUI("cached");
-                    populateVehicleProfileDropdown(parsed.vehicles);
+                    populateVehicleDropdowns(parsed.vehicles);
+                    refreshAllCandoPresetDropdowns();
+                } else {
+                    console.log("Discarding outdated catalog cache (found " + (parsed ? parsed.catalog_version : "null") + ")");
+                    localStorage.removeItem("wican_cando_catalog");
+                    CANDO_CATALOG = CANDO_DEFAULT_FALLBACK_CATALOG;
+                    populateVehicleDropdowns(CANDO_CATALOG.vehicles);
                     refreshAllCandoPresetDropdowns();
                 }
+            } else {
+                CANDO_CATALOG = CANDO_DEFAULT_FALLBACK_CATALOG;
+                populateVehicleDropdowns(CANDO_CATALOG.vehicles);
             }
         } catch (e) {
             console.log("Cached catalog parse error:", e);
+            CANDO_CATALOG = CANDO_DEFAULT_FALLBACK_CATALOG;
+            populateVehicleDropdowns(CANDO_CATALOG.vehicles);
         }
 
         // 2. Fetch fresh from repository URL in background
@@ -5459,7 +6013,7 @@ function loadAutoTable(jsonData) {
                     localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
                     localStorage.setItem("wican_cando_catalog_sync_time", new Date().toLocaleString());
                     updateCatalogStatusUI("online", new Date().toLocaleTimeString());
-                    populateVehicleProfileDropdown(data.vehicles);
+                    populateVehicleDropdowns(data.vehicles);
                     refreshAllCandoPresetDropdowns();
                     syncCatalogToDevice(data);
                 }
@@ -5484,29 +6038,109 @@ function loadAutoTable(jsonData) {
                             CANDO_CATALOG = data;
                             localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
                             updateCatalogStatusUI("device");
-                            populateVehicleProfileDropdown(data.vehicles);
+                            populateVehicleDropdowns(data.vehicles);
                             refreshAllCandoPresetDropdowns();
                         }
                     })
                     .catch(err2 => {
                         console.log("Using cached/fallback presets:", err2);
-                        populateVehicleProfileDropdown(CANDO_CATALOG.vehicles);
+                        populateVehicleDropdowns(CANDO_CATALOG.vehicles);
                     });
             });
     }
 
-    function populateVehicleProfileDropdown(vehicles) {
-        if (!vehicles || !Array.isArray(vehicles)) return;
-        const sel = document.getElementById("cando_vehicle_profile");
-        if (!sel) return;
-        const currentVal = sel.value || localStorage.getItem("wican_vehicle_profile") || "all_egmp";
-        sel.innerHTML = "";
-        vehicles.forEach(v => {
+    const GEN5W_MODEL_LIST = [
+        { id: "all_egmp", name: "All Gen5W Models (Universal)", make: "Universal" },
+        { id: "hyundai_ioniq5", name: "Hyundai Ioniq 5", make: "Hyundai" },
+        { id: "kia_ev6", name: "Kia EV6", make: "Kia" },
+        { id: "hyundai_ioniq6", name: "Hyundai Ioniq 6", make: "Hyundai" }
+    ];
+
+    function populateVehicleDropdowns(vehicles) {
+        if (!vehicles || !Array.isArray(vehicles) || vehicles.length === 0) {
+            vehicles = getCatalogVehicles();
+        }
+        const modelSel = document.getElementById("cando_vehicle_model");
+        const trimSel = document.getElementById("cando_vehicle_trim");
+        if (!modelSel) return;
+
+        let savedModel = localStorage.getItem("wican_vehicle_model") || "all_egmp";
+        let savedTrim = localStorage.getItem("wican_vehicle_trim") || localStorage.getItem("wican_vehicle_profile") || "all_egmp";
+
+        // Auto-infer model family if a specific trim was saved previously
+        if (savedTrim && savedTrim !== "all_egmp" && savedModel === "all_egmp") {
+            const matchedVeh = vehicles.find(v => v.id === savedTrim);
+            if (matchedVeh && matchedVeh.family) {
+                savedModel = matchedVeh.family;
+                localStorage.setItem("wican_vehicle_model", savedModel);
+            }
+        }
+
+        modelSel.innerHTML = "";
+        GEN5W_MODEL_LIST.forEach(m => {
             const opt = document.createElement("option");
-            opt.value = v.id;
-            opt.textContent = v.name;
-            if (v.id === currentVal) opt.selected = true;
-            sel.appendChild(opt);
+            opt.value = m.id;
+            opt.textContent = m.name;
+            if (m.id === savedModel) opt.selected = true;
+            modelSel.appendChild(opt);
+        });
+
+        populateTrimDropdown(modelSel.value || savedModel, savedTrim, vehicles);
+    }
+
+    function populateTrimDropdown(selectedModel, currentTrimVal, vehicles) {
+        const trimSel = document.getElementById("cando_vehicle_trim");
+        if (!trimSel) return;
+
+        if (!vehicles || !Array.isArray(vehicles) || vehicles.length === 0) {
+            vehicles = getCatalogVehicles();
+        }
+
+        trimSel.innerHTML = "";
+
+        if (selectedModel === "all_egmp") {
+            const allOpt = document.createElement("option");
+            allOpt.value = "all_egmp";
+            allOpt.textContent = "All Trims (Universal / Any Vehicle)";
+            if (currentTrimVal === "all_egmp" || !currentTrimVal) allOpt.selected = true;
+            trimSel.appendChild(allOpt);
+
+            const modelGroups = [
+                { family: "hyundai_ioniq5", label: "Hyundai Ioniq 5 Trims" },
+                { family: "kia_ev6", label: "Kia EV6 Trims" },
+                { family: "hyundai_ioniq6", label: "Hyundai Ioniq 6 Trims" }
+            ];
+
+            modelGroups.forEach(grp => {
+                const optGroup = document.createElement("optgroup");
+                optGroup.label = grp.label;
+                const trims = vehicles.filter(v => v.family === grp.family && v.id !== grp.family && v.id !== "all_egmp");
+                trims.forEach(t => {
+                    const opt = document.createElement("option");
+                    opt.value = t.id;
+                    opt.textContent = `${t.model} - ${t.trim || t.name}`;
+                    if (t.id === currentTrimVal) opt.selected = true;
+                    optGroup.appendChild(opt);
+                });
+                if (trims.length > 0) trimSel.appendChild(optGroup);
+            });
+            return;
+        }
+
+        const modelName = selectedModel === "hyundai_ioniq5" ? "Ioniq 5" : selectedModel === "kia_ev6" ? "EV6" : "Ioniq 6";
+        const allFamilyOpt = document.createElement("option");
+        allFamilyOpt.value = selectedModel;
+        allFamilyOpt.textContent = `All Trims (${modelName} Universal)`;
+        if (currentTrimVal === selectedModel || !currentTrimVal) allFamilyOpt.selected = true;
+        trimSel.appendChild(allFamilyOpt);
+
+        const matchingTrims = vehicles.filter(v => v.family === selectedModel && v.id !== selectedModel && v.id !== "all_egmp");
+        matchingTrims.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.textContent = t.trim || t.name;
+            if (t.id === currentTrimVal) opt.selected = true;
+            trimSel.appendChild(opt);
         });
     }
 
@@ -5532,7 +6166,7 @@ function loadAutoTable(jsonData) {
                     localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
                     localStorage.setItem("wican_cando_catalog_sync_time", new Date().toLocaleString());
                     updateCatalogStatusUI("online", new Date().toLocaleTimeString());
-                    populateVehicleProfileDropdown(data.vehicles);
+                    populateVehicleDropdowns(data.vehicles);
                     refreshAllCandoPresetDropdowns();
                     syncCatalogToDevice(data);
                     const totalTrig = (data.trigger_presets || []).length;
@@ -5567,7 +6201,7 @@ function loadAutoTable(jsonData) {
                     }
                     localStorage.setItem("wican_cando_catalog", JSON.stringify(CANDO_CATALOG));
                     updateCatalogStatusUI("custom");
-                    populateVehicleProfileDropdown(CANDO_CATALOG.vehicles);
+                    populateVehicleDropdowns(CANDO_CATALOG.vehicles);
                     refreshAllCandoPresetDropdowns();
                     syncCatalogToDevice(CANDO_CATALOG);
                     const totalTrig = (CANDO_CATALOG.trigger_presets || []).length;
@@ -5587,23 +6221,61 @@ function loadAutoTable(jsonData) {
     /* CANDO_CATALOG_END */
 
     function getSelectedVehicleProfile() {
-        const sel = document.getElementById("cando_vehicle_profile");
-        if (sel && sel.value) return sel.value;
+        const trimSel = document.getElementById("cando_vehicle_trim");
+        if (trimSel && trimSel.value) return trimSel.value;
+        const modelSel = document.getElementById("cando_vehicle_model");
+        if (modelSel && modelSel.value) return modelSel.value;
+        const hiddenSel = document.getElementById("cando_vehicle_profile");
+        if (hiddenSel && hiddenSel.value) return hiddenSel.value;
         return localStorage.getItem("wican_vehicle_profile") || "all_egmp";
     }
 
     function initCandoVehicleProfileUI() {
-        const saved = localStorage.getItem("wican_vehicle_profile") || "all_egmp";
-        const sel = document.getElementById("cando_vehicle_profile");
-        if (sel) sel.value = saved;
+        populateVehicleDropdowns(getCatalogVehicles());
     }
 
-    function changeCandoVehicleProfile(vehicleId) {
-        localStorage.setItem("wican_vehicle_profile", vehicleId);
+    function changeCandoVehicleModel(modelId) {
+        localStorage.setItem("wican_vehicle_model", modelId);
+        populateTrimDropdown(modelId, modelId, getCatalogVehicles());
+        const trimSel = document.getElementById("cando_vehicle_trim");
+        const activeProfile = (trimSel && trimSel.value) ? trimSel.value : modelId;
+        localStorage.setItem("wican_vehicle_profile", activeProfile);
+        localStorage.setItem("wican_vehicle_trim", activeProfile);
+        
+        const hiddenSel = document.getElementById("cando_vehicle_profile");
+        if (hiddenSel) hiddenSel.value = activeProfile;
+        
         refreshAllCandoPresetDropdowns();
-        const sel = document.getElementById("cando_vehicle_profile");
-        const vName = sel ? (sel.selectedOptions[0]?.text || vehicleId) : vehicleId;
-        showNotification("Vehicle catalog profile set to: " + vName, "green", 3000);
+        
+        const modelSel = document.getElementById("cando_vehicle_model");
+        const mName = modelSel ? (modelSel.selectedOptions[0]?.text || modelId) : modelId;
+        showNotification("Vehicle model set to: " + mName, "green", 3000);
+    }
+
+    function changeCandoVehicleTrim(trimId) {
+        const vehicles = getCatalogVehicles();
+        const veh = vehicles.find(v => v.id === trimId);
+        
+        if (veh && veh.family && veh.family !== "all_egmp") {
+            const modelSel = document.getElementById("cando_vehicle_model");
+            if (modelSel && modelSel.value !== veh.family) {
+                modelSel.value = veh.family;
+                localStorage.setItem("wican_vehicle_model", veh.family);
+                populateTrimDropdown(veh.family, trimId, vehicles);
+            }
+        }
+        
+        localStorage.setItem("wican_vehicle_trim", trimId);
+        localStorage.setItem("wican_vehicle_profile", trimId);
+        
+        const hiddenSel = document.getElementById("cando_vehicle_profile");
+        if (hiddenSel) hiddenSel.value = trimId;
+        
+        refreshAllCandoPresetDropdowns();
+        
+        const trimSel = document.getElementById("cando_vehicle_trim");
+        const tName = trimSel ? (trimSel.selectedOptions[0]?.text || trimId) : trimId;
+        showNotification("Trim level set to: " + tName, "green", 3000);
     }
 
     function getUnitSystem() {
@@ -5622,7 +6294,7 @@ function loadAutoTable(jsonData) {
         localStorage.setItem("wican_unit_system", unit);
         const isImperial = (unit === "imperial");
         
-        // Update all climate target inputs (Driver and Passenger)
+        // 1. Update climate target temperature inputs (Driver and Passenger)
         document.querySelectorAll(".cando-act-target-temp, .cando-act-pass-temp").forEach(inp => {
             const currentVal = parseFloat(inp.value);
             if (!isNaN(currentVal)) {
@@ -5649,9 +6321,28 @@ function loadAutoTable(jsonData) {
             }
         });
 
-        // Update all visible target temp unit labels
+        // 2. Update visible temperature unit indicators
         document.querySelectorAll(".cando-target-temp-unit").forEach(span => {
             span.textContent = isImperial ? "°F" : "°C";
+        });
+
+        // 3. Update speed condition labels in all active condition items
+        document.querySelectorAll(".cando-cond-type").forEach(sel => {
+            const speedOpt = sel.querySelector("option[value='speed_zero']");
+            if (speedOpt) {
+                speedOpt.textContent = `Vehicle Speed == 0 ${isImperial ? "mph" : "km/h"} (Parked)`;
+            }
+        });
+
+        // 4. Update distance/speed/pressure helper labels across the interface
+        document.querySelectorAll(".cando-unit-speed").forEach(el => {
+            el.textContent = isImperial ? "mph" : "km/h";
+        });
+        document.querySelectorAll(".cando-unit-distance").forEach(el => {
+            el.textContent = isImperial ? "mi" : "km";
+        });
+        document.querySelectorAll(".cando-unit-pressure").forEach(el => {
+            el.textContent = isImperial ? "psi" : "bar";
         });
 
         refreshAllCandoPresetDropdowns();
@@ -5664,7 +6355,7 @@ function loadAutoTable(jsonData) {
             updateCandoRuleSummaryPill(card);
         });
 
-        showNotification("Unit preference set to: " + (isImperial ? "Imperial (°F)" : "Metric (°C)"), "green", 3000);
+        showNotification(`Unit preference set to: ${isImperial ? "Imperial (mph, mi, °F, psi)" : "Metric (km/h, km, °C, bar)"}`, "green", 3000);
     }
 
     function getCustomTrigPresets() {
@@ -5693,13 +6384,31 @@ function loadAutoTable(jsonData) {
         refreshAllCandoPresetDropdowns();
     }
 
+    function isPresetSupportedByVehicle(preset, vehicleId) {
+        if (!preset) return false;
+        if (!vehicleId || vehicleId === "all_egmp") return true;
+
+        const selVeh = (CANDO_CATALOG.vehicles || []).find(v => v.id === vehicleId);
+
+        // Check feature capability requirements (e.g. ventilated seats, heated steering wheel, 360 camera, touch bar)
+        if (preset.requires_feature && selVeh && Array.isArray(selVeh.features)) {
+            if (!selVeh.features.includes(preset.requires_feature)) {
+                return false;
+            }
+        }
+
+        // Check tags (all_egmp, family, or specific trim ID)
+        if (!preset.tags || preset.tags.length === 0) return true;
+        if (preset.tags.includes("all_egmp") || preset.tags.includes(vehicleId)) return true;
+        if (selVeh && selVeh.family && preset.tags.includes(selVeh.family)) return true;
+
+        return false;
+    }
+
     function getFilteredTriggerPresets() {
         const vId = getSelectedVehicleProfile();
         const catalogTrigs = CANDO_CATALOG.trigger_presets || [];
-        const filtered = catalogTrigs.filter(p => {
-            if (vId === "all_egmp") return true;
-            return !p.tags || p.tags.includes("all_egmp") || p.tags.includes(vId);
-        });
+        const filtered = catalogTrigs.filter(p => isPresetSupportedByVehicle(p, vId));
         const custom = getCustomTrigPresets();
         return { builtIn: filtered, custom: custom };
     }
@@ -5710,10 +6419,7 @@ function loadAutoTable(jsonData) {
         const filteredCats = catalogCats.map(cat => {
             return {
                 category: cat.category,
-                presets: cat.presets.filter(p => {
-                    if (vId === "all_egmp") return true;
-                    return !p.tags || p.tags.includes("all_egmp") || p.tags.includes(vId);
-                })
+                presets: cat.presets.filter(p => isPresetSupportedByVehicle(p, vId))
             };
         }).filter(c => c.presets.length > 0);
 
@@ -5747,6 +6453,54 @@ function loadAutoTable(jsonData) {
         return html;
     }
 
+    function findMatchingActionPresetVal(data) {
+        if (!data) return "";
+        if (data.preset_val) return data.preset_val;
+        const cats = getFilteredActionPresets();
+        
+        // 1. Check by explicit preset_name / preset_id
+        if (data.preset_name || data.preset_id) {
+            for (let cIdx = 0; cIdx < cats.length; cIdx++) {
+                const cat = cats[cIdx];
+                for (let pIdx = 0; pIdx < cat.presets.length; pIdx++) {
+                    const p = cat.presets[pIdx];
+                    if ((data.preset_id && p.id === data.preset_id) || (data.preset_name && (p.name === data.preset_name || p.name_imperial === data.preset_name))) {
+                        return `${cIdx}:${pIdx}`;
+                    }
+                }
+            }
+        }
+
+        // 2. Smart Fingerprint Match: type / can_id / popup_message / precon_mode
+        for (let cIdx = 0; cIdx < cats.length; cIdx++) {
+            const cat = cats[cIdx];
+            for (let pIdx = 0; pIdx < cat.presets.length; pIdx++) {
+                const p = cat.presets[pIdx];
+                if (p.type === "precondition" && data.type === "precondition") {
+                    if (p.precon_mode === (data.precon_mode || "persistent")) return `${cIdx}:${pIdx}`;
+                }
+                if (p.type === "climate_target" && (data.type === "climate_target" || data.target_temp_c !== undefined)) {
+                    return `${cIdx}:${pIdx}`;
+                }
+                if (p.type === "popup" && (data.type === "popup" || data.popup_message)) {
+                    if (p.popup_message && data.popup_message && (p.popup_message === data.popup_message || p.popup_message_imperial === data.popup_message)) {
+                        return `${cIdx}:${pIdx}`;
+                    }
+                }
+                if (p.can_id && data.can_id && p.can_id.toLowerCase() === data.can_id.toLowerCase()) {
+                    if (p.popup_message && data.popup_message && p.popup_message === data.popup_message) {
+                        return `${cIdx}:${pIdx}`;
+                    }
+                    if (p.options && Array.isArray(p.options) && data.payload) {
+                        const hasMatchingPayload = p.options.some(o => o.payload && data.payload.includes(o.payload));
+                        if (hasMatchingPayload) return `${cIdx}:${pIdx}`;
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
     function renderActPresetOptionsHTML(selectedValStr = "") {
         const isImperial = (getUnitSystem() === "imperial");
         const cats = getFilteredActionPresets();
@@ -5756,7 +6510,8 @@ function loadAutoTable(jsonData) {
             cat.presets.forEach((p, pIdx) => {
                 const val = `${catIdx}:${pIdx}`;
                 const name = (isImperial && p.name_imperial) ? p.name_imperial : p.name;
-                html += `<option value="${val}" ${selectedValStr === val ? "selected" : ""}>${name}</option>`;
+                const isSelected = (selectedValStr === val || (selectedValStr && (selectedValStr === p.name || selectedValStr === p.id)));
+                html += `<option value="${val}" data-name="${p.name}" ${isSelected ? "selected" : ""}>${name}</option>`;
             });
             html += '</optgroup>';
         });
@@ -5769,7 +6524,7 @@ function loadAutoTable(jsonData) {
             picker.innerHTML = renderTrigPresetOptionsHTML(curVal);
         });
         document.querySelectorAll(".cando-act-preset-picker").forEach(picker => {
-            const curVal = picker.value;
+            const curVal = picker.value || picker.getAttribute("data-selected-preset") || "";
             picker.innerHTML = renderActPresetOptionsHTML(curVal);
         });
     }
@@ -5830,18 +6585,26 @@ function loadAutoTable(jsonData) {
     function toggleCandoSection(headerElem) {
         const sectionBox = headerElem.closest(".cando-section-box");
         if (!sectionBox) return;
-        const body = sectionBox.querySelector(".cando-section-body");
-        const toggleBtn = sectionBox.querySelector(".cando-sec-toggle-btn");
-        if (!body) return;
-        const isHidden = body.classList.contains("hidden") || body.style.display === "none";
+        
+        // Target items container or settings table
+        const itemsContainer = sectionBox.querySelector(".cando-triggers-container, .cando-conditions-container, .cando-actions-container, .compact-form-table");
+        const bannerSlot = sectionBox.querySelector(".cando-choose-banner-slot");
+        if (!itemsContainer) return;
+
+        const isHidden = itemsContainer.classList.contains("hidden") || itemsContainer.style.display === "none";
         if (isHidden) {
-            body.classList.remove("hidden");
-            body.style.display = "block";
-            if (toggleBtn) toggleBtn.textContent = "▲";
+            itemsContainer.classList.remove("hidden");
+            itemsContainer.style.display = "";
+            if (bannerSlot) bannerSlot.style.display = "";
         } else {
-            body.classList.add("hidden");
-            body.style.display = "none";
-            if (toggleBtn) toggleBtn.textContent = "▼";
+            // Check if section is empty (0 items) - already minimal size
+            const countBadge = sectionBox.querySelector(".cando-trig-count-badge, .cando-cond-count-badge, .cando-act-count-badge");
+            if (countBadge && parseInt(countBadge.textContent || "0") === 0) {
+                return;
+            }
+            itemsContainer.classList.add("hidden");
+            itemsContainer.style.display = "none";
+            if (bannerSlot) bannerSlot.style.display = "none";
         }
     }
 
@@ -5864,7 +6627,6 @@ function loadAutoTable(jsonData) {
             <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCandoHeaderClick(event, this)">
                 <div class="header-left" style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; margin-right: 0.5rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <button type="button" class="collapse-btn cando-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem;" onclick="event.stopPropagation(); toggleCandoRuleCard(this);">${isCollapsed ? "▼" : "▲"}</button>
                         <span class="cando-activity-badge" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-family: monospace; transition: all 0.3s; white-space: nowrap;" title="Live trigger activity">Idle</span>
                         <div class="cando-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
                             <span style="position: absolute; left: 8px; pointer-events: none; font-size: 0.9rem; color: #64748b;">⚡</span>
@@ -5892,7 +6654,6 @@ function loadAutoTable(jsonData) {
                 <div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
                         <div style="display: flex; align-items: center; gap: 0.4rem;">
-                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #334155; font-size: 0.95rem;">⚙️ Execution Mode &amp; Loop Safeguards</span>
                             <span style="font-size: 0.78rem; color: #64748b; margin-left: 0.3rem;">(Anti-Duplication &amp; Latching Protection)</span>
                         </div>
@@ -5947,7 +6708,7 @@ function loadAutoTable(jsonData) {
                                 <td>
                                     <div style="display: flex; flex-direction: column; gap: 0.4rem;">
                                         <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.82rem; color: #0369a1; cursor: pointer;">
-                                            <input type="checkbox" class="cando-ha-expose" ${ruleData.ha_expose !== false ? 'checked' : ''} onchange="toggleCandoHaExposeUI(this)">
+                                             <input type="checkbox" class="cando-ha-expose" ${ruleData.ha_expose !== false ? 'checked' : ''} onchange="toggleCandoHaExposeUI(this)">
                                             <span>Expose as Button Entity to Home Assistant (Auto-Discovery)</span>
                                         </label>
                                         <div class="cando-ha-details-row" style="display: ${ruleData.ha_expose !== false ? 'flex' : 'none'}; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
@@ -5982,7 +6743,6 @@ function loadAutoTable(jsonData) {
                 <div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 0.8rem 1rem 0 1rem; border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden;">
                     <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #c2410c; font-size: 1rem;">🟠 1. TRIGGERS</span>
                             <span class="cando-trig-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #fed7aa; color: #9a3412;">0</span>
                         </div>
@@ -6006,7 +6766,6 @@ function loadAutoTable(jsonData) {
                 <div class="cando-section-box" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 0.8rem 1rem 0 1rem; border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden;">
                     <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #1d4ed8; font-size: 1rem;">🔵 2. CONDITIONS</span>
                             <span class="cando-cond-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #bfdbfe; color: #1e40af;">0</span>
                         </div>
@@ -6025,7 +6784,7 @@ function loadAutoTable(jsonData) {
                 <!-- CONNECTOR BRIDGE: CONDITIONS -> ACTIONS -->
                 <div style="text-align: center; margin: 0.2rem 0 0.8rem 0; font-size: 0.78rem; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.6rem; user-select: none;">
                     <span style="height: 1.5px; flex: 1; background: #bbf7d0;"></span>
-                    <span style="background: #f0fdf4; padding: 3px 14px; border-radius: 12px; border: 1.5px solid #bbf7d0; box-shadow: 0 1px 2px rgba(4,120,87,0.08);">🎯 THEN EXECUTE</span>
+                    <span style="background: #f0fdf4; padding: 3px 14px; border-radius: 12px; border: 1.5px solid #bbf7d0; box-shadow: 0 1px 2px rgba(4,120,87,0.08);">✅ THEN CAN Do</span>
                     <span style="height: 1.5px; flex: 1; background: #bbf7d0;"></span>
                 </div>
 
@@ -6033,7 +6792,6 @@ function loadAutoTable(jsonData) {
                 <div class="cando-section-box" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 0.8rem 1rem 0 1rem; border-radius: 8px; margin-bottom: 1rem; overflow: hidden;">
                     <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
                             <span style="font-weight: bold; color: #047857; font-size: 1rem;">🟢 3. ACTIONS</span>
                             <span class="cando-act-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #bbf7d0; color: #065f46;">0</span>
                         </div>
@@ -6351,11 +7109,11 @@ function loadAutoTable(jsonData) {
                 <tr class="trig-field-preset ${source === "preset" || !data.source ? "" : "hidden"}">
                     <td>Buttons:</td>
                     <td>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <select class="cando-trig-preset-picker" onchange="applyCandoTrigPreset(this)" style="flex: 1; min-width: 0; font-weight: 600; color: #1e293b;">
+                        <div style="display: flex; gap: 0.5rem; align-items: center; max-width: 440px; width: 100%;">
+                            <select class="cando-trig-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCandoTrigPreset(this);" style="flex: 1; min-width: 0; font-weight: 600; color: #1e293b;">
                                 ${renderTrigPresetOptionsHTML(selectedPresetVal)}
                             </select>
-                            <button type="button" class="system-button" onclick="saveCurrentTriggerAsPreset(this)" style="flex-shrink: 0; white-space: nowrap; padding: 4px 12px; font-size: 0.78rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Save current CAN ID and payload pattern as a custom reusable preset">⭐ Save as Preset</button>
+                            <button type="button" class="system-button" onclick="saveCurrentTriggerAsPreset(this)" style="flex-shrink: 0; white-space: nowrap; padding: 4px 10px; font-size: 0.76rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; cursor: pointer; height: 30px; display: inline-flex; align-items: center; justify-content: center;" title="Save current CAN ID and payload pattern as a custom reusable preset">⭐ Save as Preset</button>
                         </div>
                     </td>
                 </tr>
@@ -6476,6 +7234,9 @@ function loadAutoTable(jsonData) {
         itemDiv.style.padding = "0.8rem";
         itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
 
+        const isImperial = (getUnitSystem() === "imperial");
+        const speedUnit = isImperial ? "mph" : "km/h";
+
         itemDiv.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.5rem; border-bottom: 1px dashed #bfdbfe; padding-bottom: 0.4rem;">
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
@@ -6499,7 +7260,7 @@ function loadAutoTable(jsonData) {
                         <select class="cando-cond-type" onchange="toggleCandoCondItemUI(this)">
                             <option value="param_range" ${type === "param_range" ? "selected" : ""}>Parameter Value Range / Expression</option>
                             <option value="can_state" ${type === "can_state" ? "selected" : ""}>CAN Message State / Pattern</option>
-                            <option value="speed_zero" ${type === "speed_zero" ? "selected" : ""}>Vehicle Speed == 0 km/h (Parked)</option>
+                            <option value="speed_zero" ${type === "speed_zero" ? "selected" : ""}>Vehicle Speed == 0 ${speedUnit} (Parked)</option>
                             <option value="day_of_week" ${type === "day_of_week" ? "selected" : ""}>Day of Week</option>
                             <option value="time_window" ${type === "time_window" ? "selected" : ""}>Time Window (Between Times)</option>
                             <option value="voltage" ${type === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
@@ -6987,6 +7748,8 @@ function loadAutoTable(jsonData) {
             type = "preset";
         }
 
+        const selectedPresetVal = findMatchingActionPresetVal(data);
+
         const hasClimateData = (data.type === "climate_target" || data.target_temp_c !== undefined || data.target_temp_f !== undefined);
         const hasPreconData = (data.type === "precondition" || data.precon_mode !== undefined);
         const hasCanData = (type === "can_tx" || (data.steps && data.steps.length > 0) || data.can_id);
@@ -7045,7 +7808,7 @@ function loadAutoTable(jsonData) {
                     <td style="width: 25%;">Action Type:</td>
                     <td>
                         <select class="cando-act-type" onchange="toggleCandoActItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
-                            <option value="preset" ${type === "preset" ? "selected" : ""}>Template / Preset (Recommended)</option>
+                            <option value="preset" ${type === "preset" ? "selected" : ""}>Presets</option>
                             <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
                             <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
                             <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
@@ -7057,13 +7820,13 @@ function loadAutoTable(jsonData) {
                 <tr class="act-field-preset ${type === "preset" ? "" : "hidden"}">
                     <td style="width: 25%; vertical-align: top; padding-top: 6px;">Action Template:</td>
                     <td>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <select class="cando-act-preset-picker" onchange="applyCandoActionPreset(this)" style="flex: 1; min-width: 0; border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 600; color: #166534;">
-                                ${renderActPresetOptionsHTML()}
+                        <div style="display: flex; gap: 0.5rem; align-items: center; max-width: 440px; width: 100%;">
+                            <select class="cando-act-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCandoActionPreset(this);" style="flex: 1; min-width: 0; border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 600; color: #166534;">
+                                ${renderActPresetOptionsHTML(selectedPresetVal)}
                             </select>
-                            <button type="button" class="system-button" onclick="saveCurrentActionAsPreset(this)" style="flex-shrink: 0; white-space: nowrap; padding: 4px 12px; font-size: 0.78rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Save current action configuration as a custom reusable template">⭐ Save as Template</button>
+                            <button type="button" class="system-button" onclick="saveCurrentActionAsPreset(this)" style="flex-shrink: 0; white-space: nowrap; padding: 4px 10px; font-size: 0.76rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; cursor: pointer; height: 30px; display: inline-flex; align-items: center; justify-content: center;" title="Save current action configuration as a custom reusable template">⭐ Save as Template</button>
                         </div>
-                        <div class="cando-act-options-container" style="display: none; margin-top: 6px; padding: 4px 8px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px;"></div>
+                        <div class="cando-act-options-container" style="display: none; margin-top: 6px; padding: 4px 8px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px; max-width: 440px; box-sizing: border-box;"></div>
                     </td>
                 </tr>
                 <tr class="act-field-climate ${hasClimateData ? "" : "hidden"}">
@@ -7987,7 +8750,6 @@ function loadAutoTable(jsonData) {
         if (!card) return;
         const body = card.querySelector(".cando-rule-body");
         const editBtn = card.querySelector(".cando-edit-btn");
-        const toggleBtn = card.querySelector(".cando-toggle-btn");
         const nameInput = card.querySelector(".cando-name");
         if (!body) return;
 
@@ -8000,7 +8762,6 @@ function loadAutoTable(jsonData) {
                 editBtn.style.background = "#16a34a";
                 editBtn.title = "Save changes and collapse";
             }
-            if (toggleBtn) toggleBtn.textContent = "▲";
             if (nameInput) {
                 nameInput.style.borderColor = "#cbd5e1";
                 nameInput.style.backgroundColor = "#ffffff";
@@ -8014,7 +8775,6 @@ function loadAutoTable(jsonData) {
                 editBtn.style.background = "#3b82f6";
                 editBtn.title = "Edit this CAN Do";
             }
-            if (toggleBtn) toggleBtn.textContent = "▼";
             if (nameInput) {
                 nameInput.style.borderColor = "#e2e8f0";
                 nameInput.style.backgroundColor = "#f8fafc";
@@ -8453,8 +9213,14 @@ function loadAutoTable(jsonData) {
             passTempF = Math.round(passTempC * 9/5 + 32);
         }
 
+        const presetPicker = item.querySelector(".cando-act-preset-picker");
+        const selectedPresetVal = presetPicker?.value || "";
+        const selectedPresetName = presetPicker?.selectedOptions[0]?.dataset?.name || "";
+
         return {
             trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",
+            preset_val: selectedPresetVal,
+            preset_name: selectedPresetName,
             popup_message: item.querySelector(".cando-act-popup-msg")?.value.trim() || "",
             type: actType,
             precon_mode: item.querySelector(".cando-act-precon-mode")?.value || "persistent",
@@ -9021,6 +9787,30 @@ function loadAutoTable(jsonData) {
             saveTimeConfigUI();
         }
     }
+
+    // --- CAN DO SETTINGS MENU HANDLERS ---
+    function toggleCandoSettingsMenu(event) {
+        if (event) event.stopPropagation();
+        const menu = document.getElementById("cando_settings_menu");
+        if (menu) {
+            menu.classList.toggle("show");
+        }
+    }
+
+    function closeCandoSettingsMenu() {
+        const menu = document.getElementById("cando_settings_menu");
+        if (menu) {
+            menu.classList.remove("show");
+        }
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener("click", function(e) {
+        const dropdown = document.getElementById("cando_settings_dropdown");
+        if (dropdown && !dropdown.contains(e.target)) {
+            closeCandoSettingsMenu();
+        }
+    });
     </script>
 </body>
 

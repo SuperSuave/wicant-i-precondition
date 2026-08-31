@@ -1833,5 +1833,113 @@
         }
       ]
     }
+  ],
+  "condition_presets": [
+    {
+      "category": "🚗 Vehicle State & Safety",
+      "presets": [
+        {
+          "id": "cond_speed_zero",
+          "name": "🛑 Vehicle Stopped / Parked (Speed == 0)",
+          "tags": ["all_egmp"],
+          "type": "speed_zero"
+        },
+        {
+          "id": "cond_gear_park",
+          "name": "🅿️ Gear in PARK (P)",
+          "tags": ["all_egmp"],
+          "type": "can_state",
+          "can_id": "0x2C0",
+          "match_payload": "* * 00 * * * * *"
+        },
+        {
+          "id": "cond_doors_closed",
+          "name": "🚪 All Doors & Trunk Closed",
+          "tags": ["all_egmp"],
+          "type": "can_state",
+          "can_id": "0x540",
+          "match_payload": "00 00 00 00 * * * *"
+        },
+        {
+          "id": "cond_climate_off",
+          "name": "❄️ Climate / HVAC is OFF",
+          "tags": ["all_egmp"],
+          "type": "can_state",
+          "can_id": "0x476",
+          "match_payload": "* 00 * * * * * *"
+        },
+        {
+          "id": "cond_charging",
+          "name": "🔌 Vehicle Plugged In / EV Charging",
+          "tags": ["all_egmp"],
+          "type": "can_state",
+          "can_id": "0x594",
+          "match_payload": "* * 01 * * * * *"
+        }
+      ]
+    },
+    {
+      "category": "🔋 Battery & Power",
+      "presets": [
+        {
+          "id": "cond_hv_soc_ok",
+          "name": "🔋 HV Battery SOC > 20% (Safe for Precon)",
+          "tags": ["all_egmp"],
+          "type": "param_range",
+          "expression": "[B5] > 40"
+        },
+        {
+          "id": "cond_aux_12v_healthy",
+          "name": "⚡ 12V Aux Battery Healthy (> 12.4V)",
+          "tags": ["all_egmp"],
+          "type": "voltage",
+          "voltage_val": "12.4",
+          "voltage_dir": "above"
+        },
+        {
+          "id": "cond_aux_12v_low",
+          "name": "⚠️ 12V Aux Battery Low (< 12.0V)",
+          "tags": ["all_egmp"],
+          "type": "voltage",
+          "voltage_val": "12.0",
+          "voltage_dir": "below"
+        }
+      ]
+    },
+    {
+      "category": "🕒 Schedule & Calendar",
+      "presets": [
+        {
+          "id": "cond_weekdays",
+          "name": "📅 Weekdays Only (Monday – Friday)",
+          "tags": ["all_egmp"],
+          "type": "day_of_week",
+          "days": ["mon", "tue", "wed", "thu", "fri"]
+        },
+        {
+          "id": "cond_weekends",
+          "name": "🏖️ Weekends Only (Saturday – Sunday)",
+          "tags": ["all_egmp"],
+          "type": "day_of_week",
+          "days": ["sat", "sun"]
+        },
+        {
+          "id": "cond_daytime",
+          "name": "☀️ Daytime Hours (07:00 – 19:00)",
+          "tags": ["all_egmp"],
+          "type": "time_window",
+          "start_time": "07:00",
+          "end_time": "19:00"
+        },
+        {
+          "id": "cond_nighttime",
+          "name": "🌙 Nighttime / Overnight (19:00 – 07:00)",
+          "tags": ["all_egmp"],
+          "type": "time_window",
+          "start_time": "19:00",
+          "end_time": "07:00"
+        }
+      ]
+    }
   ]
 }

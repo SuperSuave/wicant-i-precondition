@@ -2907,8 +2907,8 @@ static void cando_format_popup_message(const char *template_str, char *out_buf, 
     out_buf[out_idx] = '\0';
 }
 
-static uint8_t g_climate_driver_raw = 0;    /* 0x380 D4 (offset +56, 0.5C step) */
-static uint8_t g_climate_passenger_raw = 0; /* 0x380 D5 */
+static uint8_t g_climate_driver_raw = 0;    /* 0x380 byte 3 (factor 0.5, offset 14.0) */
+static uint8_t g_climate_passenger_raw = 0; /* 0x380 byte 4 */
 static bool g_climate_has_reading = false;
 
 static void cando_execute_climate_target(float target_c, const char *zone, bool sync_on, bool driver_only)
@@ -2917,48 +2917,59 @@ static void cando_execute_climate_target(float target_c, const char *zone, bool 
     if (target_c > 32.0f) target_c = 32.0f;
 
     bool is_passenger = (zone && strcasecmp(zone, "passenger") == 0);
-    uint8_t cur_raw = 98; /* Default fallback 21.0C: (21 * 2) + 56 = 98 */
 
+    /* E-GMP DBC formula: Temp_C = raw * 0.5 + 14.0 => raw = (Temp_C - 14.0) * 2.0 */
+    uint8_t target_raw = (uint8_t)((int)roundf((target_c - 14.0f) * 2.0f));
+
+    /* Wait briefly if no 0x380 reading is cached yet (0x380 is sent at 10Hz by HVAC ECU) */
+    if (!g_climate_has_reading) {
+        vTaskDelay(pdMS_TO_TICKS(150));
+    }
+
+    uint8_t cur_raw = 14; /* Default fallback 21.0C: (21 - 14) * 2 = 14 */
     if (g_climate_has_reading) {
-        cur_raw = is_passenger ? g_climate_passenger_raw : g_climate_driver_raw;
-    }
-
-    uint8_t target_raw = (uint8_t)((int)roundf(target_c * 2.0f) + 56);
-    int delta = (int)target_raw - (int)cur_raw;
-
-    uint8_t cmd_byte = 0;
-    if (delta > 0) {
-        cmd_byte = is_passenger ? 0xD0 : 0x70; /* Pass Up (0xD0) / Driver Up (0x70) */
-    } else if (delta < 0) {
-        cmd_byte = is_passenger ? 0xE0 : 0xB0; /* Pass Dn (0xE0) / Driver Dn (0xB0) */
-    }
-
-    int steps = (delta > 0) ? delta : -delta;
-    if (steps > 20) steps = 20; /* Safety limit */
-
-    for (int i = 0; i < steps; i++) {
-        twai_message_t tx_msg = {
-            .identifier = 0x49F,
-            .extd = 0,
-            .data_length_code = 8,
-            .data = { cmd_byte, 0, 0, 0, 0, 0, 0, 0 }
-        };
-        /* Transmit 3x burst for ECU reception */
-        for (int r = 0; r < 3; r++) {
-            can_send(CAN_BUS_0, &tx_msg, 0);
-            vTaskDelay(pdMS_TO_TICKS(15));
+        uint8_t cached = is_passenger ? g_climate_passenger_raw : g_climate_driver_raw;
+        if (cached > 0 && cached <= 36) {
+            cur_raw = cached;
         }
-        /* Send idle release frame */
-        twai_message_t idle_msg = {
-            .identifier = 0x49F,
-            .extd = 0,
-            .data_length_code = 8,
-            .data = { 0 }
-        };
-        can_send(CAN_BUS_0, &idle_msg, 0);
+    }
 
-        if (i < (steps - 1) || sync_on || driver_only) {
-            vTaskDelay(pdMS_TO_TICKS(80));
+    int delta = (int)target_raw - (int)cur_raw;
+    if (delta == 0) {
+        ESP_LOGI("CANDO", "Cabin temperature already at target (raw=%d, target_c=%.1f)", cur_raw, target_c);
+    } else {
+        uint8_t cmd_byte = 0xF0; /* F0 = Idle */
+        if (delta > 0) {
+            cmd_byte = is_passenger ? 0xD0 : 0x70; /* Pass Up (0xD0) / Driver Up (0x70) */
+        } else {
+            cmd_byte = is_passenger ? 0xE0 : 0xB0; /* Pass Dn (0xE0) / Driver Dn (0xB0) */
+        }
+
+        int steps = (delta > 0) ? delta : -delta;
+        if (steps > 28) steps = 28; /* Safety limit */
+
+        ESP_LOGI("CANDO", "Adjusting Cabin Temp: current raw=%d (%.1fC), target raw=%d (%.1fC), steps=%d (%s)",
+                 cur_raw, (cur_raw * 0.5f) + 14.0f, target_raw, target_c, steps, (delta > 0 ? "UP" : "DOWN"));
+
+        for (int i = 0; i < steps; i++) {
+            twai_message_t tx_msg = {
+                .identifier = 0x49F,
+                .extd = 0,
+                .data_length_code = 8,
+                .data = { cmd_byte, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+            };
+            can_send(CAN_BUS_0, &tx_msg, 0);
+            vTaskDelay(pdMS_TO_TICKS(20));
+
+            /* Send release / idle frame (0xF0 in byte 0 is required by E-GMP ECU) */
+            twai_message_t idle_msg = {
+                .identifier = 0x49F,
+                .extd = 0,
+                .data_length_code = 8,
+                .data = { 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+            };
+            can_send(CAN_BUS_0, &idle_msg, 0);
+            vTaskDelay(pdMS_TO_TICKS(60));
         }
     }
 
@@ -2968,22 +2979,21 @@ static void cando_execute_climate_target(float target_c, const char *zone, bool 
             .identifier = 0x4A0,
             .extd = 0,
             .data_length_code = 8,
-            .data = { 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00 }
+            .data = { 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00 } /* 0x0B = Sync On */
         };
-        for (int r = 0; r < 3; r++) {
-            can_send(CAN_BUS_0, &sync_msg, 0);
-            vTaskDelay(pdMS_TO_TICKS(15));
-        }
+        can_send(CAN_BUS_0, &sync_msg, 0);
+        vTaskDelay(pdMS_TO_TICKS(20));
+
         twai_message_t sync_idle = {
             .identifier = 0x4A0,
             .extd = 0,
             .data_length_code = 8,
-            .data = { 0 }
+            .data = { 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00 } /* 0x0F = Applied / Idle */
         };
         can_send(CAN_BUS_0, &sync_idle, 0);
 
         if (driver_only) {
-            vTaskDelay(pdMS_TO_TICKS(80));
+            vTaskDelay(pdMS_TO_TICKS(60));
         }
     }
 
@@ -2993,17 +3003,16 @@ static void cando_execute_climate_target(float target_c, const char *zone, bool 
             .identifier = 0x41D,
             .extd = 0,
             .data_length_code = 8,
-            .data = { 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00 }
+            .data = { 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00 } /* 0x0D = Driver Only On */
         };
-        for (int r = 0; r < 3; r++) {
-            can_send(CAN_BUS_0, &drv_msg, 0);
-            vTaskDelay(pdMS_TO_TICKS(15));
-        }
+        can_send(CAN_BUS_0, &drv_msg, 0);
+        vTaskDelay(pdMS_TO_TICKS(20));
+
         twai_message_t drv_idle = {
             .identifier = 0x41D,
             .extd = 0,
             .data_length_code = 8,
-            .data = { 0 }
+            .data = { 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00 } /* 0x0F = Applied / Idle */
         };
         can_send(CAN_BUS_0, &drv_idle, 0);
     }
@@ -3087,9 +3096,11 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
     if (cando_is_capture_active()) return;
 
     /* Cache latest cabin temperature status from E-GMP climate broadcast (0x380: D4=Driver, D5=Pass) */
-    if (msg->identifier == 0x380 && msg->data_length_code >= 5) {
+    if (msg->identifier == 0x380 && msg->data_length_code >= 4) {
         g_climate_driver_raw = msg->data[3];    /* D4 (byte 3) */
-        g_climate_passenger_raw = msg->data[4]; /* D5 (byte 4) */
+        if (msg->data_length_code >= 5) {
+            g_climate_passenger_raw = msg->data[4]; /* D5 (byte 4) */
+        }
         g_climate_has_reading = true;
     }
 

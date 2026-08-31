@@ -233,29 +233,70 @@
      else return 0;
  }
  
- static void wifi_conn_task(void *pvParameters)
- {
-     while(1)
-     {
-         xEventGroupWaitBits(s_wifi_event_group,
-                     WIFI_INIT_BIT | WIFI_DISCONNECTED_BIT,
-                     pdFALSE,
-                     pdTRUE,
-                     portMAX_DELAY);
+ static uint8_t s_current_net_idx = 0;
 
-         dev_status_wait_for_bits(DEV_AWAKE_BIT, portMAX_DELAY);            
-         ESP_LOGI(WIFI_TAG, "Trying to connect...");
-         xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECT_IDLE_BIT);
-         esp_wifi_connect();
-         xEventGroupWaitBits(s_wifi_event_group,
-                     WIFI_CONNECT_IDLE_BIT,
-                     pdFALSE,
-                     pdTRUE,
-                     portMAX_DELAY);
-         vTaskDelay(pdTICKS_TO_MS(connect_delay[s_retry_num++]));
-         s_retry_num %= (sizeof(connect_delay)/sizeof(TickType_t));
-     }
- }
+static void wifi_conn_task(void *pvParameters)
+{
+    while(1)
+    {
+        xEventGroupWaitBits(s_wifi_event_group,
+                    WIFI_INIT_BIT | WIFI_DISCONNECTED_BIT,
+                    pdFALSE,
+                    pdTRUE,
+                    portMAX_DELAY);
+
+        dev_status_wait_for_bits(DEV_AWAKE_BIT, portMAX_DELAY);            
+
+        uint8_t net_count = config_server_get_sta_network_count();
+        if (net_count > 1)
+        {
+            if (s_retry_num >= 2)
+            {
+                s_current_net_idx = (s_current_net_idx + 1) % net_count;
+                s_retry_num = 0;
+            }
+
+            const sta_network_entry_t *net = config_server_get_sta_network(s_current_net_idx);
+            if (net && strlen(net->ssid) > 0)
+            {
+                wifi_config_t wifi_cfg;
+                memset(&wifi_cfg, 0, sizeof(wifi_cfg));
+                strncpy((char*)wifi_cfg.sta.ssid, net->ssid, sizeof(wifi_cfg.sta.ssid) - 1);
+                strncpy((char*)wifi_cfg.sta.password, net->pass, sizeof(wifi_cfg.sta.password) - 1);
+                if (strcasecmp(net->security, "wpa3") == 0)
+                {
+                    wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA3_PSK;
+                }
+                else
+                {
+                    wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+                }
+                wifi_cfg.sta.rm_enabled = 1;
+                wifi_cfg.sta.btm_enabled = 1;
+                wifi_cfg.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+                wifi_cfg.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
+                wifi_cfg.sta.pmf_cfg.capable = true;
+                wifi_cfg.sta.pmf_cfg.required = false;
+                esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg);
+                ESP_LOGI(WIFI_TAG, "Trying Wi-Fi Network [%d/%d]: '%s'...", s_current_net_idx + 1, net_count, net->ssid);
+            }
+        }
+        else
+        {
+            ESP_LOGI(WIFI_TAG, "Trying to connect...");
+        }
+
+        xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECT_IDLE_BIT);
+        esp_wifi_connect();
+        xEventGroupWaitBits(s_wifi_event_group,
+                    WIFI_CONNECT_IDLE_BIT,
+                    pdFALSE,
+                    pdTRUE,
+                    portMAX_DELAY);
+        vTaskDelay(pdTICKS_TO_MS(connect_delay[s_retry_num++]));
+        s_retry_num %= (sizeof(connect_delay)/sizeof(TickType_t));
+    }
+}
  
  void wifi_network_init(char* sta_ssid, char* sta_pass)
  {

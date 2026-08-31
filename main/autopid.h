@@ -131,6 +131,7 @@ typedef enum {
     CANDO_TRIG_CLOCK = 1,       /* Triggered by clock time (HH:MM:SS) */
     CANDO_TRIG_INTERVAL = 2,    /* Triggered by repeating timer interval */
     CANDO_TRIG_VOLTAGE = 3,     /* Triggered by battery voltage threshold */
+    CANDO_TRIG_MQTT_COMMAND = 4,/* Triggered by incoming MQTT/HA command */
 } cando_trigger_source_t;
 
 typedef enum {
@@ -165,6 +166,10 @@ typedef struct {
     bool any_change;        /* true if any payload change triggers */
     bool has_last_payload;  /* true once first frame has been tracked */
     char *expression;       /* Optional trigger math expression string */
+
+    /* MQTT / Home Assistant Command Fields */
+    char mqtt_topic[64];
+    char mqtt_payload[64];
 
     /* Clock & Calendar Fields */
     uint8_t hour;           /* 0-23 */
@@ -245,6 +250,8 @@ typedef struct {
 typedef struct {
     char *name;             /* Rule descriptive name */
     bool enabled;           /* Rule active flag */
+    bool ha_expose;         /* Expose as Home Assistant Button entity via MQTT Auto-Discovery */
+    char ha_icon[32];       /* Optional MDI Icon (e.g. "mdi:car-defrost-rear") */
     uint32_t exec_count;    /* Number of times this rule has fired */
     int64_t last_exec_us;   /* Timestamp of last execution (esp_timer_get_time) */
     cando_trigger_t *triggers; /* Multiple trigger definitions (OR) */
@@ -272,6 +279,9 @@ typedef struct
 
 void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus);
 void cando_process_timer_tick(void);
+void cando_process_mqtt_trigger(const char *topic, const char *payload);
+void cando_publish_ha_discovery(void);
+void cando_unpublish_ha_rule(const char *rule_name);
 bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus);
 esp_err_t cando_load_config(void);
 esp_err_t cando_save_config(const char *json_str);

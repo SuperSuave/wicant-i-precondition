@@ -159,30 +159,17 @@ value="Check status" /></td>
 </tr>
 </table>
 <div class="divider"></div>
-<div class="section-title">Station Config</div>
-<table class="form-table">
-<tr>
-<td>SSID:</td>
-<td>
-<input type="text" id="ssid_value" name="ssid_value" value="MeatPi" disabled />
-</td>
-</tr>
-<tr>
-<td>Password:</td>
-<td>
-<input type="text" id="pass_value" name="pass_value" value="TomatoSauce" disabled />
-</td>
-</tr>
-<tr>
-<td>Security:</td>
-<td>
-<select id="sta_security" name="sta_security" disabled>
-<option value="wpa3">WPA3</option>
-<option value="wpa2">WPA2</option>
-</select>
-</td>
-</tr>
-</table>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+<div class="section-title" style="margin: 0;">Station Config (Saved Networks)</div>
+<button type="button" class="system-button" id="btn_add_wifi_net" onclick="addStaNetworkRow()" style="padding: 3px 10px; font-size: 0.78rem; font-weight: 700; background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; border-radius: 4px; cursor: pointer;">➕ Add Network</button>
+</div>
+<div style="font-size: 0.76rem; color: #64748b; margin-bottom: 0.8rem;">
+WiCAN will automatically connect to available saved networks in priority order (top = highest priority).
+</div>
+<div id="sta_networks_container" style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.8rem;"></div>
+<input type="hidden" id="ssid_value" name="ssid_value" value="" />
+<input type="hidden" id="pass_value" name="pass_value" value="" />
+<input type="hidden" id="sta_security" name="sta_security" value="wpa3" />
 <div class="divider"></div>
 <div class="section-title">CAN &amp; Port Settings</div>
 <table class="form-table">
@@ -444,25 +431,25 @@ value="Add ID" style="width: 100%;" /></td>
 </select>
 </div>
 <div style="display: flex; align-items: center; gap: 0.4rem;">
-<label><b>🔍 Capture Mode:</b></label>
+<label><b>CAN Do Mode:</b></label>
 <select id="cando_capture_mode" onchange="toggleCandoCaptureMode(this.value);" style="width: auto; display: inline-block; font-weight: 600; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; padding: 4px 8px; background: #ffffff;">
-<option value="auto">🤖 Auto (Pause on Capturing)</option>
-<option value="paused">⏸️ Always Paused</option>
-<option value="disabled">🚫 Disabled (Always Run)</option>
+<option value="auto">🤖 Auto-Pause on SavvyCAN/Lens</option>
+<option value="paused">⏸️ Pause CAN Do's</option>
+<option value="disabled">⚡ Run CAN Do's</option>
 </select>
 </div>
-<span id="cando_capture_active_badge" style="display: none; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; animation: pulse 2s infinite;">🕵🏼 Capturing Detected - Automations Paused</span>
+<span id="cando_capture_active_badge" style="display: none; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; animation: pulse 2s infinite;" title="WiCAN detected an active SavvyCAN/GVRET sniffer connection on port 23. Automations are temporarily paused to keep your trace capture clean.">🕵🏼 Sniffer Active - Automations Paused</span>
 </div>
 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
 <span id="cando_catalog_badge" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;">Catalog: Initializing...</span>
-<button type="button" class="system-button" onclick="syncCatalogFromGitHub(true)" title="Fetch latest presets from repository" style="margin: 0; background: #059669; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">🔄 Sync Presets</button>
-<button type="button" class="system-button" onclick="configureCatalogUrl()" title="Configure Catalog Repository URL" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 9px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">⚙️ URL</button>
-<button type="button" class="system-button" onclick="document.getElementById('cando_catalog_import_file').click()" title="Load custom cando_catalog.json file" style="margin: 0; background: #7c3aed; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">📁 Custom Presets</button>
+<button type="button" class="system-button" onclick="syncCatalogFromGitHub(true)" title="Fetch latest presets from repository" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">🔄 Sync Presets</button>
+<button type="button" class="system-button" onclick="configureCatalogUrl()" title="Configure Catalog Repository URL" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 9px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">⚙️ URL</button>
+<button type="button" class="system-button" onclick="document.getElementById('cando_catalog_import_file').click()" title="Load custom cando_catalog.json file" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">📁 Custom Presets</button>
 <input type="file" id="cando_catalog_import_file" accept=".json" onchange="importCandoCatalogFile(this)" style="display: none;" />
-<input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 5px 10px; border-radius: 5px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 150px; margin: 0;">
-<button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)" style="margin: 0; padding: 6px 14px; font-size: 0.85rem; font-weight: 700;">+ New CAN Do</button>
-<button type="button" class="system-button" onclick="exportCandoRules()" style="margin: 0; background: #0284c7; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">📥 Backup</button>
-<button type="button" class="system-button" onclick="document.getElementById('cando_import_file').click()" style="margin: 0; background: #475569; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">📤 Restore</button>
+<input type="text" id="cando_search_input" placeholder="🔍 Filter CAN Do's..." oninput="filterCandoRules(this.value)" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.85rem; width: 140px; margin: 0;">
+<button type="button" class="primary-button" onclick="addCandoRuleUI({}, false, true)" style="margin: 0; padding: 6px 16px; font-size: 0.85rem; font-weight: 700; background: #16a34a; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">+ New CAN Do</button>
+<button type="button" class="system-button" onclick="exportCandoRules()" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">📥 Backup</button>
+<button type="button" class="system-button" onclick="document.getElementById('cando_import_file').click()" style="margin: 0; background: #334155; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">📤 Restore</button>
 <input type="file" id="cando_import_file" accept=".json" onchange="importCandoRules(this)" style="display: none;" />
 </div>
 </div>
@@ -1836,6 +1823,147 @@ window.scrollTo(0, 0);
 const contentDiv = document.querySelector(".content");
 if (contentDiv) contentDiv.scrollTop = 0;
 }
+function renderStaNetworksList(networks) {
+const container = document.getElementById("sta_networks_container");
+if (!container) return;
+container.innerHTML = "";
+let list = (networks && Array.isArray(networks) && networks.length > 0) ? networks : [];
+if (list.length === 0) {
+const s = document.getElementById("ssid_value")?.value || "";
+const p = document.getElementById("pass_value")?.value || "";
+const sec = document.getElementById("sta_security")?.value || "wpa3";
+if (s) {
+list.push({ ssid: s, pass: p, security: sec });
+} else {
+list.push({ ssid: "MeatPi", pass: "TomatoSauce", security: "wpa3" });
+}
+}
+list.forEach((net, idx) => {
+renderStaNetworkItem(container, net, idx + 1);
+});
+updateStaNetworksUI();
+}
+function renderStaNetworkItem(container, data = {}, priority = 1) {
+const div = document.createElement("div");
+div.className = "sta-net-card";
+div.style.cssText = "background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.4rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);";
+div.innerHTML = `
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span style="font-weight: 700; font-size: 0.82rem; color: #1e293b;">
+Priority <span class="sta-net-priority">${priority}</span>:
+</span>
+<div style="display: flex; align-items: center; gap: 0.3rem;">
+<button type="button" class="system-button" onclick="moveStaNetworkItem(this, -1)" title="Increase Priority" style="height: 22px; width: 22px; padding: 0; font-size: 0.7rem; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">▲</button>
+<button type="button" class="system-button" onclick="moveStaNetworkItem(this, 1)" title="Decrease Priority" style="height: 22px; width: 22px; padding: 0; font-size: 0.7rem; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">▼</button>
+<button type="button" class="delete-btn" onclick="removeStaNetworkItem(this)" title="Remove Network" style="height: 22px; padding: 0 6px; font-size: 0.7rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 3px; cursor: pointer; margin: 0; display: inline-flex; align-items: center; justify-content: center;">🗑️</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 90px; gap: 0.5rem; align-items: center;">
+<div>
+<label style="font-size: 0.72rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">SSID:</label>
+<input type="text" class="sta-net-ssid" value="${data.ssid || ''}" placeholder="Wi-Fi SSID" style="width: 100%; box-sizing: border-box; padding: 3px 6px; font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 4px;" oninput="updateLegacyStaFields()">
+</div>
+<div>
+<label style="font-size: 0.72rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Password:</label>
+<div style="position: relative;">
+<input type="password" class="sta-net-pass" value="${data.pass || ''}" placeholder="Password" style="width: 100%; box-sizing: border-box; padding: 3px 24px 3px 6px; font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 4px;" oninput="updateLegacyStaFields()">
+<button type="button" onclick="togglePassVisibility(this)" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; padding: 0;" title="Toggle Password">👁️</button>
+</div>
+</div>
+<div>
+<label style="font-size: 0.72rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Security:</label>
+<select class="sta-net-sec" style="width: 100%; box-sizing: border-box; padding: 3px 4px; font-size: 0.78rem; border: 1px solid #cbd5e1; border-radius: 4px;" onchange="updateLegacyStaFields()">
+<option value="wpa3" ${data.security === 'wpa3' ? 'selected' : ''}>WPA3</option>
+<option value="wpa2" ${data.security === 'wpa2' ? 'selected' : ''}>WPA2</option>
+</select>
+</div>
+</div>
+`;
+container.appendChild(div);
+updateStaNetworksUI();
+}
+function addStaNetworkRow() {
+const container = document.getElementById("sta_networks_container");
+if (!container) return;
+const currentCount = container.querySelectorAll(".sta-net-card").length;
+if (currentCount >= 5) {
+showNotification("Maximum of 5 Wi-Fi networks supported", "yellow", 3000);
+return;
+}
+renderStaNetworkItem(container, { ssid: "", pass: "", security: "wpa3" }, currentCount + 1);
+updateLegacyStaFields();
+}
+function removeStaNetworkItem(btn) {
+const card = btn.closest(".sta-net-card");
+if (!card) return;
+const container = card.parentElement;
+card.remove();
+renumberStaNetworks(container);
+updateLegacyStaFields();
+}
+function moveStaNetworkItem(btn, dir) {
+const card = btn.closest(".sta-net-card");
+if (!card) return;
+const container = card.parentElement;
+const cards = Array.from(container.querySelectorAll(".sta-net-card"));
+const idx = cards.indexOf(card);
+if (idx === -1) return;
+if (dir === -1 && idx > 0) {
+container.insertBefore(card, cards[idx - 1]);
+} else if (dir === 1 && idx < cards.length - 1) {
+container.insertBefore(card, cards[idx + 1].nextElementSibling);
+}
+renumberStaNetworks(container);
+updateLegacyStaFields();
+}
+function renumberStaNetworks(container) {
+if (!container) return;
+container.querySelectorAll(".sta-net-card").forEach((card, idx) => {
+const p = card.querySelector(".sta-net-priority");
+if (p) p.textContent = idx + 1;
+});
+updateStaNetworksUI();
+}
+function togglePassVisibility(btn) {
+const input = btn.parentElement.querySelector("input");
+if (!input) return;
+input.type = (input.type === "password") ? "text" : "password";
+}
+function getStaNetworksData() {
+const container = document.getElementById("sta_networks_container");
+if (!container) return [];
+const list = [];
+container.querySelectorAll(".sta-net-card").forEach(card => {
+const ssid = card.querySelector(".sta-net-ssid")?.value.trim() || "";
+const pass = card.querySelector(".sta-net-pass")?.value || "";
+const sec = card.querySelector(".sta-net-sec")?.value || "wpa3";
+if (ssid) {
+list.push({ ssid: ssid, pass: pass, security: sec });
+}
+});
+return list;
+}
+function updateLegacyStaFields() {
+const nets = getStaNetworksData();
+const first = nets[0] || { ssid: "", pass: "", security: "wpa3" };
+const s = document.getElementById("ssid_value");
+const p = document.getElementById("pass_value");
+const sec = document.getElementById("sta_security");
+if (s) s.value = first.ssid;
+if (p) p.value = first.pass;
+if (sec) sec.value = first.security;
+}
+function updateStaNetworksUI() {
+const isApOnly = (document.getElementById("wifi_mode")?.value === "AP");
+const container = document.getElementById("sta_networks_container");
+const addBtn = document.getElementById("btn_add_wifi_net");
+if (addBtn) addBtn.disabled = isApOnly;
+if (container) {
+container.querySelectorAll("input, select, button").forEach(el => {
+el.disabled = isApOnly;
+});
+}
+}
 function sta_enable() {}
 function submit_enable() {
 console.log("sumbit_enable");
@@ -1852,6 +1980,7 @@ document.getElementById("sta_security").disabled = false;
 document.getElementById("ble_status").disabled = true;
 document.getElementById("ble_status").selectedIndex = "1";
 }
+updateStaNetworksUI();
 if(document.getElementById("ble_status").selectedIndex == "0") {
 document.getElementById("ble_warning_div").style.display = "block";
 document.getElementById("mqtt_en").value = "disable";
@@ -1865,11 +1994,13 @@ document.getElementById("ble_warning_div").style.display = "none";
 document.getElementById("mqtt_en").disabled = false;
 document.getElementById("batt_alert").disabled = false;
 }
-if(document.getElementById("ap_pass_value").value.length < 8 || document.getElementById("ap_pass_value").value.length > 63 || document.getElementById("pass_value").value.length < 8 || document.getElementById("pass_value").value.length > 63) {
-showNotification("AP/Station password len, min=0 max=64", "red");
+const isApMode = (document.getElementById("wifi_mode").value == "AP");
+const apPass = document.getElementById("ap_pass_value").value;
+if(apPass.length < 8 || apPass.length > 63) {
+showNotification("AP password len, min=8 max=63", "red");
 document.getElementById("submit_button").disabled = true;
-} else if(document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32) {
-showNotification("AP/station ssid len, min=1 max=32", "red");
+} else if(!isApMode && getStaNetworksData().length === 0 && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
+showNotification("At least 1 Station SSID required (min=1 max=32)", "red");
 document.getElementById("submit_button").disabled = true;
 } else if(document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 32) {
 showNotification("MQTT TX Topic length, min=1 max=64", "red");
@@ -2244,9 +2375,11 @@ return;
 obj["wifi_mode"] = document.getElementById("wifi_mode").value;
 obj["webhook_en"] = document.getElementById("webhook_en").value;
 obj["ap_ch"] = document.getElementById("ap_ch_value").value;
+updateLegacyStaFields();
 obj["sta_ssid"] = document.getElementById("ssid_value").value;
 obj["sta_pass"] = document.getElementById("pass_value").value;
 obj["sta_security"] = document.getElementById("sta_security").value;
+obj["sta_networks"] = getStaNetworksData();
 obj["can_datarate"] = document.getElementById("can_datarate").value;
 obj["can_mode"] = document.getElementById("can_mode").value;
 obj["can1_datarate"] = document.getElementById("can1_datarate").value;
@@ -2475,9 +2608,10 @@ document.getElementById("ap_auto_disable").selectedIndex = "1";
 var ch = parseInt(obj.ap_ch);
 ch = ch - 1;
 document.getElementById("ap_ch_value").selectedIndex = ch.toString();
-document.getElementById("ssid_value").value = obj.sta_ssid;
-document.getElementById("pass_value").value = obj.sta_pass;
+document.getElementById("ssid_value").value = obj.sta_ssid || "";
+document.getElementById("pass_value").value = obj.sta_pass || "";
 document.getElementById("sta_security").value = obj.sta_security || "wpa3";
+renderStaNetworksList(obj.sta_networks);
 const webhookEnEl = document.getElementById("webhook_en");
 if (webhookEnEl) {
 const webhookModeFromCfg = obj.webhook_en || "enable";
@@ -3205,14 +3339,41 @@ if (sel) sel.value = saved;
 }
 function changeUnitSystem(unit) {
 localStorage.setItem("wican_unit_system", unit);
-refreshAllCandoPresetDropdowns();
-document.querySelectorAll(".cando-target-temp-unit").forEach(span => {
-span.textContent = (unit === "imperial") ? "°F" : "°C";
+const isImperial = (unit === "imperial");
+document.querySelectorAll(".cando-act-target-temp, .cando-act-pass-temp").forEach(inp => {
+const currentVal = parseFloat(inp.value);
+if (!isNaN(currentVal)) {
+if (isImperial) {
+const fVal = Math.min(82, Math.max(62, Math.round(currentVal * 9/5 + 32)));
+inp.min = "62";
+inp.max = "82";
+inp.step = "1";
+inp.value = fVal;
+} else {
+const cVal = Math.min(28.0, Math.max(17.0, Math.round(((currentVal - 32) * 5/9) * 2) / 2));
+inp.min = "17.0";
+inp.max = "28.0";
+inp.step = "0.5";
+inp.value = cVal.toFixed(1);
+}
+} else {
+inp.min = isImperial ? "62" : "17.0";
+inp.max = isImperial ? "82" : "28.0";
+inp.step = isImperial ? "1" : "0.5";
+inp.value = isImperial ? 72 : 21.0;
+}
 });
+document.querySelectorAll(".cando-target-temp-unit").forEach(span => {
+span.textContent = isImperial ? "°F" : "°C";
+});
+refreshAllCandoPresetDropdowns();
 document.querySelectorAll(".cando-act-preset-picker").forEach(picker => {
 if (picker.value) applyCandoActionPreset(picker);
 });
-showNotification("Unit preference set to: " + (unit === "imperial" ? "Imperial (°F)" : "Metric (°C)"), "green", 3000);
+document.querySelectorAll(".cando-rule-card").forEach(card => {
+updateCandoRuleSummaryPill(card);
+});
+showNotification("Unit preference set to: " + (isImperial ? "Imperial (°F)" : "Metric (°C)"), "green", 3000);
 }
 function getCustomTrigPresets() {
 try {
@@ -3386,29 +3547,32 @@ ruleDiv.style.backgroundColor = "#fafafa";
 const isEnabled = ruleData.enabled !== false;
 ruleDiv.innerHTML = `
 <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCandoHeaderClick(event, this)">
-<div class="header-left" style="display: flex; align-items: center; gap: 0.5rem; flex-grow: 1; margin-right: 0.5rem;">
+<div class="header-left" style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; margin-right: 0.5rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem;">
 <button type="button" class="collapse-btn cando-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.2rem 0.4rem;" onclick="event.stopPropagation(); toggleCandoRuleCard(this);">${isCollapsed ? "▼" : "▲"}</button>
+<span class="cando-activity-badge" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-family: monospace; transition: all 0.3s; white-space: nowrap;" title="Live trigger activity">Idle</span>
 <div class="cando-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
 <span style="position: absolute; left: 8px; pointer-events: none; font-size: 0.9rem; color: #64748b;">⚡</span>
 <input type="text" class="cando-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name (Click to edit)" title="Click to rename this CAN Do" onclick="event.stopPropagation();" style="font-size: 1rem; font-weight: 700; color: #0f172a; border: 1.5px solid ${isCollapsed ? '#e2e8f0' : '#cbd5e1'}; background: ${isCollapsed ? '#f8fafc' : '#ffffff'}; padding: 4px 8px 4px 26px; border-radius: 6px; width: 100%; transition: all 0.2s; box-shadow: ${isCollapsed ? 'none' : '0 1px 2px rgba(0,0,0,0.05)'};" onfocus="this.style.borderColor='#2563eb'; this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.15)';" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.05)';">
 </div>
 </div>
+<div class="cando-summary-pill" style="margin-left: 2rem; font-size: 0.76rem; color: #475569; display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
+</div>
 <div class="header-right" style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
-<span class="cando-activity-badge" style="padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-family: monospace; transition: all 0.3s;" title="Live trigger activity">Idle</span>
-<label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;" onclick="event.stopPropagation();">
-<input type="checkbox" class="cando-rule-enabled" ${isEnabled ? 'checked' : ''} onchange="updateCandoRuleStatusBadge(this)" style="cursor: pointer; width: 16px; height: 16px; accent-color: #16a34a;">
-<span class="cando-status-badge" style="padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: ${isEnabled ? '#dcfce7' : '#f1f5f9'}; color: ${isEnabled ? '#15803d' : '#64748b'}; border: 1px solid ${isEnabled ? '#86efac' : '#cbd5e1'};">
-${isEnabled ? 'ACTIVE' : 'PAUSED'}
+<label class="cando-toggle-switch" onclick="event.stopPropagation();" title="${isEnabled ? 'Active (Click to pause)' : 'Paused (Click to activate)'}" style="position: relative; display: inline-flex; align-items: center; cursor: pointer; user-select: none; margin: 0 0.2rem 0 0;">
+<input type="checkbox" class="cando-rule-enabled" ${isEnabled ? "checked" : ""} onchange="updateCandoRuleStatusToggle(this)" style="position: absolute; opacity: 0; width: 0; height: 0; margin: 0;">
+<span class="cando-toggle-track" style="position: relative; display: inline-block; width: 38px; height: 20px; background-color: ${isEnabled ? '#16a34a' : '#ef4444'}; border-radius: 20px; transition: background-color 0.2s ease;">
+<span class="cando-toggle-thumb" style="position: absolute; height: 16px; width: 16px; left: ${isEnabled ? '20px' : '2px'}; bottom: 2px; background-color: white; border-radius: 50%; transition: left 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></span>
 </span>
 </label>
-<button type="button" class="system-button" onclick="event.stopPropagation(); moveCandoRule(this, -1);" style="padding: 0.35rem 0.45rem; font-size: 0.75rem; width: auto; min-width: auto; margin: 0; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer;" title="Move CAN Do Up">▲</button>
-<button type="button" class="system-button" onclick="event.stopPropagation(); moveCandoRule(this, 1);" style="padding: 0.35rem 0.45rem; font-size: 0.75rem; width: auto; min-width: auto; margin: 0; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer;" title="Move CAN Do Down">▼</button>
-<button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); handleCandoEditSave(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; background: ${isCollapsed ? '#3b82f6' : '#16a34a'}; color: white; border: none; font-weight: 600; cursor: pointer;" title="${isCollapsed ? 'Edit this CAN Do' : 'Save changes to this CAN Do'}">${isCollapsed ? "✏️ Edit" : "💾 Save"}</button>
-<button type="button" class="delete-btn" onclick="event.stopPropagation(); this.closest('.pid-entry').remove();" style="margin: 0; padding: 0.35rem 0.65rem;">✕ Delete</button>
+<button type="button" class="system-button" onclick="event.stopPropagation(); moveCandoRule(this, -1);" style="padding: 0.35rem 0.45rem; font-size: 0.75rem; width: auto; min-width: auto; margin: 0; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px;" title="Move CAN Do Up">▲</button>
+<button type="button" class="system-button" onclick="event.stopPropagation(); moveCandoRule(this, 1);" style="padding: 0.35rem 0.45rem; font-size: 0.75rem; width: auto; min-width: auto; margin: 0; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px;" title="Move CAN Do Down">▼</button>
+<button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); handleCandoEditSave(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; background: ${isCollapsed ? '#3b82f6' : '#16a34a'}; color: white; border: none; font-weight: 600; cursor: pointer; border-radius: 4px;" title="${isCollapsed ? 'Edit this CAN Do' : 'Save changes to this CAN Do'}">${isCollapsed ? "✏️ Edit" : "💾 Save"}</button>
+<button type="button" class="delete-btn" onclick="event.stopPropagation(); this.closest('.pid-entry').remove();" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; background: #ef4444; color: white; border: none; font-weight: 600; cursor: pointer; border-radius: 4px;">🗑️ Delete</button>
 </div>
 </div>
 <div class="cando-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
-<div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+<div class="cando-section-box" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1rem;">
 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
 <div style="display: flex; align-items: center; gap: 0.4rem;">
 <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
@@ -3461,52 +3625,105 @@ ${isEnabled ? 'ACTIVE' : 'PAUSED'}
 ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
 </td>
 </tr>
+<tr>
+<td style="vertical-align: middle;">🏠 Home Assistant:</td>
+<td>
+<div style="display: flex; flex-direction: column; gap: 0.4rem;">
+<label style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 0.82rem; color: #0369a1; cursor: pointer;">
+<input type="checkbox" class="cando-ha-expose" ${ruleData.ha_expose !== false ? 'checked' : ''} onchange="toggleCandoHaExposeUI(this)">
+<span>Expose as Button Entity to Home Assistant (Auto-Discovery)</span>
+</label>
+<div class="cando-ha-details-row" style="display: ${ruleData.ha_expose !== false ? 'flex' : 'none'}; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+<div style="display: flex; align-items: center; gap: 0.3rem;">
+<span style="font-size: 0.76rem; color: #64748b; font-weight: 600;">MDI Icon:</span>
+<input type="text" class="cando-ha-icon" value="${ruleData.ha_icon || 'mdi:car-defrost-rear'}" placeholder="mdi:car-defrost-rear" style="width: 170px; font-size: 0.78rem; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+</div>
+<div style="display: flex; align-items: center; gap: 0.25rem;">
+<span style="font-size: 0.72rem; color: #94a3b8;">Quick:</span>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-defrost-rear';" style="padding: 1px 5px; font-size: 0.7rem; background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; border-radius: 3px; cursor: pointer;">Defrost</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-electric';" style="padding: 1px 5px; font-size: 0.7rem; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 3px; cursor: pointer;">EV</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:fan';" style="padding: 1px 5px; font-size: 0.7rem; background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; border-radius: 3px; cursor: pointer;">Climate</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-door';" style="padding: 1px 5px; font-size: 0.7rem; background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; border-radius: 3px; cursor: pointer;">Trunk</button>
+<button type="button" class="system-button" onclick="this.closest('.cando-ha-details-row').querySelector('.cando-ha-icon').value='mdi:car-key';" style="padding: 1px 5px; font-size: 0.7rem; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; border-radius: 3px; cursor: pointer;">Key</button>
+</div>
+</div>
+</div>
+</td>
+</tr>
 </table>
 </div>
 </div>
-<div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
-<div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
-<div style="display: flex; align-items: center; gap: 0.4rem;">
-<button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
-<span style="font-weight: bold; color: #c2410c; font-size: 1rem;">🟠 1. TRIGGERS ("WHEN...")</span>
-<span style="font-size: 0.8rem; color: #9a3412; margin-left: 0.3rem;">(Fires when ANY trigger occurs)</span>
+<div style="text-align: center; margin: 0.6rem 0 0.8rem 0; font-size: 0.78rem; font-weight: 800; color: #c2410c; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.6rem; user-select: none;">
+<span style="height: 1.5px; flex: 1; background: #fed7aa;"></span>
+<span style="background: #fff7ed; padding: 3px 14px; border-radius: 12px; border: 1.5px solid #fed7aa; box-shadow: 0 1px 2px rgba(194,65,12,0.08);">⚡ WHEN</span>
+<span style="height: 1.5px; flex: 1; background: #fed7aa;"></span>
 </div>
-<button type="button" class="system-button" onclick="event.stopPropagation(); addCandoTriggerItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #ea580c; color: white;">+ Add Trigger</button>
+<div class="cando-section-box" style="border: 1px solid #fed7aa; background: #fff7ed; padding: 0.8rem 1rem 0 1rem; border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden;">
+<div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
+<div style="display: flex; align-items: center; gap: 0.5rem;">
+<button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
+<span style="font-weight: bold; color: #c2410c; font-size: 1rem;">🟠 1. TRIGGERS</span>
+<span class="cando-trig-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #fed7aa; color: #9a3412;">0</span>
+</div>
 </div>
 <div class="cando-section-body" style="margin-top: 0.6rem;">
-<div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+<div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem;"></div>
+<button type="button" onclick="addCandoTriggerItem(this)" style="width: calc(100% + 2rem); margin-left: -1rem; margin-right: -1rem; margin-top: 0.2rem; margin-bottom: 0; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; background: #ffedd5; color: #c2410c; border: none; border-top: 1.5px dashed #fed7aa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.2s; border-radius: 0 0 7px 7px;" onmouseover="this.style.background='#fed7aa'; this.style.color='#9a3412';" onmouseout="this.style.background='#ffedd5'; this.style.color='#c2410c';">
+<span>➕ Add Trigger</span>
+</button>
 </div>
 </div>
-<div class="cando-section-box" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 0.8rem 1rem; border-radius: 8px; margin-bottom: 1.2rem;">
+<div style="text-align: center; margin: 0.2rem 0 0.8rem 0; font-size: 0.78rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.6rem; user-select: none;">
+<span style="height: 1.5px; flex: 1; background: #bfdbfe;"></span>
+<span style="background: #eff6ff; padding: 3px 14px; border-radius: 12px; border: 1.5px solid #bfdbfe; box-shadow: 0 1px 2px rgba(37,99,235,0.08);">🔍 AND ONLY IF</span>
+<span style="height: 1.5px; flex: 1; background: #bfdbfe;"></span>
+</div>
+<div class="cando-section-box" style="border: 1px solid #bfdbfe; background: #eff6ff; padding: 0.8rem 1rem 0 1rem; border-radius: 8px; margin-bottom: 0.8rem; overflow: hidden;">
 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
-<div style="display: flex; align-items: center; gap: 0.4rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem;">
 <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
-<span style="font-weight: bold; color: #1d4ed8; font-size: 1rem;">🔵 2. CONDITIONS ("AND IF...")</span>
-<span style="font-size: 0.8rem; color: #1e40af; margin-left: 0.3rem;">(Optional - must pass to run actions)</span>
+<span style="font-weight: bold; color: #1d4ed8; font-size: 1rem;">🔵 2. CONDITIONS</span>
+<span class="cando-cond-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #bfdbfe; color: #1e40af;">0</span>
 </div>
-<button type="button" class="system-button" onclick="event.stopPropagation(); addCandoConditionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #2563eb; color: white;">+ Add Condition</button>
 </div>
 <div class="cando-section-body" style="margin-top: 0.6rem;">
-<div class="cando-conditions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+<div class="cando-conditions-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem;"></div>
+<div style="position: relative; width: calc(100% + 2rem); margin-left: -1rem; margin-right: -1rem; margin-top: 0.2rem; margin-bottom: 0;">
+<button type="button" onclick="showAddConditionMenu(this, event)" style="width: 100%; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; background: #dbeafe; color: #1d4ed8; border: none; border-top: 1.5px dashed #bfdbfe; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.2s; border-radius: 0 0 7px 7px;" onmouseover="this.style.background='#bfdbfe';" onmouseout="this.style.background='#dbeafe';">
+<span>➕ Add Condition</span>
+<span style="font-size: 0.7rem;">▼</span>
+</button>
 </div>
 </div>
-<div class="cando-section-box" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 0.8rem 1rem; border-radius: 8px;">
+</div>
+<div style="text-align: center; margin: 0.2rem 0 0.8rem 0; font-size: 0.78rem; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.6rem; user-select: none;">
+<span style="height: 1.5px; flex: 1; background: #bbf7d0;"></span>
+<span style="background: #f0fdf4; padding: 3px 14px; border-radius: 12px; border: 1.5px solid #bbf7d0; box-shadow: 0 1px 2px rgba(4,120,87,0.08);">🎯 THEN EXECUTE</span>
+<span style="height: 1.5px; flex: 1; background: #bbf7d0;"></span>
+</div>
+<div class="cando-section-box" style="border: 1px solid #bbf7d0; background: #f0fdf4; padding: 0.8rem 1rem 0 1rem; border-radius: 8px; margin-bottom: 1rem; overflow: hidden;">
 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
-<div style="display: flex; align-items: center; gap: 0.4rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem;">
 <button type="button" class="cando-sec-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 0;" onclick="event.stopPropagation(); toggleCandoSection(this.parentElement);">▲</button>
-<span style="font-weight: bold; color: #047857; font-size: 1rem;">🟢 3. ACTIONS ("THEN DO...")</span>
-<span style="font-size: 0.8rem; color: #065f46; margin-left: 0.3rem;">(Executed in sequence)</span>
+<span style="font-weight: bold; color: #047857; font-size: 1rem;">🟢 3. ACTIONS</span>
+<span class="cando-act-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: #bbf7d0; color: #065f46;">0</span>
 </div>
-<button type="button" class="system-button" onclick="event.stopPropagation(); addCandoActionItem(this)" style="padding: 0.3rem 0.75rem; font-size: 0.85rem; background-color: #059669; color: white;">+ Add Action</button>
 </div>
 <div class="cando-section-body" style="margin-top: 0.6rem;">
-<div class="cando-actions-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+<div class="cando-choose-banner-slot"></div>
+<div class="cando-actions-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem;"></div>
+<div style="position: relative; width: calc(100% + 2rem); margin-left: -1rem; margin-right: -1rem; margin-top: 0.2rem; margin-bottom: 0;">
+<button type="button" onclick="showAddActionMenu(this, event)" style="width: 100%; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; background: #dcfce7; color: #047857; border: none; border-top: 1.5px dashed #bbf7d0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.2s; border-radius: 0 0 7px 7px;" onmouseover="this.style.background='#bbf7d0';" onmouseout="this.style.background='#dcfce7';">
+<span>➕ Add Action Step</span>
+<span style="font-size: 0.7rem;">▼</span>
+</button>
+</div>
 </div>
 </div>
 <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.2rem; padding-top: 0.8rem; border-top: 1px dashed #cbd5e1;">
-<button type="button" class="system-button" onclick="testCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; background: #0d9488; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;" title="Test all actions in this CAN Do rule">▶ Test All Actions</button>
-<button type="button" class="system-button" onclick="duplicateCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; background: #6366f1; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;" title="Duplicate this CAN Do rule">📋 Clone CAN Do</button>
-<button type="button" class="system-button" onclick="saveCandoRulesUI(this)" style="padding: 0.4rem 1.1rem; font-size: 0.85rem; background: #16a34a; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">💾 Save CAN Do</button>
+<button type="button" class="system-button" onclick="testCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; background: #0d9488; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;" title="Test all actions in this CAN Do rule">▶ Test Actions</button>
+<button type="button" class="system-button" onclick="duplicateCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem; background: #6366f1; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;" title="Duplicate this CAN Do rule">📋 Clone</button>
+<button type="button" class="system-button" onclick="saveCandoRulesUI(this)" style="padding: 0.4rem 1.1rem; font-size: 0.85rem; background: #16a34a; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">💾 Save</button>
 </div>
 </div>
 `;
@@ -3526,11 +3743,26 @@ const triggers = ruleData.triggers || (ruleData.trigger ? [ruleData.trigger] : [
 triggers.forEach(trig => renderCandoTriggerItem(trigContainer, trig));
 const condContainer = ruleDiv.querySelector(".cando-conditions-container");
 const conditions = ruleData.conditions || (ruleData.condition && ruleData.condition.type !== "none" ? [ruleData.condition] : []);
-conditions.forEach(cond => renderCandoConditionItem(condContainer, cond));
+conditions.forEach(cond => {
+if (cond.type === "or_group" || cond.type === "and_group" || cond.type === "not_group" || cond.group_type) {
+renderCandoConditionBlock(condContainer, cond);
+} else {
+renderCandoConditionItem(condContainer, cond);
+}
+});
 const actContainer = ruleDiv.querySelector(".cando-actions-container");
-const actions = ruleData.actions || (ruleData.action ? [ruleData.action] : [{ type: "can_tx" }]);
-actions.forEach(act => renderCandoActionItem(actContainer, act));
+const actions = ruleData.actions || (ruleData.action ? [ruleData.action] : [{ type: "preset" }]);
+actions.forEach(act => {
+if (act.type === "choose") {
+renderCandoChooseBlock(actContainer, act);
+} else if (act.type === "if_then") {
+renderCandoIfThenBlock(actContainer, act);
+} else {
+renderCandoActionItem(actContainer, act);
+}
+});
 updateCandoRuleTriggerDropdowns(ruleDiv);
+updateCandoSectionCountBadges(ruleDiv);
 }
 function renderByteInputsHTML(prefixClass, payloadStr = "") {
 const rawBytes = (payloadStr || "").trim().split(/\s+/);
@@ -3706,6 +3938,7 @@ const card = buttonElem.closest(".cando-rule-card");
 const container = card.querySelector(".cando-triggers-container");
 renderCandoTriggerItem(container, { source: "can_msg" });
 updateCandoRuleTriggerDropdowns(card);
+updateCandoSectionCountBadges(card);
 }
 function renderCandoTriggerItem(container, data = {}) {
 const source = data.source || "preset";
@@ -3714,6 +3947,8 @@ itemDiv.className = "cando-trigger-item";
 itemDiv.style.background = "#ffffff";
 itemDiv.style.border = "1px solid #fed7aa";
 itemDiv.style.borderRadius = "6px";
+itemDiv.style.padding = "0.8rem";
+itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
 const { builtIn, custom } = getFilteredTriggerPresets();
 let selectedPresetVal = "";
 if (data.id) {
@@ -3728,23 +3963,28 @@ selectedPresetVal = `b_${bIdx}`;
 }
 }
 itemDiv.innerHTML = `
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #fed7aa; padding-bottom: 0.4rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.5rem; border-bottom: 1px dashed #fed7aa; padding-bottom: 0.4rem;">
 <div style="display: flex; align-items: center; gap: 0.6rem;">
-<span style="font-weight: 600; font-size: 0.9rem; color: #ea580c;">⚡ Trigger:</span>
-<label style="font-size: 0.8rem; color: #9a3412; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
+<span style="font-weight: 700; font-size: 0.88rem; color: #ea580c;">⚡ Trigger:</span>
+<label class="cando-trig-id-container" style="font-size: 0.8rem; color: #9a3412; font-weight: 600; display: none; align-items: center; gap: 0.3rem;">
 ID:
-<input type="text" class="cando-trig-id" value="${data.id || ""}" placeholder="e.g. sw_star" oninput="updateCandoRuleTriggerDropdowns(this.closest('.cando-rule-card'))" style="width: 110px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #fed7aa; border-radius: 4px; background: #fff7ed;">
+<input type="text" class="cando-trig-id" value="${data.id || ""}" placeholder="e.g. star_press" oninput="updateCandoRuleTriggerDropdowns(this.closest('.cando-rule-card')); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border: 1px solid #fed7aa; border-radius: 4px; background: #fff7ed; box-sizing: border-box;">
 </label>
 </div>
-<button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-trigger-item').remove(); updateCandoRuleTriggerDropdowns(card);">✕ Remove</button>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Trigger Up" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Trigger Down" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="delete-btn" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; margin: 0;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-trigger-item').remove(); updateCandoRuleTriggerDropdowns(card); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
+</div>
 </div>
 <table class="compact-form-table">
 <tr>
 <td style="width: 25%;">Trigger Source:</td>
 <td>
-<select class="cando-trig-source" onchange="toggleCandoTrigItemUI(this)">
+<select class="cando-trig-source" onchange="toggleCandoTrigItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
 <option value="preset" ${source === "preset" || !data.source ? "selected" : ""}>Presets</option>
 <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom / Raw CAN Message</option>
+<option value="ha_mqtt" ${source === "ha_mqtt" || source === "mqtt_cmd" ? "selected" : ""}>🏠 Home Assistant / MQTT Command</option>
 <option value="clock" ${source === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
 <option value="interval" ${source === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
 <option value="voltage" ${source === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
@@ -3755,17 +3995,25 @@ ID:
 <tr class="trig-field-preset ${source === "preset" || !data.source ? "" : "hidden"}">
 <td>Buttons:</td>
 <td>
-<div style="display: flex; gap: 0.4rem; align-items: center;">
-<select class="cando-trig-preset-picker" onchange="applyCandoTrigPreset(this)" style="width: 100%; font-weight: 600; color: #1e293b;">
+<div style="display: flex; gap: 0.5rem; align-items: center;">
+<select class="cando-trig-preset-picker" onchange="applyCandoTrigPreset(this)" style="flex: 1; min-width: 0; font-weight: 600; color: #1e293b;">
 ${renderTrigPresetOptionsHTML(selectedPresetVal)}
 </select>
-<button type="button" class="system-button" onclick="saveCurrentTriggerAsPreset(this)" style="padding: 3px 8px; font-size: 0.74rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; white-space: nowrap; cursor: pointer;" title="Save current CAN ID and payload pattern as a custom reusable preset">⭐ Save as Preset</button>
+<button type="button" class="system-button" onclick="saveCurrentTriggerAsPreset(this)" style="flex-shrink: 0; white-space: nowrap; padding: 4px 12px; font-size: 0.78rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Save current CAN ID and payload pattern as a custom reusable preset">⭐ Save as Preset</button>
 </div>
 </td>
 </tr>
+<tr class="trig-field-mqtt ${source === "ha_mqtt" || source === "mqtt_cmd" ? "" : "hidden"}">
+<td>MQTT Command Topic:</td>
+<td><input type="text" class="cando-trig-mqtt-topic" value="${data.mqtt_topic || "wican/cando/trigger"}" placeholder="wican/cando/trigger" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
+</tr>
+<tr class="trig-field-mqtt ${source === "ha_mqtt" || source === "mqtt_cmd" ? "" : "hidden"}">
+<td>Expected Payload / Event:</td>
+<td><input type="text" class="cando-trig-mqtt-payload" value="${data.mqtt_payload || ""}" placeholder="e.g. start_precon (or leave blank for any)" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
+</tr>
 <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
 <td>Trigger CAN ID (Hex):</td>
-<td><input type="text" class="cando-trig-can-id" value="${data.can_id || "0x448"}" placeholder="0x448"></td>
+<td><input type="text" class="cando-trig-can-id" value="${data.can_id || "0x448"}" placeholder="0x448" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
 </tr>
 <tr class="trig-field-can ${source === "can_msg" || source === "preset" || !data.source ? "" : "hidden"}">
 <td>Bus:</td>
@@ -3818,6 +4066,16 @@ ${renderByteInputsHTML("cando-trig-to", data.to_payload || data.match_payload ||
 <td>Expression / Parameter:</td>
 <td><input type="text" class="cando-trig-expr" value="${data.expression || "[B0:B1]"}" placeholder="[B0:B1]"></td>
 </tr>
+<tr class="trig-field-for ${source === "clock" || source === "interval" ? "hidden" : ""}">
+<td style="vertical-align: middle;">For (Hold Duration):</td>
+<td>
+<div style="display: flex; align-items: center; gap: 8px;">
+<input type="number" class="cando-trig-for-sec" value="${data.for_sec !== undefined ? data.for_sec : (data.for_ms ? (data.for_ms / 1000) : 0)}" min="0" max="86400" step="0.5" style="width: 75px;" placeholder="0" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+<span style="font-weight: 600; color: #9a3412; font-size: 0.85rem;">seconds</span>
+<span style="font-size: 0.78rem; color: #78716c;">(Must remain continuously active for this duration before firing. 0 = Instant)</span>
+</div>
+</td>
+</tr>
 </table>
 `;
 container.appendChild(itemDiv);
@@ -3826,11 +4084,13 @@ function toggleCandoTrigItemUI(selectElem) {
 const item = selectElem.closest(".cando-trigger-item");
 const val = selectElem.value;
 item.querySelectorAll(".trig-field-preset").forEach(el => el.classList.toggle("hidden", val !== "preset"));
+item.querySelectorAll(".trig-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "ha_mqtt" && val !== "mqtt_cmd"));
 item.querySelectorAll(".trig-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_msg" && val !== "preset"));
 item.querySelectorAll(".trig-field-clock").forEach(el => el.classList.toggle("hidden", val !== "clock"));
 item.querySelectorAll(".trig-field-interval").forEach(el => el.classList.toggle("hidden", val !== "interval"));
 item.querySelectorAll(".trig-field-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
 item.querySelectorAll(".trig-field-expr").forEach(el => el.classList.toggle("hidden", val !== "state_change"));
+item.querySelectorAll(".trig-field-for").forEach(el => el.classList.toggle("hidden", val === "clock" || val === "interval"));
 if (val === "preset") {
 const picker = item.querySelector(".cando-trig-preset-picker");
 if (picker && picker.value !== "") {
@@ -3842,6 +4102,7 @@ function addCandoConditionItem(buttonElem) {
 const card = buttonElem.closest(".cando-rule-card");
 const container = card.querySelector(".cando-conditions-container");
 renderCandoConditionItem(container, { type: "param_range", invert: false });
+updateCandoSectionCountBadges(card);
 }
 function renderCandoConditionItem(container, data = {}) {
 const type = data.type || "param_range";
@@ -3855,15 +4116,20 @@ itemDiv.style.borderRadius = "6px";
 itemDiv.style.padding = "0.8rem";
 itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
 itemDiv.innerHTML = `
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #bfdbfe; padding-bottom: 0.4rem;">
-<div style="display: flex; align-items: center; gap: 0.5rem;">
-<span style="font-weight: 600; font-size: 0.9rem; color: #2563eb;">Condition:</span>
-<label style="font-size: 0.85rem; color: #1e3a8a; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.5rem; border-bottom: 1px dashed #bfdbfe; padding-bottom: 0.4rem;">
+<div style="display: flex; align-items: center; gap: 0.6rem;">
+<span style="font-weight: 700; font-size: 0.88rem; color: #2563eb;">Condition:</span>
+<label style="font-size: 0.82rem; color: #1e3a8a; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;">
 <input type="checkbox" class="cando-cond-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
-<b>NOT</b> (Invert condition)
+<b>NOT</b> Invert
 </label>
 </div>
-<button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-condition-item').remove();">✕ Remove</button>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="showCreateConditionBlockMenu(this, event)" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;" title="Convert this condition into an AND or OR block to add alternative conditions">🔀 Create Block ▼</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Condition Up" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Condition Down" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="delete-btn" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; margin: 0;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-condition-item').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
+</div>
 </div>
 <table class="compact-form-table">
 <tr>
@@ -3939,6 +4205,308 @@ item.querySelectorAll(".cond-field-days").forEach(el => el.classList.toggle("hid
 item.querySelectorAll(".cond-field-time").forEach(el => el.classList.toggle("hidden", val !== "time_window"));
 item.querySelectorAll(".cond-field-volt").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
 }
+function renderCandoConditionBlock(container, data = {}) {
+const groupType = (data.group_type || (data.type ? data.type.replace("_group", "") : "or")).toLowerCase();
+const isInverted = (data.invert === true || data.invert === "true");
+let theme = {
+bg: "#faf5ff",
+border: "#c084fc",
+color: "#7e22ce",
+btnBg: "#f3e8ff"
+};
+if (groupType === "and") {
+theme = {
+bg: "#f0f9ff",
+border: "#7dd3fc",
+color: "#0369a1",
+btnBg: "#e0f2fe"
+};
+} else if (groupType === "not") {
+theme = {
+bg: "#fff1f2",
+border: "#fda4af",
+color: "#be123c",
+btnBg: "#ffe4e6"
+};
+}
+const groupDiv = document.createElement("div");
+groupDiv.className = "cando-condition-group cando-condition-block";
+groupDiv.dataset.groupType = groupType;
+groupDiv.style.background = theme.bg;
+groupDiv.style.border = `1.5px dashed ${theme.border}`;
+groupDiv.style.borderRadius = "8px";
+groupDiv.style.padding = "0.8rem";
+groupDiv.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+groupDiv.innerHTML = `
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.6rem; border-bottom: 1px dashed ${theme.border}; padding-bottom: 0.4rem;">
+<div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+<select class="cando-group-type" onchange="changeCandoConditionBlockType(this)" style="height: 26px; font-weight: 700; font-size: 0.82rem; color: ${theme.color}; padding: 0 6px; border: 1px solid ${theme.border}; border-radius: 4px; background: #ffffff; box-sizing: border-box; display: inline-flex; align-items: center;">
+<option value="and" ${groupType === "and" ? "selected" : ""}>🔵 AND Block</option>
+<option value="or" ${groupType === "or" ? "selected" : ""}>🟣 OR Block</option>
+<option value="not" ${groupType === "not" ? "selected" : ""}>🔴 NOT Block</option>
+</select>
+<label style="font-size: 0.82rem; color: ${theme.color}; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
+<input type="checkbox" class="cando-group-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
+<b>NOT</b> Invert
+</label>
+</div>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Block Up" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Block Down" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="delete-btn" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; margin: 0;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-condition-group').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
+</div>
+</div>
+<div class="cando-group-conditions-container" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.6rem; background: #ffffff; border-radius: 6px; border: 1px solid ${theme.border};"></div>
+<div style="position: relative; margin-top: 0.6rem;">
+<button type="button" class="system-button cando-group-add-btn" onclick="showAddConditionMenu(this, event)" style="width: 100%; padding: 4px 8px; font-size: 0.8rem; font-weight: 700; background: ${theme.btnBg}; color: ${theme.color}; border: 1px dashed ${theme.border}; border-radius: 4px; cursor: pointer;">➕ Add Condition to this Block ▼</button>
+</div>
+`;
+container.appendChild(groupDiv);
+const innerContainer = groupDiv.querySelector(".cando-group-conditions-container");
+if (data.conditions && Array.isArray(data.conditions) && data.conditions.length > 0) {
+data.conditions.forEach(c => {
+if (c.type === "or_group" || c.type === "and_group" || c.type === "not_group" || c.group_type) {
+renderCandoConditionBlock(innerContainer, c);
+} else {
+renderCandoConditionItem(innerContainer, c);
+}
+});
+} else {
+renderCandoConditionItem(innerContainer, { type: "speed_zero" });
+renderCandoConditionItem(innerContainer, { type: "can_state", can_id: "0x2C0" });
+}
+}
+const renderCandoConditionGroup = renderCandoConditionBlock;
+function changeCandoConditionBlockType(selectElem) {
+const groupDiv = selectElem.closest(".cando-condition-group");
+if (!groupDiv) return;
+const groupType = selectElem.value;
+groupDiv.dataset.groupType = groupType;
+let theme = {
+bg: "#faf5ff",
+border: "#c084fc",
+color: "#7e22ce",
+btnBg: "#f3e8ff"
+};
+if (groupType === "and") {
+theme = {
+bg: "#f0f9ff",
+border: "#7dd3fc",
+color: "#0369a1",
+btnBg: "#e0f2fe"
+};
+} else if (groupType === "not") {
+theme = {
+bg: "#fff1f2",
+border: "#fda4af",
+color: "#be123c",
+btnBg: "#ffe4e6"
+};
+}
+groupDiv.style.background = theme.bg;
+groupDiv.style.borderColor = theme.border;
+const btn = groupDiv.querySelector(".cando-group-add-btn");
+if (btn) {
+btn.style.background = theme.btnBg;
+btn.style.borderColor = theme.border;
+btn.style.color = theme.color;
+}
+selectElem.style.borderColor = theme.border;
+selectElem.style.color = theme.color;
+}
+const changeCandoConditionGroupType = changeCandoConditionBlockType;
+function positionFloatingMenu(menu, targetBtn) {
+document.body.appendChild(menu);
+menu.style.position = "fixed";
+menu.style.zIndex = "999999";
+const rect = targetBtn.getBoundingClientRect();
+const menuRect = menu.getBoundingClientRect();
+const viewportHeight = window.innerHeight;
+const viewportWidth = window.innerWidth;
+let left = rect.left + (rect.width / 2) - (menuRect.width / 2);
+if (left < 12) left = 12;
+if (left + menuRect.width > viewportWidth - 12) {
+left = viewportWidth - menuRect.width - 12;
+}
+let top = rect.top - menuRect.height - 6;
+if (top < 12) {
+top = rect.bottom + 6;
+if (top + menuRect.height > viewportHeight - 12) {
+top = Math.max(12, viewportHeight - menuRect.height - 12);
+}
+}
+menu.style.left = `${Math.round(left)}px`;
+menu.style.top = `${Math.round(top)}px`;
+}
+function showAddConditionMenu(btn, event) {
+event.stopPropagation();
+document.querySelectorAll(".cando-floating-menu").forEach(m => m.remove());
+const menu = document.createElement("div");
+menu.className = "cando-floating-menu";
+menu.style.background = "#ffffff";
+menu.style.border = "1px solid #cbd5e1";
+menu.style.borderRadius = "8px";
+menu.style.boxShadow = "0 10px 25px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)";
+menu.style.padding = "6px 0";
+menu.style.minWidth = "260px";
+menu.style.fontSize = "0.84rem";
+const targetContainer = btn.closest(".cando-condition-group")
+? btn.closest(".cando-condition-group").querySelector(".cando-group-conditions-container")
+: (btn.closest(".cando-ifthen-block")
+? btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-conditions-container")
+: btn.closest(".cando-section-box").querySelector(".cando-conditions-container"));
+const card = btn.closest(".cando-rule-card");
+window._activeCondTargetContainer = targetContainer;
+window._activeCondCard = card;
+menu.innerHTML = `
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #1e293b;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='#ffffff';" onclick="renderCandoConditionItem(window._activeCondTargetContainer, { type: 'param_range' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">📄</span> <span>Single Condition</span>
+</div>
+<div style="height: 1px; background: #e2e8f0; margin: 3px 0;"></div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #0369a1;" onmouseover="this.style.background='#f0f9ff';" onmouseout="this.style.background='#ffffff';" onclick="renderCandoConditionBlock(window._activeCondTargetContainer, { group_type: 'and' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">🔵</span> <span>AND Block</span>
+</div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #7e22ce;" onmouseover="this.style.background='#faf5ff';" onmouseout="this.style.background='#ffffff';" onclick="renderCandoConditionBlock(window._activeCondTargetContainer, { group_type: 'or' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">🟣</span> <span>OR Block</span>
+</div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #be123c;" onmouseover="this.style.background='#fff1f2';" onmouseout="this.style.background='#ffffff';" onclick="renderCandoConditionBlock(window._activeCondTargetContainer, { group_type: 'not' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">🔴</span> <span>NOT Block</span>
+</div>
+`;
+positionFloatingMenu(menu, btn);
+const closeHandler = (e) => {
+if (!menu.contains(e.target) && e.target !== btn) {
+menu.remove();
+document.removeEventListener("click", closeHandler);
+}
+};
+setTimeout(() => document.addEventListener("click", closeHandler), 10);
+}
+function showCreateConditionBlockMenu(btn, event) {
+event.stopPropagation();
+document.querySelectorAll(".cando-floating-menu").forEach(m => m.remove());
+const item = btn.closest(".cando-condition-item, .cando-condition-group, .cando-condition-block");
+if (!item) return;
+const menu = document.createElement("div");
+menu.className = "cando-floating-menu";
+menu.style.background = "#ffffff";
+menu.style.border = "1px solid #cbd5e1";
+menu.style.borderRadius = "8px";
+menu.style.boxShadow = "0 10px 25px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)";
+menu.style.padding = "6px 0";
+menu.style.minWidth = "290px";
+menu.style.fontSize = "0.82rem";
+menu.innerHTML = `
+<div style="padding: 4px 14px 4px 14px; font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Create Logic Block:</div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;" onmouseover="this.style.background='#faf5ff';" onmouseout="this.style.background='#ffffff';" onclick="wrapConditionInBlock(window._activeWrapItem, 'or'); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<div style="font-weight: 600; color: #7e22ce; display: flex; align-items: center; gap: 8px;">
+<span>🟣</span> <span>Create OR Block</span>
+</div>
+<div style="font-size: 0.73rem; color: #6b7280; margin-left: 24px;">Passes if THIS condition or another matches</div>
+</div>
+<div style="height: 1px; background: #e2e8f0; margin: 2px 0;"></div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;" onmouseover="this.style.background='#f0f9ff';" onmouseout="this.style.background='#ffffff';" onclick="wrapConditionInBlock(window._activeWrapItem, 'and'); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<div style="font-weight: 600; color: #0369a1; display: flex; align-items: center; gap: 8px;">
+<span>🔵</span> <span>Create AND Block</span>
+</div>
+<div style="font-size: 0.73rem; color: #6b7280; margin-left: 24px;">Passes if ALL grouped conditions match</div>
+</div>
+<div style="height: 1px; background: #e2e8f0; margin: 2px 0;"></div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;" onmouseover="this.style.background='#fff1f2';" onmouseout="this.style.background='#ffffff';" onclick="wrapConditionInBlock(window._activeWrapItem, 'not'); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<div style="font-weight: 600; color: #be123c; display: flex; align-items: center; gap: 8px;">
+<span>🔴</span> <span>Create NOT Block</span>
+</div>
+<div style="font-size: 0.73rem; color: #6b7280; margin-left: 24px;">Inverts logic (passes if condition is false)</div>
+</div>
+`;
+window._activeWrapItem = item;
+positionFloatingMenu(menu, btn);
+const closeHandler = (e) => {
+if (!menu.contains(e.target) && e.target !== btn) {
+menu.remove();
+document.removeEventListener("click", closeHandler);
+}
+};
+setTimeout(() => document.addEventListener("click", closeHandler), 10);
+}
+const showWrapConditionMenu = showCreateConditionBlockMenu;
+function showAddActionMenu(btn, event) {
+event.stopPropagation();
+document.querySelectorAll(".cando-floating-menu").forEach(m => m.remove());
+const menu = document.createElement("div");
+menu.className = "cando-floating-menu";
+menu.style.background = "#ffffff";
+menu.style.border = "1px solid #cbd5e1";
+menu.style.borderRadius = "8px";
+menu.style.boxShadow = "0 10px 25px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08)";
+menu.style.padding = "6px 0";
+menu.style.minWidth = "260px";
+menu.style.fontSize = "0.84rem";
+const targetContainer = btn.closest(".cando-opt-actions-container")
+? btn.closest(".cando-opt-actions-container")
+: (btn.closest(".cando-ifthen-block")
+? (btn.dataset.branch === "else"
+? btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-else-container")
+: btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-then-container"))
+: btn.closest(".cando-section-box").querySelector(".cando-actions-container"));
+const card = btn.closest(".cando-rule-card");
+window._activeActTargetContainer = targetContainer;
+window._activeActCard = card;
+menu.innerHTML = `
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #047857;" onmouseover="this.style.background='#f0fdf4';" onmouseout="this.style.background='#ffffff';" onclick="renderCandoActionItem(window._activeActTargetContainer, { type: 'preset' }); updateCandoSectionCountBadges(window._activeActCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">🎯</span> <span>Standard Action Step</span>
+</div>
+<div style="height: 1px; background: #e2e8f0; margin: 3px 0;"></div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #b45309;" onmouseover="this.style.background='#fffbeb';" onmouseout="this.style.background='#ffffff';" onclick="renderCandoIfThenBlock(window._activeActTargetContainer, { type: 'if_then' }); updateCandoSectionCountBadges(window._activeActCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">❓</span> <span>If - Then - Else Block</span>
+</div>
+<div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #0f766e;" onmouseover="this.style.background='#f0f9ff';" onmouseout="this.style.background='#ffffff';" onclick="addCandoChooseBlockToContainer(window._activeActTargetContainer, window._activeActCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+<span style="font-size: 1rem;">🔀</span> <span>Choose Block</span>
+</div>
+`;
+positionFloatingMenu(menu, btn);
+const closeHandler = (e) => {
+if (!menu.contains(e.target) && e.target !== btn) {
+menu.remove();
+document.removeEventListener("click", closeHandler);
+}
+};
+setTimeout(() => document.addEventListener("click", closeHandler), 10);
+}
+function addCandoChooseBlockToContainer(container, card) {
+const triggers = card ? getCandoRuleTriggersInfo(card) : [];
+let options = [];
+if (triggers.length >= 2) {
+options = triggers.map(t => ({ trigger_id: t.id, actions: [{ type: "preset" }] }));
+} else {
+options = [
+{ trigger_id: "", actions: [{ type: "preset" }] },
+{ trigger_id: "", actions: [{ type: "preset" }] }
+];
+}
+renderCandoChooseBlock(container, { type: "choose", options: options });
+if (card) {
+updateCandoRuleTriggerDropdowns(card);
+updateCandoSectionCountBadges(card);
+}
+}
+function wrapConditionInBlock(item, groupType) {
+if (!item) return;
+const card = item.closest(".cando-rule-card");
+const currentData = extractCandoConditionElement(item);
+const tempDiv = document.createElement("div");
+item.replaceWith(tempDiv);
+const groupHolder = document.createElement("div");
+renderCandoConditionBlock(groupHolder, {
+group_type: groupType,
+conditions: [currentData]
+});
+const newGroup = groupHolder.firstElementChild;
+tempDiv.replaceWith(newGroup);
+updateCandoSectionCountBadges(card);
+showNotification(`Converted condition into ${groupType.toUpperCase()} block!`, "green", 2500);
+}
+const wrapConditionInGroup = wrapConditionInBlock;
 function renderCandoPayloadStep(container, stepData = {}) {
 const stepDiv = document.createElement("div");
 stepDiv.className = "cando-payload-step-item";
@@ -3952,13 +4520,15 @@ const stepIdx = container.querySelectorAll(".cando-payload-step-item").length + 
 stepDiv.innerHTML = `
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
 <span class="cando-step-label" style="font-weight: 700; font-size: 0.8rem; color: #166534;">Step <span class="step-num">${stepIdx}</span>:</span>
-<div style="display: flex; align-items: center; gap: 0.6rem;">
-<label style="font-size: 0.8rem; color: #166534; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
+<div style="display: flex; align-items: center; gap: 0.4rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Step Up" style="padding: 1px 5px; font-size: 0.7rem; background: #ffffff; color: #166534; border: 1px solid #86efac; font-weight: 600; cursor: pointer; border-radius: 4px;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Step Down" style="padding: 1px 5px; font-size: 0.7rem; background: #ffffff; color: #166534; border: 1px solid #86efac; font-weight: 600; cursor: pointer; border-radius: 4px;">▼</button>
+<label style="font-size: 0.8rem; color: #166534; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
 Repeat:
 <input type="number" class="cando-step-repeat" value="${repeatVal}" min="1" max="1000" style="width: 46px; text-align: center; padding: 2px 4px; border-radius: 4px; border: 1px solid #86efac; background: #ffffff;">
 <span style="font-size: 0.75rem;">x</span>
 </label>
-<button type="button" class="delete-btn" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;" onclick="removeCandoPayloadStep(this);">✕</button>
+<button type="button" class="delete-btn" style="padding: 1px 6px; font-size: 0.7rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; margin: 0 0 0 0.2rem;" onclick="removeCandoPayloadStep(this);">🗑️</button>
 </div>
 </div>
 ${renderByteInputsHTML("cando-step-byte", stepData.payload || "")}
@@ -3982,18 +4552,50 @@ container.querySelectorAll(".cando-payload-step-item").forEach((step, idx) => {
 const numSpan = step.querySelector(".step-num");
 if (numSpan) numSpan.textContent = idx + 1;
 });
+const card = container.closest(".cando-rule-card");
+if (card) updateCandoItemConnectors(card);
 }
 function addCandoActionItem(buttonElem) {
 const card = buttonElem.closest(".cando-rule-card");
 const container = card.querySelector(".cando-actions-container");
-renderCandoActionItem(container, { type: "can_tx" });
+renderCandoActionItem(container, { type: "preset" });
 updateCandoRuleTriggerDropdowns(card);
+updateCandoSectionCountBadges(card);
 }
 function renderCandoActionItem(container, data = {}) {
-const type = data.type || "can_tx";
-const ruleCard = container ? container.closest(".cando-rule-card") : null;
-const availableIds = getCandoRuleTriggerIds(ruleCard);
-const selVal = data.trigger_id || "";
+let type = data.type || "preset";
+if (type === "climate_target" || type === "precondition") {
+type = "preset";
+}
+const hasClimateData = (data.type === "climate_target" || data.target_temp_c !== undefined || data.target_temp_f !== undefined);
+const hasPreconData = (data.type === "precondition" || data.precon_mode !== undefined);
+const hasCanData = (type === "can_tx" || (data.steps && data.steps.length > 0) || data.can_id);
+const hasPopupData = (type === "can_tx" || type === "popup" || data.popup_message);
+const isImperial = (getUnitSystem() === "imperial");
+let initialTemp = isImperial ? 72 : 21.0;
+if (data.target_temp_f !== undefined) {
+initialTemp = isImperial ? data.target_temp_f : Math.round(((data.target_temp_f - 32) * 5/9) * 2) / 2;
+} else if (data.target_temp_c !== undefined) {
+initialTemp = isImperial ? Math.round(data.target_temp_c * 9/5 + 32) : data.target_temp_c;
+}
+if (isImperial) {
+initialTemp = Math.min(82, Math.max(62, initialTemp));
+} else {
+initialTemp = Math.min(28.0, Math.max(17.0, initialTemp));
+}
+let initialPassTemp = initialTemp;
+if (data.pass_temp_f !== undefined) {
+initialPassTemp = isImperial ? data.pass_temp_f : Math.round(((data.pass_temp_f - 32) * 5/9) * 2) / 2;
+} else if (data.pass_temp_c !== undefined) {
+initialPassTemp = isImperial ? Math.round(data.pass_temp_c * 9/5 + 32) : data.pass_temp_c;
+}
+if (isImperial) {
+initialPassTemp = Math.min(82, Math.max(62, initialPassTemp));
+} else {
+initialPassTemp = Math.min(28.0, Math.max(17.0, initialPassTemp));
+}
+const isSyncOn = (data.climate_sync_on !== false);
+const isDrvOnly = (data.climate_driver_only === true);
 const itemDiv = document.createElement("div");
 itemDiv.className = "cando-action-item";
 itemDiv.style.background = "#ffffff";
@@ -4002,43 +4604,24 @@ itemDiv.style.borderRadius = "6px";
 itemDiv.style.padding = "0.8rem";
 itemDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
 itemDiv.innerHTML = `
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px dashed #bbf7d0; padding-bottom: 0.4rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.5rem; border-bottom: 1px dashed #bbf7d0; padding-bottom: 0.4rem;">
 <div style="display: flex; align-items: center; gap: 0.6rem;">
-<span style="font-weight: 600; font-size: 0.9rem; color: #059669;">🎯 Action Step:</span>
-<label style="font-size: 0.8rem; color: #065f46; font-weight: 600; display: flex; align-items: center; gap: 0.3rem;">
-Run For:
-<select class="cando-act-trig-id" style="width: auto; min-width: 140px; padding: 2px 6px; font-size: 0.8rem; border: 1px solid #86efac; border-radius: 4px; background: #f0fdf4; color: #065f46; font-weight: 600;">
-<option value="">Any Trigger (Default)</option>
-${availableIds.map(tid => `<option value="${tid}" ${selVal === tid ? "selected" : ""}>Trigger: ${tid}</option>`).join("")}
-${(selVal && !availableIds.includes(selVal)) ? `<option value="${selVal}" selected>Trigger: ${selVal}</option>` : ""}
-</select>
-</label>
+<span style="font-weight: 700; font-size: 0.88rem; color: #059669;">🎯 Action Step:</span>
 </div>
-<div style="display: flex; align-items: center; gap: 0.4rem;">
-<button type="button" class="system-button" onclick="testCandoActionUI(this)" style="padding: 0.2rem 0.6rem; font-size: 0.78rem; background: #059669; color: #ffffff; border: none; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Execute this action immediately on the vehicle CAN bus">▶ Test Action</button>
-<button type="button" class="delete-btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="this.closest('.cando-action-item').remove();">✕ Remove</button>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Action Step Up" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Action Step Down" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="system-button" onclick="testCandoActionUI(this)" style="height: 26px; padding: 0 9px; font-size: 0.75rem; background: #059669; color: #ffffff; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;" title="Execute this action immediately on the vehicle CAN bus">▶ Test Step</button>
+<button type="button" class="delete-btn" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; margin: 0;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-action-item').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
 </div>
 </div>
 <table class="compact-form-table">
 <tr>
-<td style="width: 25%; vertical-align: top; padding-top: 6px;">Action Template:</td>
-<td>
-<div style="display: flex; gap: 0.4rem; align-items: center;">
-<select class="cando-act-preset-picker" onchange="applyCandoActionPreset(this)" style="width: 100%; border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 600; color: #166534;">
-${renderActPresetOptionsHTML()}
-</select>
-<button type="button" class="system-button" onclick="saveCurrentActionAsPreset(this)" style="padding: 3px 8px; font-size: 0.74rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; white-space: nowrap; cursor: pointer;" title="Save current action configuration as a custom reusable template">⭐ Save as Template</button>
-</div>
-<div class="cando-act-options-container" style="display: none; margin-top: 6px; padding: 4px 8px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px;"></div>
-</td>
-</tr>
-<tr>
 <td style="width: 25%;">Action Type:</td>
 <td>
-<select class="cando-act-type" onchange="toggleCandoActItemUI(this)">
+<select class="cando-act-type" onchange="toggleCandoActItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
+<option value="preset" ${type === "preset" ? "selected" : ""}>Template / Preset (Recommended)</option>
 <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
-<option value="climate_target" ${type === "climate_target" ? "selected" : ""}>🎯 Target Cabin Temperature (Closed-Loop 0x49F / 0x380)</option>
-<option value="precondition" ${type === "precondition" ? "selected" : ""}>⚡ Battery Preconditioning (Toggle / Run)</option>
 <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
 <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
 <option value="mqtt" ${type === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
@@ -4046,41 +4629,52 @@ ${renderActPresetOptionsHTML()}
 </select>
 </td>
 </tr>
-<tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
-<td>Target Temperature:</td>
+<tr class="act-field-preset ${type === "preset" ? "" : "hidden"}">
+<td style="width: 25%; vertical-align: top; padding-top: 6px;">Action Template:</td>
 <td>
 <div style="display: flex; gap: 0.5rem; align-items: center;">
-<input type="number" class="cando-act-target-temp" value="${data.target_temp_c !== undefined ? data.target_temp_c : 21.0}" step="0.5" min="14" max="32" style="width: 70px;">
-<span class="cando-target-temp-unit" style="font-size: 0.85rem; font-weight: 600; color: #475569;">${getUnitSystem() === "imperial" ? "°F" : "°C"}</span>
-<span style="font-size: 0.8rem; color: #64748b;">(Auto-steps 0x49F up/down to match target from 0x380)</span>
-</div>
-</td>
-</tr>
-<tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
-<td>Climate Zone:</td>
-<td>
-<select class="cando-act-climate-zone">
-<option value="driver" ${(!data.climate_zone || data.climate_zone === "driver") ? "selected" : ""}>Driver Zone</option>
-<option value="passenger" ${data.climate_zone === "passenger" ? "selected" : ""}>Passenger Zone</option>
+<select class="cando-act-preset-picker" onchange="applyCandoActionPreset(this)" style="flex: 1; min-width: 0; border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 600; color: #166534;">
+${renderActPresetOptionsHTML()}
 </select>
+<button type="button" class="system-button" onclick="saveCurrentActionAsPreset(this)" style="flex-shrink: 0; white-space: nowrap; padding: 4px 12px; font-size: 0.78rem; background: #fef08a; color: #854d0e; border: 1px solid #facc15; border-radius: 4px; font-weight: 700; cursor: pointer;" title="Save current action configuration as a custom reusable template">⭐ Save as Template</button>
+</div>
+<div class="cando-act-options-container" style="display: none; margin-top: 6px; padding: 4px 8px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px;"></div>
 </td>
 </tr>
-<tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
-<td style="vertical-align: top; padding-top: 6px;">Climate Options:</td>
+<tr class="act-field-climate ${hasClimateData ? "" : "hidden"}">
+<td>Climate Controls:</td>
 <td>
-<div style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
 <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; user-select: none;">
-<input type="checkbox" class="cando-act-climate-sync" ${data.climate_sync_on ? "checked" : ""}>
-<span><b>Enforce SYNC Mode ON</b> (0x4A0)</span>
+<input type="checkbox" class="cando-act-climate-sync" ${isSyncOn ? "checked" : ""} ${isDrvOnly ? "disabled" : ""} onchange="updateCandoClimateUI(this)">
+<span><b>Enable HVAC Sync (Dual Zone)</b></span>
 </label>
 <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; user-select: none;">
-<input type="checkbox" class="cando-act-climate-drv-only" ${data.climate_driver_only ? "checked" : ""}>
-<span><b>Enforce Driver Only Mode</b> (0x41D)</span>
+<input type="checkbox" class="cando-act-climate-drv-only" ${isDrvOnly ? "checked" : ""} onchange="updateCandoClimateUI(this)">
+<span><b>Enforce Driver Only Mode</b></span>
 </label>
 </div>
 </td>
 </tr>
-<tr class="act-field-precon ${type === "precondition" ? "" : "hidden"}">
+<tr class="act-field-climate ${hasClimateData ? "" : "hidden"}">
+<td class="cando-climate-drv-label">${(isSyncOn && !isDrvOnly) ? "Synced Cabin Temp:" : "Driver Target Temp:"}</td>
+<td>
+<div style="display: flex; align-items: center; gap: 8px;">
+<input type="number" class="cando-act-target-temp" value="${initialTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="width: 75px;" oninput="onCandoClimateTempChange(this)">
+<span class="cando-target-temp-unit" style="font-weight: 600; color: #065f46;">${isImperial ? "°F" : "°C"}</span>
+</div>
+</td>
+</tr>
+<tr class="act-field-climate cando-climate-pass-row ${hasClimateData && (!isSyncOn && !isDrvOnly) ? "" : "hidden"}">
+<td>Passenger Target Temp:</td>
+<td>
+<div style="display: flex; align-items: center; gap: 8px;">
+<input type="number" class="cando-act-pass-temp" value="${initialPassTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="width: 75px;" oninput="onCandoClimateTempChange(this)">
+<span class="cando-target-temp-unit" style="font-weight: 600; color: #065f46;">${isImperial ? "°F" : "°C"}</span>
+</div>
+</td>
+</tr>
+<tr class="act-field-precon ${hasPreconData ? "" : "hidden"}">
 <td>Preconditioning Mode:</td>
 <td>
 <select class="cando-act-precon-mode">
@@ -4090,7 +4684,7 @@ ${renderActPresetOptionsHTML()}
 </select>
 </td>
 </tr>
-<tr class="act-field-precon ${type === "precondition" ? "" : "hidden"}">
+<tr class="act-field-precon ${hasPreconData ? "" : "hidden"}">
 <td>Press Type:</td>
 <td>
 <select class="cando-act-precon-press">
@@ -4099,10 +4693,10 @@ ${renderActPresetOptionsHTML()}
 </select>
 </td>
 </tr>
-<tr class="act-field-popup ${type === "can_tx" || type === "popup" || type === "climate_target" ? "" : "hidden"}">
+<tr class="act-field-popup ${hasPopupData ? "" : "hidden"}">
 <td style="vertical-align: top; padding-top: 6px;">Dashboard Popup Text (OSD):</td>
 <td>
-<input type="text" class="cando-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" style="width: 100%; margin-bottom: 4px;">
+<input type="text" class="cando-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" style="width: 100%; margin-bottom: 4px;" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
 <div style="font-size: 0.74rem; color: #475569; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; user-select: none;">
 <span style="font-weight: 600; color: #334155;">Insert Live Variable:</span>
 <code style="background: #e2e8f0; padding: 1px 5px; border-radius: 3px; cursor: pointer; color: #0369a1; font-weight: 600;" title="Click to insert" onclick="insertCandoPopupToken(this, '{battery_temp}')">{battery_temp} (°C)</code>
@@ -4115,11 +4709,11 @@ ${renderActPresetOptionsHTML()}
 </div>
 </td>
 </tr>
-<tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
+<tr class="act-field-can ${hasCanData ? "" : "hidden"}">
 <td>Response CAN ID (Hex):</td>
-<td><input type="text" class="cando-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652"></td>
+<td><input type="text" class="cando-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
 </tr>
-<tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
+<tr class="act-field-can ${hasCanData ? "" : "hidden"}">
 <td>Target Bus:</td>
 <td>
 <select class="cando-act-bus">
@@ -4128,110 +4722,494 @@ ${renderActPresetOptionsHTML()}
 </select>
 </td>
 </tr>
-<tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
-<td>Inter-Step Delay (ms):</td>
-<td><input type="number" class="cando-act-delay-ms" value="${data.delay_ms || 10}" min="0" max="5000"></td>
+<tr class="act-field-can ${hasCanData ? "" : "hidden"}">
+<td>Inter-frame Delay (ms):</td>
+<td><input type="number" class="cando-act-delay-ms" value="${data.delay_ms || 10}"></td>
 </tr>
-<tr class="act-field-can ${type === "can_tx" ? "" : "hidden"}">
-<td style="vertical-align: top; padding-top: 6px;">Sequence Steps (8-Byte Payload):</td>
+<tr class="act-field-can ${hasCanData ? "" : "hidden"}">
+<td style="vertical-align: top; padding-top: 6px;">
+<div style="font-weight: 600;">CAN Payload Sequence:</div>
+<div style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">D1 – D8 frames sent sequentially on trigger</div>
+</td>
 <td>
-<div class="cando-payload-steps-container"></div>
-<div style="margin-top: 6px; display: flex; gap: 6px; align-items: center;">
-<button type="button" class="system-button" onclick="addCandoPayloadStep(this)" style="padding: 2px 8px; font-size: 0.78rem;">+ Add Step</button>
-<span style="font-size: 0.72rem; color: #64748b;">(Steps execute sequentially with Inter-Step Delay)</span>
-</div>
+<div class="cando-payload-steps-container" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+<button type="button" class="system-button" onclick="addCandoPayloadStep(this)" style="margin-top: 0.4rem; padding: 3px 8px; font-size: 0.78rem; font-weight: 600; background: #dcfce7; color: #166534; border: 1px dashed #86efac; border-radius: 4px; cursor: pointer;">➕ Add Frame Step</button>
 </td>
 </tr>
 <tr class="act-field-delay ${type === "delay" ? "" : "hidden"}">
 <td>Wait / Sleep (ms):</td>
-<td><input type="number" class="cando-act-wait-ms" value="${data.wait_ms || 500}" min="10" max="60000"></td>
+<td><input type="number" class="cando-act-wait-ms" value="${data.wait_ms || 500}" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))"></td>
 </tr>
 <tr class="act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
 <td>MQTT Topic:</td>
-<td><input type="text" class="cando-act-mqtt-topic" value="${data.mqtt_topic || "wican/alert"}" placeholder="wican/alert"></td>
+<td><input type="text" class="cando-act-mqtt-topic" value="${data.mqtt_topic || "homeassistant/sensor/wican/event"}" placeholder="homeassistant/sensor/wican/event"></td>
 </tr>
 <tr class="act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
 <td>MQTT Payload:</td>
-<td><input type="text" class="cando-act-mqtt-payload" value="${data.mqtt_payload || "triggered"}" placeholder="triggered"></td>
+<td><input type="text" class="cando-act-mqtt-payload" value="${data.mqtt_payload || "{\"event\":\"triggered\"}"}" placeholder='{"event":"triggered"}'></td>
 </tr>
 <tr class="act-field-webhook ${type === "webhook" ? "" : "hidden"}">
 <td>Webhook URL:</td>
-<td><input type="text" class="cando-act-webhook-url" value="${data.webhook_url || "http://192.168.1.100:8123/api/webhook/wican_event"}" placeholder="http://192.168.1.100:8123/..."></td>
+<td><input type="text" class="cando-act-webhook-url" value="${data.webhook_url || ""}" placeholder="http://192.168.1.100:8123/api/webhook/my_event"></td>
 </tr>
 </table>
 `;
 container.appendChild(itemDiv);
 const stepsContainer = itemDiv.querySelector(".cando-payload-steps-container");
-if (stepsContainer) {
 if (data.steps && Array.isArray(data.steps) && data.steps.length > 0) {
-data.steps.forEach(s => renderCandoPayloadStep(stepsContainer, s));
+data.steps.forEach(st => renderCandoPayloadStep(stepsContainer, st));
 } else if (data.payload) {
-const lines = data.payload.split("\n");
-lines.forEach(l => {
-const trimmed = l.trim();
+const rawLines = data.payload.split("\n");
+rawLines.forEach(line => {
+const trimmed = line.trim();
 if (!trimmed) return;
-let repeat = 1;
-let p = trimmed;
-const m = trimmed.match(/\[x(\d+)\]/i) || trimmed.match(/x(\d+)$/i);
-if (m) {
-repeat = parseInt(m[1]) || 1;
-p = trimmed.replace(m[0], "").trim();
-}
-renderCandoPayloadStep(stepsContainer, { payload: p, repeat: repeat });
+const match = trimmed.match(/^(.*?)(?:\s*\[x(\d+)\])?$/);
+const p = match ? match[1].trim() : trimmed;
+const rep = match && match[2] ? parseInt(match[2]) : 1;
+renderCandoPayloadStep(stepsContainer, { payload: p, repeat: rep });
 });
 } else {
 renderCandoPayloadStep(stepsContainer, { payload: "", repeat: 1 });
 }
 }
-}
 function toggleCandoActItemUI(selectElem) {
 const item = selectElem.closest(".cando-action-item");
 const val = selectElem.value;
-item.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", val !== "can_tx"));
-item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", val !== "can_tx" && val !== "popup" && val !== "climate_target"));
-item.querySelectorAll(".act-field-climate").forEach(el => el.classList.toggle("hidden", val !== "climate_target"));
-item.querySelectorAll(".act-field-precon").forEach(el => el.classList.toggle("hidden", val !== "precondition"));
+item.querySelectorAll(".act-field-preset").forEach(el => el.classList.toggle("hidden", val !== "preset"));
 item.querySelectorAll(".act-field-delay").forEach(el => el.classList.toggle("hidden", val !== "delay"));
 item.querySelectorAll(".act-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "mqtt"));
 item.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
+if (val === "preset") {
+const picker = item.querySelector(".cando-act-preset-picker");
+if (picker && picker.value !== "") {
+applyCandoActionPreset(picker);
+} else {
+item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-popup").forEach(el => el.classList.add("hidden"));
+const optionsBox = item.querySelector(".cando-act-options-container");
+if (optionsBox) optionsBox.style.display = "none";
+}
+} else if (val === "can_tx") {
+item.querySelectorAll(".act-field-can").forEach(el => el.classList.remove("hidden"));
+item.querySelectorAll(".act-field-popup").forEach(el => el.classList.remove("hidden"));
+item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
+const optionsBox = item.querySelector(".cando-act-options-container");
+if (optionsBox) optionsBox.style.display = "none";
+} else if (val === "popup") {
+item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-popup").forEach(el => el.classList.remove("hidden"));
+item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
+const optionsBox = item.querySelector(".cando-act-options-container");
+if (optionsBox) optionsBox.style.display = "none";
+} else {
+item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-popup").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
+item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
+const optionsBox = item.querySelector(".cando-act-options-container");
+if (optionsBox) optionsBox.style.display = "none";
+}
+}
+function updateCandoClimateUI(elem) {
+const item = elem.closest(".cando-action-item");
+if (!item) return;
+const isSync = item.querySelector(".cando-act-climate-sync")?.checked || false;
+const isDrvOnly = item.querySelector(".cando-act-climate-drv-only")?.checked || false;
+const driverLabel = item.querySelector(".cando-climate-drv-label");
+const passRow = item.querySelector(".cando-climate-pass-row");
+const syncCheckbox = item.querySelector(".cando-act-climate-sync");
+if (isDrvOnly) {
+if (passRow) passRow.classList.add("hidden");
+if (driverLabel) driverLabel.textContent = "Driver Target Temp:";
+if (syncCheckbox) syncCheckbox.disabled = true;
+} else {
+if (syncCheckbox) syncCheckbox.disabled = false;
+if (isSync) {
+if (passRow) passRow.classList.add("hidden");
+if (driverLabel) driverLabel.textContent = "Synced Cabin Temp:";
+} else {
+if (passRow) passRow.classList.remove("hidden");
+if (driverLabel) driverLabel.textContent = "Driver Target Temp:";
+}
+}
+onCandoClimateTempChange(elem);
+}
+function onCandoClimateTempChange(elem) {
+const item = elem.closest(".cando-action-item");
+if (!item) return;
+const card = elem.closest(".cando-rule-card");
+const isImp = (getUnitSystem() === "imperial");
+const u = isImp ? "°F" : "°C";
+const drvInput = item.querySelector(".cando-act-target-temp");
+const passInput = item.querySelector(".cando-act-pass-temp");
+const isSync = item.querySelector(".cando-act-climate-sync")?.checked || false;
+const isDrvOnly = item.querySelector(".cando-act-climate-drv-only")?.checked || false;
+const drvVal = drvInput ? drvInput.value : (isImp ? "72" : "21.0");
+const passVal = passInput ? passInput.value : drvVal;
+let osdText = `Climate: ${drvVal}${u}`;
+if (!isDrvOnly && !isSync && passVal && passVal !== drvVal) {
+osdText = `Climate: Drv ${drvVal}${u} / Pass ${passVal}${u}`;
+}
+const popupInput = item.querySelector(".cando-act-popup-msg");
+if (popupInput) {
+popupInput.value = osdText;
+}
+if (card) updateCandoRuleSummaryPill(card);
+}
+function getCandoRuleTriggersInfo(card) {
+if (!card) return [];
+const trigItems = card.querySelectorAll(".cando-trigger-item");
+const list = [];
+trigItems.forEach((t, idx) => {
+const rawId = t.querySelector(".cando-trig-id")?.value.trim() || "";
+const id = rawId || `trig_${idx + 1}`;
+const src = t.querySelector(".cando-trig-source")?.value || "preset";
+let label = `Trigger ${idx + 1}`;
+if (src === "preset") {
+const picker = t.querySelector(".cando-trig-preset-picker");
+const selText = (picker && picker.selectedIndex >= 0) ? picker.options[picker.selectedIndex].text : "";
+if (selText && !selText.startsWith("--")) label = `Trigger ${idx + 1}: ${selText}`;
+} else if (src === "can_msg") {
+const cid = t.querySelector(".cando-trig-can-id")?.value.trim() || "";
+label = cid ? `Trigger ${idx + 1}: CAN ${cid}` : `Trigger ${idx + 1}: Raw CAN`;
+} else if (src === "clock") {
+const tm = t.querySelector(".cando-trig-time")?.value.trim() || "";
+label = tm ? `Trigger ${idx + 1}: ⏰ ${tm}` : `Trigger ${idx + 1}: Clock`;
+} else if (src === "voltage") {
+const v = t.querySelector(".cando-trig-voltage-val")?.value.trim() || "";
+label = v ? `Trigger ${idx + 1}: 🔋 ${v}V` : `Trigger ${idx + 1}: Voltage`;
+} else if (src === "interval") {
+const sec = t.querySelector(".cando-trig-interval-sec")?.value.trim() || "";
+label = sec ? `Trigger ${idx + 1}: ⏱️ Every ${sec}s` : `Trigger ${idx + 1}: Interval`;
+} else if (src === "ha_mqtt" || src === "mqtt_cmd") {
+const payload = t.querySelector(".cando-trig-mqtt-payload")?.value.trim() || "";
+const topic = t.querySelector(".cando-trig-mqtt-topic")?.value.trim() || "wican/cando/trigger";
+label = payload ? `Trigger ${idx + 1}: 🏠 HA (${payload})` : `Trigger ${idx + 1}: 🏠 HA (${topic})`;
+}
+if (rawId) {
+label += ` [${rawId}]`;
+}
+list.push({ id: id, label: label, rawId: rawId });
+});
+return list;
+}
+function getCandoRuleTriggerIds(card) {
+return getCandoRuleTriggersInfo(card).map(t => t.id);
+}
+function updateCandoRuleTriggerDropdowns(card) {
+if (!card) return;
+const trigCount = card.querySelectorAll(".cando-trigger-item").length;
+card.querySelectorAll(".cando-trig-id-container").forEach(el => {
+el.style.display = (trigCount > 1) ? "flex" : "none";
+});
+const triggers = getCandoRuleTriggersInfo(card);
+card.querySelectorAll(".cando-opt-trig-id").forEach(select => {
+const currentVal = select.value;
+select.innerHTML = `<option value="">Any Trigger (Default)</option>` +
+triggers.map(t => `<option value="${t.id}" ${currentVal === t.id ? "selected" : ""}>${t.label}</option>`).join("") +
+((currentVal && !triggers.some(t => t.id === currentVal)) ? `<option value="${currentVal}" selected>Trigger: ${currentVal}</option>` : "");
+});
+}
+function addCandoChooseBlock(buttonElem) {
+const card = buttonElem.closest(".cando-rule-card");
+const container = card.querySelector(".cando-actions-container");
+const triggers = getCandoRuleTriggersInfo(card);
+let options = [];
+if (triggers.length >= 2) {
+options = triggers.map(t => ({ trigger_id: t.id, actions: [{ type: "preset" }] }));
+} else {
+options = [
+{ trigger_id: "", actions: [{ type: "preset" }] },
+{ trigger_id: "", actions: [{ type: "preset" }] }
+];
+}
+renderCandoChooseBlock(container, { type: "choose", options: options });
+updateCandoRuleTriggerDropdowns(card);
+updateCandoSectionCountBadges(card);
+}
+function convertActionsToChooseBlock(buttonElem) {
+const card = buttonElem.closest(".cando-rule-card");
+if (!card) return;
+const container = card.querySelector(".cando-actions-container");
+if (!container) return;
+const existingActions = [];
+container.querySelectorAll(":scope > .cando-action-item").forEach(item => {
+existingActions.push(extractCandoActionData(item));
+});
+const triggers = getCandoRuleTriggersInfo(card);
+const options = [];
+if (triggers.length >= 2) {
+triggers.forEach((t, idx) => {
+if (idx === 0) {
+options.push({
+trigger_id: t.id,
+actions: existingActions.length > 0 ? existingActions : [{ type: "preset" }]
+});
+} else {
+options.push({
+trigger_id: t.id,
+actions: [{ type: "preset" }]
+});
+}
+});
+} else {
+options.push({ trigger_id: "", actions: existingActions.length > 0 ? existingActions : [{ type: "preset" }] });
+options.push({ trigger_id: "", actions: [{ type: "preset" }] });
+}
+container.innerHTML = "";
+renderCandoChooseBlock(container, { type: "choose", options: options });
+updateCandoRuleTriggerDropdowns(card);
+updateCandoSectionCountBadges(card);
+showNotification("Actions converted to branching Choose block!", "green", 3500);
+}
+function renderCandoChooseBlock(container, data = {}) {
+const groupDiv = document.createElement("div");
+groupDiv.className = "cando-choose-block";
+groupDiv.style.background = "#f0fdfa";
+groupDiv.style.border = "1.5px dashed #0d9488";
+groupDiv.style.borderRadius = "8px";
+groupDiv.style.padding = "0.8rem 1rem";
+groupDiv.style.boxShadow = "0 1px 3px rgba(13,148,136,0.08)";
+groupDiv.innerHTML = `
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.6rem; border-bottom: 1px dashed #99f6e4; padding-bottom: 0.4rem;">
+<div style="display: flex; align-items: center; gap: 0.6rem;">
+<span style="font-weight: 700; font-size: 0.92rem; color: #0f766e;">🔀 Choose Block</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Choose Block Up" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Choose Block Down" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="delete-btn" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; margin: 0;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-choose-block').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
+</div>
+</div>
+<div class="cando-choose-options-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+<div style="margin-top: 0.6rem; text-align: center;">
+<button type="button" class="system-button" onclick="addCandoOptionToChooseBlock(this)" style="padding: 4px 12px; font-size: 0.8rem; font-weight: 700; background: #ccfbf1; color: #0f766e; border: 1px dashed #5eead4; border-radius: 4px; cursor: pointer;">➕ Add Option Branch</button>
+</div>
+`;
+container.appendChild(groupDiv);
+const optionsContainer = groupDiv.querySelector(".cando-choose-options-container");
+const options = (data.options && Array.isArray(data.options) && data.options.length > 0)
+? data.options
+: [{ trigger_id: "", actions: [{ type: "preset" }] }];
+options.forEach(opt => renderCandoChooseOption(optionsContainer, opt));
+renumberCandoChooseOptions(optionsContainer);
+}
+function renderCandoChooseOption(container, optData = {}) {
+const optDiv = document.createElement("div");
+optDiv.className = "cando-choose-option-item";
+optDiv.style.background = "#f8fafc";
+optDiv.style.border = "1px solid #99f6e4";
+optDiv.style.borderRadius = "6px";
+optDiv.style.padding = "0.7rem";
+optDiv.style.boxShadow = "0 1px 2px rgba(0,0,0,0.03)";
+const ruleCard = container ? container.closest(".cando-rule-card") : null;
+const triggers = getCandoRuleTriggersInfo(ruleCard);
+const selVal = optData.trigger_id || "";
+const optIdx = container.querySelectorAll(".cando-choose-option-item").length + 1;
+optDiv.innerHTML = `
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 26px; margin-bottom: 0.5rem; border-bottom: 1px dashed #99f6e4; padding-bottom: 0.3rem;">
+<div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+<span style="font-weight: 700; font-size: 0.82rem; color: #0f766e;">🔹 Option <span class="opt-num">${optIdx}</span>:</span>
+<label style="font-size: 0.78rem; color: #115e59; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+Run If Trigger:
+<select class="cando-opt-trig-id" style="height: 24px; width: auto; min-width: 140px; padding: 0 6px; font-size: 0.78rem; border: 1px solid #5eead4; border-radius: 4px; background: #ffffff; color: #0f766e; font-weight: 600; box-sizing: border-box;">
+<option value="">Any Trigger (Default)</option>
+${triggers.map(t => `<option value="${t.id}" ${selVal === t.id ? "selected" : ""}>${t.label}</option>`).join("")}
+${(selVal && !triggers.some(t => t.id === selVal)) ? `<option value="${selVal}" selected>Trigger: ${selVal}</option>` : ""}
+</select>
+</label>
+</div>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move Option Up" style="height: 24px; width: 24px; padding: 0; font-size: 0.7rem; background: #ffffff; color: #0f766e; border: 1px solid #5eead4; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move Option Down" style="height: 24px; width: 24px; padding: 0; font-size: 0.7rem; background: #ffffff; color: #0f766e; border: 1px solid #5eead4; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="delete-btn" style="height: 24px; padding: 0 6px; font-size: 0.7rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; margin: 0; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;" onclick="removeCandoChooseOption(this);">🗑️</button>
+</div>
+</div>
+<div class="cando-opt-actions-container" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+<button type="button" class="system-button" onclick="showAddActionMenu(this, event)" style="margin-top: 0.5rem; width: 100%; padding: 3px 6px; font-size: 0.76rem; font-weight: 600; background: #ffffff; color: #0f766e; border: 1px dashed #5eead4; border-radius: 4px; cursor: pointer;" onmouseover="this.style.background='#ccfbf1';" onmouseout="this.style.background='#ffffff';">➕ Add Action Step to this Option ▼</button>
+`;
+container.appendChild(optDiv);
+const optActionsContainer = optDiv.querySelector(".cando-opt-actions-container");
+if (optData.actions && Array.isArray(optData.actions) && optData.actions.length > 0) {
+optData.actions.forEach(a => {
+if (a.type === "if_then") {
+renderCandoIfThenBlock(optActionsContainer, a);
+} else {
+renderCandoActionItem(optActionsContainer, a);
+}
+});
+} else {
+renderCandoActionItem(optActionsContainer, { type: "preset" });
+}
+}
+function addCandoOptionToChooseBlock(btn) {
+const groupDiv = btn.closest(".cando-choose-block");
+const container = groupDiv.querySelector(".cando-choose-options-container");
+renderCandoChooseOption(container, { trigger_id: "", actions: [{ type: "preset" }] });
+renumberCandoChooseOptions(container);
+}
+function addCandoActionToOption(buttonElem) {
+const optDiv = buttonElem.closest(".cando-choose-option-item");
+const container = optDiv.querySelector(".cando-opt-actions-container");
+renderCandoActionItem(container, { type: "preset" });
+const card = buttonElem.closest(".cando-rule-card");
+updateCandoSectionCountBadges(card);
+}
+function removeCandoChooseOption(btn) {
+const item = btn.closest(".cando-choose-option-item");
+const container = item.parentElement;
+item.remove();
+renumberCandoChooseOptions(container);
+}
+function renumberCandoChooseOptions(container) {
+if (!container) return;
+const options = container.querySelectorAll(".cando-choose-option-item");
+options.forEach((opt, idx) => {
+const numSpan = opt.querySelector(".opt-num");
+if (numSpan) numSpan.textContent = idx + 1;
+});
+const card = container.closest(".cando-rule-card");
+if (card) {
+updateCandoItemConnectors(card);
+updateCandoSectionCountBadges(card);
+}
+}
+function addCandoIfThenBlock(buttonElem) {
+const card = buttonElem.closest(".cando-rule-card");
+const container = card.querySelector(".cando-actions-container");
+renderCandoIfThenBlock(container, { type: "if_then" });
+updateCandoSectionCountBadges(card);
+}
+function renderCandoIfThenBlock(container, data = {}) {
+const groupDiv = document.createElement("div");
+groupDiv.className = "cando-ifthen-block";
+groupDiv.style.background = "#fffbeb";
+groupDiv.style.border = "1.5px dashed #f59e0b";
+groupDiv.style.borderRadius = "8px";
+groupDiv.style.padding = "0.8rem 1rem";
+groupDiv.style.boxShadow = "0 1px 3px rgba(245,158,11,0.08)";
+groupDiv.innerHTML = `
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.6rem; border-bottom: 1px dashed #fcd34d; padding-bottom: 0.4rem;">
+<div style="display: flex; align-items: center; gap: 0.6rem;">
+<span style="font-weight: 700; font-size: 0.92rem; color: #b45309;">❓ If - Then - Else Block</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.35rem;">
+<button type="button" class="system-button" onclick="moveCandoItem(this, -1)" title="Move If-Then Block Up" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▲</button>
+<button type="button" class="system-button" onclick="moveCandoItem(this, 1)" title="Move If-Then Block Down" style="height: 26px; width: 26px; padding: 0; font-size: 0.75rem; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">▼</button>
+<button type="button" class="delete-btn" style="height: 26px; padding: 0 8px; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; margin: 0;" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-ifthen-block').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
+</div>
+</div>
+<div style="margin-bottom: 0.8rem;">
+<div style="font-weight: 700; font-size: 0.82rem; color: #b45309; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
+<span>🔹 IF:</span>
+</div>
+<div class="cando-ifthen-conditions-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem; background: #ffffff; border-radius: 6px; border: 1px solid #fcd34d;"></div>
+<div style="position: relative; margin-top: 0.4rem;">
+<button type="button" class="system-button" onclick="showAddConditionMenu(this, event)" style="width: 100%; padding: 3px 6px; font-size: 0.76rem; font-weight: 600; background: #fef3c7; color: #b45309; border: 1px dashed #f59e0b; border-radius: 4px; cursor: pointer;">➕ Add Condition to IF ▼</button>
+</div>
+</div>
+<div style="margin-bottom: 0.8rem;">
+<div style="font-weight: 700; font-size: 0.82rem; color: #047857; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
+<span>🎯 THEN:</span>
+</div>
+<div class="cando-ifthen-then-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem; background: #ffffff; border-radius: 6px; border: 1px solid #86efac;"></div>
+<button type="button" class="system-button" data-branch="then" onclick="showAddActionMenu(this, event)" style="margin-top: 0.4rem; width: 100%; padding: 3px 6px; font-size: 0.76rem; font-weight: 600; background: #f0fdf4; color: #047857; border: 1px dashed #86efac; border-radius: 4px; cursor: pointer;">➕ Add Action Step to THEN ▼</button>
+</div>
+<div>
+<div style="font-weight: 700; font-size: 0.82rem; color: #64748b; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
+<span>⚡ ELSE:</span>
+</div>
+<div class="cando-ifthen-else-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.5rem; background: #ffffff; border-radius: 6px; border: 1px solid #cbd5e1;"></div>
+<button type="button" class="system-button" data-branch="else" onclick="showAddActionMenu(this, event)" style="margin-top: 0.4rem; width: 100%; padding: 3px 6px; font-size: 0.76rem; font-weight: 600; background: #f8fafc; color: #475569; border: 1px dashed #cbd5e1; border-radius: 4px; cursor: pointer;">➕ Add Action Step to ELSE ▼</button>
+</div>
+`;
+container.appendChild(groupDiv);
+const condContainer = groupDiv.querySelector(".cando-ifthen-conditions-container");
+if (data.conditions && Array.isArray(data.conditions) && data.conditions.length > 0) {
+data.conditions.forEach(c => {
+if (c.type === "or_group" || c.type === "and_group" || c.type === "not_group" || c.group_type) {
+renderCandoConditionBlock(condContainer, c);
+} else {
+renderCandoConditionItem(condContainer, c);
+}
+});
+} else {
+renderCandoConditionItem(condContainer, { type: "speed_zero" });
+}
+const thenContainer = groupDiv.querySelector(".cando-ifthen-then-container");
+if (data.then_actions && Array.isArray(data.then_actions) && data.then_actions.length > 0) {
+data.then_actions.forEach(a => renderCandoActionItem(thenContainer, a));
+} else {
+renderCandoActionItem(thenContainer, { type: "preset" });
+}
+const elseContainer = groupDiv.querySelector(".cando-ifthen-else-container");
+if (data.else_actions && Array.isArray(data.else_actions) && data.else_actions.length > 0) {
+data.else_actions.forEach(a => renderCandoActionItem(elseContainer, a));
+}
+}
+function addCandoActionToIfThen(btn, branch) {
+const block = btn.closest(".cando-ifthen-block");
+const container = branch === "then"
+? block.querySelector(".cando-ifthen-then-container")
+: block.querySelector(".cando-ifthen-else-container");
+renderCandoActionItem(container, { type: "preset" });
+const card = btn.closest(".cando-rule-card");
+updateCandoSectionCountBadges(card);
 }
 function applyCandoActionPreset(selectElem) {
 const val = selectElem.value;
+if (!val) return;
 const item = selectElem.closest(".cando-action-item");
 if (!item) return;
-const optionsBox = item.querySelector(".cando-act-options-container");
-if (!val) {
-if (optionsBox) {
-optionsBox.innerHTML = "";
-optionsBox.style.display = "none";
-}
-return;
-}
-const [catIdx, pIdx] = val.split(":").map(Number);
+const parts = val.split("_");
+const catIdx = parseInt(parts[0]);
+const pIdx = parseInt(parts[1]);
 const cats = getFilteredActionPresets();
-const preset = cats[catIdx]?.presets[pIdx];
+const cat = cats[catIdx];
+const preset = cat?.presets[pIdx];
 if (!preset) return;
 const isImperial = (getUnitSystem() === "imperial");
 const typeSelect = item.querySelector(".cando-act-type");
-if (typeSelect) {
-typeSelect.value = preset.type || "can_tx";
+if (typeSelect && preset.type) {
+typeSelect.value = preset.type;
 toggleCandoActItemUI(typeSelect);
 }
-if (preset.target_temp_c !== undefined) {
+const showClimate = (preset.type === "climate_target" || preset.type === "preset" || preset.target_temp_c !== undefined || preset.target_temp_f !== undefined);
+const optionsBox = item.querySelector(".cando-act-options-container");
+if (showClimate) {
 const tt = item.querySelector(".cando-act-target-temp");
-if (tt) tt.value = preset.target_temp_c;
+if (tt) {
+if (isImperial) {
+const f = preset.target_temp_f !== undefined ? preset.target_temp_f : Math.round(preset.target_temp_c * 9/5 + 32);
+tt.value = Math.min(82, Math.max(62, f));
+} else {
+const c = preset.target_temp_c !== undefined ? preset.target_temp_c : Math.round(((preset.target_temp_f - 32) * 5/9) * 2) / 2;
+tt.value = Math.min(28.0, Math.max(17.0, c));
+}
+}
+const pt = item.querySelector(".cando-act-pass-temp");
+if (pt) {
+if (isImperial) {
+const f = preset.pass_temp_f !== undefined ? preset.pass_temp_f : (preset.target_temp_f !== undefined ? preset.target_temp_f : Math.round(preset.target_temp_c * 9/5 + 32));
+pt.value = Math.min(82, Math.max(62, f));
+} else {
+const c = preset.pass_temp_c !== undefined ? preset.pass_temp_c : (preset.target_temp_c !== undefined ? preset.target_temp_c : Math.round(((preset.target_temp_f - 32) * 5/9) * 2) / 2);
+pt.value = Math.min(28.0, Math.max(17.0, c));
+}
 }
 if (preset.climate_zone) {
 const cz = item.querySelector(".cando-act-climate-zone");
 if (cz) cz.value = preset.climate_zone;
 }
-if (preset.climate_sync_on !== undefined) {
 const cs = item.querySelector(".cando-act-climate-sync");
-if (cs) cs.checked = preset.climate_sync_on;
-}
-if (preset.climate_driver_only !== undefined) {
+if (cs) cs.checked = (preset.climate_sync_on !== false);
 const cdo = item.querySelector(".cando-act-climate-drv-only");
-if (cdo) cdo.checked = preset.climate_driver_only;
+if (cdo) cdo.checked = (preset.climate_driver_only === true);
+updateCandoClimateUI(item.querySelector(".cando-act-climate-sync") || selectElem);
 }
 if (preset.precon_mode) {
 const pm = item.querySelector(".cando-act-precon-mode");
@@ -4305,9 +5283,17 @@ renderCandoPayloadStep(stepsContainer, { payload: activeOpt.payload, repeat: 3 }
 renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 1 });
 }
 }
-if (activeOpt && activeOpt.target_temp_c !== undefined) {
+if (activeOpt && (activeOpt.target_temp_c !== undefined || activeOpt.target_temp_f !== undefined)) {
 const tt = item.querySelector(".cando-act-target-temp");
-if (tt) tt.value = activeOpt.target_temp_c;
+if (tt) {
+if (isImperial) {
+const f = activeOpt.target_temp_f !== undefined ? activeOpt.target_temp_f : Math.round(activeOpt.target_temp_c * 9/5 + 32);
+tt.value = Math.min(82, Math.max(62, f));
+} else {
+const c = activeOpt.target_temp_c !== undefined ? activeOpt.target_temp_c : Math.round(((activeOpt.target_temp_f - 32) * 5/9) * 2) / 2;
+tt.value = Math.min(28.0, Math.max(17.0, c));
+}
+}
 }
 if (activeOpt) {
 const pop = item.querySelector(".cando-act-popup-msg");
@@ -4356,9 +5342,17 @@ renderCandoPayloadStep(stepsContainer, { payload: opt.payload, repeat: 3 });
 renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 1 });
 }
 }
-if (opt.target_temp_c !== undefined) {
+if (opt.target_temp_c !== undefined || opt.target_temp_f !== undefined) {
 const tt = item.querySelector(".cando-act-target-temp");
-if (tt) tt.value = opt.target_temp_c;
+if (tt) {
+if (isImperial) {
+const f = opt.target_temp_f !== undefined ? opt.target_temp_f : Math.round(opt.target_temp_c * 9/5 + 32);
+tt.value = Math.min(82, Math.max(62, f));
+} else {
+const c = opt.target_temp_c !== undefined ? opt.target_temp_c : Math.round(((opt.target_temp_f - 32) * 5/9) * 2) / 2;
+tt.value = Math.min(28.0, Math.max(17.0, c));
+}
+}
 }
 if (isImperial && opt.popup_imperial) {
 const pop = item.querySelector(".cando-act-popup-msg");
@@ -4411,20 +5405,52 @@ if (idInput) idInput.value = pid.id || "";
 const cid = item.querySelector(".cando-trig-can-id");
 if (cid) cid.value = pid.can_id;
 const bus = item.querySelector(".cando-trig-bus");
-if (bus) bus.value = pid.bus !== undefined ? pid.bus : 0;
-populateByteGrid(item, "cando-trig-to", pid.to_payload || "");
-populateByteGrid(item, "cando-trig-from", pid.from_payload || "");
+if (bus && pid.bus !== undefined) bus.value = pid.bus.toString();
+if (pid.from_payload) {
+setByteGridString(item, "cando-trig-from", pid.from_payload);
+} else {
+setByteGridString(item, "cando-trig-from", "");
+}
+if (pid.to_payload) {
+setByteGridString(item, "cando-trig-to", pid.to_payload);
+} else {
+setByteGridString(item, "cando-trig-to", "");
+}
+showNotification("Applied trigger preset: " + pid.name, "orange", 3000);
 if (card) {
 updateCandoRuleTriggerDropdowns(card);
-const nameInput = card.querySelector(".cando-name");
-if (nameInput && (!nameInput.value || nameInput.value === "New CAN Do" || nameInput.value === "New Automation")) {
-nameInput.value = pid.name.replace(/\s*\(0x\w+\)/, "") + " CAN Do";
+updateCandoRuleSummaryPill(card);
 }
 }
-showNotification("Applied button preset: " + pid.name, "green");
+function saveCurrentTriggerAsPreset(buttonElem) {
+const item = buttonElem.closest(".cando-trigger-item");
+if (!item) return;
+const cid = item.querySelector(".cando-trig-can-id")?.value.trim() || "";
+const bus = parseInt(item.querySelector(".cando-trig-bus")?.value || "0");
+const fromP = getByteGridString(item, "cando-trig-from");
+const toP = getByteGridString(item, "cando-trig-to");
+const trigId = item.querySelector(".cando-trig-id")?.value.trim() || "";
+if (!cid) {
+showNotification("Please specify a CAN ID before saving preset", "red", 3000);
+return;
 }
-function applyCandoPidPreset(selectElem) {
-applyCandoTrigPreset(selectElem);
+const name = prompt("Enter a friendly name for this custom trigger preset:", trigId || `CAN ${cid} Event`);
+if (!name) return;
+const id = "custom_" + name.toLowerCase().replace(/[^a-z0-9_]/g, "_") + "_" + Date.now().toString().slice(-4);
+const newPreset = {
+id: id,
+name: name,
+category: "Custom User Presets",
+can_id: cid,
+bus: bus,
+from_payload: fromP,
+to_payload: toP
+};
+const custom = getCustomTriggerPresets();
+custom.push(newPreset);
+saveCustomTriggerPresets(custom);
+refreshAllCandoPresetDropdowns();
+showNotification("Saved custom trigger preset: " + name, "green", 3500);
 }
 function toggleCandoRuleCard(elem) {
 const card = elem.closest(".cando-rule-card");
@@ -4500,20 +5526,273 @@ card.style.display = "none";
 }
 });
 }
-function moveCandoRule(btn, direction) {
+function moveCandoItem(btn, direction) {
+const item = btn.closest(".cando-action-item, .cando-trigger-item, .cando-condition-item, .cando-condition-group, .cando-condition-or-group, .cando-choose-block, .cando-ifthen-block, .cando-choose-option-item, .cando-payload-step-item");
+if (!item) return;
+const parent = item.parentElement;
+const selector = item.classList.contains("cando-payload-step-item")
+? ".cando-payload-step-item"
+: (item.classList.contains("cando-choose-option-item")
+? ".cando-choose-option-item"
+: (item.classList.contains("cando-action-item") || item.classList.contains("cando-choose-block") || item.classList.contains("cando-ifthen-block")
+? ":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block"
+: (item.classList.contains("cando-trigger-item")
+? ".cando-trigger-item"
+: ":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group")));
+const siblings = Array.from(parent.querySelectorAll(selector));
+const idx = siblings.indexOf(item);
+if (idx === -1) return;
+if (direction === -1 && idx > 0) {
+parent.insertBefore(item, siblings[idx - 1]);
+} else if (direction === 1 && idx < siblings.length - 1) {
+parent.insertBefore(item, siblings[idx + 1].nextElementSibling);
+}
+if (item.classList.contains("cando-payload-step-item")) {
+renumberCandoPayloadSteps(parent);
+}
+if (item.classList.contains("cando-choose-option-item")) {
+renumberCandoChooseOptions(parent);
+}
 const card = btn.closest(".cando-rule-card");
+if (card) {
+updateCandoSectionCountBadges(card);
+}
+}
+function updateCandoItemConnectors(card) {
 if (!card) return;
-if (direction === -1) {
-const prev = card.previousElementSibling;
-if (prev && prev.classList.contains("cando-rule-card")) {
-card.parentElement.insertBefore(card, prev);
+const trigContainer = card.querySelector(".cando-triggers-container");
+if (trigContainer) {
+trigContainer.querySelectorAll(".cando-connector-divider").forEach(el => el.remove());
+const trigItems = Array.from(trigContainer.querySelectorAll(".cando-trigger-item"));
+for (let i = 0; i < trigItems.length - 1; i++) {
+const div = document.createElement("div");
+div.className = "cando-connector-divider";
+div.style.cssText = "text-align: center; margin: -0.2rem 0; font-size: 0.74rem; font-weight: 800; color: #ea580c; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; user-select: none;";
+div.innerHTML = `<span style="height: 1px; flex: 1; background: #fed7aa;"></span><span style="background: #fff7ed; padding: 2px 10px; border-radius: 12px; border: 1px solid #fed7aa; box-shadow: 0 1px 2px rgba(234,88,12,0.05);">⚡ OR</span><span style="height: 1px; flex: 1; background: #fed7aa;"></span>`;
+trigContainer.insertBefore(div, trigItems[i + 1]);
 }
-} else if (direction === 1) {
-const next = card.nextElementSibling;
-if (next && next.classList.contains("cando-rule-card")) {
-card.parentElement.insertBefore(next, card);
+}
+function updateConditionContainerConnectors(container, defaultLabel = "AND", defaultColor = "#2563eb", defaultBg = "#eff6ff", defaultBorder = "#bfdbfe") {
+if (!container) return;
+container.querySelectorAll(":scope > .cando-connector-divider").forEach(el => el.remove());
+const items = Array.from(container.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group"));
+for (let i = 0; i < items.length - 1; i++) {
+const div = document.createElement("div");
+div.className = "cando-connector-divider";
+div.style.cssText = `text-align: center; margin: -0.2rem 0; font-size: 0.72rem; font-weight: 800; color: ${defaultColor}; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; user-select: none;`;
+div.innerHTML = `<span style="height: 1px; flex: 1; background: ${defaultBorder};"></span><span style="background: ${defaultBg}; padding: 2px 10px; border-radius: 12px; border: 1px solid ${defaultBorder}; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">${defaultLabel}</span><span style="height: 1px; flex: 1; background: ${defaultBorder};"></span>`;
+container.insertBefore(div, items[i + 1]);
 }
 }
+const condContainer = card.querySelector(".cando-conditions-container");
+if (condContainer) {
+updateConditionContainerConnectors(condContainer, "AND", "#2563eb", "#eff6ff", "#bfdbfe");
+condContainer.querySelectorAll(".cando-condition-group").forEach(group => {
+const gType = group.dataset.groupType || "or";
+const innerCont = group.querySelector(".cando-group-conditions-container");
+if (gType === "and") {
+updateConditionContainerConnectors(innerCont, "AND", "#0369a1", "#f0f9ff", "#7dd3fc");
+} else if (gType === "not") {
+updateConditionContainerConnectors(innerCont, "NOR", "#be123c", "#fff1f2", "#fda4af");
+} else {
+updateConditionContainerConnectors(innerCont, "OR", "#7e22ce", "#faf5ff", "#c084fc");
+}
+});
+condContainer.querySelectorAll(".cando-condition-or-group").forEach(group => {
+const innerCont = group.querySelector(".cando-or-group-container");
+updateConditionContainerConnectors(innerCont, "OR", "#7e22ce", "#faf5ff", "#c084fc");
+});
+}
+function updateActionContainerConnectors(container) {
+if (!container) return;
+container.querySelectorAll(":scope > .cando-connector-divider").forEach(el => el.remove());
+const actItems = Array.from(container.querySelectorAll(":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block"));
+for (let i = 0; i < actItems.length - 1; i++) {
+const div = document.createElement("div");
+div.className = "cando-connector-divider";
+div.style.cssText = "text-align: center; margin: -0.2rem 0; font-size: 0.74rem; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; user-select: none;";
+div.innerHTML = `<span style="height: 1px; flex: 1; background: #bbf7d0;"></span><span style="background: #f0fdf4; padding: 2px 10px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 1px 2px rgba(4,120,87,0.05);">↓ THEN</span><span style="height: 1px; flex: 1; background: #bbf7d0;"></span>`;
+container.insertBefore(div, actItems[i + 1]);
+}
+}
+const actContainer = card.querySelector(".cando-actions-container");
+if (actContainer) {
+updateActionContainerConnectors(actContainer);
+actContainer.querySelectorAll(".cando-choose-block").forEach(block => {
+const optContainer = block.querySelector(".cando-choose-options-container");
+if (optContainer) {
+optContainer.querySelectorAll(":scope > .cando-connector-divider").forEach(el => el.remove());
+const optItems = Array.from(optContainer.querySelectorAll(":scope > .cando-choose-option-item"));
+for (let i = 0; i < optItems.length - 1; i++) {
+const div = document.createElement("div");
+div.className = "cando-connector-divider";
+div.style.cssText = "text-align: center; margin: -0.2rem 0; font-size: 0.72rem; font-weight: 800; color: #0f766e; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem; user-select: none;";
+div.innerHTML = `<span style="height: 1px; flex: 1; background: #99f6e4;"></span><span style="background: #f0fdfa; padding: 1px 8px; border-radius: 10px; border: 1px solid #5eead4;">ELSE IF</span><span style="height: 1px; flex: 1; background: #99f6e4;"></span>`;
+optContainer.insertBefore(div, optItems[i + 1]);
+}
+optItems.forEach(optItem => {
+updateActionContainerConnectors(optItem.querySelector(".cando-opt-actions-container"));
+});
+}
+});
+actContainer.querySelectorAll(".cando-ifthen-block").forEach(block => {
+updateConditionContainerConnectors(block.querySelector(".cando-ifthen-conditions-container"), "AND", "#b45309", "#fffbeb", "#fcd34d");
+updateActionContainerConnectors(block.querySelector(".cando-ifthen-then-container"));
+updateActionContainerConnectors(block.querySelector(".cando-ifthen-else-container"));
+});
+actContainer.querySelectorAll(".cando-payload-steps-container").forEach(stepsCont => {
+stepsCont.querySelectorAll(".cando-connector-divider").forEach(el => el.remove());
+const stepItems = Array.from(stepsCont.querySelectorAll(".cando-payload-step-item"));
+for (let i = 0; i < stepItems.length - 1; i++) {
+const div = document.createElement("div");
+div.className = "cando-connector-divider";
+div.style.cssText = "text-align: center; margin: -0.1rem 0 0.4rem 0; font-size: 0.7rem; font-weight: 700; color: #166534; display: flex; align-items: center; justify-content: center; gap: 0.4rem; user-select: none;";
+div.innerHTML = `<span style="height: 1px; flex: 1; background: #86efac;"></span><span style="background: #ffffff; padding: 1px 6px; border-radius: 8px; border: 1px solid #86efac;">↓ next frame</span><span style="height: 1px; flex: 1; background: #86efac;"></span>`;
+stepsCont.insertBefore(div, stepItems[i + 1]);
+}
+});
+}
+}
+function updateCandoRuleSummaryPill(card) {
+if (!card) return;
+const pill = card.querySelector(".cando-summary-pill");
+if (!pill) return;
+const trigItems = card.querySelectorAll(".cando-trigger-item");
+const trigSummaries = [];
+trigItems.forEach(t => {
+const src = t.querySelector(".cando-trig-source")?.value || "preset";
+const forSec = parseFloat(t.querySelector(".cando-trig-for-sec")?.value || "0");
+let sText = "";
+if (src === "preset") {
+const picker = t.querySelector(".cando-trig-preset-picker");
+const selText = (picker && picker.selectedIndex >= 0) ? picker.options[picker.selectedIndex].text : "";
+sText = selText || "Button Preset";
+} else if (src === "can_msg") {
+const cid = t.querySelector(".cando-trig-can-id")?.value || "";
+sText = cid ? `CAN ${cid}` : "Raw CAN";
+} else if (src === "ha_mqtt" || src === "mqtt_cmd") {
+const payload = t.querySelector(".cando-trig-mqtt-payload")?.value || "";
+const topic = t.querySelector(".cando-trig-mqtt-topic")?.value || "wican/cando/trigger";
+sText = payload ? `🏠 HA (${payload})` : `🏠 HA (${topic})`;
+} else if (src === "clock") {
+const tm = t.querySelector(".cando-trig-time")?.value || "";
+sText = tm ? `⏰ ${tm}` : "Clock";
+} else if (src === "voltage") {
+const v = t.querySelector(".cando-trig-voltage-val")?.value || "";
+sText = v ? `🔋 ${v}V` : "Voltage";
+} else if (src === "interval") {
+const sec = t.querySelector(".cando-trig-interval-sec")?.value || "";
+sText = sec ? `⏱️ Every ${sec}s` : "Interval";
+} else {
+sText = src;
+}
+if (forSec > 0 && src !== "clock" && src !== "interval") {
+sText += ` (for ${forSec}s)`;
+}
+trigSummaries.push(sText);
+});
+const actItems = card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block");
+const actSummaries = [];
+actItems.forEach(a => {
+if (a.classList.contains("cando-choose-block")) {
+const optCount = a.querySelectorAll(".cando-choose-option-item").length;
+actSummaries.push(`🔀 Choose (${optCount} options)`);
+return;
+}
+if (a.classList.contains("cando-ifthen-block")) {
+actSummaries.push("❓ If-Then");
+return;
+}
+const actType = a.querySelector(".cando-act-type")?.value || "can_tx";
+const isImp = (getUnitSystem() === "imperial");
+const u = isImp ? "°F" : "°C";
+if (actType === "preset") {
+const picker = a.querySelector(".cando-act-preset-picker");
+const selText = (picker && picker.selectedIndex > 0) ? picker.options[picker.selectedIndex].text : "";
+if (selText) {
+actSummaries.push(selText);
+} else if (!a.querySelector(".act-field-climate")?.classList.contains("hidden")) {
+const tt = a.querySelector(".cando-act-target-temp")?.value || (isImp ? "72" : "21.0");
+const isSync = a.querySelector(".cando-act-climate-sync")?.checked !== false;
+const isDrvOnly = a.querySelector(".cando-act-climate-drv-only")?.checked === true;
+const passInput = a.querySelector(".cando-act-pass-temp");
+if (!isDrvOnly && !isSync && passInput && passInput.value && passInput.value !== tt) {
+actSummaries.push(`Climate Drv ${tt}${u} / Pass ${passInput.value}${u}`);
+} else {
+actSummaries.push(`Climate ${tt}${u}`);
+}
+} else if (!a.querySelector(".act-field-precon")?.classList.contains("hidden")) {
+const pm = a.querySelector(".cando-act-precon-mode")?.value || "persistent";
+actSummaries.push(`Precondition (${pm})`);
+} else {
+actSummaries.push("Template");
+}
+} else if (actType === "precondition") {
+const pm = a.querySelector(".cando-act-precon-mode")?.value || "persistent";
+actSummaries.push(`Precondition (${pm})`);
+} else if (actType === "climate_target") {
+const tt = a.querySelector(".cando-act-target-temp")?.value || (isImp ? "72" : "21.0");
+const isSync = a.querySelector(".cando-act-climate-sync")?.checked !== false;
+const isDrvOnly = a.querySelector(".cando-act-climate-drv-only")?.checked === true;
+const passInput = a.querySelector(".cando-act-pass-temp");
+if (!isDrvOnly && !isSync && passInput && passInput.value && passInput.value !== tt) {
+actSummaries.push(`Climate Drv ${tt}${u} / Pass ${passInput.value}${u}`);
+} else {
+actSummaries.push(`Climate ${tt}${u}`);
+}
+} else if (actType === "popup") {
+const pop = a.querySelector(".cando-act-popup-msg")?.value || "";
+actSummaries.push(pop ? `Popup "${pop.substring(0, 15)}${pop.length > 15 ? "…" : ""}"` : "Popup");
+} else if (actType === "can_tx") {
+const cid = a.querySelector(".cando-act-can-id")?.value || "";
+actSummaries.push(cid ? `TX ${cid}` : "CAN Sequence");
+} else if (actType === "delay") {
+const ms = a.querySelector(".cando-act-wait-ms")?.value || "500";
+actSummaries.push(`Wait ${ms}ms`);
+} else if (actType === "mqtt") {
+actSummaries.push("MQTT");
+} else if (actType === "webhook") {
+actSummaries.push("Webhook");
+} else {
+actSummaries.push(actType);
+}
+});
+const trigStr = trigSummaries.length > 0 ? trigSummaries.join(" OR ") : "No Trigger";
+const actStr = actSummaries.length > 0 ? actSummaries.join(" ➔ ") : "No Action";
+pill.innerHTML = `
+<span style="color: #ea580c; font-weight: 700;">⚡ WHEN:</span> <span style="color: #1e293b; font-weight: 600;">${trigStr}</span>
+<span style="color: #94a3b8; margin: 0 4px;">│</span>
+<span style="color: #047857; font-weight: 700;">🎯 DO:</span> <span style="color: #1e293b; font-weight: 600;">${actStr}</span>
+`;
+}
+function updateCandoSectionCountBadges(card) {
+if (!card) return;
+const trigCount = card.querySelectorAll(".cando-trigger-item").length;
+const condCount = card.querySelectorAll(".cando-conditions-container > .cando-condition-item, .cando-conditions-container > .cando-condition-group, .cando-conditions-container > .cando-condition-or-group").length;
+const actCount = card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block").length;
+const trigBadge = card.querySelector(".cando-trig-count-badge");
+if (trigBadge) trigBadge.textContent = trigCount;
+const condBadge = card.querySelector(".cando-cond-count-badge");
+if (condBadge) condBadge.textContent = condCount;
+const actBadge = card.querySelector(".cando-act-count-badge");
+if (actBadge) actBadge.textContent = actCount;
+const bannerSlot = card.querySelector(".cando-choose-banner-slot");
+if (bannerSlot) {
+const hasChooseBlock = card.querySelector(".cando-actions-container > .cando-choose-block") !== null;
+if (trigCount >= 2 && !hasChooseBlock) {
+bannerSlot.innerHTML = `
+<div class="cando-choose-convert-banner" style="margin-bottom: 0.6rem; padding: 6px 12px; background: #f0fdfa; border: 1px dashed #0d9488; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+<span style="color: #115e59; font-weight: 600;">💡 <b>${trigCount} Triggers Detected:</b> Currently running the same actions for all triggers.</span>
+<button type="button" onclick="convertActionsToChooseBlock(this)" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700; background: #0d9488; color: white; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#0f766e';" onmouseout="this.style.background='#0d9488';" title="Automatically split and branch actions by trigger">🔀 Branch by Trigger (Choose Block)</button>
+</div>
+`;
+} else {
+bannerSlot.innerHTML = "";
+}
+}
+updateCandoItemConnectors(card);
+updateCandoRuleTriggerDropdowns(card);
+updateCandoRuleSummaryPill(card);
 }
 function updateCandoActivityStats(statsArray) {
 if (!statsArray || !Array.isArray(statsArray)) return;
@@ -4561,16 +5840,50 @@ steps.push({ payload: p, repeat: rep });
 payloadLines.push(rep > 1 ? `${p} [x${rep}]` : p);
 }
 });
+let actType = item.querySelector(".cando-act-type")?.value || "can_tx";
+if (actType === "preset") {
+if (!item.querySelector(".act-field-climate")?.classList.contains("hidden")) {
+actType = "climate_target";
+} else if (!item.querySelector(".act-field-precon")?.classList.contains("hidden")) {
+actType = "precondition";
+} else {
+actType = "can_tx";
+}
+}
+const isImperial = (getUnitSystem() === "imperial");
+const rawTemp = parseFloat(item.querySelector(".cando-act-target-temp")?.value || (isImperial ? "72" : "21.0"));
+let tempC = 21.0;
+let tempF = 72;
+if (isImperial) {
+tempF = Math.min(82, Math.max(62, isNaN(rawTemp) ? 72 : rawTemp));
+tempC = Math.round(((tempF - 32) * 5/9) * 2) / 2;
+} else {
+tempC = Math.min(28.0, Math.max(17.0, isNaN(rawTemp) ? 21.0 : rawTemp));
+tempF = Math.round(tempC * 9/5 + 32);
+}
+const rawPassTemp = parseFloat(item.querySelector(".cando-act-pass-temp")?.value || (isImperial ? "72" : "21.0"));
+let passTempC = tempC;
+let passTempF = tempF;
+if (isImperial) {
+passTempF = Math.min(82, Math.max(62, isNaN(rawPassTemp) ? tempF : rawPassTemp));
+passTempC = Math.round(((passTempF - 32) * 5/9) * 2) / 2;
+} else {
+passTempC = Math.min(28.0, Math.max(17.0, isNaN(rawPassTemp) ? tempC : rawPassTemp));
+passTempF = Math.round(passTempC * 9/5 + 32);
+}
 return {
 trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",
 popup_message: item.querySelector(".cando-act-popup-msg")?.value.trim() || "",
-type: item.querySelector(".cando-act-type")?.value || "can_tx",
+type: actType,
 precon_mode: item.querySelector(".cando-act-precon-mode")?.value || "persistent",
 precon_press: item.querySelector(".cando-act-precon-press")?.value || "short",
-target_temp_c: parseFloat(item.querySelector(".cando-act-target-temp")?.value || "21.0"),
+target_temp_c: tempC,
+target_temp_f: tempF,
+pass_temp_c: passTempC,
+pass_temp_f: passTempF,
 climate_zone: item.querySelector(".cando-act-climate-zone")?.value || "driver",
-climate_sync_on: item.querySelector(".cando-act-climate-sync")?.checked || false,
-climate_driver_only: item.querySelector(".cando-act-climate-drv-only")?.checked || false,
+climate_sync_on: item.querySelector(".cando-act-climate-sync")?.checked !== false,
+climate_driver_only: item.querySelector(".cando-act-climate-drv-only")?.checked === true,
 can_id: item.querySelector(".cando-act-can-id")?.value || "",
 steps: steps,
 payload: payloadLines.join("\n"),
@@ -4606,9 +5919,9 @@ btn.style.background = "#059669";
 btn.disabled = false;
 }, 2000);
 }).catch(err => {
-btn.textContent = "✕ Failed";
+btn.textContent = "✕ Error";
 btn.style.background = "#dc2626";
-showNotification("Failed to execute action: " + err, "red", 4000);
+showNotification("Test action failed: " + err, "red", 4000);
 setTimeout(() => {
 btn.textContent = originalText;
 btn.style.background = "#059669";
@@ -4616,44 +5929,140 @@ btn.disabled = false;
 }, 2000);
 });
 }
-async function testCandoRuleUI(btn) {
+async function testAllCandoActionsUI(btn) {
 const card = btn.closest(".cando-rule-card");
 if (!card) return;
-const actionItems = card.querySelectorAll(".cando-action-item");
-if (actionItems.length === 0) {
-showNotification("No actions defined to test in this CAN Do.", "yellow", 3000);
-return;
-}
+const ruleData = extractCandoRuleData(card);
 const originalText = btn.textContent;
-btn.textContent = "⏳ Running...";
+btn.textContent = "⏳ Executing All...";
 btn.disabled = true;
 try {
-for (let i = 0; i < actionItems.length; i++) {
-const actData = extractCandoActionData(actionItems[i]);
-const res = await fetch("/test_cando_action", {
+const res = await fetch("/test_cando_rule", {
 method: "POST",
 headers: { "Content-Type": "application/json" },
-body: JSON.stringify(actData)
+body: JSON.stringify(ruleData)
 });
-if (!res.ok) throw new Error("Step " + (i + 1) + " failed");
-}
-btn.textContent = "✓ Executed!";
+if (!res.ok) throw new Error("Status " + res.status);
+btn.textContent = "✓ Complete!";
 btn.style.background = "#15803d";
-showNotification(`Executed ${actionItems.length} action(s) successfully on CAN bus!`, "green", 3500);
+showNotification(`Rule "${ruleData.name}" executed successfully!`, "green", 3500);
 setTimeout(() => {
 btn.textContent = originalText;
 btn.style.background = "#0d9488";
 btn.disabled = false;
 }, 2000);
 } catch (err) {
-btn.textContent = "✕ Failed";
+btn.textContent = "✕ Error";
 btn.style.background = "#dc2626";
-showNotification("Failed to execute all rule actions: " + err, "red", 4000);
+showNotification("Failed to execute rule: " + err, "red", 4000);
 setTimeout(() => {
 btn.textContent = originalText;
 btn.style.background = "#0d9488";
 btn.disabled = false;
 }, 2000);
+}
+}
+function extractCandoConditionElement(elem) {
+if (elem.classList.contains("cando-condition-group")) {
+const groupType = elem.querySelector(".cando-group-type")?.value || "or";
+const innerContainer = elem.querySelector(".cando-group-conditions-container");
+const innerConditions = [];
+if (innerContainer) {
+innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
+innerConditions.push(extractCandoConditionElement(child));
+});
+}
+return {
+type: groupType + "_group",
+group_type: groupType,
+invert: elem.querySelector(".cando-group-invert")?.checked || false,
+conditions: innerConditions
+};
+} else if (elem.classList.contains("cando-condition-or-group")) {
+const innerContainer = elem.querySelector(".cando-or-group-container");
+const innerConditions = [];
+if (innerContainer) {
+innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
+innerConditions.push(extractCandoConditionElement(child));
+});
+}
+return {
+type: "or_group",
+group_type: "or",
+invert: elem.querySelector(".cando-or-group-invert")?.checked || false,
+conditions: innerConditions
+};
+} else {
+const days = [];
+elem.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
+const condCanPayload = getByteGridString(elem, "cando-cond-can");
+return {
+type: elem.querySelector(".cando-cond-type")?.value || "param_range",
+invert: elem.querySelector(".cando-cond-invert")?.checked || false,
+expression: elem.querySelector(".cando-cond-expr")?.value || "",
+can_id: elem.querySelector(".cando-cond-can-id")?.value || "",
+match_payload: condCanPayload,
+days: days,
+start_time: elem.querySelector(".cando-cond-start-time")?.value || "",
+end_time: elem.querySelector(".cando-cond-end-time")?.value || "",
+voltage_val: elem.querySelector(".cando-cond-voltage-val")?.value || "",
+voltage_dir: elem.querySelector(".cando-cond-voltage-dir")?.value || "above"
+};
+}
+}
+function extractCandoActionElement(elem) {
+if (elem.classList.contains("cando-choose-block")) {
+const options = [];
+elem.querySelectorAll(".cando-choose-options-container > .cando-choose-option-item").forEach(optElem => {
+const optActions = [];
+optElem.querySelectorAll(".cando-opt-actions-container > .cando-action-item, .cando-opt-actions-container > .cando-choose-block, .cando-opt-actions-container > .cando-ifthen-block").forEach(actItem => {
+optActions.push(extractCandoActionElement(actItem));
+});
+options.push({
+trigger_id: optElem.querySelector(".cando-opt-trig-id")?.value.trim() || "",
+actions: optActions
+});
+});
+return {
+type: "choose",
+options: options
+};
+} else if (elem.classList.contains("cando-ifthen-block")) {
+const condContainer = elem.querySelector(".cando-ifthen-conditions-container");
+const ifConditions = [];
+if (condContainer) {
+condContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(cElem => {
+ifConditions.push(extractCandoConditionElement(cElem));
+});
+}
+const thenContainer = elem.querySelector(".cando-ifthen-then-container");
+const thenActions = [];
+if (thenContainer) {
+thenContainer.querySelectorAll(":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block").forEach(aElem => {
+thenActions.push(extractCandoActionElement(aElem));
+});
+}
+const elseContainer = elem.querySelector(".cando-ifthen-else-container");
+const elseActions = [];
+if (elseContainer) {
+elseContainer.querySelectorAll(":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block").forEach(aElem => {
+elseActions.push(extractCandoActionElement(aElem));
+});
+}
+return {
+type: "if_then",
+conditions: ifConditions,
+then_actions: thenActions,
+else_actions: elseActions
+};
+} else {
+return extractCandoActionData(elem);
+}
+}
+function toggleCandoHaExposeUI(cb) {
+const row = cb.closest("td")?.querySelector(".cando-ha-details-row");
+if (row) {
+row.style.display = cb.checked ? "flex" : "none";
 }
 }
 function extractCandoRuleData(card) {
@@ -4664,13 +6073,18 @@ const timeoutResetMs = parseInt(card.querySelector(".cando-timeout-reset-ms")?.v
 const resetCanId = card.querySelector(".cando-reset-can-id")?.value || "";
 const verifyCanId = card.querySelector(".cando-verify-can-id")?.value || "";
 const verifyPayload = getByteGridString(card, "cando-verify");
+const haExpose = card.querySelector(".cando-ha-expose") ? card.querySelector(".cando-ha-expose").checked : true;
+const haIcon = card.querySelector(".cando-ha-icon") ? card.querySelector(".cando-ha-icon").value.trim() : "mdi:car-defrost-rear";
 const triggers = [];
 card.querySelectorAll(".cando-trigger-item").forEach(item => {
 const fromPayload = getByteGridString(item, "cando-trig-from");
 const toPayload = getByteGridString(item, "cando-trig-to");
+const forSec = parseFloat(item.querySelector(".cando-trig-for-sec")?.value || "0");
 triggers.push({
 id: item.querySelector(".cando-trig-id")?.value.trim() || "",
 source: item.querySelector(".cando-trig-source")?.value || "preset",
+for_sec: forSec,
+for_ms: Math.round(forSec * 1000),
 can_id: item.querySelector(".cando-trig-can-id")?.value || "",
 from_payload: fromPayload,
 to_payload: toPayload,
@@ -4680,30 +6094,18 @@ time: item.querySelector(".cando-trig-time")?.value || "",
 interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
 voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
 voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
-expression: item.querySelector(".cando-trig-expr")?.value || ""
+expression: item.querySelector(".cando-trig-expr")?.value || "",
+mqtt_topic: item.querySelector(".cando-trig-mqtt-topic")?.value || "",
+mqtt_payload: item.querySelector(".cando-trig-mqtt-payload")?.value || ""
 });
 });
 const conditions = [];
-card.querySelectorAll(".cando-condition-item").forEach(item => {
-const days = [];
-item.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
-const condCanPayload = getByteGridString(item, "cando-cond-can");
-conditions.push({
-type: item.querySelector(".cando-cond-type")?.value || "param_range",
-invert: item.querySelector(".cando-cond-invert")?.checked || false,
-expression: item.querySelector(".cando-cond-expr")?.value || "",
-can_id: item.querySelector(".cando-cond-can-id")?.value || "",
-match_payload: condCanPayload,
-days: days,
-start_time: item.querySelector(".cando-cond-start-time")?.value || "",
-end_time: item.querySelector(".cando-cond-end-time")?.value || "",
-voltage_val: item.querySelector(".cando-cond-voltage-val")?.value || "",
-voltage_dir: item.querySelector(".cando-cond-voltage-dir")?.value || "above"
-});
+card.querySelectorAll(".cando-conditions-container > .cando-condition-item, .cando-conditions-container > .cando-condition-group, .cando-conditions-container > .cando-condition-or-group").forEach(elem => {
+conditions.push(extractCandoConditionElement(elem));
 });
 const actions = [];
-card.querySelectorAll(".cando-action-item").forEach(item => {
-actions.push(extractCandoActionData(item));
+card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block").forEach(elem => {
+actions.push(extractCandoActionElement(elem));
 });
 const primaryTrig = triggers[0] || { source: "preset" };
 const primaryCond = conditions[0] || { type: "none" };
@@ -4712,6 +6114,8 @@ const isRuleEnabled = card.querySelector(".cando-rule-enabled") ? card.querySele
 return {
 name: card.querySelector(".cando-name")?.value || "New CAN Do",
 enabled: isRuleEnabled,
+ha_expose: haExpose,
+ha_icon: haIcon,
 exec_mode: execMode,
 cooldown_ms: cooldownMs,
 timeout_reset_ms: timeoutResetMs,

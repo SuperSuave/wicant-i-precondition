@@ -3234,6 +3234,63 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
     }
 }
 
+void cando_process_mqtt_trigger(const char *topic, const char *payload)
+{
+    if (!topic || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
+    if (cando_is_capture_active()) return;
+
+    int64_t now_us = esp_timer_get_time();
+
+    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
+        cando_rule_t *rule = &g_cando_rules.rules[i];
+        if (!rule->enabled) continue;
+
+        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
+        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
+
+        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
+            cando_trigger_t *trig = &trig_list[t_idx];
+            if (trig->source != CANDO_TRIG_MQTT_COMMAND) continue;
+
+            /* Check topic match (if specified and not wildcard) */
+            if (trig->mqtt_topic[0] != '\0' && strcmp(trig->mqtt_topic, "#") != 0 && strcmp(trig->mqtt_topic, "*") != 0) {
+                if (strstr(topic, trig->mqtt_topic) == NULL && strcmp(topic, trig->mqtt_topic) != 0) {
+                    continue;
+                }
+            }
+
+            /* Check payload match (if specified and not wildcard) */
+            if (trig->mqtt_payload[0] != '\0' && strcmp(trig->mqtt_payload, "*") != 0) {
+                if (!payload || (strstr(payload, trig->mqtt_payload) == NULL && strcmp(payload, trig->mqtt_payload) != 0)) {
+                    continue;
+                }
+            }
+
+            /* Enforce cooldown */
+            uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
+            if (trig->last_triggered_us > 0 && (now_us - trig->last_triggered_us) < ((int64_t)cd_ms * 1000)) {
+                continue;
+            }
+
+            trig->last_triggered_us = now_us;
+            rule->exec_count++;
+            rule->last_exec_us = now_us;
+
+            ESP_LOGI("CANDO", "MQTT Trigger fired: rule '%s' (ID: %s) on topic '%s' (payload: %s)",
+                     rule->name ? rule->name : "Unnamed", trig->id, topic, payload ? payload : "");
+
+            const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
+            if (rule->action_count > 0 && rule->actions) {
+                for (uint8_t a = 0; a < rule->action_count; a++) {
+                    cando_execute_action(&rule->actions[a], matched_id);
+                }
+            } else {
+                cando_execute_action(&rule->action, matched_id);
+            }
+        }
+    }
+}
+
 void cando_process_timer_tick(void)
 {
     if (g_cando_rules.reverse_engineering_mode || !g_cando_rules.rules) return;
@@ -3346,10 +3403,35 @@ static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_
                                     &trig->has_to);
     }
 
-            if (!trig->has_from && !trig->has_to) {
-                trig->any_change = true;
-            }
+    cJSON *src = trig_obj ? cJSON_GetObjectItem(trig_obj, "source") : cJSON_GetObjectItem(r, "source");
+    if (src && src->valuestring) {
+        if (strcmp(src->valuestring, "ha_mqtt") == 0 || strcmp(src->valuestring, "mqtt_cmd") == 0 || strcmp(src->valuestring, "mqtt") == 0) {
+            trig->source = CANDO_TRIG_MQTT_COMMAND;
+        } else if (strcmp(src->valuestring, "clock") == 0) {
+            trig->source = CANDO_TRIG_CLOCK;
+        } else if (strcmp(src->valuestring, "interval") == 0) {
+            trig->source = CANDO_TRIG_INTERVAL;
+        } else if (strcmp(src->valuestring, "voltage") == 0) {
+            trig->source = CANDO_TRIG_VOLTAGE;
+        } else {
+            trig->source = CANDO_TRIG_CAN_MESSAGE;
         }
+    }
+
+    cJSON *m_topic = trig_obj ? cJSON_GetObjectItem(trig_obj, "mqtt_topic") : cJSON_GetObjectItem(r, "mqtt_topic");
+    if (m_topic && m_topic->valuestring) {
+        strncpy(trig->mqtt_topic, m_topic->valuestring, sizeof(trig->mqtt_topic) - 1);
+    }
+
+    cJSON *m_payload = trig_obj ? cJSON_GetObjectItem(trig_obj, "mqtt_payload") : cJSON_GetObjectItem(r, "mqtt_payload");
+    if (m_payload && m_payload->valuestring) {
+        strncpy(trig->mqtt_payload, m_payload->valuestring, sizeof(trig->mqtt_payload) - 1);
+    }
+
+    if (!trig->has_from && !trig->has_to) {
+        trig->any_change = true;
+    }
+}
 
         static void cando_parse_step_payload(const char *payload_str, cando_sequence_step_t *step)
         {
@@ -3668,6 +3750,24 @@ esp_err_t cando_load_config(void)
                         rule->name = strdup(name->valuestring);
                     }
 
+                    cJSON *ha_exp = cJSON_GetObjectItem(r, "ha_expose");
+                    if (ha_exp && cJSON_IsBool(ha_exp)) {
+                        rule->ha_expose = cJSON_IsTrue(ha_exp);
+                    } else {
+                        rule->ha_expose = false;
+                        for (uint8_t t = 0; t < rule->trigger_count; t++) {
+                            if (rule->triggers[t].source == CANDO_TRIG_MQTT_COMMAND) {
+                                rule->ha_expose = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    cJSON *ha_ic = cJSON_GetObjectItem(r, "ha_icon");
+                    if (ha_ic && ha_ic->valuestring) {
+                        strncpy(rule->ha_icon, ha_ic->valuestring, sizeof(rule->ha_icon) - 1);
+                    }
+
                     /* 1. Parse Triggers (multi or single) */
                     cJSON *trigs_arr = cJSON_GetObjectItem(r, "triggers");
                     if (trigs_arr && cJSON_IsArray(trigs_arr) && cJSON_GetArraySize(trigs_arr) > 0) {
@@ -3714,6 +3814,7 @@ esp_err_t cando_load_config(void)
         cando_init_default_precondition_rule();
     }
     cJSON_Delete(root);
+    cando_publish_ha_discovery();
     return ESP_OK;
 }
 
@@ -3725,6 +3826,7 @@ esp_err_t cando_save_config(const char *json_str)
     fputs(json_str, f);
     fclose(f);
     cando_load_config();
+    cando_publish_ha_discovery();
     return ESP_OK;
 }
 
@@ -3879,5 +3981,136 @@ void cando_set_reverse_engineering_mode(bool enable)
 bool cando_get_reverse_engineering_mode(void)
 {
     return cando_is_capture_active();
+}
+
+static void sanitize_ha_identifier(const char *in, char *out, size_t max_len)
+{
+    if (!in || !out || max_len == 0) return;
+    size_t j = 0;
+    for (size_t i = 0; in[i] != '\0' && j < max_len - 1; i++) {
+        char c = in[i];
+        if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+            out[j++] = c;
+        } else if (c >= 'A' && c <= 'Z') {
+            out[j++] = c + ('a' - 'A');
+        } else if (c == ' ' || c == '_' || c == '-' || c == '.') {
+            if (j > 0 && out[j - 1] != '_') {
+                out[j++] = '_';
+            }
+        }
+    }
+    while (j > 0 && out[j - 1] == '_') j--;
+    out[j] = '\0';
+    if (j == 0) {
+        strncpy(out, "cando_action", max_len - 1);
+        out[max_len - 1] = '\0';
+    }
+}
+
+void cando_publish_ha_discovery(void)
+{
+    if (!mqtt_connected() || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
+
+    char dev_id[32] = {0};
+    if (device_id && strlen(device_id) > 0) {
+        strncpy(dev_id, device_id, sizeof(dev_id) - 1);
+    } else {
+        hw_config_get_device_id(dev_id);
+    }
+    if (strlen(dev_id) == 0) strcpy(dev_id, "default");
+
+    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
+        cando_rule_t *rule = &g_cando_rules.rules[i];
+        if (!rule->enabled || !rule->name) continue;
+
+        bool should_expose = rule->ha_expose;
+        const char *trigger_payload = rule->name;
+
+        /* If not explicitly set, auto-expose if any trigger is HA/MQTT */
+        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
+        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
+        for (uint8_t t = 0; t < t_count; t++) {
+            if (trig_list[t].source == CANDO_TRIG_MQTT_COMMAND) {
+                should_expose = true;
+                if (trig_list[t].mqtt_payload[0] != '\0') {
+                    trigger_payload = trig_list[t].mqtt_payload;
+                }
+                break;
+            }
+        }
+
+        if (!should_expose) continue;
+
+        char sanitized_name[64];
+        sanitize_ha_identifier(rule->name, sanitized_name, sizeof(sanitized_name));
+
+        char disc_topic[160];
+        snprintf(disc_topic, sizeof(disc_topic), "homeassistant/button/wican_%s/cando_%s/config", dev_id, sanitized_name);
+
+        char cmd_topic[96];
+        snprintf(cmd_topic, sizeof(cmd_topic), "wican/%s/cando/trigger", dev_id);
+
+        char uniq_id[96];
+        snprintf(uniq_id, sizeof(uniq_id), "wican_%s_cando_%s", dev_id, sanitized_name);
+
+        const char *icon = (rule->ha_icon[0] != '\0') ? rule->ha_icon : "mdi:car-cog";
+
+        cJSON *root = cJSON_CreateObject();
+        if (!root) continue;
+
+        cJSON_AddStringToObject(root, "name", rule->name);
+        cJSON_AddStringToObject(root, "unique_id", uniq_id);
+        cJSON_AddStringToObject(root, "command_topic", cmd_topic);
+        cJSON_AddStringToObject(root, "payload_press", trigger_payload);
+        cJSON_AddStringToObject(root, "icon", icon);
+
+        cJSON *dev = cJSON_CreateObject();
+        if (dev) {
+            cJSON *ids = cJSON_CreateArray();
+            char dev_identifier[48];
+            snprintf(dev_identifier, sizeof(dev_identifier), "wican_%s", dev_id);
+            cJSON_AddItemToArray(ids, cJSON_CreateString(dev_identifier));
+            cJSON_AddItemToObject(dev, "identifiers", ids);
+
+            char dev_name[48];
+            snprintf(dev_name, sizeof(dev_name), "WiCAN %s", dev_id);
+            cJSON_AddStringToObject(dev, "name", dev_name);
+            cJSON_AddStringToObject(dev, "model", "WiCAN Vehicle Bridge");
+            cJSON_AddStringToObject(dev, "manufacturer", "MeatPi");
+            cJSON_AddItemToObject(root, "device", dev);
+        }
+
+        char *json_str = cJSON_PrintUnformatted(root);
+        if (json_str) {
+            mqtt_publish(disc_topic, json_str, strlen(json_str), 1, 1);
+            ESP_LOGI("CANDO", "Published HA Button discovery for '%s' to %s", rule->name, disc_topic);
+            free(json_str);
+        }
+        cJSON_Delete(root);
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
+void cando_unpublish_ha_rule(const char *rule_name)
+{
+    if (!rule_name || !mqtt_connected()) return;
+
+    char dev_id[32] = {0};
+    if (device_id && strlen(device_id) > 0) {
+        strncpy(dev_id, device_id, sizeof(dev_id) - 1);
+    } else {
+        hw_config_get_device_id(dev_id);
+    }
+    if (strlen(dev_id) == 0) strcpy(dev_id, "default");
+
+    char sanitized_name[64];
+    sanitize_ha_identifier(rule_name, sanitized_name, sizeof(sanitized_name));
+
+    char disc_topic[160];
+    snprintf(disc_topic, sizeof(disc_topic), "homeassistant/button/wican_%s/cando_%s/config", dev_id, sanitized_name);
+
+    /* Empty payload with retain=1 removes the entity in Home Assistant */
+    mqtt_publish(disc_topic, "", 0, 1, 1);
+    ESP_LOGI("CANDO", "Unpublished HA Button discovery for '%s' (%s)", rule_name, disc_topic);
 }
 

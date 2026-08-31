@@ -274,6 +274,19 @@ char *config_server_get_sta_pass(void)
 {
 	return device_config.sta_pass;
 }
+
+uint8_t config_server_get_sta_network_count(void)
+{
+	return device_config.sta_network_count;
+}
+
+const sta_network_entry_t *config_server_get_sta_network(uint8_t index)
+{
+	if (index < device_config.sta_network_count && index < MAX_STA_NETWORKS) {
+		return &device_config.sta_networks[index];
+	}
+	return NULL;
+}
 int8_t config_server_protocol(void)
 {
 	if(strcmp(device_config.protocol, "slcan") == 0)
@@ -1221,6 +1234,42 @@ char *config_server_get_status_json(bool remove_sensitive_info)
 		cJSON_AddStringToObject(root, "sta_pass", device_config.sta_pass);
 		cJSON_AddStringToObject(root, "sta_security", device_config.sta_security);
 		cJSON_AddStringToObject(root, "sta_ip", ip_str);
+
+		cJSON *nets_arr = cJSON_CreateArray();
+		if (device_config.sta_network_count > 0) {
+			for (uint8_t n = 0; n < device_config.sta_network_count; n++) {
+				cJSON *item = cJSON_CreateObject();
+				cJSON_AddStringToObject(item, "ssid", device_config.sta_networks[n].ssid);
+				cJSON_AddStringToObject(item, "pass", device_config.sta_networks[n].pass);
+				cJSON_AddStringToObject(item, "security", device_config.sta_networks[n].security);
+				cJSON_AddItemToArray(nets_arr, item);
+			}
+		} else if (strlen(device_config.sta_ssid) > 0) {
+			cJSON *item = cJSON_CreateObject();
+			cJSON_AddStringToObject(item, "ssid", device_config.sta_ssid);
+			cJSON_AddStringToObject(item, "pass", device_config.sta_pass);
+			cJSON_AddStringToObject(item, "security", device_config.sta_security);
+			cJSON_AddItemToArray(nets_arr, item);
+		}
+		cJSON_AddItemToObject(root, "sta_networks", nets_arr);
+	}
+	else
+	{
+		cJSON *nets_arr = cJSON_CreateArray();
+		if (device_config.sta_network_count > 0) {
+			for (uint8_t n = 0; n < device_config.sta_network_count; n++) {
+				cJSON *item = cJSON_CreateObject();
+				cJSON_AddStringToObject(item, "ssid", device_config.sta_networks[n].ssid);
+				cJSON_AddStringToObject(item, "security", device_config.sta_networks[n].security);
+				cJSON_AddItemToArray(nets_arr, item);
+			}
+		} else if (strlen(device_config.sta_ssid) > 0) {
+			cJSON *item = cJSON_CreateObject();
+			cJSON_AddStringToObject(item, "ssid", device_config.sta_ssid);
+			cJSON_AddStringToObject(item, "security", device_config.sta_security);
+			cJSON_AddItemToArray(nets_arr, item);
+		}
+		cJSON_AddItemToObject(root, "sta_networks", nets_arr);
 	}
 
 	cJSON_AddStringToObject(root, "sta_status", (wifi_network_is_connected() ? "Connected" : "Not Connected"));
@@ -2072,29 +2121,74 @@ static void config_server_load_cfg(char *cfg)
 	strcpy(device_config.ap_ch, key->valuestring);
 	ESP_LOGI(TAG, "device_config.ap_ch: %s", device_config.ap_ch);
 
-	key = cJSON_GetObjectItem(root,"sta_ssid");
-	if(key == 0)
+	cJSON *nets_key = cJSON_GetObjectItem(root, "sta_networks");
+	if (nets_key && cJSON_IsArray(nets_key) && cJSON_GetArraySize(nets_key) > 0)
 	{
-		goto config_error;
+		int count = cJSON_GetArraySize(nets_key);
+		if (count > MAX_STA_NETWORKS) count = MAX_STA_NETWORKS;
+		device_config.sta_network_count = 0;
+		for (int i = 0; i < count; i++)
+		{
+			cJSON *net_item = cJSON_GetArrayItem(nets_key, i);
+			if (net_item)
+			{
+				cJSON *s_ssid = cJSON_GetObjectItem(net_item, "ssid");
+				cJSON *s_pass = cJSON_GetObjectItem(net_item, "pass");
+				cJSON *s_sec = cJSON_GetObjectItem(net_item, "security");
+				if (s_ssid && s_ssid->valuestring && strlen(s_ssid->valuestring) > 0)
+				{
+					strncpy(device_config.sta_networks[device_config.sta_network_count].ssid, s_ssid->valuestring, sizeof(device_config.sta_networks[0].ssid) - 1);
+					if (s_pass && s_pass->valuestring) {
+						strncpy(device_config.sta_networks[device_config.sta_network_count].pass, s_pass->valuestring, sizeof(device_config.sta_networks[0].pass) - 1);
+					} else {
+						device_config.sta_networks[device_config.sta_network_count].pass[0] = '\0';
+					}
+					if (s_sec && s_sec->valuestring) {
+						strncpy(device_config.sta_networks[device_config.sta_network_count].security, s_sec->valuestring, sizeof(device_config.sta_networks[0].security) - 1);
+					} else {
+						strcpy(device_config.sta_networks[device_config.sta_network_count].security, "WPA2");
+					}
+					device_config.sta_network_count++;
+				}
+			}
+		}
+		if (device_config.sta_network_count > 0) {
+			strcpy(device_config.sta_ssid, device_config.sta_networks[0].ssid);
+			strcpy(device_config.sta_pass, device_config.sta_networks[0].pass);
+			strcpy(device_config.sta_security, device_config.sta_networks[0].security);
+		}
 	}
-	if(strlen(key->valuestring) == 0 || strlen(key->valuestring) > 32)
+	else
 	{
-		goto config_error;
-	}
-	strcpy(device_config.sta_ssid, key->valuestring);
-	ESP_LOGI(TAG, "device_config.sta_ssid: %s", device_config.sta_ssid);
+		key = cJSON_GetObjectItem(root,"sta_ssid");
+		if(key == 0)
+		{
+			goto config_error;
+		}
+		if(strlen(key->valuestring) == 0 || strlen(key->valuestring) > 32)
+		{
+			goto config_error;
+		}
+		strcpy(device_config.sta_ssid, key->valuestring);
+		ESP_LOGI(TAG, "device_config.sta_ssid: %s", device_config.sta_ssid);
 
-	key = cJSON_GetObjectItem(root,"sta_pass");
-	if(key == 0)
-	{
-		goto config_error;
+		key = cJSON_GetObjectItem(root,"sta_pass");
+		if(key == 0)
+		{
+			goto config_error;
+		}
+		if(strlen(key->valuestring) < 8 || strlen(key->valuestring) > 64)
+		{
+			goto config_error;
+		}
+		strcpy(device_config.sta_pass, key->valuestring);
+		ESP_LOGI(TAG, "device_config.sta_pass: %s", device_config.sta_pass);
+
+		device_config.sta_network_count = 1;
+		strncpy(device_config.sta_networks[0].ssid, device_config.sta_ssid, sizeof(device_config.sta_networks[0].ssid) - 1);
+		strncpy(device_config.sta_networks[0].pass, device_config.sta_pass, sizeof(device_config.sta_networks[0].pass) - 1);
+		strncpy(device_config.sta_networks[0].security, device_config.sta_security, sizeof(device_config.sta_networks[0].security) - 1);
 	}
-	if(strlen(key->valuestring) < 8 || strlen(key->valuestring) > 64)
-	{
-		goto config_error;
-	}
-	strcpy(device_config.sta_pass, key->valuestring);
-	ESP_LOGI(TAG, "device_config.sta_pass: %s", device_config.sta_pass);
 
 	key = cJSON_GetObjectItem(root,"can_datarate");
 	if(key == 0)

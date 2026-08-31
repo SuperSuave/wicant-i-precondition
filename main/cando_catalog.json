@@ -1,17 +1,42 @@
 {
   "vehicles": [
-    { "id": "all_egmp", "name": "All E-GMP Vehicles (Universal)" },
-    { "id": "kia_ev6", "name": "Kia EV6 / EV6 GT" },
-    { "id": "hyundai_ioniq5", "name": "Hyundai Ioniq 5 / Ioniq 5 N" },
-    { "id": "hyundai_ioniq6", "name": "Hyundai Ioniq 6" },
-    { "id": "genesis_gv60", "name": "Genesis GV60" },
-    { "id": "kia_ev9", "name": "Kia EV9" }
+    {
+      "id": "all_egmp",
+      "name": "All E-GMP Vehicles (Universal)"
+    },
+    {
+      "id": "kia_ev6",
+      "name": "Kia EV6 / EV6 GT"
+    },
+    {
+      "id": "hyundai_ioniq5",
+      "name": "Hyundai Ioniq 5 / Ioniq 5 N"
+    },
+    {
+      "id": "hyundai_ioniq6",
+      "name": "Hyundai Ioniq 6"
+    },
+    {
+      "id": "genesis_gv60",
+      "name": "Genesis GV60"
+    },
+    {
+      "id": "kia_ev9",
+      "name": "Kia EV9"
+    }
   ],
   "trigger_presets": [
     {
       "id": "sw_star",
-      "name": "Steering Wheel: Star (*) Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "name": "Steering Wheel: Star (⭐) Button",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -21,7 +46,14 @@
     {
       "id": "sw_mode",
       "name": "Steering Wheel: Mode Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -31,7 +63,14 @@
     {
       "id": "sw_speak",
       "name": "Steering Wheel: Voice / Speak Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -41,7 +80,14 @@
     {
       "id": "sw_call",
       "name": "Steering Wheel: Call / Phone Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -51,7 +97,14 @@
     {
       "id": "sw_vol_in",
       "name": "Steering Wheel: Volume Press / Mute",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -61,7 +114,14 @@
     {
       "id": "sw_vol_up",
       "name": "Steering Wheel: Volume Up",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -71,7 +131,14 @@
     {
       "id": "sw_vol_down",
       "name": "Steering Wheel: Volume Down",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -81,7 +148,14 @@
     {
       "id": "sw_skip_up",
       "name": "Steering Wheel: Seek / Skip Up",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -91,7 +165,14 @@
     {
       "id": "sw_skip_down",
       "name": "Steering Wheel: Seek / Skip Down",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -101,7 +182,14 @@
     {
       "id": "sw_ok",
       "name": "Steering Wheel: OK Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -110,8 +198,15 @@
     },
     {
       "id": "avn_star",
-      "name": "AVN / Dash: Star (*) Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "name": "AVN / Dash: Star (⭐) Button",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x652",
       "bus": 0,
@@ -121,7 +216,9 @@
     {
       "id": "ev6_mode_strip",
       "name": "AVN / Dash: EV6 Touch Bar Mode Switch",
-      "tags": ["kia_ev6"],
+      "tags": [
+        "kia_ev6"
+      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x652",
       "bus": 0,
@@ -131,7 +228,14 @@
     {
       "id": "camera_btn",
       "name": "Dash: 360° Surround View Camera Button",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x476",
       "bus": 0,
@@ -141,7 +245,13 @@
     {
       "id": "cluster_bright_up",
       "name": "Dash: Cluster Brightness Up",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x474",
       "bus": 0,
@@ -151,7 +261,13 @@
     {
       "id": "cluster_bright_down",
       "name": "Dash: Cluster Brightness Down",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x474",
       "bus": 0,
@@ -161,7 +277,13 @@
     {
       "id": "heated_wheel_btn",
       "name": "Console: Heated Steering Wheel State Change",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x418",
       "bus": 0,
@@ -171,7 +293,14 @@
     {
       "id": "driver_seat_heat",
       "name": "Console: Driver Seat Heating Active",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x496",
       "bus": 0,
@@ -181,7 +310,14 @@
     {
       "id": "pass_seat_heat",
       "name": "Console: Passenger Seat Heating Active",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x475",
       "bus": 0,
@@ -191,7 +327,14 @@
     {
       "id": "climate_sync_toggle",
       "name": "Climate: SYNC Button State Change",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x4A0",
       "bus": 0,
@@ -201,7 +344,14 @@
     {
       "id": "climate_driver_only",
       "name": "Climate: Driver Only / Heat Mode Toggled",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x41D",
       "bus": 0,
@@ -211,7 +361,14 @@
     {
       "id": "climate_rear_defog",
       "name": "Climate: Rear Defogger & Heated Mirrors Active",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x541",
       "bus": 0,
@@ -221,7 +378,14 @@
     {
       "id": "climate_temp_status",
       "name": "Climate: Cabin Target Temperature Change",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Comfort & Climate",
       "can_id": "0x380",
       "bus": 0,
@@ -231,7 +395,14 @@
     {
       "id": "car_ready_state",
       "name": "Vehicle: Car READY State Transition",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x038",
       "bus": 0,
@@ -241,7 +412,14 @@
     {
       "id": "car_power_on",
       "name": "Vehicle: Car Power Turned ON",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x435",
       "bus": 0,
@@ -251,7 +429,14 @@
     {
       "id": "charge_door_open",
       "name": "Vehicle: Charge Port Door Opened",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x3AA",
       "bus": 0,
@@ -261,7 +446,14 @@
     {
       "id": "trunk_open_trig",
       "name": "Vehicle: Trunk Opened",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x414",
       "bus": 0,
@@ -271,7 +463,14 @@
     {
       "id": "hood_open_trig",
       "name": "Vehicle: Hood Opened",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -281,7 +480,14 @@
     {
       "id": "sunroof_open_trig",
       "name": "Vehicle: Sunroof Open / Tilt State",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -291,7 +497,14 @@
     {
       "id": "hazard_lights_trig",
       "name": "Vehicle: Hazard Warning Lights Active",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -301,7 +514,14 @@
     {
       "id": "wipers_active_trig",
       "name": "Vehicle: Windshield Wipers Active",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -311,7 +531,14 @@
     {
       "id": "driver_door_open_trig",
       "name": "Vehicle: Driver Door Opened",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x521",
       "bus": 0,
@@ -321,7 +548,14 @@
     {
       "id": "pass_door_open_trig",
       "name": "Vehicle: Passenger Door Opened",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x521",
       "bus": 0,
@@ -331,7 +565,14 @@
     {
       "id": "brake_pedal_press",
       "name": "Vehicle: Brake Pedal Pressed",
-      "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6",
+        "genesis_gv60",
+        "kia_ev9"
+      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x412",
       "bus": 0,
@@ -344,9 +585,16 @@
       "category": "⚡ Battery Preconditioning",
       "presets": [
         {
-          "name": "Toggle Persistent Preconditioning (21°C / 70°F)",
-          "name_imperial": "Toggle Persistent Preconditioning (70°F / 21°C)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "name": "Toggle Persistent Preconditioning (21°C)",
+          "name_imperial": "Toggle Persistent Preconditioning (70°F)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "precondition",
           "precon_mode": "persistent",
           "precon_press": "short",
@@ -354,7 +602,14 @@
         },
         {
           "name": "Toggle Continuous Preconditioning (High Demand)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "precondition",
           "precon_mode": "continuous",
           "precon_press": "short",
@@ -362,7 +617,14 @@
         },
         {
           "name": "Single Run Preconditioning Cycle (Once)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "precondition",
           "precon_mode": "once",
           "precon_press": "short",
@@ -376,39 +638,81 @@
         {
           "name": "Cluster Toast: Live Batt Temp & Voltage (°C)",
           "name_imperial": "Cluster Toast: Live Batt Temp & Voltage (°F)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "popup",
           "popup_message": "Batt: {battery_temp}C ({voltage}V)",
           "popup_message_imperial": "Batt: {battery_temp_f}F ({voltage}V)"
         },
         {
           "name": "Cluster Toast: Live Batt Temp & Voltage (°F)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "popup",
           "popup_message": "Batt: {battery_temp_f}F ({voltage}V)"
         },
         {
           "name": "Cluster Toast: Min / Max Temp Range",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "popup",
           "popup_message": "Batt: {temp_min}C to {temp_max}C"
         },
         {
           "name": "Cluster Toast: Preconditioning Status & Temp",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "popup",
           "popup_message": "Precon: {status} ({battery_temp}C)",
           "popup_message_imperial": "Precon: {status} ({battery_temp_f}F)"
         },
         {
           "name": "Cluster Toast: Charge Port Opened",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "popup",
           "popup_message": "CHARGE PORT OPEN"
         },
         {
           "name": "Cluster Toast: Sport Mode Active",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "popup",
           "popup_message": "SPORT MODE ACTIVE"
         }
@@ -419,65 +723,179 @@
       "presets": [
         {
           "name": "Charging: Set AC & DC Max Charge Limit (Both)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4C5",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Charge Limit: 80%",
           "options": [
-            { "label": "50%", "payload": "00 00 00 00 64 64 00 00", "popup": "Charge Limit: 50%" },
-            { "label": "60%", "payload": "00 00 00 00 78 78 00 00", "popup": "Charge Limit: 60%" },
-            { "label": "70%", "payload": "00 00 00 00 8C 8C 00 00", "popup": "Charge Limit: 70%" },
-            { "label": "80%", "payload": "00 00 00 00 A0 A0 00 00", "popup": "Charge Limit: 80%", "default": true },
-            { "label": "90%", "payload": "00 00 00 00 B4 B4 00 00", "popup": "Charge Limit: 90%" },
-            { "label": "100%", "payload": "00 00 00 00 C8 C8 00 00", "popup": "Charge Limit: 100%" }
+            {
+              "label": "50%",
+              "payload": "00 00 00 00 64 64 00 00",
+              "popup": "Charge Limit: 50%"
+            },
+            {
+              "label": "60%",
+              "payload": "00 00 00 00 78 78 00 00",
+              "popup": "Charge Limit: 60%"
+            },
+            {
+              "label": "70%",
+              "payload": "00 00 00 00 8C 8C 00 00",
+              "popup": "Charge Limit: 70%"
+            },
+            {
+              "label": "80%",
+              "payload": "00 00 00 00 A0 A0 00 00",
+              "popup": "Charge Limit: 80%",
+              "default": true
+            },
+            {
+              "label": "90%",
+              "payload": "00 00 00 00 B4 B4 00 00",
+              "popup": "Charge Limit: 90%"
+            },
+            {
+              "label": "100%",
+              "payload": "00 00 00 00 C8 C8 00 00",
+              "popup": "Charge Limit: 100%"
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 A0 A0 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 A0 A0 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Charging: Set AC Level 2 Charge Limit",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4C5",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "AC Limit: 80%",
           "options": [
-            { "label": "50%", "payload": "00 00 00 00 64 00 00 00", "popup": "AC Limit: 50%" },
-            { "label": "60%", "payload": "00 00 00 00 78 00 00 00", "popup": "AC Limit: 60%" },
-            { "label": "70%", "payload": "00 00 00 00 8C 00 00 00", "popup": "AC Limit: 70%" },
-            { "label": "80%", "payload": "00 00 00 00 A0 00 00 00", "popup": "AC Limit: 80%", "default": true },
-            { "label": "90%", "payload": "00 00 00 00 B4 00 00 00", "popup": "AC Limit: 90%" },
-            { "label": "100%", "payload": "00 00 00 00 C8 00 00 00", "popup": "AC Limit: 100%" }
+            {
+              "label": "50%",
+              "payload": "00 00 00 00 64 00 00 00",
+              "popup": "AC Limit: 50%"
+            },
+            {
+              "label": "60%",
+              "payload": "00 00 00 00 78 00 00 00",
+              "popup": "AC Limit: 60%"
+            },
+            {
+              "label": "70%",
+              "payload": "00 00 00 00 8C 00 00 00",
+              "popup": "AC Limit: 70%"
+            },
+            {
+              "label": "80%",
+              "payload": "00 00 00 00 A0 00 00 00",
+              "popup": "AC Limit: 80%",
+              "default": true
+            },
+            {
+              "label": "90%",
+              "payload": "00 00 00 00 B4 00 00 00",
+              "popup": "AC Limit: 90%"
+            },
+            {
+              "label": "100%",
+              "payload": "00 00 00 00 C8 00 00 00",
+              "popup": "AC Limit: 100%"
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 A0 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 A0 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Charging: Set DC Fast Charge Limit",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4C5",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "DC Limit: 80%",
           "options": [
-            { "label": "50%", "payload": "00 00 00 00 00 64 00 00", "popup": "DC Limit: 50%" },
-            { "label": "60%", "payload": "00 00 00 00 00 78 00 00", "popup": "DC Limit: 60%" },
-            { "label": "70%", "payload": "00 00 00 00 00 8C 00 00", "popup": "DC Limit: 70%" },
-            { "label": "80%", "payload": "00 00 00 00 00 A0 00 00", "popup": "DC Limit: 80%", "default": true },
-            { "label": "90%", "payload": "00 00 00 00 00 B4 00 00", "popup": "DC Limit: 90%" },
-            { "label": "100%", "payload": "00 00 00 00 00 C8 00 00", "popup": "DC Limit: 100%" }
+            {
+              "label": "50%",
+              "payload": "00 00 00 00 00 64 00 00",
+              "popup": "DC Limit: 50%"
+            },
+            {
+              "label": "60%",
+              "payload": "00 00 00 00 00 78 00 00",
+              "popup": "DC Limit: 60%"
+            },
+            {
+              "label": "70%",
+              "payload": "00 00 00 00 00 8C 00 00",
+              "popup": "DC Limit: 70%"
+            },
+            {
+              "label": "80%",
+              "payload": "00 00 00 00 00 A0 00 00",
+              "popup": "DC Limit: 80%",
+              "default": true
+            },
+            {
+              "label": "90%",
+              "payload": "00 00 00 00 00 B4 00 00",
+              "popup": "DC Limit: 90%"
+            },
+            {
+              "label": "100%",
+              "payload": "00 00 00 00 00 C8 00 00",
+              "popup": "DC Limit: 100%"
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 00 A0 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 00 A0 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         }
       ]
@@ -487,129 +905,321 @@
       "presets": [
         {
           "name": "Seat Heating: Driver Seat Heating Level",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Dr Seat Heat: High",
           "options": [
-            { "label": "Off (Clear)", "payload": "00 00 00 00 20 00 00 00", "popup": "Dr Seat Heat: Off" },
-            { "label": "Low (1)", "payload": "00 00 00 00 60 00 00 00", "popup": "Dr Seat Heat: Low" },
-            { "label": "Med (2)", "payload": "00 00 00 00 70 00 00 00", "popup": "Dr Seat Heat: Med" },
-            { "label": "High (3)", "payload": "00 00 00 00 80 00 00 00", "popup": "Dr Seat Heat: High", "default": true }
+            {
+              "label": "Off (Clear)",
+              "payload": "00 00 00 00 20 00 00 00",
+              "popup": "Dr Seat Heat: Off"
+            },
+            {
+              "label": "Low (1)",
+              "payload": "00 00 00 00 60 00 00 00",
+              "popup": "Dr Seat Heat: Low"
+            },
+            {
+              "label": "Med (2)",
+              "payload": "00 00 00 00 70 00 00 00",
+              "popup": "Dr Seat Heat: Med"
+            },
+            {
+              "label": "High (3)",
+              "payload": "00 00 00 00 80 00 00 00",
+              "popup": "Dr Seat Heat: High",
+              "default": true
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 80 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 80 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Seat Heating: Passenger Seat Heating Level",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Pass Seat Heat: High",
           "options": [
-            { "label": "Off (Clear)", "payload": "00 00 00 00 02 00 00 00", "popup": "Pass Seat Heat: Off" },
-            { "label": "Low (1)", "payload": "00 00 00 00 06 00 00 00", "popup": "Pass Seat Heat: Low" },
-            { "label": "Med (2)", "payload": "00 00 00 00 07 00 00 00", "popup": "Pass Seat Heat: Med" },
-            { "label": "High (3)", "payload": "00 00 00 00 08 00 00 00", "popup": "Pass Seat Heat: High", "default": true }
+            {
+              "label": "Off (Clear)",
+              "payload": "00 00 00 00 02 00 00 00",
+              "popup": "Pass Seat Heat: Off"
+            },
+            {
+              "label": "Low (1)",
+              "payload": "00 00 00 00 06 00 00 00",
+              "popup": "Pass Seat Heat: Low"
+            },
+            {
+              "label": "Med (2)",
+              "payload": "00 00 00 00 07 00 00 00",
+              "popup": "Pass Seat Heat: Med"
+            },
+            {
+              "label": "High (3)",
+              "payload": "00 00 00 00 08 00 00 00",
+              "popup": "Pass Seat Heat: High",
+              "default": true
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 08 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 08 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Seat Heating: Both Seats Heating Level",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Seats: Heat High",
           "options": [
-            { "label": "Off (Clear)", "payload": "00 00 00 00 22 00 00 00", "popup": "Seats: Heat Off" },
-            { "label": "Low (1)", "payload": "00 00 00 00 66 00 00 00", "popup": "Seats: Heat Low" },
-            { "label": "Med (2)", "payload": "00 00 00 00 77 00 00 00", "popup": "Seats: Heat Med" },
-            { "label": "High (3)", "payload": "00 00 00 00 88 00 00 00", "popup": "Seats: Heat High", "default": true }
+            {
+              "label": "Off (Clear)",
+              "payload": "00 00 00 00 22 00 00 00",
+              "popup": "Seats: Heat Off"
+            },
+            {
+              "label": "Low (1)",
+              "payload": "00 00 00 00 66 00 00 00",
+              "popup": "Seats: Heat Low"
+            },
+            {
+              "label": "Med (2)",
+              "payload": "00 00 00 00 77 00 00 00",
+              "popup": "Seats: Heat Med"
+            },
+            {
+              "label": "High (3)",
+              "payload": "00 00 00 00 88 00 00 00",
+              "popup": "Seats: Heat High",
+              "default": true
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 88 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 88 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Seat Cooling: Driver Seat Ventilation Level",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Dr Vent: High",
           "options": [
-            { "label": "Off (Clear)", "payload": "00 00 00 00 20 00 00 00", "popup": "Dr Vent: Off" },
-            { "label": "Low (1)", "payload": "00 00 00 00 30 00 00 00", "popup": "Dr Vent: Low" },
-            { "label": "Med (2)", "payload": "00 00 00 00 40 00 00 00", "popup": "Dr Vent: Med" },
-            { "label": "High (3)", "payload": "00 00 00 00 50 00 00 00", "popup": "Dr Vent: High", "default": true }
+            {
+              "label": "Off (Clear)",
+              "payload": "00 00 00 00 20 00 00 00",
+              "popup": "Dr Vent: Off"
+            },
+            {
+              "label": "Low (1)",
+              "payload": "00 00 00 00 30 00 00 00",
+              "popup": "Dr Vent: Low"
+            },
+            {
+              "label": "Med (2)",
+              "payload": "00 00 00 00 40 00 00 00",
+              "popup": "Dr Vent: Med"
+            },
+            {
+              "label": "High (3)",
+              "payload": "00 00 00 00 50 00 00 00",
+              "popup": "Dr Vent: High",
+              "default": true
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 50 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 50 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Seat Cooling: Passenger Seat Ventilation Level",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Pass Vent: High",
           "options": [
-            { "label": "Off (Clear)", "payload": "00 00 00 00 02 00 00 00", "popup": "Pass Vent: Off" },
-            { "label": "Low (1)", "payload": "00 00 00 00 03 00 00 00", "popup": "Pass Vent: Low" },
-            { "label": "Med (2)", "payload": "00 00 00 00 04 00 00 00", "popup": "Pass Vent: Med" },
-            { "label": "High (3)", "payload": "00 00 00 00 05 00 00 00", "popup": "Pass Vent: High", "default": true }
+            {
+              "label": "Off (Clear)",
+              "payload": "00 00 00 00 02 00 00 00",
+              "popup": "Pass Vent: Off"
+            },
+            {
+              "label": "Low (1)",
+              "payload": "00 00 00 00 03 00 00 00",
+              "popup": "Pass Vent: Low"
+            },
+            {
+              "label": "Med (2)",
+              "payload": "00 00 00 00 04 00 00 00",
+              "popup": "Pass Vent: Med"
+            },
+            {
+              "label": "High (3)",
+              "payload": "00 00 00 00 05 00 00 00",
+              "popup": "Pass Vent: High",
+              "default": true
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 05 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 05 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Seat Cooling: Both Seats Ventilation Level",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A2",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Seats: Vent High",
           "options": [
-            { "label": "Off (Clear)", "payload": "00 00 00 00 22 00 00 00", "popup": "Seats: Vent Off" },
-            { "label": "Low (1)", "payload": "00 00 00 00 33 00 00 00", "popup": "Seats: Vent Low" },
-            { "label": "Med (2)", "payload": "00 00 00 00 44 00 00 00", "popup": "Seats: Vent Med" },
-            { "label": "High (3)", "payload": "00 00 00 00 55 00 00 00", "popup": "Seats: Vent High", "default": true }
+            {
+              "label": "Off (Clear)",
+              "payload": "00 00 00 00 22 00 00 00",
+              "popup": "Seats: Vent Off"
+            },
+            {
+              "label": "Low (1)",
+              "payload": "00 00 00 00 33 00 00 00",
+              "popup": "Seats: Vent Low"
+            },
+            {
+              "label": "Med (2)",
+              "payload": "00 00 00 00 44 00 00 00",
+              "popup": "Seats: Vent Med"
+            },
+            {
+              "label": "High (3)",
+              "payload": "00 00 00 00 55 00 00 00",
+              "popup": "Seats: Vent High",
+              "default": true
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 55 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 55 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Steering Wheel: Heated Wheel Toggle",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x418",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Heated Wheel Toggle",
           "steps": [
-            { "payload": "00 00 01 00 00 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 01 00 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         }
       ]
@@ -618,58 +1228,103 @@
       "category": "❄️ Cabin Climate Control",
       "presets": [
         {
-          "name": "Climate: Set Target Cabin Temperature",
+          "name": "Climate: Set Target Cabin Temp",
           "name_imperial": "Climate: Set Target Cabin Temp",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "climate_target",
           "climate_zone": "driver",
           "target_temp_c": 21.0,
+          "target_temp_f": 70,
+          "pass_temp_c": 21.0,
+          "pass_temp_f": 70,
           "climate_sync_on": true,
           "climate_driver_only": false,
-          "popup_message": "Climate: Set to 21°C (70°F)",
-          "popup_message_imperial": "Climate: Set to 70°F (21°C)",
-          "options": [
-            { "label": "18.0°C (64°F)", "label_imperial": "64°F (18.0°C)", "target_temp_c": 18.0, "popup": "Climate: 18°C", "popup_imperial": "Climate: 64°F" },
-            { "label": "19.0°C (66°F)", "label_imperial": "66°F (19.0°C)", "target_temp_c": 19.0, "popup": "Climate: 19°C", "popup_imperial": "Climate: 66°F" },
-            { "label": "20.0°C (68°F)", "label_imperial": "68°F (20.0°C)", "target_temp_c": 20.0, "popup": "Climate: 20°C", "popup_imperial": "Climate: 68°F" },
-            { "label": "21.0°C (70°F)", "label_imperial": "70°F (21.0°C)", "target_temp_c": 21.0, "popup": "Climate: 21°C", "popup_imperial": "Climate: 70°F", "default": true },
-            { "label": "22.0°C (72°F)", "label_imperial": "72°F (22.0°C)", "target_temp_c": 22.0, "popup": "Climate: 22°C", "popup_imperial": "Climate: 72°F" },
-            { "label": "23.0°C (73°F)", "label_imperial": "73°F (23.0°C)", "target_temp_c": 23.0, "popup": "Climate: 23°C", "popup_imperial": "Climate: 73°F" },
-            { "label": "24.0°C (75°F)", "label_imperial": "75°F (24.0°C)", "target_temp_c": 24.0, "popup": "Climate: 24°C", "popup_imperial": "Climate: 75°F" }
-          ]
+          "popup_message": "Climate: 21°C",
+          "popup_message_imperial": "Climate: 70°F"
         },
         {
           "name": "Climate: SYNC Mode Toggle",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x4A0",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Climate: SYNC ON",
           "options": [
-            { "label": "Turn ON", "payload": "00 00 00 0F 00 00 00 00", "popup": "Climate: SYNC ON", "default": true },
-            { "label": "Turn OFF", "payload": "00 00 00 07 00 00 00 00", "popup": "Climate: SYNC OFF" }
+            {
+              "label": "Turn ON",
+              "payload": "00 00 00 0F 00 00 00 00",
+              "popup": "Climate: SYNC ON",
+              "default": true
+            },
+            {
+              "label": "Turn OFF",
+              "payload": "00 00 00 07 00 00 00 00",
+              "popup": "Climate: SYNC OFF"
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 0F 00 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 0F 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Climate: Driver Only Mode",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x41D",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Driver Only: ON",
           "options": [
-            { "label": "Turn ON", "payload": "00 00 00 00 0F 00 00 00", "popup": "Driver Only: ON", "default": true },
-            { "label": "Turn OFF", "payload": "00 00 00 00 0C 00 00 00", "popup": "Driver Only: OFF" }
+            {
+              "label": "Turn ON",
+              "payload": "00 00 00 00 0F 00 00 00",
+              "popup": "Driver Only: ON",
+              "default": true
+            },
+            {
+              "label": "Turn OFF",
+              "payload": "00 00 00 00 0C 00 00 00",
+              "popup": "Driver Only: OFF"
+            }
           ],
           "steps": [
-            { "payload": "00 00 00 00 0F 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 00 00 0F 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         }
       ]
@@ -679,57 +1334,120 @@
       "presets": [
         {
           "name": "Active Sound Design (ASD): Sound Profile",
-          "tags": ["kia_ev6", "genesis_gv60"],
+          "tags": [
+            "kia_ev6",
+            "genesis_gv60"
+          ],
           "type": "can_tx",
           "can_id": "0x658",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "ASD: Dynamic",
           "options": [
-            { "label": "Off", "payload": "7F 7F AF 00 00 00 00 00", "popup": "ASD: Off" },
-            { "label": "Stylish", "payload": "87 87 AF 00 00 00 00 00", "popup": "ASD: Stylish" },
-            { "label": "Dynamic", "payload": "8B 8B AF 00 00 00 00 00", "popup": "ASD: Dynamic", "default": true },
-            { "label": "Cyber", "payload": "8F 8F AF 00 00 00 00 00", "popup": "ASD: Cyber" }
+            {
+              "label": "Off",
+              "payload": "7F 7F AF 00 00 00 00 00",
+              "popup": "ASD: Off"
+            },
+            {
+              "label": "Stylish",
+              "payload": "87 87 AF 00 00 00 00 00",
+              "popup": "ASD: Stylish"
+            },
+            {
+              "label": "Dynamic",
+              "payload": "8B 8B AF 00 00 00 00 00",
+              "popup": "ASD: Dynamic",
+              "default": true
+            },
+            {
+              "label": "Cyber",
+              "payload": "8F 8F AF 00 00 00 00 00",
+              "popup": "ASD: Cyber"
+            }
           ],
           "steps": [
-            { "payload": "8B 8B AF 00 00 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "8B 8B AF 00 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "Camera: Toggle 360° Surround View Camera",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x476",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "Camera View",
           "steps": [
-            { "payload": "00 00 52 00 00 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 52 00 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         },
         {
           "name": "E-GMP: Broadcast Keepalive / Wakeup",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x7DF",
           "bus": 0,
           "delay_ms": 10,
           "popup_message": "Keepalive Ping",
-          "steps": [{ "payload": "02 01 00 00 00 00 00 00", "repeat": 3 }]
+          "steps": [
+            {
+              "payload": "02 01 00 00 00 00 00 00",
+              "repeat": 3
+            }
+          ]
         },
         {
           "name": "E-GMP: Multi-Frame Burst Sequence (x3)",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "can_tx",
           "can_id": "0x652",
           "bus": 0,
           "delay_ms": 20,
           "popup_message": "",
           "steps": [
-            { "payload": "00 00 01 00 00 00 00 00", "repeat": 3 },
-            { "payload": "00 00 00 00 00 00 00 00", "repeat": 1 }
+            {
+              "payload": "00 00 01 00 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 00 00 00 00 00 00 00",
+              "repeat": 1
+            }
           ]
         }
       ]
@@ -739,13 +1457,27 @@
       "presets": [
         {
           "name": "Home Assistant: Webhook Event Trigger",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "webhook",
           "webhook_url": "http://homeassistant.local:8123/api/webhook/wican_event"
         },
         {
           "name": "MQTT: Publish JSON Event Alert",
-          "tags": ["all_egmp", "kia_ev6", "hyundai_ioniq5", "hyundai_ioniq6", "genesis_gv60", "kia_ev9"],
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6",
+            "genesis_gv60",
+            "kia_ev9"
+          ],
           "type": "mqtt",
           "mqtt_topic": "wican/event/alert",
           "mqtt_payload": "{\"event\": \"triggered\", \"status\": \"active\"}"

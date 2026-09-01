@@ -1,5 +1,5 @@
 {
-  "catalog_version": "2.5.0",
+  "catalog_version": "2.6.0",
   "infotainment_platform": "Gen5W (Standard-class Navigation 12.3\" Dual Display)",
   "supported_model_years": "2022-2024 E-GMP",
   "vehicles": [
@@ -917,6 +917,186 @@
       "bus": 0,
       "from_payload": "* * * * * * 00",
       "to_payload": "* * * * * * 04"
+    },
+    {
+      "id": "power_state_on",
+      "name": "Vehicle Ignition ON / Ready",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x435",
+      "bus": 0,
+      "from_payload": "* * * * * * * FF",
+      "to_payload": "* * * * * * * 00"
+    },
+    {
+      "id": "power_state_off",
+      "name": "Vehicle Ignition OFF / Asleep",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x435",
+      "bus": 0,
+      "from_payload": "* * * * * * * 00",
+      "to_payload": "* * * * * * * FF"
+    },
+    {
+      "id": "charge_port_open_trig",
+      "name": "Charge Port Door Opened",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x3AA",
+      "bus": 0,
+      "from_payload": "* * * * 0*",
+      "to_payload": "* * * * 2*"
+    },
+    {
+      "id": "doors_unlocked_trig",
+      "name": "Doors Unlocked",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x411",
+      "bus": 0,
+      "from_payload": "* * 0*",
+      "to_payload": "* * 4*"
+    },
+    {
+      "id": "driver_seatbelt_buckled",
+      "name": "Driver Seatbelt Buckled",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x411",
+      "bus": 0,
+      "from_payload": "* * * * * 0*",
+      "to_payload": "* * * * * 4*"
+    },
+    {
+      "id": "pass_seatbelt_buckled",
+      "name": "Passenger Seatbelt Buckled",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Vehicle State & Safety",
+      "can_id": "0x411",
+      "bus": 0,
+      "from_payload": "* * * * 0*",
+      "to_payload": "* * * * 1*"
+    },
+    {
+      "id": "sw_menu_down",
+      "name": "Menu Down Button",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * *0",
+      "to_payload": "* * * * * * *1"
+    },
+    {
+      "id": "sw_menu_up",
+      "name": "Menu Up Button",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * 0*",
+      "to_payload": "* * * * * * 4*"
+    },
+    {
+      "id": "sw_menu_press",
+      "name": "Menu OK / Press Button",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * 0*",
+      "to_payload": "* * * * * * 1*"
+    },
+    {
+      "id": "climate_fan_active",
+      "name": "HVAC Fan Started",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Comfort & Climate",
+      "can_id": "0x31B",
+      "bus": 0,
+      "from_payload": "* * * 0*",
+      "to_payload": "* * * 2*"
+    },
+    {
+      "id": "climate_recirc_on",
+      "name": "Cabin Recirculation Toggled",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Comfort & Climate",
+      "can_id": "0x31B",
+      "bus": 0,
+      "from_payload": "* * * * 0*",
+      "to_payload": "* * * * 4*"
+    },
+    {
+      "id": "ambient_color_trig",
+      "name": "Ambient Lighting Color Changed",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "category": "Comfort & Climate",
+      "can_id": "0x4AD",
+      "bus": 0,
+      "from_payload": "* * * * 00 00 00 00",
+      "to_payload": "!00 !02 !08 !20 00 00 00 00"
     }
   ],
   "action_presets": [
@@ -1832,6 +2012,174 @@
           "mqtt_payload": "{\"event\": \"triggered\", \"status\": \"active\"}"
         }
       ]
+    },
+    {
+      "category": "💡 Ambient & Interior Lighting",
+      "presets": [
+        {
+          "name": "Interior Ambient Mood Lighting (64-Color Palette)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6"
+          ],
+          "type": "can_tx",
+          "can_id": "0x4AD",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Ambient Light: {option}",
+          "options": [
+            {
+              "label": "🔵 Electric Blue (#0055FF)",
+              "payload": "00 54 F1 0F 00 00 00 00",
+              "popup": "Ambient: Electric Blue"
+            },
+            {
+              "label": "🌊 Cyan / Aqua Wave (#00D9F5)",
+              "payload": "00 64 53 0F 00 00 00 00",
+              "popup": "Ambient: Cyan / Aqua"
+            },
+            {
+              "label": "🟣 Deep Purple / Violet (#8000FF)",
+              "payload": "80 00 F0 0F 00 00 00 00",
+              "popup": "Ambient: Violet",
+              "default": true
+            },
+            {
+              "label": "🌸 Magenta / Neon Pink (#FF00F1)",
+              "payload": "FF 00 10 0F 00 00 00 00",
+              "popup": "Ambient: Magenta"
+            },
+            {
+              "label": "🔴 Crimson Red (#FE2200)",
+              "payload": "FE 88 00 00 00 00 00 00",
+              "popup": "Ambient: Crimson Red"
+            },
+            {
+              "label": "🟠 Warm Sunset / Amber (#FF9477)",
+              "payload": "FF 50 72 07 00 00 00 00",
+              "popup": "Ambient: Sunset Orange"
+            },
+            {
+              "label": "🟢 Lime / Mint Glow (#F7FFB6)",
+              "payload": "F7 FC 63 0B 00 00 00 00",
+              "popup": "Ambient: Mint / Lime"
+            },
+            {
+              "label": "🟡 Warm White / Champagne (#FEEDA5)",
+              "payload": "FE B4 53 0A 00 00 00 00",
+              "popup": "Ambient: Champagne"
+            }
+          ],
+          "steps": [
+            {
+              "payload": "80 00 F0 0F 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 02 08 20 00 00 00 00",
+              "repeat": 1
+            }
+          ]
+        },
+        {
+          "name": "Ambient Light: Crimson Red (#FE2200)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6"
+          ],
+          "type": "can_tx",
+          "can_id": "0x4AD",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Ambient: Crimson Red",
+          "steps": [
+            {
+              "payload": "FE 88 00 00 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 02 08 20 00 00 00 00",
+              "repeat": 1
+            }
+          ]
+        },
+        {
+          "name": "Ambient Light: Electric Blue (#0055FF)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6"
+          ],
+          "type": "can_tx",
+          "can_id": "0x4AD",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Ambient: Electric Blue",
+          "steps": [
+            {
+              "payload": "00 54 F1 0F 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 02 08 20 00 00 00 00",
+              "repeat": 1
+            }
+          ]
+        },
+        {
+          "name": "Ambient Light: Cyan / Aqua Wave (#00D9F5)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6"
+          ],
+          "type": "can_tx",
+          "can_id": "0x4AD",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Ambient: Aqua Wave",
+          "steps": [
+            {
+              "payload": "00 64 53 0F 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 02 08 20 00 00 00 00",
+              "repeat": 1
+            }
+          ]
+        },
+        {
+          "name": "Ambient Light: Deep Purple / Violet (#8000FF)",
+          "tags": [
+            "all_egmp",
+            "kia_ev6",
+            "hyundai_ioniq5",
+            "hyundai_ioniq6"
+          ],
+          "type": "can_tx",
+          "can_id": "0x4AD",
+          "bus": 0,
+          "delay_ms": 20,
+          "popup_message": "Ambient: Deep Purple",
+          "steps": [
+            {
+              "payload": "80 00 F0 0F 00 00 00 00",
+              "repeat": 3
+            },
+            {
+              "payload": "00 02 08 20 00 00 00 00",
+              "repeat": 1
+            }
+          ]
+        }
+      ]
     }
   ],
   "condition_presets": [
@@ -1841,13 +2189,37 @@
         {
           "id": "cond_speed_zero",
           "name": "🛑 Vehicle Stopped / Parked (Speed == 0)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "speed_zero"
+        },
+        {
+          "id": "cond_power_on",
+          "name": "⚡ Vehicle Ignition is ON / Ready",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x435",
+          "match_payload": "* * * * * * * 00"
+        },
+        {
+          "id": "cond_power_off",
+          "name": "💤 Vehicle Ignition is OFF / Asleep",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x435",
+          "match_payload": "* * * * * * * FF"
         },
         {
           "id": "cond_gear_park",
           "name": "🅿️ Gear in PARK (P)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "can_state",
           "can_id": "0x2C0",
           "match_payload": "* * 00 * * * * *"
@@ -1855,15 +2227,89 @@
         {
           "id": "cond_doors_closed",
           "name": "🚪 All Doors & Trunk Closed",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "can_state",
           "can_id": "0x540",
           "match_payload": "00 00 00 00 * * * *"
         },
         {
+          "id": "cond_driver_door_open",
+          "name": "🚪 Driver Door is Open",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x411",
+          "match_payload": "* * * 01 * * * *"
+        },
+        {
+          "id": "cond_trunk_open",
+          "name": "🚪 Trunk / Tailgate is Open",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x414",
+          "match_payload": "* * * 01 * * * *"
+        },
+        {
+          "id": "cond_charge_port_open",
+          "name": "🔌 Charge Port Door is Open",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x3AA",
+          "match_payload": "* * * * 02 * * *"
+        },
+        {
+          "id": "cond_brake_pressed",
+          "name": "🛑 Brake Pedal is Pressed",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x412",
+          "match_payload": "* * * * * * 04 *"
+        },
+        {
+          "id": "cond_driver_seatbelt_fastened",
+          "name": "🔒 Driver Seatbelt Fastened",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x411",
+          "match_payload": "* * * * * 04 * *"
+        },
+        {
+          "id": "cond_driver_seat_heat",
+          "name": "💺 Driver Seat Heat is Active",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x496",
+          "match_payload": "!12 * * * * * * *"
+        },
+        {
+          "id": "cond_pass_seat_heat",
+          "name": "💺 Passenger Seat Heat is Active",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "can_state",
+          "can_id": "0x475",
+          "match_payload": "!12 * * * * * * *"
+        },
+        {
           "id": "cond_climate_off",
           "name": "❄️ Climate / HVAC is OFF",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "can_state",
           "can_id": "0x476",
           "match_payload": "* 00 * * * * * *"
@@ -1871,10 +2317,47 @@
         {
           "id": "cond_charging",
           "name": "🔌 Vehicle Plugged In / EV Charging",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "can_state",
           "can_id": "0x594",
           "match_payload": "* * 01 * * * * *"
+        }
+      ]
+    },
+    {
+      "category": "🌡️ Environment & Weather",
+      "presets": [
+        {
+          "id": "cond_temp_freezing",
+          "name": "❄️ Outdoor Temp <= 0°C (32°F Freezing)",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "param_range",
+          "expression": "[B3] <= 40",
+          "can_id": "0x226"
+        },
+        {
+          "id": "cond_temp_cold",
+          "name": "🌡️ Outdoor Temp < 15°C (59°F Cold)",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "param_range",
+          "expression": "[B3] < 55",
+          "can_id": "0x226"
+        },
+        {
+          "id": "cond_temp_warm",
+          "name": "☀️ Outdoor Temp > 25°C (77°F Warm)",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "param_range",
+          "expression": "[B3] > 65",
+          "can_id": "0x226"
         }
       ]
     },
@@ -1884,14 +2367,39 @@
         {
           "id": "cond_hv_soc_ok",
           "name": "🔋 HV Battery SOC > 20% (Safe for Precon)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "param_range",
-          "expression": "[B5] > 40"
+          "expression": "[B7] >= 40",
+          "can_id": "0x2FC"
+        },
+        {
+          "id": "cond_hv_soc_high",
+          "name": "🔋 HV Battery SOC > 50%",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "param_range",
+          "expression": "[B7] >= 100",
+          "can_id": "0x2FC"
+        },
+        {
+          "id": "cond_hv_soc_low",
+          "name": "⚠️ HV Battery SOC < 20% (Low Battery)",
+          "tags": [
+            "all_egmp"
+          ],
+          "type": "param_range",
+          "expression": "[B7] < 40",
+          "can_id": "0x2FC"
         },
         {
           "id": "cond_aux_12v_healthy",
           "name": "⚡ 12V Aux Battery Healthy (> 12.4V)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "voltage",
           "voltage_val": "12.4",
           "voltage_dir": "above"
@@ -1899,7 +2407,9 @@
         {
           "id": "cond_aux_12v_low",
           "name": "⚠️ 12V Aux Battery Low (< 12.0V)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "voltage",
           "voltage_val": "12.0",
           "voltage_dir": "below"
@@ -1912,21 +2422,36 @@
         {
           "id": "cond_weekdays",
           "name": "📅 Weekdays Only (Monday – Friday)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "day_of_week",
-          "days": ["mon", "tue", "wed", "thu", "fri"]
+          "days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri"
+          ]
         },
         {
           "id": "cond_weekends",
           "name": "🏖️ Weekends Only (Saturday – Sunday)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "day_of_week",
-          "days": ["sat", "sun"]
+          "days": [
+            "sat",
+            "sun"
+          ]
         },
         {
           "id": "cond_daytime",
           "name": "☀️ Daytime Hours (07:00 – 19:00)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "time_window",
           "start_time": "07:00",
           "end_time": "19:00"
@@ -1934,7 +2459,9 @@
         {
           "id": "cond_nighttime",
           "name": "🌙 Nighttime / Overnight (19:00 – 07:00)",
-          "tags": ["all_egmp"],
+          "tags": [
+            "all_egmp"
+          ],
           "type": "time_window",
           "start_time": "19:00",
           "end_time": "07:00"

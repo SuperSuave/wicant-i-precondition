@@ -4258,7 +4258,7 @@
                 <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-heading); margin-bottom: 0.3rem;">➕ Monitor New Signal</div>
                 <div style="display: flex; flex-direction: column; gap: 0.4rem;">
                     <select id="dash_can_mon_picker_select" style="width: 100%; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #ffffff); color: var(--text-main, #000000);">
-                        ${availableItems.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.category ? item.category + ' - ' + item.name : item.name)} (${item.can_id})</option>`).join("")}
+                        ${availableItems.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.category ? item.category + ' - ' + item.name : item.name)} (${escapeHtml(item.can_id)})</option>`).join("")}
                     </select>
                     <div style="display: flex; gap: 0.4rem;">
                         <input type="text" id="dash_can_mon_label_input" placeholder="Custom Label (Optional)" style="flex: 1; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #ffffff); color: var(--text-main, #000000);" />

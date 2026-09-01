@@ -2114,6 +2114,8 @@ static const httpd_uri_t scan_available_pids_uri = {
     .user_ctx  = NULL
 };
 
+#define CAN_STATES_BUF_SIZE 7168
+
 static esp_err_t can_states_handler(httpd_req_t *req)
 {
     /* Take a fast local snapshot of the cache under lock (~2.3 KB memcpy = < 5 µs) */
@@ -2124,14 +2126,14 @@ static esp_err_t can_states_handler(httpd_req_t *req)
     memcpy(snapshot, cache, sizeof(snapshot));
     can_state_cache_unlock(); /* Release lock immediately */
 
-    char *buf = malloc(7168);
+    char *buf = malloc(CAN_STATES_BUF_SIZE);
     if (!buf) {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OOM");
         return ESP_FAIL;
     }
 
     int pos = 0;
-    pos += snprintf(buf + pos, 7168 - pos, "{");
+    pos += snprintf(buf + pos, CAN_STATES_BUF_SIZE - pos, "{");
     bool first = true;
     uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
 
@@ -2146,22 +2148,26 @@ static esp_err_t can_states_handler(httpd_req_t *req)
         uint32_t age = (now_ms >= snapshot[i].timestamp_ms) ?
                        (now_ms - snapshot[i].timestamp_ms) : 0;
 
-        int written = snprintf(buf + pos, (pos < 7168) ? (7168 - pos) : 0,
+        if (pos >= CAN_STATES_BUF_SIZE - 2) break;
+
+        int needed = snprintf(buf + pos, CAN_STATES_BUF_SIZE - pos,
             "%s\"0x%X\":{\"data\":\"%s\",\"dlc\":%u,\"bus\":%u,\"age_ms\":%lu}",
             first ? "" : ",",
             (unsigned int)snapshot[i].id, hex,
             snapshot[i].dlc, snapshot[i].bus,
             (unsigned long)age);
 
-        if (written > 0) pos += written;
-        if (pos >= 7167) break; /* Guard against buffer overflow */
+        if (needed < 0 || pos + needed >= CAN_STATES_BUF_SIZE - 1) {
+            break;
+        }
+
+        pos += needed;
         first = false;
     }
 
-    snprintf(buf + (pos < 7167 ? pos : 7167), 7168 - pos, "}");
+    snprintf(buf + pos, CAN_STATES_BUF_SIZE - pos, "}");
 
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_send(req, buf, HTTPD_RESP_USE_STRLEN);
     free(buf);
     return ESP_OK;

@@ -3565,9 +3565,15 @@
                             Send_to: entry.querySelector('.send-to-input')?.value || ''
                         };
 
+                        // Skip completely empty / unconfigured rows
+                        if (!pidData.Name.trim() && !pidData.PID.trim() && !pidData.Expression.trim()) {
+                            return;
+                        }
+
                         if (pidData.Name.length === 0 || pidData.Name.length >= 32) {
                             throw new Error("Name must not be empty and must be less than 32 characters");
                         }
+
                         if (pidData.PID.length === 0 || pidData.PID.length >= 10) {
                             throw new Error("PID must not be empty and must be less than 10 characters");
                         }
@@ -3593,6 +3599,11 @@
                             Type: entry.querySelector('.type-select')?.value || 'Default',
                             Send_to: entry.querySelector('.send-to-input')?.value || ''
                         };
+
+                        // Skip completely empty / unconfigured rows
+                        if (!stdPIDData.Name.trim() && !stdPIDData.ReceiveHeader.trim()) {
+                            return;
+                        }
 
                         if (stdPIDData.Name.length === 0 || stdPIDData.Name.length >= 32) {
                             throw new Error("Name must not be empty and must be less than 32 characters");

@@ -2036,13 +2036,12 @@ if (p) p.value = first.pass;
 if (sec) sec.value = first.security;
 }
 function updateStaNetworksUI() {
-const isApOnly = (document.getElementById("wifi_mode")?.value === "AP");
 const container = document.getElementById("sta_networks_container");
 const addBtn = document.getElementById("btn_add_wifi_net");
-if (addBtn) addBtn.disabled = isApOnly;
+if (addBtn) addBtn.disabled = false;
 if (container) {
 container.querySelectorAll("input, select, button").forEach(el => {
-el.disabled = isApOnly;
+el.disabled = false;
 });
 }
 }
@@ -2085,15 +2084,15 @@ document.getElementById("submit_button").disabled = true;
 } else if (!isApMode && getStaNetworksData().length === 0 && document.getElementById("ssid_value") && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
 showNotification("At least 1 Station SSID required (min=1 max=32)", "red");
 document.getElementById("submit_button").disabled = true;
-} else if (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 32) {
+} else if (document.getElementById("mqtt_tx_en_checkbox").checked && (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 64)) {
 showNotification("MQTT TX Topic length, min=1 max=64", "red");
-document.getElementById("submit_button").disabled = true;
-} else if (document.getElementById("mqtt_rx_topic").value.length < 1 || document.getElementById("mqtt_rx_topic").value.length > 32) {
+document.getElementById("action_button").disabled = true;
+} else if (document.getElementById("mqtt_rx_en_checkbox").checked && (document.getElementById("mqtt_rx_topic").value.length < 1 || document.getElementById("mqtt_rx_topic").value.length > 64)) {
 showNotification("MQTT RX Topic length, min=1 max=64", "red");
-document.getElementById("submit_button").disabled = true;
-} else if (document.getElementById("mqtt_status_topic").value.length < 1 || document.getElementById("mqtt_status_topic").value.length > 32) {
+document.getElementById("action_button").disabled = true;
+} else if (document.getElementById("mqtt_status_topic").value.length < 1 || document.getElementById("mqtt_status_topic").value.length > 64) {
 showNotification("MQTT Status Topic length, min=1 max=64", "red");
-document.getElementById("submit_button").disabled = true;
+document.getElementById("action_button").disabled = true;
 } else if (document.getElementById("tcp_port_value").value > 65535 || document.getElementById("tcp_port_value").value < 1) {
 showNotification("Port value, min=1 max=65535", "red");
 document.getElementById("submit_button").disabled = true;

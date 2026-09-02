@@ -283,7 +283,43 @@ static void wifi_conn_task(void *pvParameters)
         }
         else
         {
-            ESP_LOGI(WIFI_TAG, "Trying to connect...");
+            wifi_config_t wifi_cfg;
+            memset(&wifi_cfg, 0, sizeof(wifi_cfg));
+            const sta_network_entry_t *net = config_server_get_sta_network(0);
+            if (net && strlen(net->ssid) > 0)
+            {
+                strncpy((char*)wifi_cfg.sta.ssid, net->ssid, sizeof(wifi_cfg.sta.ssid) - 1);
+                strncpy((char*)wifi_cfg.sta.password, net->pass, sizeof(wifi_cfg.sta.password) - 1);
+                if (strcasecmp(net->security, "wpa3") == 0)
+                {
+                    wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA3_PSK;
+                }
+                else
+                {
+                    wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+                }
+            }
+            else
+            {
+                strncpy((char*)wifi_cfg.sta.ssid, config_server_get_sta_ssid(), sizeof(wifi_cfg.sta.ssid) - 1);
+                strncpy((char*)wifi_cfg.sta.password, config_server_get_sta_pass(), sizeof(wifi_cfg.sta.password) - 1);
+                if (config_server_get_sta_security() == WIFI_WPA3_PSK)
+                {
+                    wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA3_PSK;
+                }
+                else
+                {
+                    wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+                }
+            }
+            wifi_cfg.sta.rm_enabled = 1;
+            wifi_cfg.sta.btm_enabled = 1;
+            wifi_cfg.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+            wifi_cfg.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
+            wifi_cfg.sta.pmf_cfg.capable = true;
+            wifi_cfg.sta.pmf_cfg.required = false;
+            esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg);
+            ESP_LOGI(WIFI_TAG, "Trying Wi-Fi Network: '%s'...", wifi_cfg.sta.ssid);
         }
 
         xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECT_IDLE_BIT);

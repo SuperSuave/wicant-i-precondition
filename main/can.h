@@ -67,4 +67,18 @@ bool can_is_enabled(can_bus_t bus);
 bool can_any_enabled(void);
 uint8_t can_get_bitrate(can_bus_t bus);
 void can_flush_rx(void);
+
+#define CAN_STATE_CACHE_SIZE  128
+
+typedef struct {
+    uint32_t  id;           /* CAN frame identifier (0 = slot empty) */
+    uint8_t   dlc;          /* Data length code (0–8) */
+    uint8_t   bus;          /* can_bus_t source bus */
+    uint8_t   data[8];      /* Last-seen raw payload bytes */
+    uint32_t  timestamp_ms; /* esp_timer_get_time() / 1000 at capture */
+} can_state_entry_t;
+
+const can_state_entry_t *can_state_cache_get(void);
+void can_state_cache_lock(void);
+void can_state_cache_unlock(void);
 #endif

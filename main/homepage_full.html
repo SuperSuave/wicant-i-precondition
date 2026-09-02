@@ -4105,12 +4105,280 @@
         }
 
         // ==========================================================================
+        // CAN STATE MONITOR WIDGET & PAYLOAD PATTERN MATCHING
+        // ==========================================================================
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function parseCandoPattern(patternStr) {
+            if (!patternStr || typeof patternStr !== "string") return [];
+            return patternStr.trim().split(/\s+/).map(tok => {
+                if (tok === '*') return { type: 'any' };
+                if (tok.startsWith('!')) {
+                    return { type: 'not', value: parseInt(tok.slice(1), 16) };
+                }
+                if (tok.endsWith('*')) {
+                    return { type: 'nibble_hi', value: parseInt(tok[0], 16) };
+                }
+                if (tok.startsWith('*')) {
+                    return { type: 'nibble_lo', value: parseInt(tok[1], 16) };
+                }
+                return { type: 'eq', value: parseInt(tok, 16) };
+            });
+        }
+
+        function matchCandoPayload(hexData, tokens) {
+            if (!hexData || !tokens || tokens.length === 0) return false;
+            if (hexData.length < tokens.length * 2) return false;
+            for (let i = 0; i < tokens.length; i++) {
+                const byteStr = hexData.slice(i * 2, i * 2 + 2);
+                const byteVal = parseInt(byteStr, 16);
+                if (isNaN(byteVal)) return false;
+                const tok = tokens[i];
+                if (tok.type === 'any') continue;
+                if (tok.type === 'eq' && byteVal !== tok.value) return false;
+                if (tok.type === 'not' && byteVal === tok.value) return false;
+                if (tok.type === 'nibble_hi' && (byteVal >> 4) !== tok.value) return false;
+                if (tok.type === 'nibble_lo' && (byteVal & 0x0F) !== tok.value) return false;
+            }
+            return true;
+        }
+
+        function getCandoMonitorableItems() {
+            const items = [];
+            if (!CANDO_CATALOG || !Array.isArray(CANDO_CATALOG.vehicles)) return items;
+            CANDO_CATALOG.vehicles.forEach(v => {
+                if (!Array.isArray(v.categories)) return;
+                v.categories.forEach(cat => {
+                    if (!Array.isArray(cat.presets)) return;
+                    cat.presets.forEach(p => {
+                        if (p.can_id && (p.match_payload || (Array.isArray(p.options) && p.options.some(o => o.match_payload)))) {
+                            items.push({
+                                id: p.id,
+                                name: p.name,
+                                category: cat.category,
+                                can_id: p.can_id,
+                                match_payload: p.match_payload,
+                                options: p.options
+                            });
+                        }
+                    });
+                });
+            });
+            return items;
+        }
+
+        function getCandoStateWidgets() {
+            try {
+                const saved = localStorage.getItem("wican_state_widgets");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) return parsed;
+                }
+            } catch (e) { }
+            return [
+                { id: "mon_0", catalogId: "cond_power_on", label: "Ignition State" },
+                { id: "mon_1", catalogId: "cond_driver_door_open", label: "Driver Door" }
+            ];
+        }
+
+        function saveCandoStateWidgets(arr) {
+            try {
+                localStorage.setItem("wican_state_widgets", JSON.stringify(arr));
+            } catch (e) { }
+            renderDashboardGrid();
+            updateCandoStateWidgets();
+        }
+
+        function addCandoStateWidget() {
+            const select = document.getElementById("dash_can_mon_picker_select");
+            const labelInput = document.getElementById("dash_can_mon_label_input");
+            if (!select || !select.value) return;
+            const catalogId = select.value;
+            const customLabel = labelInput ? labelInput.value.trim() : "";
+            const widgets = getCandoStateWidgets();
+            const newId = "mon_" + Date.now();
+            widgets.push({ id: newId, catalogId: catalogId, label: customLabel });
+            saveCandoStateWidgets(widgets);
+            showNotification("Added CAN State Monitor widget!", "green", 2500);
+        }
+
+        function removeCandoStateWidget(idx) {
+            const widgets = getCandoStateWidgets();
+            if (idx >= 0 && idx < widgets.length) {
+                widgets.splice(idx, 1);
+                saveCandoStateWidgets(widgets);
+                showNotification("Removed CAN State Monitor card.", "green", 2500);
+            }
+        }
+
+        window._candoStateCache = {};
+
+        async function updateCandoStateWidgets() {
+            try {
+                const res = await fetch("/api/can_states");
+                if (res.ok) {
+                    const data = await res.json();
+                    window._candoStateCache = data;
+                    renderCandoStateMonitorCardUpdates();
+                }
+            } catch (e) {
+                console.log("Error fetching /api/can_states:", e);
+            }
+        }
+
+        function renderCandoStateMonitorWidgetHTML(isEditMode) {
+            const widgets = getCandoStateWidgets();
+            const availableItems = getCandoMonitorableItems();
+
+            let html = `
+            <div class="dash-card-header">
+                <span class="dash-card-title">
+                    <span style="font-size: 1.2rem;">📡</span> CAN State Monitor
+                </span>
+                <div class="dash-card-actions">
+                    <span class="dash-badge badge-blue">${widgets.length} Watched</span>
+                    ${renderWidgetEditControlsHTML('can_state_monitor', isEditMode)}
+                </div>
+            </div>`;
+
+            if (widgets.length === 0) {
+                html += `
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem 0;">
+                    No CAN signals currently monitored. Select a signal below to begin live tracking.
+                </div>`;
+            } else {
+                html += `<div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.8rem;">`;
+                widgets.forEach((mon, idx) => {
+                    html += `
+                    <div id="can_mon_card_${idx}" class="dash-outline-btn" style="display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem; cursor: default; padding: 0.6rem 0.8rem; height: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-heading);">${escapeHtml(mon.label || mon.catalogId)}</span>
+                            <span id="can_mon_badge_${idx}" class="dash-badge badge-gray">Waiting...</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+                            <span id="can_mon_meta_${idx}">CAN ID: --</span>
+                            <span id="can_mon_age_${idx}">Age: --</span>
+                        </div>
+                        ${isEditMode ? `<div style="text-align: right; margin-top: 0.2rem;"><button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeCandoStateWidget(${idx})" title="Remove this monitored item">🗑️ Remove</button></div>` : ''}
+                    </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Picker UI for adding a new item
+            html += `
+            <div style="border-top: 1px dashed var(--dash-border, #cbd5e1); padding-top: 0.6rem; margin-top: 0.4rem;">
+                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-heading); margin-bottom: 0.3rem;">➕ Monitor New Signal</div>
+                <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                    <select id="dash_can_mon_picker_select" style="width: 100%; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #ffffff); color: var(--text-main, #000000);">
+                        ${availableItems.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.category ? item.category + ' - ' + item.name : item.name)} (${escapeHtml(item.can_id)})</option>`).join("")}
+                    </select>
+                    <div style="display: flex; gap: 0.4rem;">
+                        <input type="text" id="dash_can_mon_label_input" placeholder="Custom Label (Optional)" style="flex: 1; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #ffffff); color: var(--text-main, #000000);" />
+                        <button type="button" onclick="addCandoStateWidget()" class="dash-outline-btn" style="cursor: pointer; padding: 0.4rem 0.8rem; font-size: 0.82rem;">Add</button>
+                    </div>
+                </div>
+            </div>`;
+
+            return html;
+        }
+
+        function renderCandoStateMonitorCardUpdates() {
+            const widgets = getCandoStateWidgets();
+            const availableItems = getCandoMonitorableItems();
+            const cache = window._candoStateCache || {};
+
+            widgets.forEach((mon, idx) => {
+                const badgeEl = document.getElementById(`can_mon_badge_${idx}`);
+                const metaEl = document.getElementById(`can_mon_meta_${idx}`);
+                const ageEl = document.getElementById(`can_mon_age_${idx}`);
+                if (!badgeEl || !metaEl || !ageEl) return;
+
+                const catItem = availableItems.find(i => i.id === mon.catalogId);
+                if (!catItem) {
+                    badgeEl.textContent = "Unknown ID";
+                    badgeEl.className = "dash-badge badge-gray";
+                    metaEl.textContent = "Item not in catalog";
+                    ageEl.textContent = "";
+                    return;
+                }
+
+                const canIdStr = catItem.can_id ? catItem.can_id.toUpperCase() : "";
+                metaEl.textContent = `CAN ${canIdStr}`;
+
+                const canKey = canIdStr ? ("0x" + parseInt(canIdStr, 16).toString(16).toUpperCase()) : "";
+                const stateData = cache[canKey] || cache[canKey.toLowerCase()] || cache[canIdStr] || cache[canIdStr.toLowerCase()];
+
+                if (!stateData || !stateData.data) {
+                    badgeEl.textContent = "No Frame";
+                    badgeEl.className = "dash-badge badge-yellow";
+                    ageEl.textContent = "Waiting for CAN...";
+                    return;
+                }
+
+                const ageMs = stateData.age_ms || 0;
+                ageEl.textContent = formatAge(ageMs) + " ago";
+
+                let matchedLabel = null;
+                let isMatch = false;
+
+                if (Array.isArray(catItem.options) && catItem.options.length > 0) {
+                    for (const opt of catItem.options) {
+                        if (opt.match_payload) {
+                            const tokens = parseCandoPattern(opt.match_payload);
+                            if (matchCandoPayload(stateData.data, tokens)) {
+                                matchedLabel = opt.label || "Active";
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                    }
+                } else if (catItem.match_payload) {
+                    const tokens = parseCandoPattern(catItem.match_payload);
+                    if (matchCandoPayload(stateData.data, tokens)) {
+                        matchedLabel = "Active / Match";
+                        isMatch = true;
+                    } else {
+                        matchedLabel = "Idle / Inactive";
+                        isMatch = false;
+                    }
+                }
+
+                if (ageMs > 15000) {
+                    badgeEl.textContent = (matchedLabel || "Stale") + " (Stale)";
+                    badgeEl.className = "dash-badge badge-yellow";
+                } else if (isMatch) {
+                    badgeEl.textContent = matchedLabel || "Active";
+                    badgeEl.className = "dash-badge badge-green";
+                } else {
+                    badgeEl.textContent = matchedLabel || "Inactive";
+                    badgeEl.className = "dash-badge badge-gray";
+                }
+            });
+        }
+
+        // ==========================================================================
         // DYNAMIC WIDGET DASHBOARD SYSTEM
         // ==========================================================================
         window._dashEditMode = false;
         window._lastStatusObj = null;
 
         const DASH_WIDGET_CATALOG = {
+            can_state_monitor: {
+                id: "can_state_monitor",
+                name: "CAN State Monitor",
+                icon: "📡",
+                category: "Monitoring",
+                render: function (isEditMode) {
+                    return renderCandoStateMonitorWidgetHTML(isEditMode);
+                },
+                update: function (obj) {
+                    updateCandoStateWidgets();
+                }
+            },
             batt_12v: {
                 id: "batt_12v",
                 name: "12V Auxiliary Battery",

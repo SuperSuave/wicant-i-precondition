@@ -2113,6 +2113,72 @@ static const httpd_uri_t scan_available_pids_uri = {
     .handler   = scan_available_pids_handler,
     .user_ctx  = NULL
 };
+
+#define CAN_STATES_BUF_SIZE 7168
+
+static esp_err_t can_states_handler(httpd_req_t *req)
+{
+    /* Take a fast local snapshot of the cache under lock (~2.3 KB memcpy = < 5 µs) */
+    can_state_entry_t snapshot[CAN_STATE_CACHE_SIZE];
+
+    can_state_cache_lock();
+    const can_state_entry_t *cache = can_state_cache_get();
+    memcpy(snapshot, cache, sizeof(snapshot));
+    can_state_cache_unlock(); /* Release lock immediately */
+
+    char *buf = malloc(CAN_STATES_BUF_SIZE);
+    if (!buf) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "OOM");
+        return ESP_FAIL;
+    }
+
+    int pos = 0;
+    pos += snprintf(buf + pos, CAN_STATES_BUF_SIZE - pos, "{");
+    bool first = true;
+    uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
+
+    for (int i = 0; i < CAN_STATE_CACHE_SIZE; i++) {
+        if (snapshot[i].id == 0) continue;
+
+        char hex[17] = {0};
+        for (int b = 0; b < snapshot[i].dlc && b < 8; b++) {
+            snprintf(hex + b * 2, 3, "%02X", snapshot[i].data[b]);
+        }
+
+        uint32_t age = (now_ms >= snapshot[i].timestamp_ms) ?
+                       (now_ms - snapshot[i].timestamp_ms) : 0;
+
+        if (pos >= CAN_STATES_BUF_SIZE - 2) break;
+
+        int needed = snprintf(buf + pos, CAN_STATES_BUF_SIZE - pos,
+            "%s\"0x%X\":{\"data\":\"%s\",\"dlc\":%u,\"bus\":%u,\"age_ms\":%lu}",
+            first ? "" : ",",
+            (unsigned int)snapshot[i].id, hex,
+            snapshot[i].dlc, snapshot[i].bus,
+            (unsigned long)age);
+
+        if (needed < 0 || pos + needed >= CAN_STATES_BUF_SIZE - 1) {
+            break;
+        }
+
+        pos += needed;
+        first = false;
+    }
+
+    snprintf(buf + pos, CAN_STATES_BUF_SIZE - pos, "}");
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, buf, HTTPD_RESP_USE_STRLEN);
+    free(buf);
+    return ESP_OK;
+}
+
+static const httpd_uri_t can_states_uri = {
+    .uri       = "/api/can_states",
+    .method    = HTTP_GET,
+    .handler   = can_states_handler,
+    .user_ctx  = NULL
+};
 static void config_server_load_cfg(char *cfg)
 {
 	cJSON * root, *key = 0;
@@ -2961,6 +3027,7 @@ static httpd_handle_t config_server_init(void)
 		httpd_register_uri_handler(server, &load_car_config_uri);
 		httpd_register_uri_handler(server, &store_car_data_uri);
 		httpd_register_uri_handler(server, &scan_available_pids_uri);
+		httpd_register_uri_handler(server, &can_states_uri);
 		ha_webhooks_register_handlers(server);
         #if CONFIG_EXAMPLE_BASIC_AUTH
         httpd_register_basic_auth(server);
@@ -3010,6 +3077,7 @@ void config_server_restart(void)
 		httpd_register_uri_handler(server, &load_car_config_uri);
 		httpd_register_uri_handler(server, &store_car_data_uri);
 		httpd_register_uri_handler(server, &scan_available_pids_uri);
+		httpd_register_uri_handler(server, &can_states_uri);
 		ha_webhooks_register_handlers(server);
         return;
     }

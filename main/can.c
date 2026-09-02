@@ -124,6 +124,45 @@ static TaskHandle_t can_recovery_task_handle = NULL;
 static volatile uint32_t can_busoff_pending;	// bitmask, set from ISR
 static uint32_t can_busoff_count[CAN_BUS_COUNT];
 
+static can_state_entry_t s_can_state_cache[CAN_STATE_CACHE_SIZE];
+static SemaphoreHandle_t s_can_state_mutex = NULL;
+static uint8_t s_can_state_count = 0;
+
+static void can_state_cache_update(const twai_message_t *msg, can_bus_t bus)
+{
+	if (s_can_state_mutex == NULL) return;
+	uint32_t now_ms = (uint32_t)(esp_timer_get_time() / 1000);
+	if (xSemaphoreTake(s_can_state_mutex, pdMS_TO_TICKS(10)) != pdTRUE) return;
+
+	int slot = -1;
+	for (int i = 0; i < s_can_state_count; i++) {
+		if (s_can_state_cache[i].id == msg->identifier &&
+			s_can_state_cache[i].bus == (uint8_t)bus) {
+			slot = i;
+			break;
+		}
+	}
+
+	if (slot == -1 && s_can_state_count < CAN_STATE_CACHE_SIZE) {
+		slot = s_can_state_count++;
+		s_can_state_cache[slot].id  = msg->identifier;
+		s_can_state_cache[slot].bus = (uint8_t)bus;
+	}
+
+	if (slot != -1) {
+		uint8_t len = msg->data_length_code > 8 ? 8 : msg->data_length_code;
+		s_can_state_cache[slot].dlc          = len;
+		s_can_state_cache[slot].timestamp_ms = now_ms;
+		memcpy(s_can_state_cache[slot].data, msg->data, len);
+	}
+
+	xSemaphoreGive(s_can_state_mutex);
+}
+
+const can_state_entry_t *can_state_cache_get(void)    { return s_can_state_cache; }
+void can_state_cache_lock(void)                        { if (s_can_state_mutex) xSemaphoreTake(s_can_state_mutex, portMAX_DELAY); }
+void can_state_cache_unlock(void)                      { if (s_can_state_mutex) xSemaphoreGive(s_can_state_mutex); }
+
 // Callback to receive frames from driver (ISR context): drain the frame out
 // of the hardware, tag it with its bus, and hand it to can_receive() via the
 // shared queue--all protocol work happens later in task context
@@ -651,6 +690,7 @@ void can_init(void)
 		return;
 	}
 
+	s_can_state_mutex = xSemaphoreCreateMutex();
 	s_can_event_group = xEventGroupCreate();
 	// Deeper than the legacy driver's 100: at 500 kbit/s a saturated bus
 	// delivers ~4 frames/ms, so 256 rides out multi-ms scheduling stalls of
@@ -716,6 +756,7 @@ esp_err_t can_receive(twai_message_t *message, can_bus_t *bus, TickType_t ticks_
 	{
 		*bus = item.bus;
 	}
+	can_state_cache_update(&item.msg, item.bus);
 	cando_process_rx_frame(&item.msg, (uint8_t)item.bus);
 	return ESP_OK;
 }

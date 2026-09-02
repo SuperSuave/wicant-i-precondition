@@ -3928,16 +3928,18 @@
 
         function submit_enable() {
             console.log("sumbit_enable");
-            if (document.getElementById("wifi_mode").value == "AP") {
-                document.getElementById("ssid_value").disabled = true;
-                document.getElementById("pass_value").disabled = true;
-                document.getElementById("sta_security").disabled = true;
+            const isAp = (document.getElementById("wifi_mode").value == "AP");
+            const ssidEl = document.getElementById("ssid_value");
+            const passEl = document.getElementById("pass_value");
+            const secEl = document.getElementById("sta_security");
+            if (ssidEl) ssidEl.disabled = isAp;
+            if (passEl) passEl.disabled = isAp;
+            if (secEl) secEl.disabled = isAp;
+
+            if (isAp) {
                 document.getElementById("ble_status").disabled = false;
                 document.getElementById("ap_auto_disable").disabled = true;
             } else {
-                document.getElementById("ssid_value").disabled = false;
-                document.getElementById("pass_value").disabled = false;
-                document.getElementById("sta_security").disabled = false;
                 document.getElementById("ble_status").disabled = true;
                 document.getElementById("ble_status").selectedIndex = "1";
             }
@@ -3960,7 +3962,7 @@
             if (apPass.length < 8 || apPass.length > 63) {
                 showNotification("AP password len, min=8 max=63", "red");
                 document.getElementById("submit_button").disabled = true;
-            } else if (!isApMode && getStaNetworksData().length === 0 && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
+            } else if (!isApMode && getStaNetworksData().length === 0 && document.getElementById("ssid_value") && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
                 showNotification("At least 1 Station SSID required (min=1 max=32)", "red");
                 document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 32) {
@@ -5819,16 +5821,16 @@
                 var obj = JSON.parse(this.responseText);
                 if (obj.wifi_mode == "APStation") {
                     document.getElementById("wifi_mode").selectedIndex = "1";
-                    document.getElementById("ssid_value").disabled = false;
-                    document.getElementById("pass_value").disabled = false;
-                    document.getElementById("sta_security").disabled = false;
-                    document.getElementById("ap_auto_disable").disabled = false;
                 } else if (obj.wifi_mode == "AP") {
                     document.getElementById("wifi_mode").selectedIndex = "0";
-                    document.getElementById("ssid_value").disabled = true;
-                    document.getElementById("pass_value").disabled = true;
-                    document.getElementById("ap_auto_disable").disabled = true;
                 }
+                const isAp = (obj.wifi_mode == "AP");
+                const ssidEl = document.getElementById("ssid_value");
+                const passEl = document.getElementById("pass_value");
+                const secEl = document.getElementById("sta_security");
+                if (ssidEl) ssidEl.disabled = isAp;
+                if (passEl) passEl.disabled = isAp;
+                if (secEl) secEl.disabled = isAp;
 
                 if (obj.ap_auto_disable == "enable") {
                     document.getElementById("ap_auto_disable").selectedIndex = "0";

@@ -43,26 +43,42 @@ style="padding: 5px 8px; font-size: 0.8rem; font-weight: 600; border-radius: 6px
 <div class="content">
 <div id="notification" class="notification-container"></div>
 <div id="dashboard_tab" class="tabcontent">
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
+<div
+style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
 <div>
-<div class="section-title" style="margin: 0; border-bottom: none; padding-bottom: 0;">Live Dashboard</div>
-<div class="dash-meta-text" style="margin-top: 2px;">Real-time vehicle telemetry, power, and connectivity overview</div>
+<div class="section-title" style="margin: 0; border-bottom: none; padding-bottom: 0;">Live Dashboard
+</div>
+<div class="dash-meta-text" style="margin-top: 2px;">Real-time vehicle telemetry, power, and
+connectivity overview</div>
 </div>
 <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
 <span id="dash_profile_pill" class="dash-pill dash-pill-primary">🚗 All Gen5W</span>
 <span id="dash_time_pill" class="dash-pill dash-pill-neutral">🕒 --:--:--</span>
-<button type="button" id="dash_edit_btn" onclick="toggleDashboardEditMode()" class="dash-outline-btn" style="padding: 4px 12px; font-size: 0.8rem; height: auto; cursor: pointer;" title="Customize, reorder, or add dashboard widgets">✏️ Customize</button>
-<button type="button" onclick="checkStatus(); showNotification('Refreshing dashboard telemetry...', 'blue', 1500);" class="dash-action-btn" style="padding: 4px 12px; font-size: 0.8rem; height: auto;">🔄 Refresh</button>
+<button type="button" id="dash_edit_btn" onclick="toggleDashboardEditMode()"
+class="dash-outline-btn"
+style="padding: 4px 12px; font-size: 0.8rem; height: auto; cursor: pointer;"
+title="Customize, reorder, or add dashboard widgets">✏️ Customize</button>
+<button type="button"
+onclick="checkStatus(); showNotification('Refreshing dashboard telemetry...', 'blue', 1500);"
+class="dash-action-btn" style="padding: 4px 12px; font-size: 0.8rem; height: auto;">🔄
+Refresh</button>
 </div>
 </div>
-<div id="dash_edit_toolbar" style="display: none; align-items: center; justify-content: space-between; background: var(--md-sys-color-surface-container-low); border: 1px dashed var(--border-color); border-radius: var(--m3-shape-md); padding: 0.6rem 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.6rem;">
-<div style="font-size: 0.84rem; font-weight: 600; color: var(--text-heading); display: flex; align-items: center; gap: 0.4rem;">
+<div id="dash_edit_toolbar"
+style="display: none; align-items: center; justify-content: space-between; background: var(--md-sys-color-surface-container-low); border: 1px dashed var(--border-color); border-radius: var(--m3-shape-md); padding: 0.6rem 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.6rem;">
+<div
+style="font-size: 0.84rem; font-weight: 600; color: var(--text-heading); display: flex; align-items: center; gap: 0.4rem;">
 <span>🛠️ Customize Dashboard:</span>
-<span style="font-size: 0.78rem; color: var(--text-muted); font-weight: normal;">Use ▲ / ▼ to reorder, 🗑️ to remove, or add new widgets</span>
+<span style="font-size: 0.78rem; color: var(--text-muted); font-weight: normal;">Use ▲ / ▼ to
+reorder, 🗑️ to remove, or add new widgets</span>
 </div>
 <div style="display: flex; align-items: center; gap: 0.5rem;">
-<button type="button" onclick="resetDashboardWidgets()" class="system-button" style="padding: 3px 10px; font-size: 0.75rem; background: var(--gray-200); color: var(--text-heading); border: 1px solid var(--border-color); cursor: pointer;" title="Restore default 6-widget layout">🔄 Reset to Defaults</button>
-<button type="button" onclick="toggleDashboardEditMode()" class="system-button" style="padding: 3px 14px; font-size: 0.75rem; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); font-weight: 700; cursor: pointer;">✓ Done Editing</button>
+<button type="button" onclick="resetDashboardWidgets()" class="system-button"
+style="padding: 3px 10px; font-size: 0.75rem; background: var(--gray-200); color: var(--text-heading); border: 1px solid var(--border-color); cursor: pointer;"
+title="Restore default 6-widget layout">🔄 Reset to Defaults</button>
+<button type="button" onclick="toggleDashboardEditMode()" class="system-button"
+style="padding: 3px 14px; font-size: 0.75rem; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); font-weight: 700; cursor: pointer;">✓
+Done Editing</button>
 </div>
 </div>
 <div id="dash_grid_container" class="dash-grid"></div>
@@ -2033,16 +2049,17 @@ el.disabled = isApOnly;
 function sta_enable() { }
 function submit_enable() {
 console.log("sumbit_enable");
-if (document.getElementById("wifi_mode").value == "AP") {
-document.getElementById("ssid_value").disabled = true;
-document.getElementById("pass_value").disabled = true;
-document.getElementById("sta_security").disabled = true;
+const isAp = (document.getElementById("wifi_mode").value == "AP");
+const ssidEl = document.getElementById("ssid_value");
+const passEl = document.getElementById("pass_value");
+const secEl = document.getElementById("sta_security");
+if (ssidEl) ssidEl.disabled = isAp;
+if (passEl) passEl.disabled = isAp;
+if (secEl) secEl.disabled = isAp;
+if (isAp) {
 document.getElementById("ble_status").disabled = false;
 document.getElementById("ap_auto_disable").disabled = true;
 } else {
-document.getElementById("ssid_value").disabled = false;
-document.getElementById("pass_value").disabled = false;
-document.getElementById("sta_security").disabled = false;
 document.getElementById("ble_status").disabled = true;
 document.getElementById("ble_status").selectedIndex = "1";
 }
@@ -2065,7 +2082,7 @@ const apPass = document.getElementById("ap_pass_value").value;
 if (apPass.length < 8 || apPass.length > 63) {
 showNotification("AP password len, min=8 max=63", "red");
 document.getElementById("submit_button").disabled = true;
-} else if (!isApMode && getStaNetworksData().length === 0 && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
+} else if (!isApMode && getStaNetworksData().length === 0 && document.getElementById("ssid_value") && (document.getElementById("ssid_value").value.length < 1 || document.getElementById("ssid_value").value.length > 32)) {
 showNotification("At least 1 Station SSID required (min=1 max=32)", "red");
 document.getElementById("submit_button").disabled = true;
 } else if (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 32) {
@@ -2245,24 +2262,25 @@ return true;
 }
 function getCandoMonitorableItems() {
 const items = [];
-if (!CANDO_CATALOG || !Array.isArray(CANDO_CATALOG.vehicles)) return items;
-CANDO_CATALOG.vehicles.forEach(v => {
-if (!Array.isArray(v.categories)) return;
-v.categories.forEach(cat => {
-if (!Array.isArray(cat.presets)) return;
-cat.presets.forEach(p => {
-if (p.can_id && (p.match_payload || (Array.isArray(p.options) && p.options.some(o => o.match_payload)))) {
+if (!CANDO_CATALOG || !Array.isArray(CANDO_CATALOG.commands)) return items;
+CANDO_CATALOG.commands.forEach(cmd => {
+if (!cmd || !cmd.can_id) return;
+const roles = cmd.roles || [];
+if (roles.length > 0 && !roles.includes("trigger") && !roles.includes("condition")) {
+return;
+}
+const matchPattern = cmd.match_payload || cmd.to_payload || cmd.from_payload;
+const hasOptions = Array.isArray(cmd.options) && cmd.options.some(o => o.match_payload || o.payload);
+if (matchPattern || hasOptions) {
 items.push({
-id: p.id,
-name: p.name,
-category: cat.category,
-can_id: p.can_id,
-match_payload: p.match_payload,
-options: p.options
+id: cmd.id || cmd.name,
+name: cmd.name,
+category: cmd.category || "General",
+can_id: cmd.can_id,
+match_payload: matchPattern,
+options: cmd.options
 });
 }
-});
-});
 });
 return items;
 }
@@ -2440,14 +2458,71 @@ const DASH_WIDGET_CATALOG = {
 can_state_monitor: {
 id: "can_state_monitor",
 name: "CAN State Monitor",
-icon: "📡",
+icon: "🛰️",
 category: "Monitoring",
-render: function (isEditMode) {
-return renderCandoStateMonitorWidgetHTML(isEditMode);
-},
-update: function (obj) {
-updateCandoStateWidgets();
+render: function (isEditMode, instanceId = "can_state_0") {
+const items = getCandoMonitorableItems();
+const grouped = {};
+items.forEach(it => {
+const cat = it.category || "General";
+if (!grouped[cat]) grouped[cat] = [];
+grouped[cat].push(it);
+});
+const watchedList = getWatchedCandoSignals(instanceId);
+let optionsHtml = '<option value="">-- Select CAN Signal --</option>';
+Object.keys(grouped).forEach(cat => {
+optionsHtml += `<optgroup label="${escapeHtml(cat)}">`;
+grouped[cat].forEach(it => {
+optionsHtml += `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.can_id)})</option>`;
+});
+optionsHtml += `</optgroup>`;
+});
+let watchedHtml = '';
+if (watchedList.length === 0) {
+watchedHtml = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 0.8rem 0;">No signals configured for this card. Select a signal below to begin tracking.</div>`;
+} else {
+watchedList.forEach((w, idx) => {
+const itemDef = items.find(i => i.id === w.catalogId);
+const title = w.customLabel || (itemDef ? itemDef.name : w.catalogId);
+const canId = itemDef ? itemDef.can_id : "--";
+watchedHtml += `
+<div class="dash-kv-row" style="padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);" data-signal-idx="${idx}">
+<div>
+<div style="font-size: 0.88rem; font-weight: 700; color: var(--text-heading);">${escapeHtml(title)}</div>
+<div class="dash-meta-text">CAN ID: <code style="font-weight: 700;">${escapeHtml(canId)}</code> · <span class="cando-age-label">Age: --</span></div>
+</div>
+<div style="display: flex; align-items: center; gap: 0.4rem;">
+<span class="dash-badge badge-gray cando-state-badge">Waiting...</span>
+<button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeWatchedCandoSignal('${instanceId}', ${idx})" title="Remove signal from card" style="width: 20px; height: 20px; font-size: 0.65rem;">🗑️</button>
+</div>
+</div>`;
+});
 }
+return `
+<div class="dash-card-header">
+<span class="dash-card-title">
+<span style="font-size: 1.2rem;">🛰️</span> CAN State Monitor
+</span>
+<div class="dash-card-actions">
+<span class="dash-badge badge-blue">${watchedList.length} Watched</span>
+${renderWidgetEditControlsHTML(instanceId, isEditMode)}
+</div>
+</div>
+<div class="dash-kv-list cando-watched-container" style="margin-bottom: 0.6rem;">
+${watchedHtml}
+</div>
+<div style="display: flex; flex-direction: column; gap: 0.4rem; border-top: 1px dashed var(--border-color); padding-top: 0.6rem;">
+<div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">➕ Monitor New Signal</div>
+<div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+<select class="cando-signal-picker" style="flex: 1; min-width: 160px; font-size: 0.8rem; padding: 4px 8px; height: 32px;">
+${optionsHtml}
+</select>
+<button type="button" class="dash-outline-btn" style="padding: 4px 12px; font-size: 0.78rem; height: 32px; cursor: pointer;" onclick="addWatchedCandoSignal('${instanceId}', this)">Add</button>
+</div>
+<input type="text" class="cando-signal-label" placeholder="Custom Label (Optional)" style="font-size: 0.78rem; padding: 4px 8px; height: 28px; width: 100%; box-sizing: border-box;">
+</div>`;
+},
+update: function () { }
 },
 batt_12v: {
 id: "batt_12v",
@@ -2879,17 +2954,68 @@ ${renderWidgetEditControlsHTML('quick_actions', isEditMode)}
 </button>
 </div>`;
 },
-update: function (obj) {}
+update: function (obj) { }
 }
 };
 const DEFAULT_DASH_WIDGETS = ["batt_12v", "hv_battery", "precon", "cando", "network", "can_hw"];
+function getWatchedCandoSignals(instanceId) {
+try {
+const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
+return store[instanceId] || [];
+} catch (e) { return []; }
+}
+function saveWatchedCandoSignals(instanceId, list) {
+try {
+const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
+store[instanceId] = list;
+localStorage.setItem("wican_state_widgets", JSON.stringify(store));
+} catch (e) { }
+}
+function addWatchedCandoSignal(instanceId, btnElem) {
+const card = btnElem.closest(".dash-card");
+if (!card) return;
+const picker = card.querySelector(".cando-signal-picker");
+const labelInput = card.querySelector(".cando-signal-label");
+const catalogId = picker ? picker.value : "";
+const customLabel = labelInput ? labelInput.value.trim() : "";
+if (!catalogId) {
+showNotification("Please select a CAN signal to monitor", "yellow", 2500);
+return;
+}
+const list = getWatchedCandoSignals(instanceId);
+list.push({ catalogId: catalogId, customLabel: customLabel });
+saveWatchedCandoSignals(instanceId, list);
+if (labelInput) labelInput.value = "";
+if (picker) picker.value = "";
+renderDashboardGrid();
+if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
+showNotification("Added signal to monitor card!", "green", 2000);
+}
+function removeWatchedCandoSignal(instanceId, signalIdx) {
+const list = getWatchedCandoSignals(instanceId);
+if (signalIdx >= 0 && signalIdx < list.length) {
+list.splice(signalIdx, 1);
+saveWatchedCandoSignals(instanceId, list);
+renderDashboardGrid();
+if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
+}
+}
+function getWidgetDef(instanceId) {
+if (DASH_WIDGET_CATALOG[instanceId]) {
+return DASH_WIDGET_CATALOG[instanceId];
+}
+if (instanceId.startsWith("can_state_")) {
+return DASH_WIDGET_CATALOG.can_state_monitor;
+}
+return null;
+}
 function getDashboardWidgetLayout() {
 try {
 const saved = localStorage.getItem("wican_dash_widgets");
 if (saved) {
 const parsed = JSON.parse(saved);
 if (Array.isArray(parsed) && parsed.length > 0) {
-return parsed.filter(id => DASH_WIDGET_CATALOG[id]);
+return parsed.filter(id => DASH_WIDGET_CATALOG[id] || id.startsWith("can_state_"));
 }
 }
 } catch (e) { }
@@ -2938,21 +3064,36 @@ layout.splice(idx, 1);
 layout.splice(newIdx, 0, widgetId);
 saveDashboardWidgetLayout(layout);
 }
-function removeDashboardWidget(widgetId) {
+function removeDashboardWidget(instanceId) {
 const layout = getDashboardWidgetLayout();
-const filtered = layout.filter(id => id !== widgetId);
+const filtered = layout.filter(id => id !== instanceId);
 if (filtered.length === 0) {
 showNotification("Cannot remove all widgets. At least 1 widget must remain.", "red", 3000);
 return;
 }
+if (instanceId.startsWith("can_state_")) {
+try {
+const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
+delete store[instanceId];
+localStorage.setItem("wican_state_widgets", JSON.stringify(store));
+} catch (e) { }
+}
 saveDashboardWidgetLayout(filtered);
-const wName = DASH_WIDGET_CATALOG[widgetId]?.name || widgetId;
-showNotification(`Hidden widget: ${wName}`, "blue", 2500);
+showNotification("Removed widget card from dashboard", "blue", 2500);
 }
 function addDashboardWidget(widgetId) {
-if (!widgetId || !DASH_WIDGET_CATALOG[widgetId]) return;
+if (!widgetId) return;
 const layout = getDashboardWidgetLayout();
-if (!layout.includes(widgetId)) {
+if (widgetId === "can_state_monitor" || widgetId.startsWith("can_state_")) {
+let nextIdx = 0;
+while (layout.includes(`can_state_${nextIdx}`)) nextIdx++;
+const newInstId = `can_state_${nextIdx}`;
+layout.push(newInstId);
+saveDashboardWidgetLayout(layout);
+showNotification("Added new CAN State Monitor card!", "green", 2500);
+return;
+}
+if (!layout.includes(widgetId) && DASH_WIDGET_CATALOG[widgetId]) {
 layout.push(widgetId);
 saveDashboardWidgetLayout(layout);
 showNotification(`Added widget: ${DASH_WIDGET_CATALOG[widgetId].name}!`, "green", 2500);
@@ -2971,20 +3112,19 @@ const container = document.getElementById("dash_grid_container");
 if (!container) return;
 const layout = getDashboardWidgetLayout();
 container.innerHTML = "";
-layout.forEach(widgetId => {
-const w = DASH_WIDGET_CATALOG[widgetId];
+layout.forEach(instanceId => {
+const w = getWidgetDef(instanceId);
 if (!w) return;
 const card = document.createElement("div");
 card.className = "dash-card";
-card.setAttribute("data-widget-id", widgetId);
-card.innerHTML = w.render(window._dashEditMode);
+card.setAttribute("data-widget-id", instanceId);
+card.innerHTML = w.render(window._dashEditMode, instanceId);
 container.appendChild(card);
 });
 if (window._dashEditMode) {
-const inactiveWidgets = Object.keys(DASH_WIDGET_CATALOG).filter(id => !layout.includes(id));
+const inactiveWidgets = Object.keys(DASH_WIDGET_CATALOG).filter(id => id === "can_state_monitor" || !layout.includes(id));
 const addCard = document.createElement("div");
 addCard.className = "dash-add-widget-card";
-if (inactiveWidgets.length > 0) {
 addCard.innerHTML = `
 <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-heading);">➕ Add Widget to Dashboard</div>
 <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 280px;">Select an available widget from the catalog to add to your grid:</div>
@@ -2994,12 +3134,6 @@ ${inactiveWidgets.map(id => `<option value="${id}">${DASH_WIDGET_CATALOG[id].ico
 </select>
 <button type="button" class="system-button" onclick="addDashboardWidget(document.getElementById('dash_new_widget_select').value)" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; white-space: nowrap;">➕ Add</button>
 </div>`;
-} else {
-addCard.innerHTML = `
-<div style="font-size: 1.4rem;">🎉</div>
-<div style="font-weight: 700; font-size: 0.92rem; color: var(--text-heading);">All Widgets Active</div>
-<div style="font-size: 0.78rem; color: var(--text-muted);">All available widgets from the catalog are currently on your dashboard grid.</div>`;
-}
 container.appendChild(addCard);
 }
 }
@@ -3031,6 +3165,79 @@ if (timePill && devTime && devTime.textContent && devTime.textContent !== "--:--
 timePill.textContent = `🕒 ${devTime.textContent}`;
 }
 }
+function updateCandoStateWidgets() {
+const layout = getDashboardWidgetLayout();
+const monitorCards = layout.filter(id => id.startsWith("can_state_") || id === "can_state_monitor");
+if (monitorCards.length === 0) return;
+fetch("/api/can_states")
+.then(res => res.ok ? res.json() : null)
+.then(data => {
+if (!data || !data.states) return;
+window._candoStateCache = data.states;
+const items = getCandoMonitorableItems();
+monitorCards.forEach(instanceId => {
+const cardElem = document.querySelector(`.dash-card[data-widget-id="${instanceId}"]`);
+if (!cardElem) return;
+const watchedList = getWatchedCandoSignals(instanceId);
+const rowElems = cardElem.querySelectorAll(".cando-watched-container > .dash-kv-row");
+watchedList.forEach((w, idx) => {
+const row = rowElems[idx];
+if (!row) return;
+const badgeEl = row.querySelector(".cando-state-badge");
+const ageEl = row.querySelector(".cando-age-label");
+const itemDef = items.find(i => i.id === w.catalogId);
+if (!itemDef) {
+if (badgeEl) { badgeEl.textContent = "Unknown"; badgeEl.className = "dash-badge badge-gray cando-state-badge"; }
+if (ageEl) ageEl.textContent = "Age: --";
+return;
+}
+const canKey = itemDef.can_id.toLowerCase();
+const stateObj = data.states[canKey] || data.states[itemDef.can_id];
+if (!stateObj) {
+if (badgeEl) { badgeEl.textContent = "Waiting..."; badgeEl.className = "dash-badge badge-gray cando-state-badge"; }
+if (ageEl) ageEl.textContent = "Age: --";
+return;
+}
+const ageSec = Math.round((stateObj.age_ms || 0) / 1000);
+if (ageEl) ageEl.textContent = `Age: ${ageSec < 60 ? ageSec + 's' : Math.floor(ageSec / 60) + 'm'}`;
+let activeOption = null;
+if (itemDef.options && Array.isArray(itemDef.options)) {
+activeOption = itemDef.options.find(opt => {
+const pattern = opt.match_payload || opt.payload;
+if (!pattern) return false;
+const tokens = parseCandoPattern(pattern);
+return matchCandoPayload(stateObj.payload, tokens);
+});
+}
+if (activeOption) {
+if (badgeEl) {
+badgeEl.textContent = activeOption.label;
+badgeEl.className = "dash-badge badge-green cando-state-badge";
+}
+} else if (itemDef.match_payload) {
+const tokens = parseCandoPattern(itemDef.match_payload);
+const isMatch = matchCandoPayload(stateObj.payload, tokens);
+if (badgeEl) {
+badgeEl.textContent = isMatch ? "Active" : "Inactive";
+badgeEl.className = isMatch ? "dash-badge badge-green cando-state-badge" : "dash-badge badge-gray cando-state-badge";
+}
+} else {
+if (badgeEl) {
+badgeEl.textContent = "Seen";
+badgeEl.className = "dash-badge badge-blue cando-state-badge";
+}
+}
+});
+});
+})
+.catch(() => { });
+}
+setInterval(() => {
+const dashTab = document.getElementById("dashboard_tab");
+if (dashTab && dashTab.style.display !== "none") {
+updateCandoStateWidgets();
+}
+}, 3000);
 function checkStatus() {
 const xhttp = new XMLHttpRequest();
 xhttp.onload = function () {
@@ -3541,16 +3748,16 @@ xhttp.onload = function () {
 var obj = JSON.parse(this.responseText);
 if (obj.wifi_mode == "APStation") {
 document.getElementById("wifi_mode").selectedIndex = "1";
-document.getElementById("ssid_value").disabled = false;
-document.getElementById("pass_value").disabled = false;
-document.getElementById("sta_security").disabled = false;
-document.getElementById("ap_auto_disable").disabled = false;
 } else if (obj.wifi_mode == "AP") {
 document.getElementById("wifi_mode").selectedIndex = "0";
-document.getElementById("ssid_value").disabled = true;
-document.getElementById("pass_value").disabled = true;
-document.getElementById("ap_auto_disable").disabled = true;
 }
+const isAp = (obj.wifi_mode == "AP");
+const ssidEl = document.getElementById("ssid_value");
+const passEl = document.getElementById("pass_value");
+const secEl = document.getElementById("sta_security");
+if (ssidEl) ssidEl.disabled = isAp;
+if (passEl) passEl.disabled = isAp;
+if (secEl) secEl.disabled = isAp;
 if (obj.ap_auto_disable == "enable") {
 document.getElementById("ap_auto_disable").selectedIndex = "0";
 } else {

@@ -3533,7 +3533,10 @@
                     });
                 }
 
-                fetch('/store_car_data', {
+                // FIX: await so this completes before /store_auto_data and
+                // /store_config are sent, preventing ESP httpd connection-pool
+                // exhaustion that caused ERR_CONNECTION_RESET on /store_config.
+                await fetch('/store_car_data', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -5647,6 +5650,7 @@
             };
 
             xhttp.open("POST", "/store_config");
+            xhttp.setRequestHeader("Content-Type", "application/json");
             xhttp.send(configJSON);
         }
 
@@ -5861,9 +5865,10 @@
 
                 const webhookEnEl = document.getElementById("webhook_en");
                 if (webhookEnEl) {
+                    // FIX: use the stored value directly; do not silently fall
+                    // back to "enable" – that would discard a stored "disable".
                     const webhookModeFromCfg = obj.webhook_en || "enable";
-                    const hasWebhookOption = Array.from(webhookEnEl.options || []).some(o => o && o.value === webhookModeFromCfg);
-                    webhookEnEl.value = hasWebhookOption ? webhookModeFromCfg : "enable";
+                    webhookEnEl.value = webhookModeFromCfg;
                 }
                 if (obj.can_datarate == "5K") {
                     document.getElementById("can_datarate").selectedIndex = "0";

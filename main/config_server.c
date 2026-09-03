@@ -620,6 +620,10 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   if (requires_reboot) {
     const char *resp_str = "Configuration saved! Rebooting...";
     httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
+    // FIX: give the HTTP stack ~200 ms to flush the response before the
+    // device resets; without this the TCP connection is RST mid-close and
+    // the browser shows ERR_CONNECTION_RESET instead of the success text.
+    vTaskDelay(pdMS_TO_TICKS(200));
     xTimerStart(xrestartTimer, 0);
   } else {
     // Hot-reload dynamic subsystems

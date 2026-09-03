@@ -294,7 +294,7 @@ const char device_config_default[] = R"json({
 })json";
 static device_config_t device_config;
 TimerHandle_t xrestartTimer;
-static void config_server_load_cfg(char *cfg);
+static bool config_server_load_cfg(char *cfg);
 
 /* Max length a file path can have on storage */
 #if defined(CONFIG_LITTLEFS_OBJ_NAME_LEN)
@@ -603,11 +603,17 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
       if (device_config_file) {
         fread(device_config_file, 1, sz, rf);
         device_config_file[sz] = '\0';
-        config_server_load_cfg(device_config_file);
+        if (!config_server_load_cfg(device_config_file)) {
+          fclose(rf);
+          httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                              "Config validation failed - check field lengths");
+          return ESP_FAIL;
+        }
       }
     }
     fclose(rf);
   }
+
 
   bool requires_reboot =
       (strcmp(prev_cfg.wifi_mode, device_config.wifi_mode) != 0) ||
@@ -2275,7 +2281,7 @@ static const httpd_uri_t can_states_uri = {.uri = "/api/can_states",
                                            .method = HTTP_GET,
                                            .handler = can_states_handler,
                                            .user_ctx = NULL};
-static void config_server_load_cfg(char *cfg) {
+static bool config_server_load_cfg(char *cfg) {
   cJSON *root, *key = 0;
   root = cJSON_Parse(cfg);
   struct stat st;
@@ -2899,25 +2905,14 @@ static void config_server_load_cfg(char *cfg) {
   //*****
 
   cJSON_Delete(root);
-  return;
+  return true;
 
 config_error:
-  // Check if destination file exists before renaming
-
-  if (stat(FS_MOUNT_POINT "/config.json", &st) == 0) {
-    ESP_LOGE(TAG, "config.json file error, restoring default");
-    // Delete it if it exists
-    unlink(FS_MOUNT_POINT "/config.json");
-    FILE *f = fopen(FS_MOUNT_POINT "/config.json", "w");
-    // sprintf(device_config_default, device_id, device_id);
-    fprintf(f, device_config_default, (char *)device_id, (char *)device_id,
-            (char *)device_id);
-    fclose(f);
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
-    esp_restart();
-  }
+  ESP_LOGE(TAG, "config_server_load_cfg: validation failed — field too long or missing");
   cJSON_Delete(root);
+  return false;
 }
+
 
 void config_server_wifi_connected(bool flag) {
   if (flag) {

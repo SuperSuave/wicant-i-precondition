@@ -5604,9 +5604,14 @@
             obj["batt_alert_ssid"] = document.getElementById("batt_alert_ssid").value;
             obj["batt_alert_pass"] = document.getElementById("batt_alert_pass").value;
             obj["batt_alert_volt"] = document.getElementById("batt_alert_volt").value;
+            // Build MQTT URLs: strip any existing mqtt:// prefix first so that
+            // re-submits are idempotent (Load() strips the prefix into the input
+            // field, but defensive stripping here prevents double-prefixing if
+            // the field value somehow still has the scheme).
             obj["batt_alert_protocol"] = document.getElementById("batt_alert_protocol").value;
             let mqtt_txt = "mqtt://";
-            let mqtt_url_val = mqtt_txt.concat(document.getElementById("batt_alert_url").value);
+            let raw_batt_url = document.getElementById("batt_alert_url").value.replace(/^mqtt:\/\//, "");
+            let mqtt_url_val = mqtt_txt.concat(raw_batt_url);
             obj["batt_alert_url"] = mqtt_url_val;
             obj["batt_alert_port"] = document.getElementById("batt_alert_port").value;
             obj["batt_alert_topic"] = document.getElementById("batt_alert_topic").value;
@@ -5614,8 +5619,9 @@
             obj["batt_mqtt_user"] = document.getElementById("batt_mqtt_user").value;
             obj["batt_mqtt_pass"] = document.getElementById("batt_mqtt_pass").value;
             obj["mqtt_en"] = document.getElementById("mqtt_en").value;
-            let mqtt_txt2 = "mqtt://";
-            let mqtt_url_val2 = mqtt_txt.concat(document.getElementById("mqtt_url").value);
+            // FIX: was using mqtt_txt (shared with batt_alert) on the wrong variable mqtt_txt2.
+            let raw_mqtt_url = document.getElementById("mqtt_url").value.replace(/^mqtt:\/\//, "");
+            let mqtt_url_val2 = mqtt_txt.concat(raw_mqtt_url);
             obj["mqtt_url"] = mqtt_url_val2;
             obj["mqtt_port"] = document.getElementById("mqtt_port").value;
             obj["mqtt_user"] = document.getElementById("mqtt_user").value;

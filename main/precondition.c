@@ -1005,6 +1005,10 @@ static void push_precondition_state(void);
 
 static void precondition_global_tick(sm_t *sm) {
     track_popup_tick();
+    /* [UPSTREAM TRACKING - CAN DO MIGRATION]:
+     * Long-press hold evaluation is now handled by CAN Do.
+     */
+#if 0
     // long press mode: trigger once when the hold crosses the threshold, without
     // waiting for the release frame. state only becomes pressed via the rx hook,
     // so this does nothing when the activation button is disabled
@@ -1014,6 +1018,7 @@ static void precondition_global_tick(sm_t *sm) {
         button.long_press_fired = true;
         sm_send_event(sm, EV_TOGGLE);
     }
+#endif
     // web UI toggle requests are handled here, on the precondition task, so
     // the precondition state machine stays single-writer
     uint8_t toggle_cmd = 0;
@@ -1088,6 +1093,11 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
         xQueueOverwrite(battery_soc_queue, &soc);
     }
 
+    /* [UPSTREAM TRACKING - CAN DO MIGRATION]:
+     * Direct button sniffing is disabled in favor of CAN Do.
+     * If legacy direct button activation is re-enabled, uncomment below:
+     */
+#if 0
     int8_t precon_button_type = precon_config.button_type;
     if (precon_button_type == BUTTON_DISABLED) {
         // activation button disabled in config; don't listen for any button press
@@ -1115,6 +1125,7 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
         }
         button.pressed = false;
     }
+#endif
 }
 
 static fwd_result_t precondition_global_fwd(sm_t *sm, twai_message_t *to_send,
@@ -1166,7 +1177,13 @@ void precondition_toggle_request(void) {
 }
 
 void precondition_init(void) {
-    precon_config.button_type = config_server_precon_button();
+    /* [UPSTREAM TRACKING - CAN DO MIGRATION]:
+     * Direct button sniffing is disabled here in favor of the unified CAN Do automation engine.
+     * All button-activated preconditioning rules are now managed dynamically via CAN Do.
+     * To re-enable legacy direct button activation, uncomment the line below:
+     * precon_config.button_type = config_server_precon_button();
+     */
+    precon_config.button_type = BUTTON_DISABLED;
     precon_config.press_type = config_server_precon_press();
     precon_config.mode = config_server_precon_mode();
     precon_blockers = PRECONDITION_BLOCK_NONE;

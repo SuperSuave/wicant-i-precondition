@@ -10962,8 +10962,9 @@
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.2rem; padding-top: 0.8rem; border-top: 1px dashed var(--border-color);">
+                <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.2rem; padding-top: 0.8rem; border-top: 1px dashed var(--border-color); flex-wrap: wrap;">
                     <button type="button" class="system-button" onclick="testCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" title="Test all actions in this CAN Do rule">▶ Test Actions</button>
+                    <button type="button" class="system-button" onclick="exportSingleCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" title="Export this single rule as a JSON file to backup or share">📤 Export</button>
                     <button type="button" class="system-button" onclick="duplicateCandoRuleUI(this)" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;" title="Duplicate this CAN Do rule">📋 Clone</button>
                     <button type="button" class="system-button" onclick="saveCandoRulesUI(this)" style="padding: 0.4rem 1.1rem; font-size: 0.85rem;">💾 Save</button>
                 </div>
@@ -11036,9 +11037,22 @@
             `;
             }
             html += `
-            <button type="button" class="system-button" style="padding: 2px 6px; font-size: 0.7rem; height: 26px; background: #94a3b8; color: #ffffff; border: none; border-radius: 4px; margin-left: 4px;" onclick="clearByteInputs(this, '${prefixClass}')">Clear</button>
+            <div style="display: flex; gap: 3px; margin-left: 6px; align-items: center;">
+                <button type="button" class="system-button" style="padding: 2px 5px; font-size: 0.68rem; height: 26px; background: #64748b; color: #ffffff; border: none; border-radius: 4px;" title="Set all 8 bytes to 00" onclick="setByteGridPreset(this, '${prefixClass}', '00')">00</button>
+                <button type="button" class="system-button" style="padding: 2px 5px; font-size: 0.68rem; height: 26px; background: #64748b; color: #ffffff; border: none; border-radius: 4px;" title="Set all 8 bytes to FF" onclick="setByteGridPreset(this, '${prefixClass}', 'FF')">FF</button>
+                <button type="button" class="system-button" style="padding: 2px 6px; font-size: 0.68rem; height: 26px; background: #94a3b8; color: #ffffff; border: none; border-radius: 4px;" title="Clear all bytes to wildcard (*)" onclick="clearByteInputs(this, '${prefixClass}')">Clear</button>
+            </div>
         </div>`;
             return html;
+        }
+
+        function setByteGridPreset(btn, prefixClass, fillVal) {
+            const grid = btn.closest(`.${prefixClass}-grid`);
+            if (grid) {
+                grid.querySelectorAll(`.${prefixClass}-byte`).forEach(inp => inp.value = fillVal);
+                const card = btn.closest(".cando-rule-card");
+                if (card) updateCandoRuleSummaryPill(card);
+            }
         }
 
         function handleByteInput(input) {
@@ -11206,6 +11220,56 @@
             updateCandoSectionCountBadges(card);
         }
 
+        function extractCandoTriggerData(item) {
+            const fromPayload = getByteGridString(item, "cando-trig-from");
+            const toPayload = getByteGridString(item, "cando-trig-to");
+            const forSec = parseFloat(item.querySelector(".cando-trig-for-sec")?.value || "0");
+            const picker = item.querySelector(".cando-trig-preset-picker");
+            const selectedPresetVal = picker ? picker.getAttribute("data-selected-preset") || picker.value : "";
+            const currentId = item.querySelector(".cando-trig-id")?.value.trim() || "";
+
+            return {
+                id: currentId,
+                source: item.querySelector(".cando-trig-source")?.value || "preset",
+                preset_val: selectedPresetVal,
+                for_sec: forSec,
+                for_ms: Math.round(forSec * 1000),
+                can_id: item.querySelector(".cando-trig-can-id")?.value || "",
+                from_payload: fromPayload,
+                to_payload: toPayload,
+                match_payload: toPayload,
+                bus: parseInt(item.querySelector(".cando-trig-bus")?.value || "0"),
+                time: item.querySelector(".cando-trig-time")?.value || "",
+                interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
+                voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
+                voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
+                expression: item.querySelector(".cando-trig-expr")?.value || "",
+                mqtt_topic: item.querySelector(".cando-trig-mqtt-topic")?.value || "",
+                mqtt_payload: item.querySelector(".cando-trig-mqtt-payload")?.value || ""
+            };
+        }
+
+        function cloneCandoTriggerItem(btn) {
+            const trigItem = btn.closest(".cando-trigger-item");
+            const container = trigItem.parentElement;
+            const card = trigItem.closest(".cando-rule-card");
+            const trigData = extractCandoTriggerData(trigItem);
+
+            // Append copy suffix to trigger ID if present
+            if (trigData.id) {
+                trigData.id = `${trigData.id}_copy`;
+            }
+
+            renderCandoTriggerItem(container, trigData);
+            const newTrig = container.lastElementChild;
+            trigItem.after(newTrig);
+            if (card) {
+                updateCandoRuleTriggerDropdowns(card);
+                updateCandoSectionCountBadges(card);
+            }
+            showNotification("Trigger duplicated!", "green", 1800);
+        }
+
         function renderCandoTriggerItem(container, data = {}) {
             const source = data.source || "preset";
             const itemDiv = document.createElement("div");
@@ -11253,6 +11317,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Trigger Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Trigger Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoTriggerItem(this)" title="Duplicate / Clone this Trigger">📋</button>
                     <button type="button" class="system-button cando-btn-sim-trig" onclick="testCandoTriggerUI(this)" title="Simulate this trigger event to test the automation flow">⚡ Simulate</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-trigger-item').remove(); updateCandoRuleTriggerDropdowns(card); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
@@ -11405,6 +11470,32 @@
             updateCandoSectionCountBadges(card);
         }
 
+        function cloneCandoConditionItem(btn) {
+            const condItem = btn.closest(".cando-condition-item");
+            const container = condItem.parentElement;
+            const card = condItem.closest(".cando-rule-card");
+            const condData = extractCandoConditionElement(condItem);
+
+            renderCandoConditionItem(container, condData);
+            const newCond = container.lastElementChild;
+            condItem.after(newCond);
+            if (card) updateCandoSectionCountBadges(card);
+            showNotification("Condition duplicated!", "green", 1800);
+        }
+
+        function cloneCandoConditionBlock(btn) {
+            const blockItem = btn.closest(".cando-condition-group") || btn.closest(".cando-condition-block");
+            const container = blockItem.parentElement;
+            const card = blockItem.closest(".cando-rule-card");
+            const blockData = extractCandoConditionElement(blockItem);
+
+            renderCandoConditionBlock(container, blockData);
+            const newBlock = container.lastElementChild;
+            blockItem.after(newBlock);
+            if (card) updateCandoSectionCountBadges(card);
+            showNotification("Condition block duplicated!", "green", 1800);
+        }
+
         function renderCandoConditionItem(container, data = {}) {
             const type = data.type || "preset";
             const isInverted = data.invert === true || data.invert === "true";
@@ -11459,6 +11550,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Condition Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Condition Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoConditionItem(this)" title="Duplicate / Clone this Condition">📋</button>
                     <button type="button" class="system-button cando-btn-test-cond" onclick="testCandoConditionUI(this)" title="Evaluate this condition live against current vehicle state">🧪 Test</button>
                     <button type="button" class="system-button cando-btn-create-block" onclick="showCreateConditionBlockMenu(this, event)" title="Convert this condition into an AND or OR block to add alternative conditions">🔀 Create Block ▼</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-condition-item').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
@@ -11624,6 +11716,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Block Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Block Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoConditionBlock(this)" title="Duplicate / Clone this Condition Block">📋</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-condition-group').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
             </div>
@@ -11928,6 +12021,7 @@
                 <div style="display: flex; align-items: center; gap: 0.4rem;">
                     <button type="button" class="system-button cando-step-btn-move" onclick="moveCandoItem(this, -1)" title="Move Step Up">▲</button>
                     <button type="button" class="system-button cando-step-btn-move" onclick="moveCandoItem(this, 1)" title="Move Step Down">▼</button>
+                    <button type="button" class="system-button cando-step-btn-clone" onclick="cloneCandoPayloadStep(this)" title="Duplicate / Clone this Payload Step">📋</button>
                     <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
                         Repeat:
                         <input type="number" class="cando-step-repeat" value="${repeatVal}" min="1" max="1000">
@@ -11939,6 +12033,20 @@
             ${renderByteInputsHTML("cando-step-byte", stepData.payload || "")}
         `;
             container.appendChild(stepDiv);
+        }
+
+        function cloneCandoPayloadStep(btn) {
+            const stepItem = btn.closest(".cando-payload-step-item");
+            const container = stepItem.closest(".cando-payload-steps-container");
+            const payloadStr = getByteGridString(stepItem, "cando-step-byte");
+            const repeatVal = parseInt(stepItem.querySelector(".cando-step-repeat")?.value || "1");
+
+            renderCandoPayloadStep(container, { payload: payloadStr, repeat: repeatVal });
+            // Move the newly added clone to right below the original item
+            const newStep = container.lastElementChild;
+            stepItem.after(newStep);
+            renumberCandoPayloadSteps(container);
+            showNotification("Payload step duplicated!", "green", 1800);
         }
 
         function addCandoPayloadStep(buttonElem) {
@@ -11956,12 +12064,39 @@
 
         function renumberCandoPayloadSteps(container) {
             if (!container) return;
-            container.querySelectorAll(".cando-payload-step-item").forEach((step, idx) => {
+            const steps = container.querySelectorAll(".cando-payload-step-item");
+            steps.forEach((step, idx) => {
                 const numSpan = step.querySelector(".step-num");
                 if (numSpan) numSpan.textContent = idx + 1;
             });
+            const box = container.closest(".cando-payload-steps-box");
+            if (box) {
+                const summarySpan = box.querySelector(".cando-steps-summary-text");
+                if (summarySpan) {
+                    summarySpan.textContent = `${steps.length} Sequence Step${steps.length === 1 ? '' : 's'}`;
+                }
+            }
             const card = container.closest(".cando-rule-card");
             if (card) updateCandoItemConnectors(card);
+        }
+
+        function toggleCandoStepsCollapse(btn) {
+            const box = btn.closest(".cando-payload-steps-box");
+            if (!box) return;
+            const container = box.querySelector(".cando-payload-steps-container");
+            const addBtn = box.querySelector(".cando-attached-add-btn");
+            if (!container) return;
+
+            const isCollapsed = (container.style.display === "none");
+            if (isCollapsed) {
+                container.style.display = "flex";
+                if (addBtn) addBtn.style.display = "";
+                btn.textContent = "↕ Collapse";
+            } else {
+                container.style.display = "none";
+                if (addBtn) addBtn.style.display = "none";
+                btn.textContent = "↕ Expand";
+            }
         }
 
         // --- ACTION SUB-ITEMS ---
@@ -11971,6 +12106,22 @@
             renderCandoActionItem(container, { type: "preset" });
             updateCandoRuleTriggerDropdowns(card);
             updateCandoSectionCountBadges(card);
+        }
+
+        function cloneCandoActionItem(btn) {
+            const actItem = btn.closest(".cando-action-item");
+            const container = actItem.parentElement;
+            const card = actItem.closest(".cando-rule-card");
+            const actData = extractCandoActionData(actItem);
+
+            renderCandoActionItem(container, actData);
+            const newAct = container.lastElementChild;
+            actItem.after(newAct);
+            if (card) {
+                updateCandoRuleTriggerDropdowns(card);
+                updateCandoSectionCountBadges(card);
+            }
+            showNotification("Action step duplicated!", "green", 1800);
         }
 
         function renderCandoActionItem(container, data = {}) {
@@ -12029,6 +12180,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Action Step Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Action Step Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoActionItem(this)" title="Duplicate / Clone this Action Step">📋</button>
                     <button type="button" class="system-button cando-btn-test-act" onclick="testCandoActionUI(this)" title="Execute this action immediately on the vehicle CAN bus">▶ Test Step</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-action-item').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
@@ -12156,6 +12308,10 @@
                     </td>
                     <td>
                         <div class="cando-payload-steps-box" style="max-width: 475px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: #f0fdf4; border-bottom: 1px dashed #bbf7d0; border-radius: 4px 4px 0 0; font-size: 0.76rem;">
+                                <span class="cando-steps-summary-text" style="color: #166534; font-weight: 600;">Sequence Steps</span>
+                                <button type="button" class="system-button cando-toggle-steps-btn" style="padding: 2px 8px; font-size: 0.7rem; height: 22px; background: #dcfce7; color: #166534; border: 1px solid #86efac;" onclick="toggleCandoStepsCollapse(this)" title="Collapse or expand payload steps preview">↕ Collapse</button>
+                            </div>
                             <div class="cando-payload-steps-container" style="display: flex; flex-direction: column; gap: 0.4rem; padding: 0.5rem 0.5rem 0 0.5rem;"></div>
                             <button type="button" class="system-button cando-attached-add-btn" onclick="addCandoPayloadStep(this)">
                                 <span>➕ Add Frame Step</span>
@@ -12200,6 +12356,7 @@
             } else {
                 renderCandoPayloadStep(stepsContainer, { payload: "", repeat: 3 });
             }
+            renumberCandoPayloadSteps(stepsContainer);
         }
 
         function toggleCandoActItemUI(selectElem) {
@@ -12434,6 +12591,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Choose Block Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Choose Block Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoChooseBlock(this)" title="Duplicate / Clone this Choose Block">📋</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-choose-block').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
             </div>
@@ -12448,6 +12606,22 @@
                 : [{ trigger_id: "", actions: [{ type: "preset" }] }];
             options.forEach(opt => renderCandoChooseOption(optionsContainer, opt));
             renumberCandoChooseOptions(optionsContainer);
+        }
+
+        function cloneCandoChooseBlock(btn) {
+            const blockItem = btn.closest(".cando-choose-block");
+            const container = blockItem.parentElement;
+            const card = blockItem.closest(".cando-rule-card");
+            const blockData = extractCandoActionElement(blockItem);
+
+            renderCandoChooseBlock(container, blockData);
+            const newBlock = container.lastElementChild;
+            blockItem.after(newBlock);
+            if (card) {
+                updateCandoRuleTriggerDropdowns(card);
+                updateCandoSectionCountBadges(card);
+            }
+            showNotification("Choose block duplicated!", "green", 1800);
         }
 
         function renderCandoChooseOption(container, optData = {}) {
@@ -12478,6 +12652,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Option Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Option Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoChooseOption(this)" title="Duplicate / Clone this Option Branch">📋</button>
                     <button type="button" class="delete-btn" onclick="removeCandoChooseOption(this);">🗑️</button>
                 </div>
             </div>
@@ -12503,6 +12678,30 @@
             } else {
                 renderCandoActionItem(optActionsContainer, { type: "preset" });
             }
+        }
+
+        function cloneCandoChooseOption(btn) {
+            const optItem = btn.closest(".cando-choose-option-item");
+            const container = optItem.parentElement;
+            const card = optItem.closest(".cando-rule-card");
+            
+            // Extract actions from this option
+            const optActions = [];
+            optItem.querySelectorAll(".cando-opt-actions-container > .cando-action-item, .cando-opt-actions-container > .cando-choose-block, .cando-opt-actions-container > .cando-ifthen-block").forEach(actItem => {
+                optActions.push(extractCandoActionElement(actItem));
+            });
+
+            const optData = {
+                trigger_id: optItem.querySelector(".cando-opt-trig-id")?.value.trim() || "",
+                actions: optActions
+            };
+
+            renderCandoChooseOption(container, optData);
+            const newOpt = container.lastElementChild;
+            optItem.after(newOpt);
+            renumberCandoChooseOptions(container);
+            if (card) updateCandoSectionCountBadges(card);
+            showNotification("Option branch duplicated!", "green", 1800);
         }
 
         function addCandoOptionToChooseBlock(btn) {
@@ -12549,6 +12748,22 @@
             updateCandoSectionCountBadges(card);
         }
 
+        function cloneCandoIfThenBlock(btn) {
+            const blockItem = btn.closest(".cando-ifthen-block");
+            const container = blockItem.parentElement;
+            const card = blockItem.closest(".cando-rule-card");
+            const blockData = extractCandoActionElement(blockItem);
+
+            renderCandoIfThenBlock(container, blockData);
+            const newBlock = container.lastElementChild;
+            blockItem.after(newBlock);
+            if (card) {
+                updateCandoRuleTriggerDropdowns(card);
+                updateCandoSectionCountBadges(card);
+            }
+            showNotification("If-Then-Else block duplicated!", "green", 1800);
+        }
+
         function renderCandoIfThenBlock(container, data = {}) {
             const groupDiv = document.createElement("div");
             groupDiv.className = "cando-ifthen-block";
@@ -12564,6 +12779,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move If-Then Block Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move If-Then Block Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoIfThenBlock(this)" title="Duplicate / Clone this If-Then-Else Block">📋</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-ifthen-block').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
             </div>
@@ -13904,6 +14120,26 @@
         }
 
         // --- CAN DO BACKUP & RESTORE ---
+        function exportSingleCandoRuleUI(btn) {
+            const card = btn.closest(".cando-rule-card");
+            if (!card) return;
+            const ruleData = extractCandoRuleData(card);
+            if (!ruleData) return;
+
+            const cleanName = (ruleData.name || "cando_rule").toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+            const jsonStr = JSON.stringify(ruleData, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `cando_rule_${cleanName}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification(`Exported rule "${ruleData.name}"!`, "green", 2500);
+        }
+
         function exportCandoRules() {
             fetch("/load_cando").then(res => res.json()).then(data => {
                 const jsonStr = JSON.stringify(data, null, 2);
@@ -13929,8 +14165,8 @@
             reader.onload = function (e) {
                 try {
                     const data = JSON.parse(e.target.result);
+                    const container = document.getElementById("cando_rules_container");
                     if (data && Array.isArray(data.rules)) {
-                        const container = document.getElementById("cando_rules_container");
                         if (container) container.innerHTML = "";
                         data.rules.forEach(r => addCandoRuleUI(r, true));
                         fetch("/store_cando", {
@@ -13942,6 +14178,10 @@
                         }).catch(err => {
                             showNotification("Rules loaded in editor. Click 'Store CAN Do Rules' to save.", "blue");
                         });
+                    } else if (data && (data.triggers || data.trigger || data.name)) {
+                        // Single rule import! Append to existing container without clearing
+                        addCandoRuleUI(data, false, true);
+                        showNotification(`Imported rule "${data.name || 'Custom Rule'}"! Click Save to persist.`, "green", 4000);
                     } else {
                         showNotification("Invalid CAN Do backup file format.", "red");
                     }

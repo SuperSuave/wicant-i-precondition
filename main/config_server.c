@@ -491,7 +491,7 @@ static esp_err_t store_config_handler(httpd_req_t *req)
     bool save_success = false;
     if (f)
     {
-        if (fwrite(buf, 1, ret, f) == (size_t)ret)
+        if (fwrite(buf, 1, buf_size, f) == (size_t)buf_size)
         {
             if (fflush(f) == 0 && fsync(fileno(f)) == 0)
             {
@@ -517,10 +517,78 @@ static esp_err_t store_config_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    const char *resp_str = "Configuration saved! Rebooting...";
-    httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
+    // Save previous structural parameters before reloading cfg into RAM
+    device_config_t prev_cfg = device_config;
 
-    xTimerStart( xrestartTimer, 0 );
+    // Read newly saved config into RAM buffer
+    FILE *rf = fopen(final_path, "r");
+    if (rf)
+    {
+        fseek(rf, 0, SEEK_END);
+        long sz = ftell(rf);
+        fseek(rf, 0, SEEK_SET);
+        if (sz > 0)
+        {
+            free(device_config_file);
+            device_config_file = malloc(sz + 1);
+            if (device_config_file)
+            {
+                fread(device_config_file, 1, sz, rf);
+                device_config_file[sz] = '\0';
+                config_server_load_cfg(device_config_file);
+            }
+        }
+        fclose(rf);
+    }
+
+    bool requires_reboot = (strcmp(prev_cfg.wifi_mode, device_config.wifi_mode) != 0) ||
+                           (strcmp(prev_cfg.ap_ch, device_config.ap_ch) != 0) ||
+                           (strcmp(prev_cfg.ap_pass, device_config.ap_pass) != 0) ||
+                           (strcmp(prev_cfg.sta_ssid, device_config.sta_ssid) != 0) ||
+                           (strcmp(prev_cfg.sta_pass, device_config.sta_pass) != 0) ||
+                           (strcmp(prev_cfg.sta_security, device_config.sta_security) != 0) ||
+                           (prev_cfg.sta_network_count != device_config.sta_network_count) ||
+                           (strcmp(prev_cfg.can_datarate, device_config.can_datarate) != 0) ||
+                           (strcmp(prev_cfg.can_mode, device_config.can_mode) != 0) ||
+                           (strcmp(prev_cfg.can1_datarate, device_config.can1_datarate) != 0) ||
+                           (strcmp(prev_cfg.can1_mode, device_config.can1_mode) != 0) ||
+                           (strcmp(prev_cfg.can1_en, device_config.can1_en) != 0) ||
+                           (strcmp(prev_cfg.can_fwd_mode, device_config.can_fwd_mode) != 0) ||
+                           (strcmp(prev_cfg.protocol, device_config.protocol) != 0) ||
+                           (strcmp(prev_cfg.ble_status, device_config.ble_status) != 0) ||
+                           (strcmp(prev_cfg.ble_pass, device_config.ble_pass) != 0) ||
+                           (strcmp(prev_cfg.mqtt_en, device_config.mqtt_en) != 0) ||
+                           (strcmp(prev_cfg.mqtt_url, device_config.mqtt_url) != 0) ||
+                           (strcmp(prev_cfg.mqtt_port, device_config.mqtt_port) != 0) ||
+                           (strcmp(prev_cfg.mqtt_user, device_config.mqtt_user) != 0) ||
+                           (strcmp(prev_cfg.mqtt_pass, device_config.mqtt_pass) != 0) ||
+                           (strcmp(prev_cfg.port, device_config.port) != 0) ||
+                           (strcmp(prev_cfg.port_type, device_config.port_type) != 0);
+
+    if (requires_reboot)
+    {
+        const char *resp_str = "Configuration saved! Rebooting...";
+        httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
+        xTimerStart( xrestartTimer, 0 );
+    }
+    else
+    {
+        // Hot-reload dynamic subsystems
+        if (config_server_get_sleep_config() == 1)
+        {
+            float sleep_voltage = 13.1f;
+            config_server_get_sleep_volt(&sleep_voltage);
+            sleep_mode_init(1, sleep_voltage);
+        }
+        else
+        {
+            sleep_mode_init(0, 13.1f);
+        }
+
+        const char *resp_str = "Configuration updated successfully!";
+        httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
+    }
+
     return ESP_OK;
 }
 

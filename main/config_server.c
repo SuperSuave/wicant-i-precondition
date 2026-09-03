@@ -520,26 +520,43 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   size_t buf_size = req->content_len;
 
   if (buf_size <= 0) {
-    return ESP_FAIL; // Invalid content length
-  }
-
-  buf = (char *)malloc(buf_size);
-  if (!buf) {
-    return ESP_ERR_NO_MEM; // Memory allocation failure
-  }
-
-  int ret = httpd_req_recv(req, buf, buf_size);
-
-  if (ret <= 0) {
-    if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-      // Retry receiving if timeout occurred
-      free(buf);
-      return ESP_FAIL;
-    }
-    // Handle read error
-    free(buf);
+    ESP_LOGE(TAG, "store_config: invalid content_len %d", buf_size);
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid content length");
     return ESP_FAIL;
   }
+
+  // +1 for null-terminator so the buffer can be used as a C string safely.
+  buf = (char *)calloc(1, buf_size + 1);
+  if (!buf) {
+    ESP_LOGE(TAG, "store_config: malloc failed for %d bytes", buf_size + 1);
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                        "Memory allocation failed");
+    return ESP_ERR_NO_MEM;
+  }
+
+  // FIX: httpd_req_recv() behaves like TCP recv() — it may return fewer bytes
+  // than requested in a single call. The original code called it once and then
+  // wrote buf_size bytes regardless, producing a corrupt / truncated JSON and
+  // causing config_server_load_cfg() to silently keep stale values.
+  // Loop until all content_len bytes have been received, matching the pattern
+  // used correctly in store_auto_data_handler().
+  size_t cur_len = 0;
+  while (cur_len < buf_size) {
+    int received = httpd_req_recv(req, buf + cur_len, buf_size - cur_len);
+    if (received <= 0) {
+      if (received == HTTPD_SOCK_ERR_TIMEOUT) {
+        continue; // transient timeout — keep waiting
+      }
+      ESP_LOGE(TAG, "store_config: recv error %d after %d/%d bytes",
+               received, cur_len, buf_size);
+      free(buf);
+      httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                          "Failed to receive config data");
+      return ESP_FAIL;
+    }
+    cur_len += received;
+  }
+  buf[buf_size] = '\0';
 
   const char *tmp_path = FS_MOUNT_POINT "/config.json.tmp";
   const char *final_path = FS_MOUNT_POINT "/config.json";

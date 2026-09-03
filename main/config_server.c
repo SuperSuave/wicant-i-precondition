@@ -558,10 +558,9 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   }
   buf[buf_size] = '\0';
 
-  const char *tmp_path = FS_MOUNT_POINT "/config.json.tmp";
   const char *final_path = FS_MOUNT_POINT "/config.json";
 
-  FILE *f = fopen(tmp_path, "w");
+  FILE *f = fopen(final_path, "w");
   bool save_success = false;
   if (f) {
     if (fwrite(buf, 1, buf_size, f) == (size_t)buf_size) {
@@ -575,16 +574,8 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   free(buf);
 
   if (!save_success) {
-    unlink(tmp_path);
     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                        "Failed to write config atomically");
-    return ESP_FAIL;
-  }
-
-  if (rename(tmp_path, final_path) != 0) {
-    unlink(tmp_path);
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                        "Failed to update config file");
+                        "Failed to write config file");
     return ESP_FAIL;
   }
 
@@ -3014,6 +3005,7 @@ static httpd_handle_t config_server_init(void) {
     device_config_file[filesize] = 0;
     fseek(f, 0, SEEK_SET);
     ESP_LOGI(TAG, "config.json: %s", device_config_file);
+    fclose(f);
     config_server_load_cfg(device_config_file);
 
     FILE *f1 = fopen(FS_MOUNT_POINT "/mqtt_canfilt.json", "r");

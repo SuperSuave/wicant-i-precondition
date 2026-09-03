@@ -332,6 +332,7 @@ static void wifi_conn_task(void *pvParameters)
         if ((bits & WIFI_CONNECT_IDLE_BIT) == 0)
         {
             ESP_LOGW(WIFI_TAG, "Wi-Fi connection attempt timed out waiting for event");
+            esp_wifi_disconnect();
             xEventGroupSetBits(s_wifi_event_group, WIFI_DISCONNECTED_BIT);
             xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECT_IDLE_BIT);
         }

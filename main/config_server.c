@@ -484,24 +484,38 @@ static esp_err_t store_config_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    FILE *f = fopen(FS_MOUNT_POINT"/config.json", "w");
+    const char *tmp_path = FS_MOUNT_POINT "/config.json.tmp";
+    const char *final_path = FS_MOUNT_POINT "/config.json";
+
+    FILE *f = fopen(tmp_path, "w");
+    bool save_success = false;
     if (f)
     {
-        // Write the received data into the file
-        fwrite(buf, 1, buf_size, f);
-        fflush(f);
-        fsync(fileno(f));
+        if (fwrite(buf, 1, ret, f) == (size_t)ret)
+        {
+            if (fflush(f) == 0 && fsync(fileno(f)) == 0)
+            {
+                save_success = true;
+            }
+        }
         fclose(f);
     }
-    else
+
+    free(buf);
+
+    if (!save_success)
     {
-        // Handle file open error
-        free(buf);
+        unlink(tmp_path);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to write config atomically");
         return ESP_FAIL;
     }
 
-    // Free dynamically allocated memory
-    free(buf);
+    if (rename(tmp_path, final_path) != 0)
+    {
+        unlink(tmp_path);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to update config file");
+        return ESP_FAIL;
+    }
 
     const char *resp_str = "Configuration saved! Rebooting...";
     httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
@@ -2244,26 +2258,40 @@ static void config_server_load_cfg(char *cfg)
 	else
 	{
 		key = cJSON_GetObjectItem(root,"sta_ssid");
-		if(key && key->valuestring && strlen(key->valuestring) <= 32)
+		if(key && key->valuestring && strlen(key->valuestring) > 0 && strlen(key->valuestring) <= 32)
 		{
 			strcpy(device_config.sta_ssid, key->valuestring);
 		}
 		else
 		{
-			strcpy(device_config.sta_ssid, "MeatPi");
+			device_config.sta_ssid[0] = '\0';
 		}
 		ESP_LOGI(TAG, "device_config.sta_ssid: %s", device_config.sta_ssid);
 
 		key = cJSON_GetObjectItem(root,"sta_pass");
-		if(key && key->valuestring && strlen(key->valuestring) <= 64)
+		if(key && key->valuestring && strlen(key->valuestring) >= 8 && strlen(key->valuestring) <= 64)
 		{
 			strcpy(device_config.sta_pass, key->valuestring);
 		}
+		else if(key && key->valuestring && strlen(key->valuestring) == 0)
+		{
+			device_config.sta_pass[0] = '\0';
+		}
 		else
 		{
-			strcpy(device_config.sta_pass, "TomatoSauce");
+			device_config.sta_pass[0] = '\0';
 		}
-		ESP_LOGI(TAG, "device_config.sta_pass: %s", device_config.sta_pass);
+		ESP_LOGI(TAG, "device_config.sta_pass is configured: %s", strlen(device_config.sta_pass) > 0 ? "yes" : "no");
+
+		key = cJSON_GetObjectItem(root,"sta_security");
+		if(key && key->valuestring)
+		{
+			strcpy(device_config.sta_security, key->valuestring);
+		}
+		else
+		{
+			strcpy(device_config.sta_security, "wpa3");
+		}
 
 		if (strlen(device_config.sta_ssid) > 0)
 		{

@@ -5958,8 +5958,8 @@
                 document.getElementById("mqtt_port").value = obj.mqtt_port;
                 document.getElementById("mqtt_user").value = obj.mqtt_user;
                 document.getElementById("mqtt_pass").value = obj.mqtt_pass;
-                document.getElementById('keep_alive_value').textContent = obj.keep_alive_value;
-                document.getElementById("keep_alive").value = obj.keep_alive;
+                document.getElementById('keep_alive_value').textContent = obj.keep_alive || "30";
+                document.getElementById("keep_alive").value = obj.keep_alive || "30";
                 document.getElementById("mqtt_tx_topic").value = obj.mqtt_tx_topic;
                 document.getElementById("mqtt_rx_topic").value = obj.mqtt_rx_topic;
                 document.getElementById("mqtt_status_topic").value = obj.mqtt_status_topic;

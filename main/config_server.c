@@ -865,6 +865,9 @@ static esp_err_t store_cando_handler(httpd_req_t *req)
     while (cur_len < total_len) {
         int received = httpd_req_recv(req, buffer + cur_len, total_len - cur_len);
         if (received <= 0) {
+            if (received == HTTPD_SOCK_ERR_TIMEOUT) {
+                continue;
+            }
             free(buffer);
             httpd_resp_send_500(req);
             return ESP_FAIL;
@@ -896,33 +899,42 @@ static esp_err_t store_cando_catalog_handler(httpd_req_t *req)
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
-    char *buffer = malloc(total_len + 1);
-    if (!buffer) {
+
+    FILE *f = fopen(FS_MOUNT_POINT "/cando_catalog.json", "w");
+    if (!f) {
         httpd_resp_send_500(req);
-        return ESP_ERR_NO_MEM;
+        return ESP_FAIL;
     }
+
+    char buf[1024];
     int cur_len = 0;
     while (cur_len < total_len) {
-        int received = httpd_req_recv(req, buffer + cur_len, total_len - cur_len);
+        int to_recv = MIN(total_len - cur_len, (int)sizeof(buf));
+        int received = httpd_req_recv(req, buf, to_recv);
         if (received <= 0) {
-            free(buffer);
+            if (received == HTTPD_SOCK_ERR_TIMEOUT) {
+                continue;
+            }
+            fclose(f);
+            unlink(FS_MOUNT_POINT "/cando_catalog.json");
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        if (fwrite(buf, 1, received, f) != (size_t)received) {
+            fclose(f);
+            unlink(FS_MOUNT_POINT "/cando_catalog.json");
             httpd_resp_send_500(req);
             return ESP_FAIL;
         }
         cur_len += received;
     }
-    buffer[total_len] = '\0';
-    FILE *f = fopen(FS_MOUNT_POINT "/cando_catalog.json", "w");
-    if (f) {
-        fputs(buffer, f);
-        fclose(f);
-        free(buffer);
-        httpd_resp_sendstr(req, "CAN Do catalog saved successfully.");
-        return ESP_OK;
-    }
-    free(buffer);
-    httpd_resp_send_500(req);
-    return ESP_FAIL;
+
+    fflush(f);
+    fsync(fileno(f));
+    fclose(f);
+
+    httpd_resp_sendstr(req, "CAN Do catalog saved successfully.");
+    return ESP_OK;
 }
 
 static esp_err_t load_cando_catalog_handler(httpd_req_t *req)
@@ -2662,23 +2674,35 @@ static void config_server_load_cfg(char *cfg)
 
 	//*****
 	key = cJSON_GetObjectItem(root,"precon_mode");
-	if(key == 0 || (strlen(key->valuestring) > sizeof(device_config.precon_mode)))
+	if(key == 0)
+	{
+		strcpy(device_config.precon_mode, "once");
+	}
+	else if(strlen(key->valuestring) > sizeof(device_config.precon_mode))
 	{
 		goto config_error;
 	}
-
-	strcpy(device_config.precon_mode, key->valuestring);
+	else
+	{
+		strcpy(device_config.precon_mode, key->valuestring);
+	}
 	ESP_LOGE(TAG, "device_config.precon_mode: %s", device_config.precon_mode);
 	//*****
 
 	//*****
 	key = cJSON_GetObjectItem(root,"precon_button");
-	if(key == 0 || (strlen(key->valuestring) > sizeof(device_config.precon_button)))
+	if(key == 0)
+	{
+		strcpy(device_config.precon_button, "sw_star");
+	}
+	else if(strlen(key->valuestring) > sizeof(device_config.precon_button))
 	{
 		goto config_error;
 	}
-
-	strcpy(device_config.precon_button, key->valuestring);
+	else
+	{
+		strcpy(device_config.precon_button, key->valuestring);
+	}
 	ESP_LOGE(TAG, "device_config.precon_button: %s", device_config.precon_button);
 	//*****
 

@@ -490,4 +490,3 @@ static void wifi_conn_task(void *pvParameters)
      ESP_LOGI(WIFI_TAG, "wifi_init finished.");
  
  }
- 

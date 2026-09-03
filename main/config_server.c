@@ -588,8 +588,15 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
     return ESP_FAIL;
   }
 
-  // Save previous structural parameters before reloading cfg into RAM
-  device_config_t prev_cfg = device_config;
+  // Save previous structural parameters before reloading cfg into RAM.
+  // Allocate on heap to avoid exhausting httpd task stack (device_config_t is ~1.7KB).
+  device_config_t *prev_cfg = malloc(sizeof(device_config_t));
+  if (!prev_cfg) {
+    ESP_LOGE(TAG, "store_config: failed to allocate memory for prev_cfg");
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Memory allocation failed");
+    return ESP_ERR_NO_MEM;
+  }
+  *prev_cfg = device_config;
 
   // Read newly saved config into RAM buffer
   FILE *rf = fopen(final_path, "r");
@@ -605,6 +612,7 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
         device_config_file[sz] = '\0';
         if (!config_server_load_cfg(device_config_file)) {
           fclose(rf);
+          free(prev_cfg);
           httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                               "Config validation failed - check field lengths");
           return ESP_FAIL;
@@ -616,29 +624,31 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
 
 
   bool requires_reboot =
-      (strcmp(prev_cfg.wifi_mode, device_config.wifi_mode) != 0) ||
-      (strcmp(prev_cfg.ap_ch, device_config.ap_ch) != 0) ||
-      (strcmp(prev_cfg.ap_pass, device_config.ap_pass) != 0) ||
-      (strcmp(prev_cfg.sta_ssid, device_config.sta_ssid) != 0) ||
-      (strcmp(prev_cfg.sta_pass, device_config.sta_pass) != 0) ||
-      (strcmp(prev_cfg.sta_security, device_config.sta_security) != 0) ||
-      (prev_cfg.sta_network_count != device_config.sta_network_count) ||
-      (strcmp(prev_cfg.can_datarate, device_config.can_datarate) != 0) ||
-      (strcmp(prev_cfg.can_mode, device_config.can_mode) != 0) ||
-      (strcmp(prev_cfg.can1_datarate, device_config.can1_datarate) != 0) ||
-      (strcmp(prev_cfg.can1_mode, device_config.can1_mode) != 0) ||
-      (strcmp(prev_cfg.can1_en, device_config.can1_en) != 0) ||
-      (strcmp(prev_cfg.can_fwd_mode, device_config.can_fwd_mode) != 0) ||
-      (strcmp(prev_cfg.protocol, device_config.protocol) != 0) ||
-      (strcmp(prev_cfg.ble_status, device_config.ble_status) != 0) ||
-      (strcmp(prev_cfg.ble_pass, device_config.ble_pass) != 0) ||
-      (strcmp(prev_cfg.mqtt_en, device_config.mqtt_en) != 0) ||
-      (strcmp(prev_cfg.mqtt_url, device_config.mqtt_url) != 0) ||
-      (strcmp(prev_cfg.mqtt_port, device_config.mqtt_port) != 0) ||
-      (strcmp(prev_cfg.mqtt_user, device_config.mqtt_user) != 0) ||
-      (strcmp(prev_cfg.mqtt_pass, device_config.mqtt_pass) != 0) ||
-      (strcmp(prev_cfg.port, device_config.port) != 0) ||
-      (strcmp(prev_cfg.port_type, device_config.port_type) != 0);
+      (strcmp(prev_cfg->wifi_mode, device_config.wifi_mode) != 0) ||
+      (strcmp(prev_cfg->ap_ch, device_config.ap_ch) != 0) ||
+      (strcmp(prev_cfg->ap_pass, device_config.ap_pass) != 0) ||
+      (strcmp(prev_cfg->sta_ssid, device_config.sta_ssid) != 0) ||
+      (strcmp(prev_cfg->sta_pass, device_config.sta_pass) != 0) ||
+      (strcmp(prev_cfg->sta_security, device_config.sta_security) != 0) ||
+      (prev_cfg->sta_network_count != device_config.sta_network_count) ||
+      (strcmp(prev_cfg->can_datarate, device_config.can_datarate) != 0) ||
+      (strcmp(prev_cfg->can_mode, device_config.can_mode) != 0) ||
+      (strcmp(prev_cfg->can1_datarate, device_config.can1_datarate) != 0) ||
+      (strcmp(prev_cfg->can1_mode, device_config.can1_mode) != 0) ||
+      (strcmp(prev_cfg->can1_en, device_config.can1_en) != 0) ||
+      (strcmp(prev_cfg->can_fwd_mode, device_config.can_fwd_mode) != 0) ||
+      (strcmp(prev_cfg->protocol, device_config.protocol) != 0) ||
+      (strcmp(prev_cfg->ble_status, device_config.ble_status) != 0) ||
+      (strcmp(prev_cfg->ble_pass, device_config.ble_pass) != 0) ||
+      (strcmp(prev_cfg->mqtt_en, device_config.mqtt_en) != 0) ||
+      (strcmp(prev_cfg->mqtt_url, device_config.mqtt_url) != 0) ||
+      (strcmp(prev_cfg->mqtt_port, device_config.mqtt_port) != 0) ||
+      (strcmp(prev_cfg->mqtt_user, device_config.mqtt_user) != 0) ||
+      (strcmp(prev_cfg->mqtt_pass, device_config.mqtt_pass) != 0) ||
+      (strcmp(prev_cfg->port, device_config.port) != 0) ||
+      (strcmp(prev_cfg->port_type, device_config.port_type) != 0);
+
+  free(prev_cfg);
 
   if (requires_reboot) {
     const char *resp_str = "Configuration saved! Rebooting...";
@@ -3047,7 +3057,7 @@ static httpd_handle_t config_server_init(void) {
 
   // Start the httpd server
   config.max_uri_handlers = 40;
-  config.stack_size = 5120;
+  config.stack_size = 8192;
   ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
   if (httpd_start(&server, &config) == ESP_OK) {
     // Set URI handlers
@@ -3094,6 +3104,7 @@ static httpd_handle_t config_server_init(void) {
 void config_server_restart(void) {
   // Start the httpd server
   config.max_uri_handlers = 40;
+  config.stack_size = 8192;
   // Ensure webhook cache is initialized after restarts too.
   ha_webhooks_init();
   ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);

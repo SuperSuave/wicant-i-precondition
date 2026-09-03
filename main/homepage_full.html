@@ -3977,13 +3977,13 @@
                 document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_tx_en_checkbox").checked && (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 64)) {
                 showNotification("MQTT TX Topic length, min=1 max=64", "red");
-                document.getElementById("action_button").disabled = true;
+                document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_rx_en_checkbox").checked && (document.getElementById("mqtt_rx_topic").value.length < 1 || document.getElementById("mqtt_rx_topic").value.length > 64)) {
                 showNotification("MQTT RX Topic length, min=1 max=64", "red");
-                document.getElementById("action_button").disabled = true;
+                document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_status_topic").value.length < 1 || document.getElementById("mqtt_status_topic").value.length > 64) {
                 showNotification("MQTT Status Topic length, min=1 max=64", "red");
-                document.getElementById("action_button").disabled = true;
+                document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("tcp_port_value").value > 65535 || document.getElementById("tcp_port_value").value < 1) {
                 showNotification("Port value, min=1 max=65535", "red");
                 document.getElementById("submit_button").disabled = true;
@@ -5633,6 +5633,9 @@
             }
             obj["mqtt_status_topic"] = document.getElementById("mqtt_status_topic").value;
             obj["mqtt_elm327_log"] = document.getElementById("mqtt_elm327_log").value;
+            obj["precon_mode"] = document.getElementById("precon_mode")?.value || "once";
+            obj["precon_button"] = document.getElementById("precon_button")?.value || "sw_star";
+            obj["precon_press"] = document.getElementById("precon_press")?.value || "short";
             var configJSON = JSON.stringify(obj);
             const xhttp = new XMLHttpRequest();
             xhttp.onload = function () {

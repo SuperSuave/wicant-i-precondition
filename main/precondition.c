@@ -1252,7 +1252,12 @@ bool precondition_is_active(void) {
 
 void precondition_action_execute(const char *mode_str, const char *press_str) {
     if (mode_str && mode_str[0] != '\0') {
-        if (strcmp(mode_str, "persistent") == 0) {
+        if (strcmp(mode_str, "cancel") == 0 || strcmp(mode_str, "stop") == 0 || strcmp(mode_str, "off") == 0) {
+            if (precondition_is_active()) {
+                sm_send_event(&precon_sm, EV_TOGGLE);
+            }
+            return;
+        } else if (strcmp(mode_str, "persistent") == 0) {
             precon_config.mode = PERSISTENT;
             persistent_settings_init();
         } else if (strcmp(mode_str, "continuous") == 0) {

@@ -5574,6 +5574,24 @@ const CANDO_DEFAULT_FALLBACK_CATALOG = {
 "id": "act_single_cycle_preconditioning__once_"
 },
 {
+"name": "Cancel / Turn Off Preconditioning",
+"tags": [
+"all_egmp",
+"kia_ev6",
+"hyundai_ioniq5",
+"hyundai_ioniq6"
+],
+"type": "precondition",
+"precon_mode": "cancel",
+"precon_press": "short",
+"popup_message": "",
+"category": "⚡ Battery Preconditioning",
+"roles": [
+"action"
+],
+"id": "act_cancel_preconditioning"
+},
+{
 "name": "Live Batt Temp \u0026 Voltage",
 "tags": [
 "all_egmp",
@@ -8464,6 +8482,31 @@ itemsContainer.style.display = "none";
 if (bannerSlot) bannerSlot.style.display = "none";
 }
 }
+function toggleCandoExecModeUI(selectElem) {
+const card = selectElem.closest(".cando-rule-card");
+if (!card) return;
+const mode = selectElem.value;
+const isToggle = (mode === "toggle");
+const isOneShot = (mode === "one_shot");
+const isPollVerify = (mode === "poll_verify");
+card.querySelectorAll(".cando-latch-row").forEach(row => {
+row.classList.toggle("hidden", !isOneShot && !isPollVerify);
+});
+card.querySelectorAll(".cando-verify-row").forEach(row => {
+row.classList.toggle("hidden", !isPollVerify);
+});
+card.querySelectorAll(".cando-toggle-revert-row").forEach(row => {
+row.classList.toggle("hidden", !isToggle);
+});
+card.querySelectorAll(".cando-off-actions-section").forEach(sec => {
+sec.classList.toggle("hidden", !isToggle);
+sec.style.display = isToggle ? "" : "none";
+});
+const onHeaderTitle = card.querySelector(".cando-on-actions-title");
+if (onHeaderTitle) {
+onHeaderTitle.textContent = isToggle ? "🟢 3. ON ACTIONS (When Activated)" : "🟢 3. ACTIONS";
+}
+}
 function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false) {
 const container = document.getElementById("cando_rules_container");
 if (!container) return;
@@ -8514,10 +8557,23 @@ ruleDiv.innerHTML = `
 <td>
 <select class="cando-exec-mode" onchange="toggleCandoExecModeUI(this)">
 <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>⚡ Edge-Triggered (On Change only - Recommended)</option>
+<option value="toggle" ${ruleData.exec_mode === "toggle" ? "selected" : ""}>🔀 Toggle (Press to Turn ON, Press to Turn OFF / Cancel)</option>
 <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>🔒 One-Shot &amp; Latch (Fire once until reset/timeout)</option>
 <option value="poll_verify" ${ruleData.exec_mode === "poll_verify" ? "selected" : ""}>🔄 Poll &amp; Verify (Wait for confirmation status CAN ID)</option>
 <option value="continuous" ${ruleData.exec_mode === "continuous" ? "selected" : ""}>🔁 Continuous (Fire on every matching message)</option>
 </select>
+</td>
+</tr>
+<tr class="cando-toggle-revert-row ${ruleData.exec_mode === 'toggle' ? '' : 'hidden'}">
+<td style="vertical-align: top; padding-top: 10px;">Auto-Revert Timer (Seconds):</td>
+<td>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; align-items: center; gap: 8px;">
+<input type="number" class="cando-auto-revert-sec" value="${ruleData.auto_revert_sec !== undefined ? ruleData.auto_revert_sec : 0}" min="0" max="86400" step="1" style="width: 85px;" placeholder="0">
+<span style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem;">seconds</span>
+</div>
+<span style="font-size: 0.75rem; color: var(--text-muted);">Automatically executes Turn-Off actions after this duration (0 = stays ON until next button press).</span>
+</div>
 </td>
 </tr>
 <tr>
@@ -8635,7 +8691,7 @@ ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
 <div class="cando-section-box" style="padding: 0.9rem 1.1rem 0 1.1rem; border-radius: var(--m3-shape-md); margin-bottom: 1rem; overflow: hidden;">
 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
 <div style="display: flex; align-items: center; gap: 0.5rem;">
-<span style="font-weight: bold; color: var(--m3-tonal-act-color); font-size: 1rem;">🟢 3. ACTIONS</span>
+<span class="cando-on-actions-title" style="font-weight: bold; color: var(--m3-tonal-act-color); font-size: 1rem;">${ruleData.exec_mode === "toggle" ? "🟢 3. ON ACTIONS (When Activated)" : "🟢 3. ACTIONS"}</span>
 <span class="cando-act-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;">0</span>
 </div>
 </div>
@@ -8645,6 +8701,23 @@ ${renderByteInputsHTML("cando-verify", ruleData.verify_payload || "")}
 <div style="position: relative; width: calc(100% + 2.2rem); margin-left: -1.1rem; margin-right: -1.1rem; margin-top: 0.2rem; margin-bottom: 0;">
 <button type="button" onclick="showAddActionMenu(this, event)" style="width: 100%; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: var(--transition); border-radius: 0 0 calc(var(--m3-shape-md) - 1px) calc(var(--m3-shape-md) - 1px);">
 <span>➕ Add Action Step</span>
+<span style="font-size: 0.7rem;">▼</span>
+</button>
+</div>
+</div>
+</div>
+<div class="cando-section-box cando-off-actions-section ${ruleData.exec_mode === "toggle" ? "" : "hidden"}" style="padding: 0.9rem 1.1rem 0 1.1rem; border-radius: var(--m3-shape-md); margin-bottom: 1rem; overflow: hidden; ${ruleData.exec_mode === "toggle" ? "" : "display: none;"}">
+<div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleCandoSection(this)">
+<div style="display: flex; align-items: center; gap: 0.5rem;">
+<span style="font-weight: bold; color: #ef4444; font-size: 1rem;">🔴 4. OFF / CANCEL ACTIONS (When Toggled Off)</span>
+<span class="cando-off-act-count-badge" style="padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; background: rgba(239,68,68,0.15); color: #ef4444;">0</span>
+</div>
+</div>
+<div class="cando-section-body" style="margin-top: 0.6rem;">
+<div class="cando-off-actions-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem;"></div>
+<div style="position: relative; width: calc(100% + 2.2rem); margin-left: -1.1rem; margin-right: -1.1rem; margin-top: 0.2rem; margin-bottom: 0;">
+<button type="button" onclick="showAddActionMenu(this, event)" style="width: 100%; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: var(--transition); border-radius: 0 0 calc(var(--m3-shape-md) - 1px) calc(var(--m3-shape-md) - 1px); background: rgba(239, 68, 68, 0.08); color: #ef4444; border-top: 1px dashed rgba(239, 68, 68, 0.3);">
+<span>➕ Add Off / Cancel Action Step</span>
 <span style="font-size: 0.7rem;">▼</span>
 </button>
 </div>
@@ -8692,6 +8765,19 @@ renderCandoIfThenBlock(actContainer, act);
 renderCandoActionItem(actContainer, act);
 }
 });
+const offActContainer = ruleDiv.querySelector(".cando-off-actions-container");
+if (offActContainer) {
+const offActions = ruleData.off_actions || (ruleData.off_action ? [ruleData.off_action] : []);
+offActions.forEach(act => {
+if (act.type === "choose") {
+renderCandoChooseBlock(offActContainer, act);
+} else if (act.type === "if_then") {
+renderCandoIfThenBlock(offActContainer, act);
+} else {
+renderCandoActionItem(offActContainer, act);
+}
+});
+}
 updateCandoRuleTriggerDropdowns(ruleDiv);
 updateCandoSectionCountBadges(ruleDiv);
 }
@@ -9537,7 +9623,9 @@ const targetContainer = btn.closest(".cando-opt-actions-box")
 ? (btn.dataset.branch === "else"
 ? btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-else-container")
 : btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-then-container"))
-: btn.closest(".cando-section-box").querySelector(".cando-actions-container")));
+: (btn.closest(".cando-off-actions-section")
+? btn.closest(".cando-off-actions-section").querySelector(".cando-off-actions-container")
+: btn.closest(".cando-section-box").querySelector(".cando-actions-container"))));
 const card = btn.closest(".cando-rule-card");
 window._activeActTargetContainer = targetContainer;
 window._activeActCard = card;
@@ -10969,6 +11057,9 @@ const condBadge = card.querySelector(".cando-cond-count-badge");
 if (condBadge) condBadge.textContent = condCount;
 const actBadge = card.querySelector(".cando-act-count-badge");
 if (actBadge) actBadge.textContent = actCount;
+const offActCount = card.querySelectorAll(".cando-off-actions-container > .cando-action-item, .cando-off-actions-container > .cando-choose-block, .cando-off-actions-container > .cando-ifthen-block").length;
+const offActBadge = card.querySelector(".cando-off-act-count-badge");
+if (offActBadge) offActBadge.textContent = offActCount;
 const bannerSlot = card.querySelector(".cando-choose-banner-slot");
 if (bannerSlot) {
 const hasChooseBlock = card.querySelector(".cando-actions-container > .cando-choose-block") !== null;
@@ -11005,7 +11096,17 @@ badge.style.boxShadow = "none";
 badge.title = "Automation paused";
 return;
 }
-if (st.count === 0 || st.age_ms === -1) {
+if (st.is_active) {
+const ageSec = (st.age_ms !== undefined && st.age_ms >= 0) ? Math.round(st.age_ms / 1000) : 0;
+let ageStr = `${ageSec}s ago`;
+if (ageSec > 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
+badge.textContent = `🟢 ON (${st.count}x, ${ageStr})`;
+badge.style.background = "#dcfce7";
+badge.style.color = "#15803d";
+badge.style.borderColor = "#86efac";
+badge.style.boxShadow = "0 0 8px rgba(34, 197, 94, 0.35)";
+badge.title = "Rule is currently TOGGLED ON";
+} else if (st.count === 0 || st.age_ms === -1) {
 badge.textContent = "Idle";
 badge.style.background = "#f8fafc";
 badge.style.color = "#64748b";
@@ -11292,6 +11393,7 @@ const timeoutResetMs = parseInt(card.querySelector(".cando-timeout-reset-ms")?.v
 const resetCanId = card.querySelector(".cando-reset-can-id")?.value || "";
 const verifyCanId = card.querySelector(".cando-verify-can-id")?.value || "";
 const verifyPayload = getByteGridString(card, "cando-verify");
+const autoRevertSec = parseInt(card.querySelector(".cando-auto-revert-sec")?.value || "0");
 const haExpose = card.querySelector(".cando-ha-expose") ? card.querySelector(".cando-ha-expose").checked : true;
 const haIcon = card.querySelector(".cando-ha-icon") ? card.querySelector(".cando-ha-icon").value.trim() : "mdi:car-defrost-rear";
 const triggers = [];
@@ -11326,11 +11428,16 @@ const actions = [];
 card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block").forEach(elem => {
 actions.push(extractCandoActionElement(elem));
 });
+const offActions = [];
+card.querySelectorAll(".cando-off-actions-container > .cando-action-item, .cando-off-actions-container > .cando-choose-block, .cando-off-actions-container > .cando-ifthen-block").forEach(elem => {
+offActions.push(extractCandoActionElement(elem));
+});
 const primaryTrig = triggers[0] || { source: "preset" };
 const primaryCond = conditions[0] || { type: "none" };
 const primaryAct = actions[0] || { type: "precondition" };
+const primaryOffAct = offActions[0] || null;
 const isRuleEnabled = card.querySelector(".cando-rule-enabled") ? card.querySelector(".cando-rule-enabled").checked : true;
-return {
+const ruleObj = {
 name: card.querySelector(".cando-name")?.value || "New CAN Do",
 enabled: isRuleEnabled,
 ha_expose: haExpose,
@@ -11348,6 +11455,12 @@ trigger: primaryTrig,
 condition: primaryCond,
 action: primaryAct
 };
+if (execMode === "toggle") {
+ruleObj.auto_revert_sec = autoRevertSec;
+ruleObj.off_actions = offActions;
+if (primaryOffAct) ruleObj.off_action = primaryOffAct;
+}
+return ruleObj;
 }
 function duplicateCandoRuleUI(btn) {
 const card = btn.closest(".cando-rule-card");

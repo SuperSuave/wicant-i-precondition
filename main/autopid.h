@@ -145,6 +145,7 @@ typedef enum {
     CANDO_EXEC_ONE_SHOT = 1,       /* Fire once when true; latch until explicit reset */
     CANDO_EXEC_ON_CHANGE = 2,      /* Fire only when payload/evaluated value changes */
     CANDO_EXEC_POLL_VERIFY = 3,    /* Fire action and wait for confirmation status CAN message */
+    CANDO_EXEC_TOGGLE = 4,         /* Flip-flop toggle mode (Press to Start ON actions, Press to Cancel OFF actions) */
 } cando_exec_mode_t;
 
 typedef struct {
@@ -166,6 +167,11 @@ typedef struct {
     bool any_change;        /* true if any payload change triggers */
     bool has_last_payload;  /* true once first frame has been tracked */
     char *expression;       /* Optional trigger math expression string */
+
+    /* Hold Duration & Continuous Assertion */
+    uint32_t for_ms;        /* Must remain continuously active for this duration before firing (0 = instant) */
+    int64_t asserted_since_us; /* Timestamp when condition was first asserted (0 = not asserted) */
+    bool hold_fired;        /* Flag indicating hold threshold has fired for current continuous assertion */
 
     /* MQTT / Home Assistant Command Fields */
     char mqtt_topic[64];
@@ -235,7 +241,7 @@ typedef struct {
     cando_action_type_t type;
     char trigger_id[32];    /* Only execute if triggered by this trigger_id (empty/NULL = any) */
     char *popup_message;    /* Optional dashboard track popup text (via track_popup_show) */
-    char precon_mode[16];   /* "persistent", "continuous", "once" */
+    char precon_mode[16];   /* "persistent", "continuous", "once", "cancel" */
     char precon_press[16];  /* "short", "long" */
     float target_temp_c;    /* Target temperature in Celsius (e.g. 21.0) */
     char climate_zone[16];  /* "driver" or "passenger" */
@@ -254,12 +260,26 @@ typedef struct {
     char ha_icon[32];       /* Optional MDI Icon (e.g. "mdi:car-defrost-rear") */
     uint32_t exec_count;    /* Number of times this rule has fired */
     int64_t last_exec_us;   /* Timestamp of last execution (esp_timer_get_time) */
+    cando_exec_mode_t exec_mode; /* Rule execution mode (e.g. CANDO_EXEC_TOGGLE) */
+
+    /* Stateful Toggle & Cancellation Tracking */
+    bool is_active_state;   /* Toggled ON (true) or OFF (false) */
+    uint32_t auto_revert_sec; /* Auto revert to OFF after N seconds (0 = disabled) */
+    int64_t active_since_us; /* Timestamp when rule was toggled ON */
+
     cando_trigger_t *triggers; /* Multiple trigger definitions (OR) */
     uint8_t trigger_count;
     cando_trigger_t trigger;/* Primary trigger */
+
+    /* Primary / ON Actions */
     cando_action_t *actions;/* Multiple action blocks (Choose / Branching) */
     uint8_t action_count;
     cando_action_t action;  /* Primary action */
+
+    /* OFF / Cancel Actions (for CANDO_EXEC_TOGGLE mode) */
+    cando_action_t *off_actions;
+    uint8_t off_action_count;
+    cando_action_t off_action;
 } cando_rule_t;
 
 typedef enum {

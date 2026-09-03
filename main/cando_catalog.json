@@ -1410,6 +1410,24 @@
       "id": "act_single_cycle_preconditioning__once_"
     },
     {
+      "name": "Cancel / Turn Off Preconditioning",
+      "tags": [
+        "all_egmp",
+        "kia_ev6",
+        "hyundai_ioniq5",
+        "hyundai_ioniq6"
+      ],
+      "type": "precondition",
+      "precon_mode": "cancel",
+      "precon_press": "short",
+      "popup_message": "",
+      "category": "⚡ Battery Preconditioning",
+      "roles": [
+        "action"
+      ],
+      "id": "act_cancel_preconditioning"
+    },
+    {
       "name": "Live Batt Temp \u0026 Voltage",
       "tags": [
         "all_egmp",

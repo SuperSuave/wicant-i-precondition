@@ -3076,6 +3076,64 @@ static void cando_execute_action(cando_action_t *act, const char *matched_trig_i
     }
 }
 
+static void cando_execute_rule_actions(cando_rule_t *rule, const char *matched_id, int64_t now_us)
+{
+    if (!rule) return;
+
+    if (rule->exec_mode == CANDO_EXEC_TOGGLE) {
+        /* In toggle mode, flip-flop between ON (actions) and OFF (off_actions) */
+        if (!rule->is_active_state) {
+            /* Transition: Inactive -> Active (ON) */
+            rule->is_active_state = true;
+            rule->active_since_us = now_us;
+            ESP_LOGI("CANDO", "Rule '%s' TOGGLED ON", rule->name ? rule->name : "Unnamed");
+
+            if (rule->action_count > 0 && rule->actions) {
+                for (uint8_t a = 0; a < rule->action_count; a++) {
+                    cando_execute_action(&rule->actions[a], matched_id);
+                }
+            } else {
+                cando_execute_action(&rule->action, matched_id);
+            }
+        } else {
+            /* Transition: Active -> Inactive (OFF / Cancel) */
+            rule->is_active_state = false;
+            rule->active_since_us = 0;
+            ESP_LOGI("CANDO", "Rule '%s' TOGGLED OFF / CANCELLED", rule->name ? rule->name : "Unnamed");
+
+            if (rule->off_action_count > 0 && rule->off_actions) {
+                for (uint8_t a = 0; a < rule->off_action_count; a++) {
+                    cando_execute_action(&rule->off_actions[a], matched_id);
+                }
+            } else if (rule->off_action.type != 0 || rule->off_action.popup_message || rule->off_action.step_count > 0) {
+                cando_execute_action(&rule->off_action, matched_id);
+            } else {
+                /* If no explicit OFF action configured, automatically cancel preconditioning if rule has it */
+                bool has_precon = false;
+                if (rule->action_count > 0 && rule->actions) {
+                    for (uint8_t a = 0; a < rule->action_count; a++) {
+                        if (rule->actions[a].type == CANDO_ACT_PRECONDITION) { has_precon = true; break; }
+                    }
+                } else if (rule->action.type == CANDO_ACT_PRECONDITION) {
+                    has_precon = true;
+                }
+                if (has_precon && precondition_is_active()) {
+                    precondition_action_execute("cancel", "short");
+                }
+            }
+        }
+    } else {
+        /* Standard execution mode (ON_CHANGE, ONE_SHOT, CONTINUOUS, POLL_VERIFY) */
+        if (rule->action_count > 0 && rule->actions) {
+            for (uint8_t a = 0; a < rule->action_count; a++) {
+                cando_execute_action(&rule->actions[a], matched_id);
+            }
+        } else {
+            cando_execute_action(&rule->action, matched_id);
+        }
+    }
+}
+
 bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus)
 {
     if (!rule || !rule->enabled) return false;
@@ -3157,8 +3215,8 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
             /* Evaluate trigger condition (checking from -> to transition) */
             bool eval_passed = cando_evaluate_trigger(trig, msg, bus);
 
-            /* Check if incoming frame matches "release/idle" state to automatically re-arm ONE_SHOT triggers */
-            if (!eval_passed && trig->triggered_latched) {
+            /* Check if incoming frame matches "release/idle" state to automatically re-arm triggers and reset hold timers */
+            if (!eval_passed) {
                 bool is_release_state = false;
                 if (trig->has_from) {
                     bool from_matches = true;
@@ -3185,6 +3243,8 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 }
                 if (is_release_state) {
                     trig->triggered_latched = false; /* Button released: automatically re-armed! */
+                    trig->asserted_since_us = 0;      /* Reset hold timer on release */
+                    trig->hold_fired = false;
                 }
             }
 
@@ -3193,6 +3253,22 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
             trig->has_last_payload = true;
 
             if (eval_passed) {
+                /* Hold Duration (for_ms) Evaluation */
+                if (trig->for_ms > 0) {
+                    if (trig->asserted_since_us == 0) {
+                        trig->asserted_since_us = now_us;
+                        continue; /* Start timing hold duration */
+                    }
+                    int64_t elapsed_ms = (now_us - trig->asserted_since_us) / 1000;
+                    if (elapsed_ms < trig->for_ms) {
+                        continue; /* Threshold duration not yet reached */
+                    }
+                    if (trig->hold_fired) {
+                        continue; /* Already fired once during this continuous hold */
+                    }
+                    trig->hold_fired = true;
+                }
+
                 /* Enforce cooldown_ms (default 500ms for button triggers) */
                 uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
                 if (trig->last_triggered_us > 0) {
@@ -3231,15 +3307,9 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 ESP_LOGI("CANDO", "Trigger fired: rule '%s' (ID: %s) on CAN 0x%03lX",
                          rule->name ? rule->name : "Unnamed", trig->id, (unsigned long)msg->identifier);
 
-                /* Execute Actions (filtering by matched trigger ID) */
+                /* Execute Actions (supports standard, choose, and toggle flip-flop) */
                 const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
-                if (rule->action_count > 0 && rule->actions) {
-                    for (uint8_t a = 0; a < rule->action_count; a++) {
-                        cando_execute_action(&rule->actions[a], matched_id);
-                    }
-                } else {
-                    cando_execute_action(&rule->action, matched_id);
-                }
+                cando_execute_rule_actions(rule, matched_id, now_us);
             }
         }
     }
@@ -3291,13 +3361,7 @@ void cando_process_mqtt_trigger(const char *topic, const char *payload)
                      rule->name ? rule->name : "Unnamed", trig->id, topic, payload ? payload : "");
 
             const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
-            if (rule->action_count > 0 && rule->actions) {
-                for (uint8_t a = 0; a < rule->action_count; a++) {
-                    cando_execute_action(&rule->actions[a], matched_id);
-                }
-            } else {
-                cando_execute_action(&rule->action, matched_id);
-            }
+            cando_execute_rule_actions(rule, matched_id, now_us);
         }
     }
 }
@@ -3333,6 +3397,15 @@ void cando_process_timer_tick(void)
                 }
             }
         }
+
+        /* Auto-revert toggle state if active and duration exceeded */
+        if (rule->exec_mode == CANDO_EXEC_TOGGLE && rule->is_active_state && rule->auto_revert_sec > 0) {
+            if (rule->active_since_us > 0 && (now_us - rule->active_since_us) >= ((int64_t)rule->auto_revert_sec * 1000000LL)) {
+                ESP_LOGI("CANDO", "Rule '%s' auto-reverting to OFF after %lu sec",
+                         rule->name ? rule->name : "Unnamed", (unsigned long)rule->auto_revert_sec);
+                cando_execute_rule_actions(rule, "auto_revert", now_us);
+            }
+        }
     }
 }
 
@@ -3355,6 +3428,15 @@ static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_
         else if (strcmp(em->valuestring, "on_change") == 0) trig->exec_mode = CANDO_EXEC_ON_CHANGE;
         else if (strcmp(em->valuestring, "poll_verify") == 0) trig->exec_mode = CANDO_EXEC_POLL_VERIFY;
         else if (strcmp(em->valuestring, "continuous") == 0) trig->exec_mode = CANDO_EXEC_CONTINUOUS;
+        else if (strcmp(em->valuestring, "toggle") == 0) trig->exec_mode = CANDO_EXEC_TOGGLE;
+    }
+
+    cJSON *f_ms = trig_obj ? cJSON_GetObjectItem(trig_obj, "for_ms") : NULL;
+    cJSON *f_sec = trig_obj ? cJSON_GetObjectItem(trig_obj, "for_sec") : NULL;
+    if (f_ms && cJSON_IsNumber(f_ms)) {
+        trig->for_ms = (uint32_t)f_ms->valueint;
+    } else if (f_sec && cJSON_IsNumber(f_sec)) {
+        trig->for_ms = (uint32_t)roundf(f_sec->valuedouble * 1000.0f);
     }
 
     cJSON *cd = trig_obj ? cJSON_GetObjectItem(trig_obj, "cooldown_ms") : cJSON_GetObjectItem(r, "cooldown_ms");
@@ -3738,6 +3820,16 @@ esp_err_t cando_load_config(void)
                     if (g_cando_rules.rules[i].action.popup_message) free(g_cando_rules.rules[i].action.popup_message);
                     if (g_cando_rules.rules[i].action.steps) free(g_cando_rules.rules[i].action.steps);
                 }
+                if (g_cando_rules.rules[i].off_actions) {
+                    for (uint8_t a = 0; a < g_cando_rules.rules[i].off_action_count; a++) {
+                        if (g_cando_rules.rules[i].off_actions[a].popup_message) free(g_cando_rules.rules[i].off_actions[a].popup_message);
+                        if (g_cando_rules.rules[i].off_actions[a].steps) free(g_cando_rules.rules[i].off_actions[a].steps);
+                    }
+                    free(g_cando_rules.rules[i].off_actions);
+                } else {
+                    if (g_cando_rules.rules[i].off_action.popup_message) free(g_cando_rules.rules[i].off_action.popup_message);
+                    if (g_cando_rules.rules[i].off_action.steps) free(g_cando_rules.rules[i].off_action.steps);
+                }
             }
             free(g_cando_rules.rules);
             g_cando_rules.rules = NULL;
@@ -3779,6 +3871,22 @@ esp_err_t cando_load_config(void)
                         strncpy(rule->ha_icon, ha_ic->valuestring, sizeof(rule->ha_icon) - 1);
                     }
 
+                    cJSON *rule_em = cJSON_GetObjectItem(r, "exec_mode");
+                    if (rule_em && rule_em->valuestring) {
+                        if (strcmp(rule_em->valuestring, "toggle") == 0) rule->exec_mode = CANDO_EXEC_TOGGLE;
+                        else if (strcmp(rule_em->valuestring, "one_shot") == 0) rule->exec_mode = CANDO_EXEC_ONE_SHOT;
+                        else if (strcmp(rule_em->valuestring, "poll_verify") == 0) rule->exec_mode = CANDO_EXEC_POLL_VERIFY;
+                        else if (strcmp(rule_em->valuestring, "continuous") == 0) rule->exec_mode = CANDO_EXEC_CONTINUOUS;
+                        else rule->exec_mode = CANDO_EXEC_ON_CHANGE;
+                    } else {
+                        rule->exec_mode = CANDO_EXEC_ON_CHANGE;
+                    }
+
+                    cJSON *rev_sec = cJSON_GetObjectItem(r, "auto_revert_sec");
+                    if (rev_sec && cJSON_IsNumber(rev_sec)) {
+                        rule->auto_revert_sec = (uint32_t)rev_sec->valueint;
+                    }
+
                     /* 1. Parse Triggers (multi or single) */
                     cJSON *trigs_arr = cJSON_GetObjectItem(r, "triggers");
                     if (trigs_arr && cJSON_IsArray(trigs_arr) && cJSON_GetArraySize(trigs_arr) > 0) {
@@ -3813,6 +3921,26 @@ esp_err_t cando_load_config(void)
                     } else {
                         cJSON *act_obj = cJSON_GetObjectItem(r, "action");
                         cando_parse_single_action(r, act_obj, &rule->action);
+                    }
+
+                    /* 3. Parse OFF Actions (for toggle mode) */
+                    cJSON *off_acts_arr = cJSON_GetObjectItem(r, "off_actions");
+                    if (off_acts_arr && cJSON_IsArray(off_acts_arr) && cJSON_GetArraySize(off_acts_arr) > 0) {
+                        int num_off = cJSON_GetArraySize(off_acts_arr);
+                        rule->off_actions = calloc(num_off, sizeof(cando_action_t));
+                        if (rule->off_actions) {
+                            rule->off_action_count = num_off;
+                            for (int a = 0; a < num_off; a++) {
+                                cJSON *off_item = cJSON_GetArrayItem(off_acts_arr, a);
+                                cando_parse_single_action(r, off_item, &rule->off_actions[a]);
+                            }
+                            rule->off_action = rule->off_actions[0];
+                        }
+                    } else {
+                        cJSON *off_act_obj = cJSON_GetObjectItem(r, "off_action");
+                        if (off_act_obj) {
+                            cando_parse_single_action(r, off_act_obj, &rule->off_action);
+                        }
                     }
 
                     g_cando_rules.rule_count++;
@@ -3948,6 +4076,7 @@ void cando_get_stats_json(cJSON *root)
         cJSON_AddNumberToObject(st, "index", i);
         cJSON_AddStringToObject(st, "name", g_cando_rules.rules[i].name ? g_cando_rules.rules[i].name : "");
         cJSON_AddNumberToObject(st, "count", g_cando_rules.rules[i].exec_count);
+        cJSON_AddBoolToObject(st, "is_active", g_cando_rules.rules[i].is_active_state);
         int64_t age_ms = (g_cando_rules.rules[i].last_exec_us > 0) ? (now_us - g_cando_rules.rules[i].last_exec_us) / 1000 : -1;
         cJSON_AddNumberToObject(st, "age_ms", age_ms);
         cJSON_AddItemToArray(cando_stats, st);

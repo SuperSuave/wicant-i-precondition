@@ -1170,24 +1170,24 @@ static esp_err_t store_auto_data_handler(httpd_req_t *req)
         return ESP_ERR_NO_MEM;
     }
 
-    // Receive data with timeout handling
-    int received = httpd_req_recv(req, buf, buf_size);
-    if (received <= 0)
-	{
-        ESP_LOGE(TAG, "Failed to receive data: %d", received);
-        ret = ESP_FAIL;
-        goto cleanup;
+    size_t cur_len = 0;
+    while (cur_len < buf_size)
+    {
+        int received = httpd_req_recv(req, buf + cur_len, buf_size - cur_len);
+        if (received <= 0)
+        {
+            if (received == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                continue;
+            }
+            ESP_LOGE(TAG, "Failed to receive data: %d", received);
+            ret = ESP_FAIL;
+            goto cleanup;
+        }
+        cur_len += received;
     }
 
-    // Validate received data length
-    if (received != buf_size)
-	{
-        ESP_LOGE(TAG, "Incomplete data received: %d/%d", received, buf_size);
-        ret = ESP_FAIL;
-        goto cleanup;
-    }
-
-    buf[received] = '\0';
+    buf[buf_size] = '\0';
     
     // Validate JSON format
     cJSON *json = cJSON_Parse(buf);
@@ -1211,15 +1211,17 @@ static esp_err_t store_auto_data_handler(httpd_req_t *req)
     }
 
     // Write data with size verification
-    size_t written = fwrite(buf, 1, received, f);
-    if (written != received) 
+    size_t written = fwrite(buf, 1, buf_size, f);
+    if (written != buf_size)
 	{
-        ESP_LOGE(TAG, "File write failed: %d/%d bytes", written, received);
+        ESP_LOGE(TAG, "File write failed: %d/%d bytes", written, buf_size);
         fclose(f);
         ret = ESP_FAIL;
         goto cleanup;
     }
 
+    fflush(f);
+    fsync(fileno(f));
     fclose(f);
 
     // Send success response

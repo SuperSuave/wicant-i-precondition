@@ -3977,13 +3977,13 @@
                 document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_tx_en_checkbox").checked && (document.getElementById("mqtt_tx_topic").value.length < 1 || document.getElementById("mqtt_tx_topic").value.length > 64)) {
                 showNotification("MQTT TX Topic length, min=1 max=64", "red");
-                document.getElementById("action_button").disabled = true;
+                document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_rx_en_checkbox").checked && (document.getElementById("mqtt_rx_topic").value.length < 1 || document.getElementById("mqtt_rx_topic").value.length > 64)) {
                 showNotification("MQTT RX Topic length, min=1 max=64", "red");
-                document.getElementById("action_button").disabled = true;
+                document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("mqtt_status_topic").value.length < 1 || document.getElementById("mqtt_status_topic").value.length > 64) {
                 showNotification("MQTT Status Topic length, min=1 max=64", "red");
-                document.getElementById("action_button").disabled = true;
+                document.getElementById("submit_button").disabled = true;
             } else if (document.getElementById("tcp_port_value").value > 65535 || document.getElementById("tcp_port_value").value < 1) {
                 showNotification("Port value, min=1 max=65535", "red");
                 document.getElementById("submit_button").disabled = true;

@@ -10,7 +10,8 @@
 #include "autopid.h"
 
 #define TAG "TIME_SYNC"
-#define TIME_CONFIG_PATH "/spiffs/time_config.json"
+#include "hw_config.h"
+#define TIME_CONFIG_PATH FS_MOUNT_POINT "/time_config.json"
 
 static time_sync_config_t g_time_config = {
     .sntp_enabled = false,

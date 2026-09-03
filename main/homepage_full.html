@@ -3533,18 +3533,18 @@
                     });
                 }
 
-                // FIX: await so this completes before /store_auto_data and
-                // /store_config are sent, preventing ESP httpd connection-pool
-                // exhaustion that caused ERR_CONNECTION_RESET on /store_config.
-                await fetch('/store_car_data', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ cars: [carData] })
-                }).then(response => response.text())
-                    .then(data => console.log('Success:', data))
-                    .catch(error => console.error('Error:', error));
+                // Only send car data if car_specific is enabled
+                if (carSpecificValue === "enable") {
+                    await fetch('/store_car_data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ cars: [carData] })
+                    }).then(response => response.text())
+                        .then(data => console.log('Success:', data))
+                        .catch(error => console.error('Error:', error));
+                }
 
 
 

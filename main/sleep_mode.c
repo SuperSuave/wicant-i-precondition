@@ -509,7 +509,14 @@ int8_t sleep_mode_init(uint8_t enable, float sleep_volt)
 {
 	enable_sleep = enable;
 	sleep_voltage = sleep_volt;
-	ESP_LOGW(TAG, "sleep_volt: %2.2f", sleep_volt);
+	ESP_LOGW(TAG, "sleep_volt: %2.2f, enable: %d", sleep_volt, enable);
+
+	static bool s_sleep_mode_initialized = false;
+	if (s_sleep_mode_initialized) {
+		return 1;
+	}
+	s_sleep_mode_initialized = true;
+
 	s_mqtt_event_group = xEventGroupCreate();
 	voltage_queue = xQueueCreate(1, sizeof( float) );
 	xTaskCreate(adc_task, "adc_task", 4096, (void*)AF_INET, 5, NULL);

@@ -162,6 +162,7 @@ const char device_config_default[] = R"json({
 })json";
 static device_config_t device_config;
 TimerHandle_t xrestartTimer;
+static void config_server_load_cfg(char *cfg);
 
 /* Max length a file path can have on storage */
 #if defined(CONFIG_LITTLEFS_OBJ_NAME_LEN)

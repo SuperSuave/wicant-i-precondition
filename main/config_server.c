@@ -489,6 +489,8 @@ static esp_err_t store_config_handler(httpd_req_t *req)
     {
         // Write the received data into the file
         fwrite(buf, 1, buf_size, f);
+        fflush(f);
+        fsync(fileno(f));
         fclose(f);
     }
     else
@@ -566,11 +568,12 @@ static esp_err_t store_canflt_handler(httpd_req_t *req)
 		fseek(f1, 0, SEEK_SET);
 		mqtt_canflt_file = malloc(filesize+1);
 		ESP_LOGI(__func__, "mqtt_canflt_file File size: %ld", filesize);
-		fseek(f1, 0, SEEK_SET);
-		fread(mqtt_canflt_file, sizeof(char), filesize, f1);
-		mqtt_canflt_file[filesize] = 0;
-		fseek(f1, 0, SEEK_SET);
-		ESP_LOGI(TAG, "mqtt_canfilt.json: %s", mqtt_canflt_file);
+		if (mqtt_canflt_file != NULL) {
+			fread(mqtt_canflt_file, sizeof(char), filesize, f1);
+			mqtt_canflt_file[filesize] = 0;
+			ESP_LOGI(TAG, "mqtt_canfilt.json: %s", mqtt_canflt_file);
+		}
+		fclose(f1);
 	}
     const char *resp_str = "CAN filter saved! Filter will take effect after submit.";
     httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
@@ -2241,33 +2244,38 @@ static void config_server_load_cfg(char *cfg)
 	else
 	{
 		key = cJSON_GetObjectItem(root,"sta_ssid");
-		if(key == 0)
+		if(key && key->valuestring && strlen(key->valuestring) <= 32)
 		{
-			goto config_error;
+			strcpy(device_config.sta_ssid, key->valuestring);
 		}
-		if(strlen(key->valuestring) == 0 || strlen(key->valuestring) > 32)
+		else
 		{
-			goto config_error;
+			strcpy(device_config.sta_ssid, "MeatPi");
 		}
-		strcpy(device_config.sta_ssid, key->valuestring);
 		ESP_LOGI(TAG, "device_config.sta_ssid: %s", device_config.sta_ssid);
 
 		key = cJSON_GetObjectItem(root,"sta_pass");
-		if(key == 0)
+		if(key && key->valuestring && strlen(key->valuestring) <= 64)
 		{
-			goto config_error;
+			strcpy(device_config.sta_pass, key->valuestring);
 		}
-		if(strlen(key->valuestring) < 8 || strlen(key->valuestring) > 64)
+		else
 		{
-			goto config_error;
+			strcpy(device_config.sta_pass, "TomatoSauce");
 		}
-		strcpy(device_config.sta_pass, key->valuestring);
 		ESP_LOGI(TAG, "device_config.sta_pass: %s", device_config.sta_pass);
 
-		device_config.sta_network_count = 1;
-		strncpy(device_config.sta_networks[0].ssid, device_config.sta_ssid, sizeof(device_config.sta_networks[0].ssid) - 1);
-		strncpy(device_config.sta_networks[0].pass, device_config.sta_pass, sizeof(device_config.sta_networks[0].pass) - 1);
-		strncpy(device_config.sta_networks[0].security, device_config.sta_security, sizeof(device_config.sta_networks[0].security) - 1);
+		if (strlen(device_config.sta_ssid) > 0)
+		{
+			device_config.sta_network_count = 1;
+			strncpy(device_config.sta_networks[0].ssid, device_config.sta_ssid, sizeof(device_config.sta_networks[0].ssid) - 1);
+			strncpy(device_config.sta_networks[0].pass, device_config.sta_pass, sizeof(device_config.sta_networks[0].pass) - 1);
+			strncpy(device_config.sta_networks[0].security, device_config.sta_security, sizeof(device_config.sta_networks[0].security) - 1);
+		}
+		else
+		{
+			device_config.sta_network_count = 0;
+		}
 	}
 
 	key = cJSON_GetObjectItem(root,"can_datarate");
@@ -2604,7 +2612,7 @@ static void config_server_load_cfg(char *cfg)
 	}
 	if(strlen(key->valuestring) == 0)
 	{
-		sprintf(device_config.mqtt_tx_topic, "wican/%s/can/tx", device_id);
+		snprintf(device_config.mqtt_tx_topic, sizeof(device_config.mqtt_tx_topic), "wican/%s/can/tx", device_id);
 	}
 	else
 	{

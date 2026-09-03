@@ -324,11 +324,17 @@ static void wifi_conn_task(void *pvParameters)
 
         xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECT_IDLE_BIT);
         esp_wifi_connect();
-        xEventGroupWaitBits(s_wifi_event_group,
+        EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
                     WIFI_CONNECT_IDLE_BIT,
                     pdFALSE,
                     pdTRUE,
-                    portMAX_DELAY);
+                    pdMS_TO_TICKS(15000));
+        if ((bits & WIFI_CONNECT_IDLE_BIT) == 0)
+        {
+            ESP_LOGW(WIFI_TAG, "Wi-Fi connection attempt timed out waiting for event");
+            xEventGroupSetBits(s_wifi_event_group, WIFI_DISCONNECTED_BIT);
+            xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECT_IDLE_BIT);
+        }
         vTaskDelay(pdTICKS_TO_MS(connect_delay[s_retry_num++]));
         s_retry_num %= (sizeof(connect_delay)/sizeof(TickType_t));
     }

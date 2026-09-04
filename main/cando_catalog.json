@@ -21,13 +21,6 @@
         "touch_bar",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Head-Up Display (HUD) Angle \u0026 Brightness Adjust",
-        "Ambient Lighting 64-Color RGB Palette Sync",
-        "V2L (Vehicle-to-Load) Discharge Cutoff SOC",
-        "Acoustic Vehicle Alerting System (VESS) Chime Mode",
-        "Smart Power Tailgate Height Limit Level"
       ]
     },
     {
@@ -46,13 +39,6 @@
         "camera_360",
         "sunroof",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Driver Relaxation Comfort Seat 1-Touch Zero-G Tilt",
-        "Sliding Universal Island Console Forward/Aft Motor",
-        "Vision Glass Roof Power Sunshade Position",
-        "Augmented Reality HUD Calibration",
-        "Bose Premium Audio Surround Stage Profile"
       ]
     },
     {
@@ -68,11 +54,6 @@
         "heated_wheel",
         "power_tailgate",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Ambient Mood Lighting Dual Color Zone Sync",
-        "Power Folding Mirrors Position",
-        "Hands-Free Smart Liftgate Sensitivity"
       ]
     },
     {
@@ -86,10 +67,6 @@
       "features": [
         "heated_seats",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Manual Climate Target Optimization",
-        "Drive Mode Eco/Normal/Sport Steering Weight"
       ]
     },
     {
@@ -108,13 +85,6 @@
         "camera_360",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "N Grin Shift (NGS) Boost Trigger",
-        "N Active Sound+ Ignition/Evolution/Supersonic Modes",
-        "N e-Shift Virtual Dual-Clutch Gear Shift Feel",
-        "N Drift Optimizer Torque Distribution Front/Rear",
-        "N Battery Preconditioning Drag vs Track Mode"
       ]
     },
     {
@@ -133,12 +103,6 @@
         "camera_360",
         "sunroof",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Digital Side Mirrors (DSM) Camera Display Brightness",
-        "Driver Relaxation Seat Zero-Gravity Recline",
-        "Vision Roof Electronic Sunshade Position",
-        "Smart Power Tailgate Height Adjustment"
       ]
     },
     {
@@ -154,10 +118,6 @@
         "heated_wheel",
         "power_tailgate",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Smart Tailgate Distance Sensor Trigger",
-        "Ambient Lighting Color Tone"
       ]
     },
     {
@@ -171,9 +131,6 @@
       "features": [
         "heated_seats",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "V2L External Adapter Release Trigger"
       ]
     },
     {
@@ -194,13 +151,6 @@
         "touch_bar",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "EV6 Dual-Function Touch Strip Mode Override (Climate / Nav)",
-        "Augmented Reality HUD Blind-Spot Projection",
-        "Active Sound Design (ASD) Volume \u0026 Pitch Modulation",
-        "Meridian Horizon Sound 3D DSP Presets",
-        "Power Sunroof Tilt / Slide State"
       ]
     },
     {
@@ -219,11 +169,6 @@
         "touch_bar",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Smart Power Tailgate Proximity Auto-Open Toggle",
-        "Meridian Surround Stage Mode",
-        "HVAC Touch Strip Mode Memory"
       ]
     },
     {
@@ -243,12 +188,6 @@
         "touch_bar",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Steering Wheel GT Neon Mode Button Customization",
-        "Electronic Controlled Suspension (ECS) Dynamic Damping",
-        "Electronic Limited Slip Differential (e-LSD) Drift Mode",
-        "GT Performance Sport Gauge Cluster Layout"
       ]
     },
     {
@@ -263,10 +202,6 @@
         "heated_seats",
         "touch_bar",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Touch Strip HVAC/Media Switch",
-        "Virtual Engine Sound Pitch Adjust"
       ]
     },
     {
@@ -287,12 +222,6 @@
         "touch_bar",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Heated Outer Rear Seat Heat Levels",
-        "Touch Strip Dual-Mode Toggle",
-        "Meridian Audio Surround Profiles",
-        "Panoramic Power Tilt Sunroof"
       ]
     },
     {
@@ -308,10 +237,6 @@
         "heated_wheel",
         "touch_bar",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Touch Strip Mode Switch",
-        "Scheduled Preconditioning Auto-Start"
       ]
     },
     {
@@ -331,13 +256,6 @@
         "sunroof",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Dual Color Ambient Speed-Linked Lighting",
-        "EV Sound Design (e-ASD) Spatial Audio",
-        "Power Tilt/Slide Sunroof Remote Open/Close",
-        "Hands-Free Smart Power Trunklid Calibration",
-        "Remote Smart Parking Assist 2 (RSPA 2) Diagnostics"
       ]
     },
     {
@@ -353,10 +271,6 @@
         "power_tailgate",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Speed-Sensitive Dual Ambient Light Intensity",
-        "Smart Power Trunklid Proximity Alert"
       ]
     },
     {
@@ -371,10 +285,6 @@
         "heated_seats",
         "power_tailgate",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Aerodynamic Active Air Flap (AAF) Diagnostics",
-        "Preconditioning Efficiency Optimization"
       ]
     },
     {
@@ -394,11 +304,6 @@
         "sunroof",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Digital Side Mirrors (DSM) Angle \u0026 Defrost",
-        "Speed-Linked Interactive 64-Color Lighting",
-        "Power Sunroof Position Command"
       ]
     },
     {
@@ -415,10 +320,6 @@
         "power_tailgate",
         "asd",
         "preconditioning"
-      ],
-      "_future_can_candidates": [
-        "Interactive Steering Wheel Pixel LED Indicators",
-        "Smart Trunk Opening Sensitivity"
       ]
     }
   ],
@@ -427,10 +328,7 @@
       "id": "sw_star",
       "name": "Star (⭐) Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -445,10 +343,7 @@
       "id": "sw_mode",
       "name": "Mode Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -463,10 +358,7 @@
       "id": "sw_speak",
       "name": "Voice / Speak Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -481,10 +373,7 @@
       "id": "sw_call",
       "name": "Call / Phone Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -499,10 +388,7 @@
       "id": "sw_vol_in",
       "name": "Volume Press / Mute",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -517,10 +403,7 @@
       "id": "sw_vol_up",
       "name": "Volume Up",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -535,10 +418,7 @@
       "id": "sw_vol_down",
       "name": "Volume Down",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -553,10 +433,7 @@
       "id": "sw_skip_up",
       "name": "Seek / Skip Up",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -571,10 +448,7 @@
       "id": "sw_skip_down",
       "name": "Seek / Skip Down",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -589,10 +463,7 @@
       "id": "sw_ok",
       "name": "OK Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -607,10 +478,7 @@
       "id": "avn_star",
       "name": "AVN Dash Star (⭐) Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Dashboard / Center Console",
       "can_id": "0x652",
@@ -641,10 +509,7 @@
       "id": "camera_btn",
       "name": "360° Surround View Camera Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "camera_360",
       "category": "Dashboard / Center Console",
@@ -660,9 +525,7 @@
       "id": "cluster_brightness",
       "name": "Cluster Brightness (+ / -)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5"
+        "all_egmp"
       ],
       "category": "Dashboard / Center Console",
       "can_id": "0x474",
@@ -688,12 +551,10 @@
       "id": "heated_wheel_btn",
       "name": "Heated Steering Wheel Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5"
+        "all_egmp"
       ],
       "requires_feature": "heated_wheel",
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x418",
       "bus": 0,
       "from_payload": "* * 00",
@@ -706,13 +567,10 @@
       "id": "driver_seat_heat",
       "name": "Driver Seat Heating Active",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "heated_seats",
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x496",
       "bus": 0,
       "from_payload": "12",
@@ -725,13 +583,10 @@
       "id": "pass_seat_heat",
       "name": "Passenger Seat Heating Active",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "heated_seats",
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x475",
       "bus": 0,
       "from_payload": "12",
@@ -744,12 +599,9 @@
       "id": "climate_sync_toggle",
       "name": "Climate SYNC Button Toggle",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x4A0",
       "bus": 0,
       "from_payload": "* * * 0B",
@@ -762,12 +614,9 @@
       "id": "climate_driver_only",
       "name": "Driver Only / Heat Mode Toggle",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x41D",
       "bus": 0,
       "from_payload": "* * * * 0D",
@@ -778,14 +627,11 @@
     },
     {
       "id": "climate_rear_defog",
-      "name": "Rear Defogger \u0026 Mirrors Active",
+      "name": "Rear Defogger & Mirrors Active",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x541",
       "bus": 0,
       "from_payload": "* * * * 0*",
@@ -798,12 +644,9 @@
       "id": "climate_temp_status",
       "name": "Target Temperature Change",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x380",
       "bus": 0,
       "from_payload": "",
@@ -816,12 +659,9 @@
       "id": "car_ready_state",
       "name": "Car READY State Transition",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x038",
       "bus": 0,
       "from_payload": "*0",
@@ -834,12 +674,9 @@
       "id": "driver_door",
       "name": "Driver Door",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x521",
       "bus": 0,
       "roles": [
@@ -866,12 +703,9 @@
       "id": "pass_door",
       "name": "Passenger Door",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x521",
       "bus": 0,
       "roles": [
@@ -898,12 +732,9 @@
       "id": "trunk",
       "name": "Trunk / Tailgate",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x414",
       "bus": 0,
       "roles": [
@@ -930,12 +761,9 @@
       "id": "charge_port",
       "name": "Charge Port Door",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x3AA",
       "bus": 0,
       "roles": [
@@ -962,12 +790,9 @@
       "id": "hood",
       "name": "Hood / Front Trunk",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
       "roles": [
@@ -994,13 +819,10 @@
       "id": "sunroof",
       "name": "Sunroof",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "sunroof",
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
       "roles": [
@@ -1027,12 +849,9 @@
       "id": "hazard_lights",
       "name": "Hazard Warning Lights",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
       "roles": [
@@ -1059,12 +878,9 @@
       "id": "wipers",
       "name": "Windshield Wipers",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
       "roles": [
@@ -1091,12 +907,9 @@
       "id": "brake_pedal",
       "name": "Brake Pedal",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x412",
       "bus": 0,
       "roles": [
@@ -1123,12 +936,9 @@
       "id": "power_state",
       "name": "Vehicle Ignition / Power State",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x435",
       "bus": 0,
       "roles": [
@@ -1155,12 +965,9 @@
       "id": "doors_lock_state",
       "name": "Door Locks",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x411",
       "bus": 0,
       "roles": [
@@ -1187,12 +994,9 @@
       "id": "driver_seatbelt",
       "name": "Driver Seatbelt",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x411",
       "bus": 0,
       "roles": [
@@ -1219,12 +1023,9 @@
       "id": "pass_seatbelt",
       "name": "Passenger Seatbelt",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Vehicle State \u0026 Safety",
+      "category": "Vehicle State & Safety",
       "can_id": "0x411",
       "bus": 0,
       "roles": [
@@ -1251,10 +1052,7 @@
       "id": "sw_menu_down",
       "name": "Menu Down Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -1269,10 +1067,7 @@
       "id": "sw_menu_up",
       "name": "Menu Up Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -1287,10 +1082,7 @@
       "id": "sw_menu_press",
       "name": "Menu OK / Press Button",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "category": "Steering Wheel",
       "can_id": "0x448",
@@ -1305,12 +1097,9 @@
       "id": "climate_fan_active",
       "name": "HVAC Fan Started",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x31B",
       "bus": 0,
       "from_payload": "* * * 0*",
@@ -1323,12 +1112,9 @@
       "id": "climate_recirc_on",
       "name": "Cabin Recirculation Toggled",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x31B",
       "bus": 0,
       "from_payload": "* * * * 0*",
@@ -1341,12 +1127,9 @@
       "id": "ambient_color_trig",
       "name": "Ambient Lighting Color Changed",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
-      "category": "Comfort \u0026 Climate",
+      "category": "Comfort & Climate",
       "can_id": "0x4AD",
       "bus": 0,
       "from_payload": "* * * * 00 00 00 00",
@@ -1358,10 +1141,7 @@
     {
       "name": "Persistent Preconditioning (21°C / 70°F)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "precondition",
       "precon_mode": "persistent",
@@ -1376,10 +1156,7 @@
     {
       "name": "Continuous Preconditioning (High Demand)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "precondition",
       "precon_mode": "continuous",
@@ -1394,10 +1171,7 @@
     {
       "name": "Single Cycle Preconditioning (Once)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "precondition",
       "precon_mode": "once",
@@ -1412,10 +1186,7 @@
     {
       "name": "Cancel / Turn Off Preconditioning",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "precondition",
       "precon_mode": "cancel",
@@ -1428,12 +1199,9 @@
       "id": "act_cancel_preconditioning"
     },
     {
-      "name": "Live Batt Temp \u0026 Voltage",
+      "name": "Live Batt Temp & Voltage",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "popup",
       "popup_message": "Batt: {battery_temp}C ({voltage}V)",
@@ -1447,10 +1215,7 @@
     {
       "name": "Min / Max Batt Temp Range",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "popup",
       "popup_message": "Batt: {temp_min}C to {temp_max}C",
@@ -1462,12 +1227,9 @@
       "id": "act_min___max_batt_temp_range"
     },
     {
-      "name": "Preconditioning Status \u0026 Temp",
+      "name": "Preconditioning Status & Temp",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "popup",
       "popup_message": "Precon: {status} ({battery_temp}C)",
@@ -1481,10 +1243,7 @@
     {
       "name": "Charge Port Opened Toast",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "popup",
       "popup_message": "CHARGE PORT OPEN",
@@ -1497,10 +1256,7 @@
     {
       "name": "Sport Mode Active Toast",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "popup",
       "popup_message": "SPORT MODE ACTIVE",
@@ -1511,12 +1267,9 @@
       "id": "act_sport_mode_active_toast"
     },
     {
-      "name": "AC \u0026 DC Max Charge Limit (Both)",
+      "name": "AC & DC Max Charge Limit (Both)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4C5",
@@ -1575,10 +1328,7 @@
     {
       "name": "AC Level 2 Charge Limit",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4C5",
@@ -1637,10 +1387,7 @@
     {
       "name": "DC Fast Charge Limit",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4C5",
@@ -1699,10 +1446,7 @@
     {
       "name": "Driver Seat Heating Level",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "heated_seats",
       "type": "can_tx",
@@ -1743,7 +1487,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1752,10 +1496,7 @@
     {
       "name": "Passenger Seat Heating Level",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "heated_seats",
       "type": "can_tx",
@@ -1796,7 +1537,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1805,10 +1546,7 @@
     {
       "name": "Both Seats Heating Level",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "heated_seats",
       "type": "can_tx",
@@ -1849,7 +1587,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1858,10 +1596,7 @@
     {
       "name": "Driver Seat Ventilation Level",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "ventilated_seats",
       "type": "can_tx",
@@ -1902,7 +1637,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1911,10 +1646,7 @@
     {
       "name": "Passenger Seat Ventilation Level",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "ventilated_seats",
       "type": "can_tx",
@@ -1955,7 +1687,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1964,10 +1696,7 @@
     {
       "name": "Both Seats Ventilation Level",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "requires_feature": "ventilated_seats",
       "type": "can_tx",
@@ -2008,7 +1737,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -2017,9 +1746,7 @@
     {
       "name": "Heated Steering Wheel Toggle",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5"
+        "all_egmp"
       ],
       "requires_feature": "heated_wheel",
       "type": "can_tx",
@@ -2037,19 +1764,16 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats \u0026 Steering Wheel Comfort",
+      "category": "💺 Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
       "id": "act_heated_steering_wheel_toggle"
     },
     {
-      "name": "Remote Climate Start (+ Seats \u0026 Wheel)",
+      "name": "Remote Climate Start (+ Seats & Wheel)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -2058,7 +1782,7 @@
       "popup_message": "Remote Climate Started",
       "options": [
         {
-          "label": "Start (+ Seats \u0026 Wheel)",
+          "label": "Start (+ Seats & Wheel)",
           "payload": "00 00 FF F3 FF FF 7F 00",
           "popup": "Climate + Warmers Started",
           "default": true
@@ -2093,10 +1817,7 @@
     {
       "name": "Deep Sleep Network Wake Pulse",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x604",
@@ -2125,10 +1846,7 @@
     {
       "name": "Set Target Cabin Temp",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "climate_target",
       "climate_zone": "driver",
@@ -2149,10 +1867,7 @@
     {
       "name": "SYNC Mode Toggle",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4A0",
@@ -2191,10 +1906,7 @@
     {
       "name": "Driver Only Mode",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x41D",
@@ -2274,7 +1986,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators \u0026 Features",
+      "category": "🚗 Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2283,9 +1995,7 @@
     {
       "name": "360° Surround View Camera",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5"
+        "all_egmp"
       ],
       "requires_feature": "camera_360",
       "type": "can_tx",
@@ -2303,7 +2013,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators \u0026 Features",
+      "category": "🚗 Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2312,10 +2022,7 @@
     {
       "name": "Keepalive / Wakeup Ping",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x7DF",
@@ -2328,7 +2035,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators \u0026 Features",
+      "category": "🚗 Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2337,10 +2044,7 @@
     {
       "name": "Multi-Frame Burst Sequence (x3)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x652",
@@ -2357,7 +2061,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators \u0026 Features",
+      "category": "🚗 Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2366,14 +2070,11 @@
     {
       "name": "Home Assistant Webhook Event",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "webhook",
       "webhook_url": "http://homeassistant.local:8123/api/webhook/wican_event",
-      "category": "🌐 Home Assistant \u0026 Cloud",
+      "category": "🌐 Home Assistant & Cloud",
       "roles": [
         "action"
       ],
@@ -2382,15 +2083,12 @@
     {
       "name": "MQTT JSON Event Alert",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "mqtt",
       "mqtt_topic": "wican/event/alert",
       "mqtt_payload": "{\"event\": \"triggered\", \"status\": \"active\"}",
-      "category": "🌐 Home Assistant \u0026 Cloud",
+      "category": "🌐 Home Assistant & Cloud",
       "roles": [
         "action"
       ],
@@ -2399,10 +2097,7 @@
     {
       "name": "Interior Ambient Mood Lighting (64-Color Palette)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4AD",
@@ -2462,7 +2157,7 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient \u0026 Interior Lighting",
+      "category": "💡 Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
@@ -2471,10 +2166,7 @@
     {
       "name": "Ambient Light: Crimson Red (#FE2200)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4AD",
@@ -2491,7 +2183,7 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient \u0026 Interior Lighting",
+      "category": "💡 Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
@@ -2500,10 +2192,7 @@
     {
       "name": "Ambient Light: Electric Blue (#0055FF)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4AD",
@@ -2520,7 +2209,7 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient \u0026 Interior Lighting",
+      "category": "💡 Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
@@ -2529,10 +2218,7 @@
     {
       "name": "Ambient Light: Cyan / Aqua Wave (#00D9F5)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4AD",
@@ -2549,7 +2235,7 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient \u0026 Interior Lighting",
+      "category": "💡 Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
@@ -2558,10 +2244,7 @@
     {
       "name": "Ambient Light: Deep Purple / Violet (#8000FF)",
       "tags": [
-        "all_egmp",
-        "kia_ev6",
-        "hyundai_ioniq5",
-        "hyundai_ioniq6"
+        "all_egmp"
       ],
       "type": "can_tx",
       "can_id": "0x4AD",
@@ -2578,7 +2261,7 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient \u0026 Interior Lighting",
+      "category": "💡 Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
@@ -2591,7 +2274,7 @@
         "all_egmp"
       ],
       "type": "speed_zero",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
@@ -2605,21 +2288,21 @@
       "type": "can_state",
       "can_id": "0x2C0",
       "match_payload": "* * 00 * * * * *",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_doors_closed",
-      "name": "🚪 All Doors \u0026 Trunk Closed",
+      "name": "🚪 All Doors & Trunk Closed",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x540",
       "match_payload": "00 00 00 00 * * * *",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
@@ -2633,7 +2316,7 @@
       "type": "can_state",
       "can_id": "0x496",
       "match_payload": "!12 * * * * * * *",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
@@ -2647,7 +2330,7 @@
       "type": "can_state",
       "can_id": "0x475",
       "match_payload": "!12 * * * * * * *",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
@@ -2661,7 +2344,7 @@
       "type": "can_state",
       "can_id": "0x476",
       "match_payload": "* 00 * * * * * *",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
@@ -2675,119 +2358,119 @@
       "type": "can_state",
       "can_id": "0x594",
       "match_payload": "* * 01 * * * * *",
-      "category": "🚗 Vehicle State \u0026 Safety",
+      "category": "🚗 Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_temp_freezing",
-      "name": "❄️ Outdoor Temp \u003c= 0°C (32°F Freezing)",
+      "name": "❄️ Outdoor Temp <= 0°C (32°F Freezing)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
-      "expression": "[B3] \u003c= 40",
+      "expression": "[B3] <= 40",
       "can_id": "0x226",
-      "category": "🌡️ Environment \u0026 Weather",
+      "category": "🌡️ Environment & Weather",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_temp_cold",
-      "name": "🌡️ Outdoor Temp \u003c 15°C (59°F Cold)",
+      "name": "🌡️ Outdoor Temp < 15°C (59°F Cold)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
-      "expression": "[B3] \u003c 55",
+      "expression": "[B3] < 55",
       "can_id": "0x226",
-      "category": "🌡️ Environment \u0026 Weather",
+      "category": "🌡️ Environment & Weather",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_temp_warm",
-      "name": "☀️ Outdoor Temp \u003e 25°C (77°F Warm)",
+      "name": "☀️ Outdoor Temp > 25°C (77°F Warm)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
-      "expression": "[B3] \u003e 65",
+      "expression": "[B3] > 65",
       "can_id": "0x226",
-      "category": "🌡️ Environment \u0026 Weather",
+      "category": "🌡️ Environment & Weather",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_hv_soc_ok",
-      "name": "🔋 HV Battery SOC \u003e 20% (Safe for Precon)",
+      "name": "🔋 HV Battery SOC > 20% (Safe for Precon)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
-      "expression": "[B7] \u003e= 40",
+      "expression": "[B7] >= 40",
       "can_id": "0x2FC",
-      "category": "🔋 Battery \u0026 Power",
+      "category": "🔋 Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_hv_soc_high",
-      "name": "🔋 HV Battery SOC \u003e 50%",
+      "name": "🔋 HV Battery SOC > 50%",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
-      "expression": "[B7] \u003e= 100",
+      "expression": "[B7] >= 100",
       "can_id": "0x2FC",
-      "category": "🔋 Battery \u0026 Power",
+      "category": "🔋 Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_hv_soc_low",
-      "name": "⚠️ HV Battery SOC \u003c 20% (Low Battery)",
+      "name": "⚠️ HV Battery SOC < 20% (Low Battery)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
-      "expression": "[B7] \u003c 40",
+      "expression": "[B7] < 40",
       "can_id": "0x2FC",
-      "category": "🔋 Battery \u0026 Power",
+      "category": "🔋 Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_aux_12v_healthy",
-      "name": "⚡ 12V Aux Battery Healthy (\u003e 12.4V)",
+      "name": "⚡ 12V Aux Battery Healthy (> 12.4V)",
       "tags": [
         "all_egmp"
       ],
       "type": "voltage",
       "voltage_val": "12.4",
       "voltage_dir": "above",
-      "category": "🔋 Battery \u0026 Power",
+      "category": "🔋 Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_aux_12v_low",
-      "name": "⚠️ 12V Aux Battery Low (\u003c 12.0V)",
+      "name": "⚠️ 12V Aux Battery Low (< 12.0V)",
       "tags": [
         "all_egmp"
       ],
       "type": "voltage",
       "voltage_val": "12.0",
       "voltage_dir": "below",
-      "category": "🔋 Battery \u0026 Power",
+      "category": "🔋 Battery & Power",
       "roles": [
         "condition"
       ]
@@ -2806,7 +2489,7 @@
         "thu",
         "fri"
       ],
-      "category": "🕒 Schedule \u0026 Calendar",
+      "category": "🕒 Schedule & Calendar",
       "roles": [
         "condition"
       ]
@@ -2822,7 +2505,7 @@
         "sat",
         "sun"
       ],
-      "category": "🕒 Schedule \u0026 Calendar",
+      "category": "🕒 Schedule & Calendar",
       "roles": [
         "condition"
       ]
@@ -2836,7 +2519,7 @@
       "type": "time_window",
       "start_time": "07:00",
       "end_time": "19:00",
-      "category": "🕒 Schedule \u0026 Calendar",
+      "category": "🕒 Schedule & Calendar",
       "roles": [
         "condition"
       ]
@@ -2850,7 +2533,7 @@
       "type": "time_window",
       "start_time": "19:00",
       "end_time": "07:00",
-      "category": "🕒 Schedule \u0026 Calendar",
+      "category": "🕒 Schedule & Calendar",
       "roles": [
         "condition"
       ]

@@ -3467,6 +3467,32 @@
             }
         }
 
+        function showTrackPopup() {
+            const textInput = document.getElementById("track_popup_text");
+            const popupButton = document.getElementById("track_popup_button");
+            if (textInput.value.length === 0) {
+                showNotification("Enter track popup text", "red");
+                return;
+            }
+
+            const xhttp = new XMLHttpRequest();
+            popupButton.disabled = true;
+            xhttp.onload = function() {
+                popupButton.disabled = false;
+                if (this.status >= 200 && this.status < 300) {
+                    showNotification(this.responseText, "green");
+                } else {
+                    showNotification(this.responseText || "Failed to show track popup", "red");
+                }
+            };
+            xhttp.onerror = function() {
+                popupButton.disabled = false;
+                showNotification("Failed to show track popup", "red");
+            };
+            xhttp.open("POST", "/track_popup");
+            xhttp.setRequestHeader("Content-Type", "text/plain; charset=UTF-8");
+            xhttp.send(textInput.value);
+        }
 
         function enableAutoStoreButton() {
             const storeButton = document.querySelector('button.store');
@@ -4714,6 +4740,12 @@
                         <button type="button" onclick="preconActivate()" class="dash-outline-btn" style="width: 100%; cursor: pointer; text-align: left; justify-content: flex-start;">
                             ❄️ Toggle Battery Preconditioning
                         </button>
+                        <div style="display: flex; gap: 0.5rem; width: 100%; align-items: center; justify-content: flex-start;">
+                            <input id="track_popup_text" type="text" maxlength="50" placeholder="Popup text..." onkeydown="if (event.key === 'Enter') showTrackPopup();" style="flex-grow: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--m3-shape-sm); background: var(--input-bg); color: var(--text-heading);" />
+                            <button type="button" id="track_popup_button" onclick="showTrackPopup()" class="dash-outline-btn" style="cursor: pointer; white-space: nowrap; padding: 0.5rem 0.8rem; margin: 0;">
+                                💬 Send
+                            </button>
+                        </div>
                         <button type="button" onclick="openTab(event, 'monitor')" class="dash-outline-btn" style="width: 100%; cursor: pointer; text-align: left; justify-content: flex-start;">
                             🔍 Launch CAN Sniffer
                         </button>

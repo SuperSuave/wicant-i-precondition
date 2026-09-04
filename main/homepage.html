@@ -8377,7 +8377,7 @@ ruleDiv.innerHTML = `
 <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, -1);" title="Move CAN Do Up">▲</button>
 <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, 1);" title="Move CAN Do Down">▼</button>
 <button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); handleCandoEditSave(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; background: ${isCollapsed ? '#3b82f6' : '#16a34a'}; color: white; border: none; font-weight: 600; cursor: pointer; border-radius: 4px;" title="${isCollapsed ? 'Edit this CAN Do' : 'Save changes to this CAN Do'}">${isCollapsed ? "✏️ Edit" : "💾 Save"}</button>
-<button type="button" class="delete-btn" onclick="event.stopPropagation(); this.closest('.pid-entry').remove();" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; font-weight: 600; cursor: pointer; border-radius: 4px;">🗑️ Delete</button>
+<button type="button" class="delete-btn" onclick="event.stopPropagation(); deleteCandoRuleUI(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; font-weight: 600; cursor: pointer; border-radius: 4px;">🗑️ Delete</button>
 </div>
 </div>
 <div class="cando-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
@@ -11265,6 +11265,21 @@ ruleData.name = "New CAN Do (Copy)";
 }
 addCandoRuleUI(ruleData, false, true);
 showNotification("Duplicated CAN Do: " + ruleData.name, "green", 3500);
+}
+function deleteCandoRuleUI(btn) {
+const card = btn.closest(".cando-rule-card") || btn.closest(".pid-entry");
+if (!card) return;
+const name = card.querySelector(".cando-name")?.value || "CAN Do";
+card.remove();
+const remaining = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+if (remaining.length === 0) {
+const defaultRule = getDefaultPreconditionRule();
+defaultRule.enabled = false;
+addCandoRuleUI(defaultRule, true);
+autoSaveCandoRules(`Deleted "${name}". Default rule restored (Paused).`, "blue");
+} else {
+autoSaveCandoRules(`Deleted "${name}"`, "blue");
+}
 }
 function saveCandoRulesUI(sourceElem) {
 const rules = [];

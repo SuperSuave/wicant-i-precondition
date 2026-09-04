@@ -521,23 +521,42 @@
             opacity: 0.88;
         }
 
-        /* Move Up/Down Icon Buttons */
+        /* Move Up/Down & Clone Icon Buttons */
         button[onclick*="moveCando"],
         .cando-rule-card button.system-button[title*="Move"],
-        .cando-rule-card button.system-button[title*="move"] {
+        .cando-rule-card button.system-button[title*="move"],
+        .cando-rule-card button.cando-btn-clone,
+        .cando-rule-card button.cando-step-btn-clone,
+        .cando-rule-card button.system-button[title*="Clone"],
+        .cando-rule-card button.system-button[title*="Duplicate"] {
             border-radius: var(--m3-shape-sm);
             padding: 0;
             width: 26px;
             height: 26px;
+            min-width: 26px;
+            min-height: 26px;
+            font-size: 0.8rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: var(--md-sys-color-surface-container-high);
             color: var(--text-heading);
             border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
         button[onclick*="moveCando"]:hover,
-        .cando-rule-card button.system-button[title*="Move"]:hover {
+        .cando-rule-card button.system-button[title*="Move"]:hover,
+        .cando-rule-card button.cando-btn-clone:hover,
+        .cando-rule-card button.cando-step-btn-clone:hover,
+        .cando-rule-card button.system-button[title*="Clone"]:hover,
+        .cando-rule-card button.system-button[title*="Duplicate"]:hover {
             background: var(--md-sys-color-surface-container-highest);
             border-color: var(--md-sys-color-outline);
+            color: var(--text-heading);
         }
 
         /* --- DASHBOARD WIDGETS & GRIDS --- */
@@ -11064,7 +11083,7 @@
 
             // Populate Triggers (supports array or legacy single trigger)
             const trigContainer = ruleDiv.querySelector(".cando-triggers-container");
-            const triggers = ruleData.triggers || (ruleData.trigger ? [ruleData.trigger] : [{ source: "can_msg" }]);
+            const triggers = ruleData.triggers || (ruleData.trigger ? [ruleData.trigger] : [{ source: "preset" }]);
             triggers.forEach(trig => renderCandoTriggerItem(trigContainer, trig));
 
             // Populate Conditions (supports array, legacy single condition, or nested AND/OR/NOT groups)
@@ -11130,11 +11149,7 @@
             `;
             }
             html += `
-            <div style="display: flex; gap: 3px; margin-left: 6px; align-items: center;">
-                <button type="button" class="system-button" style="padding: 2px 5px; font-size: 0.68rem; height: 26px; background: #64748b; color: #ffffff; border: none; border-radius: 4px;" title="Set all 8 bytes to 00" onclick="setByteGridPreset(this, '${prefixClass}', '00')">00</button>
-                <button type="button" class="system-button" style="padding: 2px 5px; font-size: 0.68rem; height: 26px; background: #64748b; color: #ffffff; border: none; border-radius: 4px;" title="Set all 8 bytes to FF" onclick="setByteGridPreset(this, '${prefixClass}', 'FF')">FF</button>
-                <button type="button" class="system-button" style="padding: 2px 6px; font-size: 0.68rem; height: 26px; background: #94a3b8; color: #ffffff; border: none; border-radius: 4px;" title="Clear all bytes to wildcard (*)" onclick="clearByteInputs(this, '${prefixClass}')">Clear</button>
-            </div>
+            <button type="button" class="system-button" onclick="clearByteInputs(this, '${prefixClass}')" title="Clear all bytes" style="height: 26px; padding: 0 6px; font-size: 0.72rem; margin-left: 4px;">Clear</button>
         </div>`;
             return html;
         }
@@ -11149,36 +11164,50 @@
         }
 
         function handleByteInput(input) {
-            input.value = input.value.replace(/[^0-9a-fA-F*~+sSqQrR]/g, "").toUpperCase();
-            if (input.value.length >= 2) {
-                const grid = input.closest("[class$='-grid']");
-                const idx = parseInt(input.getAttribute("data-idx"));
-                if (idx < 7 && grid) {
-                    const nextInput = grid.querySelector(`[data-idx="${idx + 1}"]`);
-                    if (nextInput) {
-                        nextInput.focus();
-                        nextInput.select();
-                    }
+            let val = input.value.trim().toUpperCase();
+            if (val === "SQ" || val === "~3") {
+                input.value = "~3";
+                input.title = "3-step rolling counter (~0, ~1, ~2)";
+            } else if (val === "++" || val === "IN") {
+                input.value = "++";
+                input.title = "Increment counter (+1 on every step)";
+            } else if (val.length > 2) {
+                input.value = val.slice(0, 2);
+            } else {
+                input.value = val;
+            }
+            const grid = input.closest("[class$='-grid']");
+            const idx = parseInt(input.getAttribute("data-idx"));
+            if (input.value.length === 2 && idx < 7) {
+                const nextInput = grid ? grid.querySelector(`[data-idx="${idx + 1}"]`) : null;
+                if (nextInput && !nextInput.value) {
+                    nextInput.focus();
+                    nextInput.select();
                 }
             }
         }
 
         function handleBytePaste(event, input) {
             event.preventDefault();
-            const pasteData = (event.clipboardData || window.clipboardData).getData("text");
-            if (!pasteData) return;
-            const clean = pasteData.replace(/0x/gi, "").replace(/[^0-9a-fA-F*~+sSqQrR]/g, " ").trim();
-            const bytes = clean.split(/\s+/);
+            const text = (event.clipboardData || window.clipboardData).getData('text');
+            if (!text) return;
             const grid = input.closest("[class$='-grid']");
             if (!grid) return;
-            const startIdx = parseInt(input.getAttribute("data-idx")) || 0;
+            const startIdx = parseInt(input.getAttribute("data-idx") || "0");
+            let clean = text.trim();
+            if (clean.startsWith("0x") || clean.startsWith("0X")) clean = clean.slice(2);
+            clean = clean.replace(/[,;:]/g, " ");
+            let bytes = clean.split(/\s+/).filter(b => b.length > 0);
+            if (bytes.length === 1 && bytes[0].length > 2) {
+                bytes = bytes[0].match(/.{1,2}/g) || [bytes[0]];
+            }
             bytes.forEach((b, i) => {
-                const curIdx = startIdx + i;
-                if (curIdx < 8) {
-                    const target = grid.querySelector(`[data-idx="${curIdx}"]`);
+                const targetIdx = startIdx + i;
+                if (targetIdx < 8) {
+                    const target = grid.querySelector(`[data-idx="${targetIdx}"]`);
                     if (target) {
                         let bv = b.toUpperCase();
-                        if (bv === "SEQ3") bv = "~3";
+                        if (bv === "SEQ3" || bv === "SQ") bv = "~3";
                         if (bv === "INC" || bv === "ROLL") bv = "++";
                         target.value = bv;
                     }
@@ -11308,7 +11337,7 @@
         function addCandoTriggerItem(buttonElem) {
             const card = buttonElem.closest(".cando-rule-card");
             const container = card.querySelector(".cando-triggers-container");
-            renderCandoTriggerItem(container, { source: "can_msg" });
+            renderCandoTriggerItem(container, { source: "preset" });
             updateCandoRuleTriggerDropdowns(card);
             updateCandoSectionCountBadges(card);
         }
@@ -11563,6 +11592,64 @@
             updateCandoSectionCountBadges(card);
         }
 
+        function extractCandoConditionElement(elem) {
+            if (elem.classList.contains("cando-condition-group")) {
+                const groupType = elem.querySelector(".cando-group-type")?.value || "or";
+                const innerContainer = elem.querySelector(".cando-group-conditions-container");
+                const innerConditions = [];
+                if (innerContainer) {
+                    innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
+                        innerConditions.push(extractCandoConditionElement(child));
+                    });
+                }
+                return {
+                    type: groupType + "_group",
+                    group_type: groupType,
+                    invert: elem.querySelector(".cando-group-invert")?.checked || false,
+                    conditions: innerConditions
+                };
+            } else if (elem.classList.contains("cando-condition-or-group")) {
+                const innerContainer = elem.querySelector(".cando-or-group-container");
+                const innerConditions = [];
+                if (innerContainer) {
+                    innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
+                        innerConditions.push(extractCandoConditionElement(child));
+                    });
+                }
+                return {
+                    type: "or_group",
+                    group_type: "or",
+                    invert: elem.querySelector(".cando-or-group-invert")?.checked || false,
+                    conditions: innerConditions
+                };
+            } else {
+                const days = [];
+                elem.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
+                const condCanPayload = getByteGridString(elem, "cando-cond-can");
+                const picker = elem.querySelector(".cando-cond-preset-picker");
+                const selectedPresetVal = picker ? picker.getAttribute("data-selected-preset") || picker.value : "";
+                const selectedPresetName = picker?.selectedOptions[0]?.dataset?.name || "";
+                let condType = elem.querySelector(".cando-cond-type")?.value || "param_range";
+                if (condType === "preset") {
+                    condType = elem.dataset.presetType || (elem.querySelector(".cond-field-expr:not(.hidden)") ? "param_range" : (elem.querySelector(".cond-field-can:not(.hidden)") ? "can_state" : "param_range"));
+                }
+                return {
+                    type: condType,
+                    preset_val: selectedPresetVal,
+                    preset_name: selectedPresetName,
+                    invert: elem.querySelector(".cando-cond-invert")?.checked || false,
+                    expression: elem.querySelector(".cando-cond-expr")?.value || "",
+                    can_id: elem.querySelector(".cando-cond-can-id")?.value || "",
+                    match_payload: condCanPayload,
+                    days: days,
+                    start_time: elem.querySelector(".cando-cond-start-time")?.value || "",
+                    end_time: elem.querySelector(".cando-cond-end-time")?.value || "",
+                    voltage_val: elem.querySelector(".cando-cond-voltage-val")?.value || "",
+                    voltage_dir: elem.querySelector(".cando-cond-voltage-dir")?.value || "above"
+                };
+            }
+        }
+
         function cloneCandoConditionItem(btn) {
             const condItem = btn.closest(".cando-condition-item");
             const container = condItem.parentElement;
@@ -11577,7 +11664,7 @@
         }
 
         function cloneCandoConditionBlock(btn) {
-            const blockItem = btn.closest(".cando-condition-group") || btn.closest(".cando-condition-block");
+            const blockItem = btn.closest(".cando-condition-group, .cando-condition-block");
             const container = blockItem.parentElement;
             const card = blockItem.closest(".cando-rule-card");
             const blockData = extractCandoConditionElement(blockItem);
@@ -11833,8 +11920,7 @@
                     }
                 });
             } else {
-                renderCandoConditionItem(innerContainer, { type: "speed_zero" });
-                renderCandoConditionItem(innerContainer, { type: "can_state", can_id: "0x2C0" });
+                renderCandoConditionItem(innerContainer, { type: "preset" });
             }
         }
         const renderCandoConditionGroup = renderCandoConditionBlock;
@@ -11938,7 +12024,7 @@
             window._activeCondCard = card;
 
             menu.innerHTML = `
-            <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600;" onclick="renderCandoConditionItem(window._activeCondTargetContainer, { type: 'param_range' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+            <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600;" onclick="renderCandoConditionItem(window._activeCondTargetContainer, { type: 'preset' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
                 <span style="font-size: 1rem;">📄</span> <span>Single Condition</span>
             </div>
             <div style="height: 1px; background: var(--border-color, #e2e8f0); margin: 3px 0;"></div>

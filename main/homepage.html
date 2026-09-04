@@ -1029,32 +1029,16 @@ toggleStandardPIDOptions();
 }
 function showNotification(message, color = "red", duration = 5000) {
 const notification = document.getElementById("notification");
-switch (color) {
-case "red":
-notification.style.backgroundColor = "#fee2e2";
-notification.style.borderColor = "#ef4444";
-notification.style.color = "#991b1b";
-break;
-case "green":
-notification.style.backgroundColor = "#dcfce7";
-notification.style.borderColor = "#22c55e";
-notification.style.color = "#166534";
-break;
-case "blue":
-notification.style.backgroundColor = "#dbeafe";
-notification.style.borderColor = "#3b82f6";
-notification.style.color = "#1e40af";
-break;
-case "yellow":
-notification.style.backgroundColor = "#fef9c3";
-notification.style.borderColor = "#eab308";
-notification.style.color = "#854d0e";
-break;
-default:
-notification.style.backgroundColor = "#fee2e2";
-notification.style.borderColor = "#ef4444";
-notification.style.color = "#991b1b";
-}
+const colorMap = {
+red: { bg: "#fee2e2", border: "#ef4444", color: "#991b1b" },
+green: { bg: "#dcfce7", border: "#22c55e", color: "#166534" },
+blue: { bg: "#dbeafe", border: "#3b82f6", color: "#1e40af" },
+yellow: { bg: "#fef9c3", border: "#eab308", color: "#854d0e" }
+};
+const c = colorMap[color] || colorMap.red;
+notification.style.backgroundColor = c.bg;
+notification.style.borderColor = c.border;
+notification.style.color = c.color;
 notification.innerHTML = message;
 notification.classList.add("show");
 if (window.notificationTimeout) {
@@ -1640,6 +1624,31 @@ console.error('Error in loadAutoTable:', error);
 showNotification("Error loading table data: " + error.message, "red");
 }
 }
+function showTrackPopup() {
+const textInput = document.getElementById("track_popup_text");
+const popupButton = document.getElementById("track_popup_button");
+if (textInput.value.length === 0) {
+showNotification("Enter track popup text", "red");
+return;
+}
+const xhttp = new XMLHttpRequest();
+popupButton.disabled = true;
+xhttp.onload = function() {
+popupButton.disabled = false;
+if (this.status >= 200 && this.status < 300) {
+showNotification(this.responseText, "green");
+} else {
+showNotification(this.responseText || "Failed to show track popup", "red");
+}
+};
+xhttp.onerror = function() {
+popupButton.disabled = false;
+showNotification("Failed to show track popup", "red");
+};
+xhttp.open("POST", "/track_popup");
+xhttp.setRequestHeader("Content-Type", "text/plain; charset=UTF-8");
+xhttp.send(textInput.value);
+}
 function enableAutoStoreButton() {
 const storeButton = document.querySelector('button.store');
 if (storeButton) {
@@ -1806,10 +1815,6 @@ return true;
 showNotification(error.message, "red");
 return false;
 }
-}
-function toggleDestinationField() {
-const groupingValue = document.getElementById("grouping").value;
-toggleDestinationAndCycle();  // Reuse the updated function
 }
 function toggleSendToFields() {
 const groupingValue = document.getElementById("grouping")?.value || 'disable';
@@ -2053,7 +2058,6 @@ el.disabled = false;
 });
 }
 }
-function sta_enable() { }
 function submit_enable() {
 console.log("sumbit_enable");
 const isAp = (document.getElementById("wifi_mode").value == "AP");
@@ -2291,174 +2295,7 @@ options: cmd.options
 });
 return items;
 }
-function getCandoStateWidgets() {
-try {
-const saved = localStorage.getItem("wican_state_widgets");
-if (saved) {
-const parsed = JSON.parse(saved);
-if (Array.isArray(parsed)) return parsed;
-}
-} catch (e) { }
-return [
-{ id: "mon_0", catalogId: "cond_power_on", label: "Ignition State" },
-{ id: "mon_1", catalogId: "cond_driver_door_open", label: "Driver Door" }
-];
-}
-function saveCandoStateWidgets(arr) {
-try {
-localStorage.setItem("wican_state_widgets", JSON.stringify(arr));
-} catch (e) { }
-renderDashboardGrid();
-updateCandoStateWidgets();
-}
-function addCandoStateWidget() {
-const select = document.getElementById("dash_can_mon_picker_select");
-const labelInput = document.getElementById("dash_can_mon_label_input");
-if (!select || !select.value) return;
-const catalogId = select.value;
-const customLabel = labelInput ? labelInput.value.trim() : "";
-const widgets = getCandoStateWidgets();
-const newId = "mon_" + Date.now();
-widgets.push({ id: newId, catalogId: catalogId, label: customLabel });
-saveCandoStateWidgets(widgets);
-showNotification("Added CAN State Monitor widget!", "green", 2500);
-}
-function removeCandoStateWidget(idx) {
-const widgets = getCandoStateWidgets();
-if (idx >= 0 && idx < widgets.length) {
-widgets.splice(idx, 1);
-saveCandoStateWidgets(widgets);
-showNotification("Removed CAN State Monitor card.", "green", 2500);
-}
-}
 window._candoStateCache = {};
-async function updateCandoStateWidgets() {
-try {
-const res = await fetch("/api/can_states");
-if (res.ok) {
-const data = await res.json();
-window._candoStateCache = data;
-renderCandoStateMonitorCardUpdates();
-}
-} catch (e) {
-console.log("Error fetching /api/can_states:", e);
-}
-}
-function renderCandoStateMonitorWidgetHTML(isEditMode) {
-const widgets = getCandoStateWidgets();
-const availableItems = getCandoMonitorableItems();
-let html = `
-<div class="dash-card-header">
-<span class="dash-card-title">
-<span style="font-size: 1.2rem;">📡</span> CAN State Monitor
-</span>
-<div class="dash-card-actions">
-<span class="dash-badge badge-blue">${widgets.length} Watched</span>
-${renderWidgetEditControlsHTML('can_state_monitor', isEditMode)}
-</div>
-</div>`;
-if (widgets.length === 0) {
-html += `
-<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem 0;">
-No CAN signals currently monitored. Select a signal below to begin live tracking.
-</div>`;
-} else {
-html += `<div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.8rem;">`;
-widgets.forEach((mon, idx) => {
-html += `
-<div id="can_mon_card_${idx}" class="dash-outline-btn" style="display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem; cursor: default; padding: 0.6rem 0.8rem; height: auto;">
-<div style="display: flex; justify-content: space-between; align-items: center;">
-<span style="font-weight: 700; font-size: 0.9rem; color: var(--text-heading);">${escapeHtml(mon.label || mon.catalogId)}</span>
-<span id="can_mon_badge_${idx}" class="dash-badge badge-gray">Waiting...</span>
-</div>
-<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
-<span id="can_mon_meta_${idx}">CAN ID: --</span>
-<span id="can_mon_age_${idx}">Age: --</span>
-</div>
-${isEditMode ? `<div style="text-align: right; margin-top: 0.2rem;"><button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeCandoStateWidget(${idx})" title="Remove this monitored item">🗑️ Remove</button></div>` : ''}
-</div>`;
-});
-html += `</div>`;
-}
-html += `
-<div style="border-top: 1px dashed var(--dash-border, #cbd5e1); padding-top: 0.6rem; margin-top: 0.4rem;">
-<div style="font-size: 0.8rem; font-weight: 600; color: var(--text-heading); margin-bottom: 0.3rem;">➕ Monitor New Signal</div>
-<div style="display: flex; flex-direction: column; gap: 0.4rem;">
-<select id="dash_can_mon_picker_select" style="width: 100%; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #ffffff); color: var(--text-main, #000000);">
-${availableItems.map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.category ? item.category + ' - ' + item.name : item.name)} (${escapeHtml(item.can_id)})</option>`).join("")}
-</select>
-<div style="display: flex; gap: 0.4rem;">
-<input type="text" id="dash_can_mon_label_input" placeholder="Custom Label (Optional)" style="flex: 1; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-card, #ffffff); color: var(--text-main, #000000);" />
-<button type="button" onclick="addCandoStateWidget()" class="dash-outline-btn" style="cursor: pointer; padding: 0.4rem 0.8rem; font-size: 0.82rem;">Add</button>
-</div>
-</div>
-</div>`;
-return html;
-}
-function renderCandoStateMonitorCardUpdates() {
-const widgets = getCandoStateWidgets();
-const availableItems = getCandoMonitorableItems();
-const cache = window._candoStateCache || {};
-widgets.forEach((mon, idx) => {
-const badgeEl = document.getElementById(`can_mon_badge_${idx}`);
-const metaEl = document.getElementById(`can_mon_meta_${idx}`);
-const ageEl = document.getElementById(`can_mon_age_${idx}`);
-if (!badgeEl || !metaEl || !ageEl) return;
-const catItem = availableItems.find(i => i.id === mon.catalogId);
-if (!catItem) {
-badgeEl.textContent = "Unknown ID";
-badgeEl.className = "dash-badge badge-gray";
-metaEl.textContent = "Item not in catalog";
-ageEl.textContent = "";
-return;
-}
-const canIdStr = catItem.can_id ? catItem.can_id.toUpperCase() : "";
-metaEl.textContent = `CAN ${canIdStr}`;
-const canKey = canIdStr ? ("0x" + parseInt(canIdStr, 16).toString(16).toUpperCase()) : "";
-const stateData = cache[canKey] || cache[canKey.toLowerCase()] || cache[canIdStr] || cache[canIdStr.toLowerCase()];
-if (!stateData || !stateData.data) {
-badgeEl.textContent = "No Frame";
-badgeEl.className = "dash-badge badge-yellow";
-ageEl.textContent = "Waiting for CAN...";
-return;
-}
-const ageMs = stateData.age_ms || 0;
-ageEl.textContent = formatAge(ageMs) + " ago";
-let matchedLabel = null;
-let isMatch = false;
-if (Array.isArray(catItem.options) && catItem.options.length > 0) {
-for (const opt of catItem.options) {
-if (opt.match_payload) {
-const tokens = parseCandoPattern(opt.match_payload);
-if (matchCandoPayload(stateData.data, tokens)) {
-matchedLabel = opt.label || "Active";
-isMatch = true;
-break;
-}
-}
-}
-} else if (catItem.match_payload) {
-const tokens = parseCandoPattern(catItem.match_payload);
-if (matchCandoPayload(stateData.data, tokens)) {
-matchedLabel = "Active / Match";
-isMatch = true;
-} else {
-matchedLabel = "Idle / Inactive";
-isMatch = false;
-}
-}
-if (ageMs > 15000) {
-badgeEl.textContent = (matchedLabel || "Stale") + " (Stale)";
-badgeEl.className = "dash-badge badge-yellow";
-} else if (isMatch) {
-badgeEl.textContent = matchedLabel || "Active";
-badgeEl.className = "dash-badge badge-green";
-} else {
-badgeEl.textContent = matchedLabel || "Inactive";
-badgeEl.className = "dash-badge badge-gray";
-}
-});
-}
 window._dashEditMode = false;
 window._lastStatusObj = null;
 const DASH_WIDGET_CATALOG = {
@@ -2953,6 +2790,12 @@ ${renderWidgetEditControlsHTML('quick_actions', isEditMode)}
 <button type="button" onclick="preconActivate()" class="dash-outline-btn" style="width: 100%; cursor: pointer; text-align: left; justify-content: flex-start;">
 ❄️ Toggle Battery Preconditioning
 </button>
+<div style="display: flex; gap: 0.5rem; width: 100%; align-items: center; justify-content: flex-start;">
+<input id="track_popup_text" type="text" maxlength="50" placeholder="Popup text..." onkeydown="if (event.key === 'Enter') showTrackPopup();" style="flex-grow: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--m3-shape-sm); background: var(--input-bg); color: var(--text-heading);" />
+<button type="button" id="track_popup_button" onclick="showTrackPopup()" class="dash-outline-btn" style="cursor: pointer; white-space: nowrap; padding: 0.5rem 0.8rem; margin: 0;">
+💬 Send
+</button>
+</div>
 <button type="button" onclick="openTab(event, 'monitor')" class="dash-outline-btn" style="width: 100%; cursor: pointer; text-align: left; justify-content: flex-start;">
 🔍 Launch CAN Sniffer
 </button>
@@ -3626,31 +3469,27 @@ document.getElementById("ota_form").submit();
 }
 }
 function reboot() {
-const xhttp = new XMLHttpRequest();
 document.getElementById("reboot_button").disabled = true;
 showNotification("Rebooting please reconnect...", "yellow");
-xhttp.open("POST", "/system_reboot");
-xhttp.send("reboot");
+fetch("/system_reboot", { method: "POST", body: "reboot" }).catch(() => {});
 }
 function preconActivate() {
-const xhttp = new XMLHttpRequest();
-xhttp.onload = function () {
-showNotification(this.responseText, "green");
+fetch("/precondition_toggle", { method: "POST" })
+.then(res => res.text())
+.then(text => {
+showNotification(text, "green");
 setTimeout(checkStatus, 200);
-};
-xhttp.onerror = function () {
+})
+.catch(() => {
 showNotification("Failed to toggle preconditioning", "red");
-};
-xhttp.open("POST", "/precondition_toggle");
-xhttp.send();
+});
 }
 function send_system_command(command) {
-const xhttp = new XMLHttpRequest();
-const data = {
-"command": command
-};
-xhttp.open("POST", "/system_commands");
-xhttp.send(JSON.stringify(data));
+fetch("/system_commands", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ "command": command })
+}).catch(() => {});
 }
 async function downloadCfg() {
 const endpoints = [
@@ -3989,7 +3828,6 @@ var cr = String.fromCharCode(13);
 function mon_control() {
 var dr = document.getElementById("mon_datarate").selectedIndex;
 var url = window.location.href;
-var url2 = "http://192.168.31.72/";
 console.log(dr);
 alert("Please reboot device after Monitor, otherwise the device may not function as expected");
 ws_url = "ws://" + url.substr(7, url.length) + "ws";
@@ -8895,41 +8733,6 @@ if (grid) {
 grid.querySelectorAll(`.${prefixClass}-byte`).forEach(inp => inp.value = "");
 }
 }
-function getCandoRuleTriggerIds(ruleCard) {
-if (!ruleCard) return [];
-const inputs = ruleCard.querySelectorAll(".cando-trigger-item .cando-trig-id");
-const ids = [];
-inputs.forEach((inp, idx) => {
-const val = inp.value.trim();
-if (val && !ids.includes(val)) {
-ids.push(val);
-}
-});
-return ids;
-}
-function updateCandoRuleTriggerDropdowns(ruleCard) {
-if (!ruleCard) return;
-const ids = getCandoRuleTriggerIds(ruleCard);
-const actionSelects = ruleCard.querySelectorAll(".cando-action-item .cando-act-trig-id");
-actionSelects.forEach(select => {
-const currentVal = select.value;
-select.innerHTML = `<option value="">Any Trigger (Default)</option>`;
-ids.forEach(tid => {
-const opt = document.createElement("option");
-opt.value = tid;
-opt.textContent = tid;
-if (tid === currentVal) opt.selected = true;
-select.appendChild(opt);
-});
-if (currentVal && !ids.includes(currentVal)) {
-const opt = document.createElement("option");
-opt.value = currentVal;
-opt.textContent = currentVal;
-opt.selected = true;
-select.appendChild(opt);
-}
-});
-}
 function getByteGridString(container, prefixClass) {
 const grid = container.querySelector(`.${prefixClass}-grid`);
 if (!grid) return "";
@@ -9214,63 +9017,6 @@ const card = buttonElem.closest(".cando-rule-card");
 const container = card.querySelector(".cando-conditions-container");
 renderCandoConditionItem(container, { type: "preset" });
 updateCandoSectionCountBadges(card);
-}
-function extractCandoConditionElement(elem) {
-if (elem.classList.contains("cando-condition-group")) {
-const groupType = elem.querySelector(".cando-group-type")?.value || "or";
-const innerContainer = elem.querySelector(".cando-group-conditions-container");
-const innerConditions = [];
-if (innerContainer) {
-innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
-innerConditions.push(extractCandoConditionElement(child));
-});
-}
-return {
-type: groupType + "_group",
-group_type: groupType,
-invert: elem.querySelector(".cando-group-invert")?.checked || false,
-conditions: innerConditions
-};
-} else if (elem.classList.contains("cando-condition-or-group")) {
-const innerContainer = elem.querySelector(".cando-or-group-container");
-const innerConditions = [];
-if (innerContainer) {
-innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
-innerConditions.push(extractCandoConditionElement(child));
-});
-}
-return {
-type: "or_group",
-group_type: "or",
-invert: elem.querySelector(".cando-or-group-invert")?.checked || false,
-conditions: innerConditions
-};
-} else {
-const days = [];
-elem.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
-const condCanPayload = getByteGridString(elem, "cando-cond-can");
-const picker = elem.querySelector(".cando-cond-preset-picker");
-const selectedPresetVal = picker ? picker.getAttribute("data-selected-preset") || picker.value : "";
-const selectedPresetName = picker?.selectedOptions[0]?.dataset?.name || "";
-let condType = elem.querySelector(".cando-cond-type")?.value || "param_range";
-if (condType === "preset") {
-condType = elem.dataset.presetType || (elem.querySelector(".cond-field-expr:not(.hidden)") ? "param_range" : (elem.querySelector(".cond-field-can:not(.hidden)") ? "can_state" : "param_range"));
-}
-return {
-type: condType,
-preset_val: selectedPresetVal,
-preset_name: selectedPresetName,
-invert: elem.querySelector(".cando-cond-invert")?.checked || false,
-expression: elem.querySelector(".cando-cond-expr")?.value || "",
-can_id: elem.querySelector(".cando-cond-can-id")?.value || "",
-match_payload: condCanPayload,
-days: days,
-start_time: elem.querySelector(".cando-cond-start-time")?.value || "",
-end_time: elem.querySelector(".cando-cond-end-time")?.value || "",
-voltage_val: elem.querySelector(".cando-cond-voltage-val")?.value || "",
-voltage_dir: elem.querySelector(".cando-cond-voltage-dir")?.value || "above"
-};
-}
 }
 function cloneCandoConditionItem(btn) {
 const condItem = btn.closest(".cando-condition-item");
@@ -10222,7 +9968,7 @@ card.querySelectorAll(".cando-trig-id-container").forEach(el => {
 el.style.display = (trigCount > 1) ? "flex" : "none";
 });
 const triggers = getCandoRuleTriggersInfo(card);
-card.querySelectorAll(".cando-opt-trig-id").forEach(select => {
+card.querySelectorAll(".cando-opt-trig-id, .cando-action-item .cando-act-trig-id").forEach(select => {
 const currentVal = select.value;
 select.innerHTML = `<option value="">Any Trigger (Default)</option>` +
 triggers.map(t => `<option value="${t.id}" ${currentVal === t.id ? "selected" : ""}>${t.label}</option>`).join("") +
@@ -10771,45 +10517,6 @@ token = isImperial ? "{speed_mph}" : "{speed_kmh}";
 token = "{" + tokenBase + "}";
 }
 insertCandoPopupToken(elem, token);
-}
-function toggleCandoExecModeUI(selectElem) {
-const card = selectElem.closest(".cando-rule-card");
-if (!card) return;
-const mode = selectElem.value;
-const showLatch = (mode === "one_shot" || mode === "poll_verify");
-const showVerify = (mode === "poll_verify");
-card.querySelectorAll(".cando-latch-row").forEach(el => el.classList.toggle("hidden", !showLatch));
-card.querySelectorAll(".cando-verify-row").forEach(el => el.classList.toggle("hidden", !showVerify));
-}
-function saveCurrentTriggerAsPreset(buttonElem) {
-const item = buttonElem.closest(".cando-trigger-item");
-if (!item) return;
-const cid = item.querySelector(".cando-trig-can-id")?.value.trim() || "";
-const bus = parseInt(item.querySelector(".cando-trig-bus")?.value || "0");
-const fromP = getByteGridString(item, "cando-trig-from");
-const toP = getByteGridString(item, "cando-trig-to");
-const trigId = item.querySelector(".cando-trig-id")?.value.trim() || "";
-if (!cid) {
-showNotification("Please specify a CAN ID before saving preset", "red", 3000);
-return;
-}
-const name = prompt("Enter a friendly name for this custom trigger preset:", trigId || `CAN ${cid} Event`);
-if (!name) return;
-const id = "custom_" + name.toLowerCase().replace(/[^a-z0-9_]/g, "_") + "_" + Date.now().toString().slice(-4);
-const newPreset = {
-id: id,
-name: name,
-category: "Custom User Presets",
-can_id: cid,
-bus: bus,
-from_payload: fromP,
-to_payload: toP
-};
-const custom = getCustomTriggerPresets();
-custom.push(newPreset);
-saveCustomTriggerPresets(custom);
-refreshAllCandoPresetDropdowns();
-showNotification("Saved custom trigger preset: " + name, "green", 3500);
 }
 function toggleCandoRuleCard(elem) {
 const card = elem.closest(".cando-rule-card");
@@ -11392,7 +11099,7 @@ const days = [];
 elem.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
 const condCanPayload = getByteGridString(elem, "cando-cond-can");
 const presetPicker = elem.querySelector(".cando-cond-preset-picker");
-const selectedPresetVal = presetPicker?.value || "";
+const selectedPresetVal = presetPicker ? presetPicker.getAttribute("data-selected-preset") || presetPicker.value : "";
 const selectedPresetName = presetPicker?.selectedOptions[0]?.dataset?.name || "";
 let condType = elem.querySelector(".cando-cond-type")?.value || "param_range";
 if (condType === "preset") {

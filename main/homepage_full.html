@@ -12314,8 +12314,17 @@
 
             const selectedPresetVal = findMatchingActionPresetVal(data);
 
-            const hasClimateData = (data.type === "climate_target" || data.target_temp_c !== undefined || data.target_temp_f !== undefined);
-            const hasPreconData = (data.type === "precondition" || data.precon_mode !== undefined);
+            let hasClimateData = (type === "climate_target");
+            let hasPreconData = (type === "precondition");
+            if (type === "preset" && selectedPresetVal) {
+                const parts = selectedPresetVal.split(/[:_]/);
+                const cats = getFilteredActionPresets();
+                const presetObj = cats[parseInt(parts[0])]?.presets[parseInt(parts[1])];
+                if (presetObj) {
+                    if (presetObj.type === "climate_target" || presetObj.target_temp_c !== undefined || presetObj.target_temp_f !== undefined) hasClimateData = true;
+                    if (presetObj.type === "precondition" || presetObj.precon_mode !== undefined) hasPreconData = true;
+                }
+            }
             const hasCanData = (type === "can_tx" || (data.steps && data.steps.length > 0) || data.can_id);
             const hasPopupData = (type === "can_tx" || type === "popup" || data.popup_message);
 
@@ -13825,11 +13834,24 @@
             });
 
             let actType = item.querySelector(".cando-act-type")?.value || "can_tx";
+            const presetPicker = item.querySelector(".cando-act-preset-picker");
+            const selectedPresetVal = presetPicker?.value || "";
+            const selectedPresetName = presetPicker?.selectedOptions[0]?.dataset?.name || "";
+
             if (actType === "preset") {
-                if (!item.querySelector(".act-field-climate")?.classList.contains("hidden")) {
-                    actType = "climate_target";
-                } else if (!item.querySelector(".act-field-precon")?.classList.contains("hidden")) {
-                    actType = "precondition";
+                if (selectedPresetVal) {
+                    const parts = selectedPresetVal.split(/[:_]/);
+                    const cats = getFilteredActionPresets();
+                    const presetObj = cats[parseInt(parts[0])]?.presets[parseInt(parts[1])];
+                    if (presetObj) {
+                        if (presetObj.type === "climate_target" || presetObj.target_temp_c !== undefined || presetObj.target_temp_f !== undefined) {
+                            actType = "climate_target";
+                        } else if (presetObj.type === "precondition" || presetObj.precon_mode !== undefined) {
+                            actType = "precondition";
+                        } else {
+                            actType = "can_tx";
+                        }
+                    }
                 } else {
                     actType = "can_tx";
                 }
@@ -13857,10 +13879,6 @@
                 passTempC = Math.min(28.0, Math.max(17.0, isNaN(rawPassTemp) ? tempC : rawPassTemp));
                 passTempF = Math.round(passTempC * 9 / 5 + 32);
             }
-
-            const presetPicker = item.querySelector(".cando-act-preset-picker");
-            const selectedPresetVal = presetPicker?.value || "";
-            const selectedPresetName = presetPicker?.selectedOptions[0]?.dataset?.name || "";
 
             return {
                 trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",

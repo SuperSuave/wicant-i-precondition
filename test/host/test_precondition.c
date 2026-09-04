@@ -108,7 +108,7 @@ static void rx_frame(uint32_t id, const uint8_t d[8], can_bus_t bus) {
 
 static void press(void)   { uint8_t d[8] = {0}; d[5] = 0x10; rx_frame(0x448, d, CAN_BUS_0); }
 static void release(void) { uint8_t d[8] = {0}; rx_frame(0x448, d, CAN_BUS_0); }
-static void toggle(void)  { press(); fake_now += 100000; release(); }
+static void toggle(void)  { precondition_toggle(); }
 static void car_status(uint8_t b, can_bus_t bus) { uint8_t d[8] = {0}; d[1] = b; rx_frame(0x2AD, d, bus); }
 static void car_power(bool ready) { uint8_t d[8] = {0}; d[0] = ready ? 0x04 : 0x00; rx_frame(0x038, d, CAN_BUS_0); }
 static void battery_temperature(int8_t min_c, int8_t max_c) {
@@ -425,22 +425,22 @@ static void run_short_press(void) {
 static void run_long_press(void) {
     precondition_init();
     expect_state("idle");
-    // quick press+release in long mode: nothing happens
-    toggle();
-    advance_us(2000000);
-    expect_state("idle");
-    // hold crossing the threshold fires once, without release
-    press();
-    advance_us(500000);
-    expect_state("idle");
+
+    // In CAN Do architecture, triggers dispatch via precondition_action_execute or toggle request
     sent_count = 0;
-    advance_us(600000);                         // crosses 1s: fires exactly once
-    CHECK(sm_in(&precon_sm, &S_REQUESTED));
-    CHECK(sent_count > 0);                      // burst began on the fire tick
-    advance_us(2000000);                        // keep holding: no second fire
-    CHECK(sm_in(&precon_sm, &S_REQUESTED));     // (a re-fire would stop it)
-    release();
-    CHECK(sm_in(&precon_sm, &S_REQUESTED));     // release in long mode is a no-op
+    precondition_action_execute("once", "long");
+    expect_state("start-burst");
+    CHECK(precon_config.press_type == PRESS_LONG);
+
+    for (int i = 0; i < 6; i++) tick1();
+    expect_state("wait-starting");
+
+    // Queue-based toggle request (e.g. from Web UI or async event)
+    fake_now += 2000000;
+    precondition_toggle_request();
+    expect_state("wait-starting");  // processed on tick
+    tick1();
+    expect_state("stop-burst");
 }
 
 static void run_battery_temperature_cutoff(void) {

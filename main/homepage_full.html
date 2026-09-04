@@ -1586,6 +1586,11 @@
             margin-top: -4px;
         }
 
+        .cando-menu-badge-container {
+            text-align: center;
+            padding: 4px 14px 8px 14px;
+        }
+
         .cando-menu-row {
             padding: 6px 14px;
             display: flex;
@@ -10055,7 +10060,7 @@
                     const cats = getFilteredActionPresets();
                     const preset = cats[parseInt(parts[0])]?.presets[parseInt(parts[1])];
 
-                    const showClimate = newOpen && preset && (preset.type === "climate_target" || preset.target_temp_c !== undefined || preset.target_temp_f !== undefined);
+                    const showClimate = preset && (preset.type === "climate_target" || preset.target_temp_c !== undefined || preset.target_temp_f !== undefined);
                     const showPrecon = newOpen && preset && (preset.type === "precondition" || preset.precon_mode !== undefined);
                     const showCan = newOpen && preset && (preset.type === "can_tx" || preset.can_id !== undefined || preset.steps !== undefined || (preset.options && preset.options.some(o => o.payload)));
                     const showPopup = newOpen && preset && (preset.type === "popup" || preset.popup_message !== undefined || (preset.options && preset.options.some(o => o.popup)));
@@ -10668,6 +10673,7 @@
                     </label>
                     <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, -1);" title="Move CAN Do Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, 1);" title="Move CAN Do Down">▼</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="event.stopPropagation(); duplicateCandoRuleUI(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; font-weight: 600; cursor: pointer; border-radius: 4px;" title="Clone this CAN Do">📋 Clone</button>
                     <button type="button" class="system-button cando-edit-btn" onclick="event.stopPropagation(); handleCandoEditSave(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; background: ${isCollapsed ? '#3b82f6' : '#16a34a'}; color: white; border: none; font-weight: 600; cursor: pointer; border-radius: 4px;" title="${isCollapsed ? 'Edit this CAN Do' : 'Save changes to this CAN Do'}">${isCollapsed ? "✏️ Edit" : "💾 Save"}</button>
                     <button type="button" class="delete-btn" onclick="event.stopPropagation(); deleteCandoRuleUI(this);" style="padding: 0.35rem 0.85rem; font-size: 0.85rem; width: auto; min-width: auto; margin: 0; font-weight: 600; cursor: pointer; border-radius: 4px;">🗑️ Delete</button>
                 </div>
@@ -11213,7 +11219,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Trigger Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Trigger Down">▼</button>
-                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoTriggerItem(this)" title="Duplicate / Clone this Trigger">📋</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoTriggerItem(this)" style="padding: 0 8px; font-size: 0.8rem; width: auto; min-width: auto; gap: 4px;" title="Duplicate / Clone this Trigger">📋 Clone</button>
                     <button type="button" class="system-button cando-btn-sim-trig" onclick="testCandoTriggerUI(this)" title="Simulate this trigger event to test the automation flow">⚡ Simulate</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-trigger-item').remove(); updateCandoRuleTriggerDropdowns(card); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
@@ -11446,7 +11452,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Condition Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Condition Down">▼</button>
-                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoConditionItem(this)" title="Duplicate / Clone this Condition">📋</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoConditionItem(this)" style="padding: 0 8px; font-size: 0.8rem; width: auto; min-width: auto; gap: 4px;" title="Duplicate / Clone this Condition">📋 Clone</button>
                     <button type="button" class="system-button cando-btn-test-cond" onclick="testCandoConditionUI(this)" title="Evaluate this condition live against current vehicle state">🧪 Test</button>
                     <button type="button" class="system-button cando-btn-create-block" onclick="showCreateConditionBlockMenu(this, event)" title="Convert this condition into an AND or OR block to add alternative conditions">🔀 Create Block ▼</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-condition-item').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
@@ -12086,7 +12092,7 @@
                 <div style="display: flex; align-items: center; gap: 0.35rem;">
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Action Step Up">▲</button>
                     <button type="button" class="system-button cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Action Step Down">▼</button>
-                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoActionItem(this)" title="Duplicate / Clone this Action Step">📋</button>
+                    <button type="button" class="system-button cando-btn-clone" onclick="cloneCandoActionItem(this)" style="padding: 0 8px; font-size: 0.8rem; width: auto; min-width: auto; gap: 4px;" title="Duplicate / Clone this Action Step">📋 Clone</button>
                     <button type="button" class="system-button cando-btn-test-act" onclick="testCandoActionUI(this)" title="Execute this action immediately on the vehicle CAN bus">▶ Test Step</button>
                     <button type="button" class="delete-btn" onclick="const card = this.closest('.cando-rule-card'); this.closest('.cando-action-item').remove(); updateCandoSectionCountBadges(card);">🗑️ Delete</button>
                 </div>
@@ -12121,7 +12127,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="act-field-climate ${type === "climate_target" ? "" : "hidden"}">
+                <tr class="act-field-climate ${(type === "climate_target" || hasClimateData) ? "" : "hidden"}">
                     <td>Climate Controls:</td>
                     <td>
                         <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
@@ -12803,7 +12809,7 @@
             const showPopup = (preset.type === "popup" || preset.popup_message !== undefined || (preset.options && preset.options.some(o => o.popup)));
 
             const isDetailsOpen = item.dataset.detailsOpen === "true";
-            item.querySelectorAll(".act-field-climate").forEach(el => el.classList.toggle("hidden", !(isDetailsOpen && showClimate)));
+            item.querySelectorAll(".act-field-climate").forEach(el => el.classList.toggle("hidden", !showClimate));
             item.querySelectorAll(".act-field-precon").forEach(el => el.classList.toggle("hidden", !(isDetailsOpen && showPrecon)));
             item.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", !(isDetailsOpen && (showCan || (!showClimate && !showPrecon)))));
             item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", !(isDetailsOpen && (showPopup || (!showClimate && !showPrecon)))));

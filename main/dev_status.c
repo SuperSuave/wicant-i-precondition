@@ -25,7 +25,7 @@ static const char *DEV_STATUS_TAG = "DEV_STATUS";
 static EventGroupHandle_t s_dev_status_event_group = NULL;
 
 // Helper function to get bit name for logging
-static const char* get_bit_name(EventBits_t bit)
+static const char* __attribute__((unused)) get_bit_name(EventBits_t bit)
 {
     switch (bit) {
         case DEV_AWAKE_BIT:       return "DEV_AWAKE";

@@ -421,14 +421,20 @@
             box-shadow: 0 0 0 3px rgba(158, 202, 254, 0.22);
         }
 
-        input:disabled,
-        select:disabled,
-        input:read-only:not(.editable-readonly),
-        input[readonly]:not(.editable-readonly) {
+        input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):disabled,
+        select:disabled {
             background-color: var(--md-sys-color-surface-container-low) !important;
             color: var(--text-muted) !important;
             border-color: var(--border-color) !important;
             cursor: not-allowed;
+        }
+
+        input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):read-only,
+        input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])[readonly] {
+            background-color: var(--md-sys-color-surface-container-low) !important;
+            color: var(--text-muted) !important;
+            border-color: var(--border-color) !important;
+            cursor: default;
         }
 
         select option,
@@ -467,6 +473,7 @@
         /* --- M3 BUTTONS (FILLED, TONAL, OUTLINED, DANGER) --- */
         button,
         input[type="button"],
+        input[type="submit"],
         .system-button,
         .store {
             padding: 0.55rem 1.25rem;
@@ -488,6 +495,7 @@
 
         button:hover,
         input[type="button"]:hover,
+        input[type="submit"]:hover,
         .system-button:hover,
         .store:hover {
             opacity: 0.92;
@@ -496,14 +504,23 @@
 
         button:disabled,
         input[type="button"]:disabled,
+        input[type="submit"]:disabled,
         .system-button:disabled,
         .store:disabled {
             background-color: var(--gray-200) !important;
             color: var(--text-muted) !important;
             border-color: var(--border-color) !important;
-            cursor: not-allowed;
+            cursor: not-allowed !important;
             opacity: 0.7;
             box-shadow: none;
+        }
+
+        button:not(:disabled),
+        input[type="button"]:not(:disabled),
+        input[type="submit"]:not(:disabled),
+        .system-button:not(:disabled),
+        .store:not(:disabled) {
+            cursor: pointer !important;
         }
 
         /* Danger / Delete Buttons */
@@ -767,6 +784,119 @@
             width: 28px !important;
             min-width: 28px !important;
             padding: 0 !important;
+        }
+
+        /* Saved Wi-Fi Networks (Station Config) */
+        #btn_add_wifi_net {
+            padding: 3px 10px !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+            background: var(--md-sys-color-primary-container) !important;
+            color: var(--md-sys-color-on-primary-container) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: var(--m3-shape-xs, 4px) !important;
+            cursor: pointer !important;
+            transition: var(--transition) !important;
+        }
+        #btn_add_wifi_net:hover {
+            background: var(--md-sys-color-primary) !important;
+            color: var(--md-sys-color-on-primary) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        .sta-net-card {
+            background: var(--md-sys-color-surface-container-low);
+            border: 1px solid var(--border-color);
+            border-radius: var(--m3-shape-sm, 6px);
+            padding: 0.6rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+        .sta-net-card:hover {
+            border-color: var(--md-sys-color-outline);
+        }
+        .sta-net-card .sta-net-title {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--text-heading);
+        }
+        .sta-net-card .cando-btn-move {
+            width: 24px !important;
+            height: 22px !important;
+            min-width: 24px !important;
+            min-height: 22px !important;
+            padding: 0 !important;
+            font-size: 0.7rem !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: var(--m3-shape-xs, 4px) !important;
+            background: var(--md-sys-color-surface-container-high) !important;
+            color: var(--text-heading) !important;
+            border: 1px solid var(--border-color) !important;
+            cursor: pointer !important;
+            transition: var(--transition) !important;
+        }
+        .sta-net-card .cando-btn-move:hover {
+            background: var(--md-sys-color-surface-container-highest) !important;
+            border-color: var(--md-sys-color-outline) !important;
+            color: var(--text-heading) !important;
+        }
+        .sta-net-card .delete-btn {
+            height: 22px !important;
+            padding: 0 6px !important;
+            font-size: 0.7rem !important;
+            margin: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .sta-net-card label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .sta-net-card input,
+        .sta-net-card select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 3px 6px;
+            font-size: 0.8rem;
+            background: var(--input-bg);
+            color: var(--text-heading);
+            border: 1px solid var(--border-color);
+            border-radius: var(--m3-shape-xs, 4px);
+        }
+        .sta-net-card input:focus,
+        .sta-net-card select:focus {
+            border-color: var(--md-sys-color-primary);
+        }
+        .sta-net-card .sta-net-pass-wrap {
+            position: relative;
+        }
+        .sta-net-card .sta-net-pass {
+            padding-right: 24px;
+        }
+        .sta-net-card .sta-net-toggle-pass {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent !important;
+            border: none !important;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0 !important;
+            min-width: auto;
+            width: auto;
+            height: auto;
+            box-shadow: none !important;
         }
 
         /* Home Assistant Style ⋮ More Actions Menu */
@@ -2228,7 +2358,7 @@
                 <tr>
                     <td>WebHook:</td>
                     <td>
-                        <select id="webhook_en" name="webhook_en" onchange="submit_enable();">
+                        <select id="webhook_en" name="webhook_en" onchange="enableAutoStoreButton();submit_enable();">
                             <option value="enable">Enable</option>
                             <option value="disable">Disable</option>
                         </select>
@@ -2237,18 +2367,18 @@
                 <tr>
                     <td>WebHook URL:</td>
                     <td>
-                        <input type="text" id="webhook_url" name="webhook_url" readonly>
+                        <input type="text" id="webhook_url" name="webhook_url" placeholder="http://homeassistant.local:8123/api/webhook/..." oninput="enableAutoStoreButton();submit_enable();">
                     </td>
                 </tr>
                 <tr>
                     <td>WebHook Interval (s):</td>
                     <td>
-                        <input type="text" id="webhook_interval" name="webhook_interval" readonly>
+                        <input type="number" id="webhook_interval" name="webhook_interval" placeholder="60" min="1" max="86400" oninput="enableAutoStoreButton();submit_enable();">
                     </td>
                 </tr>
                 <tr>
                     <td colspan="2" style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">WebHook
-                        configuration is set in the Home Assistant integration.</td>
+                        URL and interval can be configured here or set via Home Assistant integration.</td>
                 </tr>
                 <tr>
                     <td>WebHook Data Mode:</td>
@@ -2549,11 +2679,9 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                 <div class="section-title" style="margin: 0;">Station Config (Saved Networks)</div>
-                <button type="button" class="system-button" id="btn_add_wifi_net" onclick="addStaNetworkRow()"
-                    style="padding: 3px 10px; font-size: 0.78rem; font-weight: 700; background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; border-radius: 4px; cursor: pointer;">➕
-                    Add Network</button>
+                <button type="button" class="system-button" id="btn_add_wifi_net" onclick="addStaNetworkRow()">➕ Add Network</button>
             </div>
-            <div style="font-size: 0.76rem; color: #64748b; margin-bottom: 0.8rem;">
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.8rem;">
                 WiCAN will automatically connect to available saved networks in priority order (top = highest priority).
             </div>
 
@@ -2955,23 +3083,34 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Timezone (POSIX TZ):</td>
+                    <td>Timezone:</td>
                     <td>
-                        <select id="tz_preset" onchange="applyTzPreset(this)" style="margin-bottom: 4px;">
-                            <option value="">-- Select Common Timezone --</option>
+                        <select id="tz_preset" onchange="onTzSelectChange(this)">
                             <option value="UTC0">UTC / GMT</option>
                             <option value="EST5EDT,M3.2.0,M11.1.0">US Eastern (EST/EDT)</option>
                             <option value="CST6CDT,M3.2.0,M11.1.0">US Central (CST/CDT)</option>
                             <option value="MST7MDT,M3.2.0,M11.1.0">US Mountain (MST/MDT)</option>
+                            <option value="MST7">US Arizona (MST)</option>
                             <option value="PST8PDT,M3.2.0,M11.1.0">US Pacific (PST/PDT)</option>
+                            <option value="AKST9AKDT,M3.2.0,M11.1.0">US Alaska (AKST/AKDT)</option>
+                            <option value="HST10">US Hawaii (HST)</option>
                             <option value="GMT0BST,M3.5.0/1,M10.5.0">Europe / London (GMT/BST)</option>
-                            <option value="CET-1CEST,M3.5.0,M10.5.0/3">Europe / Berlin / Paris (CET/CEST)</option>
-                            <option value="AEST-10AEDT,M10.1.0,M4.1.0/3">Australia / Sydney (AEST/AEDT)</option>
-                            <option value="JST-9">Asia / Tokyo (JST)</option>
+                            <option value="CET-1CEST,M3.5.0,M10.5.0/3">Europe / Berlin, Paris, Rome (CET/CEST)</option>
+                            <option value="EET-2EEST,M3.5.0/3,M10.5.0/4">Europe / Athens, Helsinki (EET/EEST)</option>
+                            <option value="<-03>3">South America / São Paulo (BRT)</option>
+                            <option value="GST-4">Asia / Dubai (GST)</option>
+                            <option value="IST-5:30">Asia / India (IST)</option>
+                            <option value="ICT-7">Asia / Bangkok, Jakarta (ICT)</option>
+                            <option value="CST-8">Asia / Singapore, Hong Kong, Beijing (CST/HKT)</option>
+                            <option value="JST-9">Asia / Tokyo, Seoul (JST/KST)</option>
+                            <option value="AWST-8">Australia / Perth (AWST)</option>
+                            <option value="ACST-9:30ACDT,M10.1.0,M4.1.0/3">Australia / Adelaide (ACST/ACDT)</option>
+                            <option value="AEST-10AEDT,M10.1.0,M4.1.0/3">Australia / Sydney, Melbourne (AEST/AEDT)</option>
+                            <option value="NZST-12NZDT,M9.5.0,M4.1.0/3">New Zealand / Auckland (NZST/NZDT)</option>
                             <option value="custom">Custom POSIX String...</option>
                         </select>
-                        <input type="text" id="sntp_timezone" value="UTC0" placeholder="UTC0"
-                            onchange="saveTimeConfigUI()">
+                        <input type="text" id="sntp_timezone" value="UTC0" placeholder="POSIX TZ (e.g. PST8PDT,M3.2.0,M11.1.0)"
+                            style="display: none; margin-top: 4px;" onchange="saveTimeConfigUI()">
                     </td>
                 </tr>
             </table>
@@ -3981,6 +4120,29 @@
                     ecu_protocol: ecu_protocolValue
                 };
 
+                // Save WebHook configuration if present
+                const webhookUrlEl = document.getElementById("webhook_url");
+                const webhookIntervalEl = document.getElementById("webhook_interval");
+                const webhookEnEl = document.getElementById("webhook_en");
+                if (webhookUrlEl) {
+                    const wUrl = webhookUrlEl.value.trim();
+                    const wEn = webhookEnEl ? (webhookEnEl.value === "enable") : true;
+                    const wInt = webhookIntervalEl ? parseInt(webhookIntervalEl.value, 10) : 60;
+                    if (wUrl && (wUrl.startsWith("http://") || wUrl.startsWith("https://"))) {
+                        await fetch('/api/webhook', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                url: wUrl,
+                                enabled: wEn,
+                                interval: isNaN(wInt) || wInt < 1 ? 60 : wInt
+                            })
+                        }).catch(e => console.warn('Webhook save failed', e));
+                    } else if (!wUrl && !wEn) {
+                        await fetch('/api/webhook', { method: 'DELETE' }).catch(() => {});
+                    }
+                }
+
                 // Send to server
                 await fetch('store_auto_data', {
                     method: 'POST',
@@ -4147,34 +4309,33 @@
         function renderStaNetworkItem(container, data = {}, priority = 1) {
             const div = document.createElement("div");
             div.className = "sta-net-card";
-            div.style.cssText = "background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.4rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);";
 
             div.innerHTML = `
 			<div style="display: flex; justify-content: space-between; align-items: center;">
-				<span style="font-weight: 700; font-size: 0.82rem; color: #1e293b;">
+				<span class="sta-net-title">
 					Priority <span class="sta-net-priority">${priority}</span>:
 				</span>
 				<div style="display: flex; align-items: center; gap: 0.3rem;">
 					<button type="button" class="system-button cando-btn-move" onclick="moveStaNetworkItem(this, -1)" title="Increase Priority">▲</button>
 					<button type="button" class="system-button cando-btn-move" onclick="moveStaNetworkItem(this, 1)" title="Decrease Priority">▼</button>
-					<button type="button" class="delete-btn" onclick="removeStaNetworkItem(this)" title="Remove Network" style="height: 22px; padding: 0 6px; font-size: 0.7rem; margin: 0; display: inline-flex; align-items: center; justify-content: center;">🗑️</button>
+					<button type="button" class="delete-btn" onclick="removeStaNetworkItem(this)" title="Remove Network">🗑️</button>
 				</div>
 			</div>
 			<div style="display: grid; grid-template-columns: 1fr 1fr 90px; gap: 0.5rem; align-items: center;">
 				<div>
-					<label style="font-size: 0.72rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">SSID:</label>
-					<input type="text" class="sta-net-ssid" value="${data.ssid || ''}" placeholder="Wi-Fi SSID" style="width: 100%; box-sizing: border-box; padding: 3px 6px; font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 4px;" oninput="updateLegacyStaFields()">
+					<label>SSID:</label>
+					<input type="text" class="sta-net-ssid" value="${data.ssid || ''}" placeholder="Wi-Fi SSID" oninput="updateLegacyStaFields()">
 				</div>
 				<div>
-					<label style="font-size: 0.72rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Password:</label>
-					<div style="position: relative;">
-						<input type="password" class="sta-net-pass" value="${data.pass || ''}" placeholder="Password" style="width: 100%; box-sizing: border-box; padding: 3px 24px 3px 6px; font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 4px;" oninput="updateLegacyStaFields()">
-						<button type="button" onclick="togglePassVisibility(this)" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; padding: 0;" title="Toggle Password">👁️</button>
+					<label>Password:</label>
+					<div class="sta-net-pass-wrap">
+						<input type="password" class="sta-net-pass" value="${data.pass || ''}" placeholder="Password" oninput="updateLegacyStaFields()">
+						<button type="button" class="sta-net-toggle-pass" onclick="togglePassVisibility(this)" title="Toggle Password">👁️</button>
 					</div>
 				</div>
 				<div>
-					<label style="font-size: 0.72rem; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Security:</label>
-					<select class="sta-net-sec" style="width: 100%; box-sizing: border-box; padding: 3px 4px; font-size: 0.78rem; border: 1px solid #cbd5e1; border-radius: 4px;" onchange="updateLegacyStaFields()">
+					<label>Security:</label>
+					<select class="sta-net-sec" onchange="updateLegacyStaFields()">
 						<option value="wpa3" ${data.security === 'wpa3' ? 'selected' : ''}>WPA3</option>
 						<option value="wpa2" ${data.security === 'wpa2' ? 'selected' : ''}>WPA2</option>
 					</select>
@@ -5876,11 +6037,11 @@
                     const errorRowEl = document.getElementById("webhook_error_row");
                     const detailsBtnEl = document.getElementById("webhook_error_details_btn");
 
-                    if (urlField) {
-                        urlField.value = config.enabled && config.url ? config.url : "Not configured";
+                    if (urlField && document.activeElement !== urlField) {
+                        urlField.value = config.url || "";
                     }
-                    if (intervalField) {
-                        intervalField.value = config.enabled && config.interval ? config.interval.toString() : "Not configured";
+                    if (intervalField && document.activeElement !== intervalField) {
+                        intervalField.value = (config.interval !== undefined && config.interval !== null) ? config.interval.toString() : "";
                     }
 
                     const successCount = Number(config.success_count || 0);
@@ -5929,8 +6090,12 @@
                     console.log('Webhook config not available:', error);
                     const urlField = document.getElementById("webhook_url");
                     const intervalField = document.getElementById("webhook_interval");
-                    if (urlField) urlField.value = "Not configured";
-                    if (intervalField) intervalField.value = "Not configured";
+                    if (urlField && document.activeElement !== urlField && urlField.value === "Not configured") {
+                        urlField.value = "";
+                    }
+                    if (intervalField && document.activeElement !== intervalField && intervalField.value === "Not configured") {
+                        intervalField.value = "";
+                    }
 
                     const okEl = document.getElementById("webhook_stat_success");
                     const failEl = document.getElementById("webhook_stat_fail");
@@ -10000,7 +10165,16 @@
             populateVehicleDropdowns(getCatalogVehicles());
         }
 
-        function changeCandoVehicleModel(modelId) {
+        function getCandoDeviceSettings() {
+            return {
+                vehicle_model: localStorage.getItem("wican_vehicle_model") || "all_egmp",
+                vehicle_trim: localStorage.getItem("wican_vehicle_trim") || "all_egmp",
+                vehicle_profile: localStorage.getItem("wican_vehicle_profile") || "all_egmp",
+                unit_system: localStorage.getItem("wican_unit_system") || "metric"
+            };
+        }
+
+        function changeCandoVehicleModel(modelId, syncToDevice = true) {
             localStorage.setItem("wican_vehicle_model", modelId);
             populateTrimDropdown(modelId, modelId, getCatalogVehicles());
             const trimSel = document.getElementById("cando_vehicle_trim");
@@ -10016,9 +10190,12 @@
             const modelSel = document.getElementById("cando_vehicle_model");
             const mName = modelSel ? (modelSel.selectedOptions[0]?.text || modelId) : modelId;
             showNotification("Vehicle model set to: " + mName, "green", 3000);
+            if (syncToDevice) {
+                autoSaveCandoRules();
+            }
         }
 
-        function changeCandoVehicleTrim(trimId) {
+        function changeCandoVehicleTrim(trimId, syncToDevice = true) {
             const vehicles = getCatalogVehicles();
             const veh = vehicles.find(v => v.id === trimId);
 
@@ -10042,6 +10219,9 @@
             const trimSel = document.getElementById("cando_vehicle_trim");
             const tName = trimSel ? (trimSel.selectedOptions[0]?.text || trimId) : trimId;
             showNotification("Trim level set to: " + tName, "green", 3000);
+            if (syncToDevice) {
+                autoSaveCandoRules();
+            }
         }
 
         function getUnitSystem() {
@@ -10056,7 +10236,7 @@
             if (sel) sel.value = saved;
         }
 
-        function changeUnitSystem(unit) {
+        function changeUnitSystem(unit, syncToDevice = true) {
             localStorage.setItem("wican_unit_system", unit);
             const isImperial = (unit === "imperial");
 
@@ -10122,6 +10302,9 @@
             });
 
             showNotification(`Unit preference set to: ${isImperial ? "Imperial (mph, mi, °F, psi)" : "Metric (km/h, km, °C, bar)"}`, "green", 3000);
+            if (syncToDevice) {
+                autoSaveCandoRules();
+            }
         }
 
         function getCustomTrigPresets() {
@@ -11202,17 +11385,23 @@
         }
 
         function autoSaveCandoRules(notifyText, color = "green") {
-            const rules = [];
+            let rules = [];
             const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
             cards.forEach(card => {
                 const ruleData = extractCandoRuleData(card);
                 if (ruleData) rules.push(ruleData);
             });
+            if (rules.length === 0 && window._cachedCandoRules && window._cachedCandoRules.length > 0) {
+                rules = window._cachedCandoRules;
+            }
 
             fetch("/store_cando", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rules: rules })
+                body: JSON.stringify({
+                    settings: getCandoDeviceSettings(),
+                    rules: rules
+                })
             }).then(res => res.text()).then(msg => {
                 if (notifyText) {
                     showNotification(notifyText, color, 2500);
@@ -14946,7 +15135,10 @@
             fetch("/store_cando", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rules: rules })
+                body: JSON.stringify({
+                    settings: getCandoDeviceSettings(),
+                    rules: rules
+                })
             }).then(res => res.text()).then(msg => {
                 showNotification("CAN Do saved successfully!", "green");
                 const targetCard = sourceElem ? sourceElem.closest(".cando-rule-card") : null;
@@ -15034,6 +15226,30 @@
             initCandoCaptureModeUI();
             loadCandoCatalog();
             fetch("/load_cando").then(res => res.json()).then(data => {
+                if (data && data.settings) {
+                    let settingsChanged = false;
+                    if (data.settings.vehicle_model) {
+                        localStorage.setItem("wican_vehicle_model", data.settings.vehicle_model);
+                        settingsChanged = true;
+                    }
+                    if (data.settings.vehicle_trim) {
+                        localStorage.setItem("wican_vehicle_trim", data.settings.vehicle_trim);
+                        settingsChanged = true;
+                    }
+                    if (data.settings.vehicle_profile) {
+                        localStorage.setItem("wican_vehicle_profile", data.settings.vehicle_profile);
+                        settingsChanged = true;
+                    }
+                    if (data.settings.unit_system) {
+                        localStorage.setItem("wican_unit_system", data.settings.unit_system);
+                        const unitSel = document.getElementById("cando_unit_system");
+                        if (unitSel) unitSel.value = data.settings.unit_system;
+                        changeUnitSystem(data.settings.unit_system, false);
+                    }
+                    if (settingsChanged) {
+                        initCandoVehicleProfileUI();
+                    }
+                }
                 const container = document.getElementById("cando_rules_container");
                 if (container) container.innerHTML = "";
                 if (data && data.rules && Array.isArray(data.rules) && data.rules.length > 0) {
@@ -15125,7 +15341,11 @@
 
         function exportCandoRules() {
             fetch("/load_cando").then(res => res.json()).then(data => {
-                const jsonStr = JSON.stringify(data, null, 2);
+                const exportObj = (data && data.rules) ? data : {
+                    settings: getCandoDeviceSettings(),
+                    rules: window._cachedCandoRules || []
+                };
+                const jsonStr = JSON.stringify(exportObj, null, 2);
                 const blob = new Blob([jsonStr], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -15152,10 +15372,26 @@
                     if (data && Array.isArray(data.rules)) {
                         if (container) container.innerHTML = "";
                         data.rules.forEach(r => addCandoRuleUI(r, true));
+                        if (data.settings) {
+                            if (data.settings.vehicle_model) localStorage.setItem("wican_vehicle_model", data.settings.vehicle_model);
+                            if (data.settings.vehicle_trim) localStorage.setItem("wican_vehicle_trim", data.settings.vehicle_trim);
+                            if (data.settings.vehicle_profile) localStorage.setItem("wican_vehicle_profile", data.settings.vehicle_profile);
+                            if (data.settings.unit_system) {
+                                localStorage.setItem("wican_unit_system", data.settings.unit_system);
+                                const unitSel = document.getElementById("cando_unit_system");
+                                if (unitSel) unitSel.value = data.settings.unit_system;
+                                changeUnitSystem(data.settings.unit_system, false);
+                            }
+                            initCandoVehicleProfileUI();
+                        }
+                        const payload = {
+                            settings: data.settings || getCandoDeviceSettings(),
+                            rules: data.rules
+                        };
                         fetch("/store_cando", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(data)
+                            body: JSON.stringify(payload)
                         }).then(res => res.text()).then(msg => {
                             showNotification(`Restored and saved ${data.rules.length} CAN Do rule(s) successfully!`, "green");
                         }).catch(err => {
@@ -15202,7 +15438,20 @@
                     const srvInput = document.getElementById("sntp_server");
                     if (srvInput && data.sntp_server) srvInput.value = data.sntp_server;
                     const tzInput = document.getElementById("sntp_timezone");
-                    if (tzInput && data.timezone) tzInput.value = data.timezone;
+                    const tzSelect = document.getElementById("tz_preset");
+                    if (data.timezone) {
+                        if (tzInput) tzInput.value = data.timezone;
+                        if (tzSelect) {
+                            const hasOption = Array.from(tzSelect.options).some(o => o.value === data.timezone);
+                            if (hasOption) {
+                                tzSelect.value = data.timezone;
+                                if (tzInput) tzInput.style.display = "none";
+                            } else {
+                                tzSelect.value = "custom";
+                                if (tzInput) tzInput.style.display = "block";
+                            }
+                        }
+                    }
                 }
             }).catch(err => console.log("Error fetching device time:", err));
         }
@@ -15212,9 +15461,18 @@
             if (row) row.classList.toggle("hidden", val !== "enable");
         }
 
+        function getSelectedTimezone() {
+            const select = document.getElementById("tz_preset");
+            const tzInput = document.getElementById("sntp_timezone");
+            if (select && select.value && select.value !== "custom") {
+                return select.value;
+            }
+            return tzInput?.value?.trim() || "UTC0";
+        }
+
         function syncTimeFromBrowser() {
             const epoch = Math.floor(Date.now() / 1000);
-            const tz = document.getElementById("sntp_timezone")?.value || "UTC0";
+            const tz = getSelectedTimezone();
 
             fetch("/set_time", {
                 method: "POST",
@@ -15231,7 +15489,7 @@
         function saveTimeConfigUI() {
             const enabled = document.getElementById("sntp_enabled")?.value === "enable";
             const server = document.getElementById("sntp_server")?.value || "pool.ntp.org";
-            const tz = document.getElementById("sntp_timezone")?.value || "UTC0";
+            const tz = getSelectedTimezone();
             toggleSntpFields(document.getElementById("sntp_enabled")?.value);
 
             fetch("/store_time_config", {
@@ -15246,13 +15504,22 @@
             });
         }
 
-        function applyTzPreset(select) {
-            if (select.value && select.value !== "custom") {
-                const tzInput = document.getElementById("sntp_timezone");
-                if (tzInput) tzInput.value = select.value;
+        function onTzSelectChange(select) {
+            const tzInput = document.getElementById("sntp_timezone");
+            if (select.value === "custom") {
+                if (tzInput) {
+                    tzInput.style.display = "block";
+                    tzInput.focus();
+                }
+            } else {
+                if (tzInput) {
+                    tzInput.style.display = "none";
+                    tzInput.value = select.value;
+                }
                 saveTimeConfigUI();
             }
         }
+        const applyTzPreset = onTzSelectChange;
 
         // --- CAN DO SETTINGS MENU HANDLERS ---
         function toggleCandoSettingsMenu(event) {

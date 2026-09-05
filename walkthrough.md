@@ -57,6 +57,8 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
   * **4 Execution Modes**: `one_shot` (auto-rearming on button release), `toggle` (with optional auto-revert timers), `continuous_hold` (re-triggering while held), and `poll_verify`.
   * **Anti-Looping Safety**: Configurable cooldowns (`cooldown_ms`), timeout resets, and verification frames.
   * **Multi-Action Dispatcher**: Injects CAN frames (custom bus, ID, payload, repeat count, inter-frame delays), triggers preconditioning, sends cluster OSD popups, or executes HTTP webhooks.
+  * **Double-Press & Multi-Press Patterns**: Configurable click counts (`click_count`: single, double, triple) with release-edge timing windows (`click_window_ms: 450ms`) for rapid button gestures.
+  * **Simultaneous Combo Press (`AND` Triggers)**: Tracks real-time pressed state (`is_held`) across disparate CAN frames or IDs (e.g. Steering Wheel + AVN buttons), allowing multi-button chord triggers.
   * **Rule Dry-Run Endpoint (`/test_cando_rule`)**: Simulates rule execution directly from the web interface for safe testing.
   * **Boot Engine Auto-Load**: User rules are parsed from LittleFS flash into RAM on device startup across all protocol modes (`SLCAN`, `SAVVYCAN`, `REALDASH`, `ELM327`, `AUTO_PID`).
 
@@ -99,6 +101,7 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
   * **"If - Then - Else" Action Blocks**: Conditional execution within action sequences: runs `THEN` actions if conditions pass, or fallback `ELSE` actions if false.
   * **"Choose" Action Branching**: Multi-trigger decision trees routing different triggers to distinct action sequences within a single rule card, with smart suggestion banners (`💡 2 Triggers Detected`).
   * **Interactive Byte Grid Editor**: 8-byte visual bitmask matrix for viewing and editing CAN payloads with wildcards (`*`) and live hex conversion.
+  * **Trigger Mode Bar & Multi-State Choice Styling**: Segmented button bar (`Trigger Mode: | Single Trigger | | Combined Triggers |`) with high-contrast active states across all multi-state selectors (`#0284c7` selected vs `#075985` unselected) for light and dark themes.
   * **Granular Cloning & Backup**: Clone rules, triggers, or actions with 1 click; export or restore individual rules or full suites via JSON.
 
 ---

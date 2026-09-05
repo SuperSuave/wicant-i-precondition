@@ -200,6 +200,16 @@ typedef struct {
     uint32_t reset_can_id;   /* Reset CAN ID to re-arm one-shot latch */
     uint32_t timeout_reset_ms; /* Auto re-arm latch if trigger absent for N ms */
 
+    /* Multi-press / Double-press Tracking */
+    uint8_t click_count_target;  /* Number of clicks required to trigger (1 = single press, 2 = double press, etc.) */
+    uint32_t click_window_ms;    /* Max time gap between clicks (default 450ms) */
+    uint8_t current_clicks;      /* Number of clicks registered in current window */
+    int64_t last_click_us;       /* Timestamp of last click release */
+    bool was_pressed;            /* Tracks leading press edge before release */
+
+    /* Combo / Held State Tracking */
+    bool is_held;                /* Active asserted state on CAN bus */
+
     /* Execution state tracking */
     bool triggered_latched;  /* Latched state flag for one-shot mode */
     uint8_t last_payload[8]; /* Previous payload for ON_CHANGE mode */
@@ -267,7 +277,8 @@ typedef struct {
     uint32_t auto_revert_sec; /* Auto revert to OFF after N seconds (0 = disabled) */
     int64_t active_since_us; /* Timestamp when rule was toggled ON */
 
-    cando_trigger_t *triggers; /* Multiple trigger definitions (OR) */
+    bool trigger_combine_all;  /* false = ANY trigger (OR), true = ALL triggers simultaneously (AND combo) */
+    cando_trigger_t *triggers; /* Multiple trigger definitions (OR/AND) */
     uint8_t trigger_count;
     cando_trigger_t trigger;/* Primary trigger */
 

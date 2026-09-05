@@ -3171,6 +3171,47 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
         uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
         cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
 
+        /* Pre-pass: update is_held and was_pressed state for all triggers matching this frame */
+        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
+            cando_trigger_t *trig = &trig_list[t_idx];
+            if (trig->source != CANDO_TRIG_CAN_MESSAGE) continue;
+            if (trig->bus != bus || trig->can_id != msg->identifier) continue;
+            if (trig->is_ext != (msg->extd != 0)) continue;
+
+            if (cando_evaluate_trigger(trig, msg, bus)) {
+                trig->is_held = true;
+                trig->was_pressed = true;
+            } else {
+                bool is_rel = false;
+                if (trig->has_from) {
+                    bool from_matches = true;
+                    for (uint8_t f = 0; f < trig->from_len; f++) {
+                        if (trig->from_mask[f] != 0) {
+                            if (f >= msg->data_length_code || (msg->data[f] & trig->from_mask[f]) != (trig->from_data[f] & trig->from_mask[f])) {
+                                from_matches = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (from_matches) is_rel = true;
+                } else if (trig->has_to) {
+                    bool still_to = true;
+                    for (uint8_t t = 0; t < trig->data_len; t++) {
+                        if (trig->match_mask[t] != 0) {
+                            if (t >= msg->data_length_code || (msg->data[t] & trig->match_mask[t]) != (trig->match_data[t] & trig->match_mask[t])) {
+                                still_to = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!still_to) is_rel = true;
+                }
+                if (is_rel) {
+                    trig->is_held = false;
+                }
+            }
+        }
+
         for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
             cando_trigger_t *trig = &trig_list[t_idx];
 
@@ -3245,6 +3286,49 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                     trig->triggered_latched = false; /* Button released: automatically re-armed! */
                     trig->asserted_since_us = 0;      /* Reset hold timer on release */
                     trig->hold_fired = false;
+                    trig->is_held = false;
+
+                    /* Multi-click / Double-press: count click on release edge */
+                    if (trig->click_count_target > 1 && trig->was_pressed) {
+                        trig->was_pressed = false;
+                        uint32_t window_ms = (trig->click_window_ms > 0) ? trig->click_window_ms : 450;
+                        if (trig->current_clicks > 0 && ((now_us - trig->last_click_us) <= ((int64_t)window_ms * 1000))) {
+                            trig->current_clicks++;
+                        } else {
+                            trig->current_clicks = 1;
+                        }
+                        trig->last_click_us = now_us;
+
+                        if (trig->current_clicks >= trig->click_count_target) {
+                            trig->current_clicks = 0; /* Reset accumulator */
+
+                            /* In AND combo mode, all other triggers in the rule must currently be held */
+                            if (rule->trigger_combine_all && t_count > 1) {
+                                bool others_held = true;
+                                for (uint8_t k = 0; k < t_count; k++) {
+                                    if (k == t_idx) continue;
+                                    if (!trig_list[k].is_held) {
+                                        others_held = false;
+                                        break;
+                                    }
+                                }
+                                if (!others_held) {
+                                    continue;
+                                }
+                            }
+
+                            uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
+                            if (trig->last_triggered_us == 0 || ((now_us - trig->last_triggered_us) >= ((int64_t)cd_ms * 1000))) {
+                                trig->last_triggered_us = now_us;
+                                rule->exec_count++;
+                                rule->last_exec_us = now_us;
+                                ESP_LOGI("CANDO", "Multi-click (%d) trigger fired: rule '%s' (ID: %s)",
+                                         trig->click_count_target, rule->name ? rule->name : "Unnamed", trig->id);
+                                const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
+                                cando_execute_rule_actions(rule, matched_id, now_us);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -3253,6 +3337,14 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
             trig->has_last_payload = true;
 
             if (eval_passed) {
+                trig->is_held = true;
+                trig->was_pressed = true;
+
+                /* Multi-click triggers (target > 1) fire on release edges */
+                if (trig->click_count_target > 1) {
+                    continue;
+                }
+
                 /* Hold Duration (for_ms) Evaluation */
                 if (trig->for_ms > 0) {
                     if (trig->asserted_since_us == 0) {
@@ -3267,6 +3359,20 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                         continue; /* Already fired once during this continuous hold */
                     }
                     trig->hold_fired = true;
+                }
+
+                /* Combo Press Check: if rule requires ALL triggers simultaneously */
+                if (rule->trigger_combine_all && t_count > 1) {
+                    bool all_held = true;
+                    for (uint8_t k = 0; k < t_count; k++) {
+                        if (!trig_list[k].is_held) {
+                            all_held = false;
+                            break;
+                        }
+                    }
+                    if (!all_held) {
+                        continue; /* Not all triggers in combo are held yet */
+                    }
                 }
 
                 /* Enforce cooldown_ms (default 500ms for button triggers) */
@@ -3304,12 +3410,25 @@ void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
                 rule->exec_count++;
                 rule->last_exec_us = now_us;
 
+                if (rule->trigger_combine_all && t_count > 1) {
+                    for (uint8_t k = 0; k < t_count; k++) {
+                        trig_list[k].last_triggered_us = now_us;
+                        if (trig_list[k].exec_mode == CANDO_EXEC_ONE_SHOT) {
+                            trig_list[k].triggered_latched = true;
+                        }
+                    }
+                }
+
                 ESP_LOGI("CANDO", "Trigger fired: rule '%s' (ID: %s) on CAN 0x%03lX",
                          rule->name ? rule->name : "Unnamed", trig->id, (unsigned long)msg->identifier);
 
                 /* Execute Actions (supports standard, choose, and toggle flip-flop) */
                 const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
                 cando_execute_rule_actions(rule, matched_id, now_us);
+
+                if (rule->trigger_combine_all && t_count > 1) {
+                    break; /* Done evaluating triggers for this frame in combo mode */
+                }
             }
         }
     }
@@ -3382,6 +3501,14 @@ void cando_process_timer_tick(void)
         for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
             cando_trigger_t *trig = &trig_list[t_idx];
 
+            /* Auto-expire multi-click window accumulator */
+            if (trig->current_clicks > 0) {
+                uint32_t w_ms = (trig->click_window_ms > 0) ? trig->click_window_ms : 450;
+                if ((now_us - trig->last_click_us) > ((int64_t)w_ms * 1000)) {
+                    trig->current_clicks = 0;
+                }
+            }
+
             /* Auto re-arm latch timeout */
             if (trig->triggered_latched && trig->timeout_reset_ms > 0) {
                 if ((now_us - trig->last_triggered_us) > ((int64_t)trig->timeout_reset_ms * 1000)) {
@@ -3416,6 +3543,19 @@ static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_
     trig->exec_mode = CANDO_EXEC_ON_CHANGE;
     trig->cooldown_ms = 500;
     trig->timeout_reset_ms = 2000;
+    trig->click_count_target = 1;
+    trig->click_window_ms = 450;
+
+    cJSON *cc = trig_obj ? cJSON_GetObjectItem(trig_obj, "click_count") : cJSON_GetObjectItem(r, "click_count");
+    if (!cc) cc = trig_obj ? cJSON_GetObjectItem(trig_obj, "press_count") : cJSON_GetObjectItem(r, "press_count");
+    if (cc && cJSON_IsNumber(cc) && cc->valueint >= 1) {
+        trig->click_count_target = (uint8_t)cc->valueint;
+    }
+
+    cJSON *cw = trig_obj ? cJSON_GetObjectItem(trig_obj, "click_window_ms") : cJSON_GetObjectItem(r, "click_window_ms");
+    if (cw && cJSON_IsNumber(cw) && cw->valueint > 0) {
+        trig->click_window_ms = (uint32_t)cw->valueint;
+    }
 
     cJSON *tid = trig_obj ? cJSON_GetObjectItem(trig_obj, "id") : NULL;
     if (tid && tid->valuestring) {
@@ -3887,6 +4027,21 @@ esp_err_t cando_load_config(void)
                     cJSON *rev_sec = cJSON_GetObjectItem(r, "auto_revert_sec");
                     if (rev_sec && cJSON_IsNumber(rev_sec)) {
                         rule->auto_revert_sec = (uint32_t)rev_sec->valueint;
+                    }
+
+                    cJSON *trig_mode = cJSON_GetObjectItem(r, "trigger_mode");
+                    if (!trig_mode) trig_mode = cJSON_GetObjectItem(r, "triggers_mode");
+                    if (!trig_mode) trig_mode = cJSON_GetObjectItem(r, "trigger_combine");
+                    if (trig_mode && trig_mode->valuestring) {
+                        if (strcmp(trig_mode->valuestring, "all") == 0 ||
+                            strcmp(trig_mode->valuestring, "and") == 0 ||
+                            strcmp(trig_mode->valuestring, "combo") == 0) {
+                            rule->trigger_combine_all = true;
+                        } else {
+                            rule->trigger_combine_all = false;
+                        }
+                    } else {
+                        rule->trigger_combine_all = false;
                     }
 
                     /* 1. Parse Triggers (multi or single) */

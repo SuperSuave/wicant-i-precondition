@@ -68,6 +68,10 @@
             --m3-tonal-ifthen-border: #fde68a;
             --m3-tonal-ifthen-color: #b45309;
 
+            /* Multi-state choice buttons (Trigger mode, preset state options) */
+            --cando-choice-selected: #0284c7;
+            --cando-choice-unselected: #075985;
+
             /* Backward-compatible variables */
             --primary-color: var(--md-sys-color-primary);
             --primary-light: var(--md-sys-color-primary-container);
@@ -146,6 +150,10 @@
             --m3-tonal-ifthen-bg: #291a03;
             --m3-tonal-ifthen-border: #854d0e;
             --m3-tonal-ifthen-color: #d97706;
+
+            /* Multi-state choice buttons (Trigger mode, preset state options) */
+            --cando-choice-selected: #0284c7;
+            --cando-choice-unselected: #075985;
 
             /* Backward-compatible overrides */
             --primary-color: var(--md-sys-color-primary);
@@ -827,86 +835,102 @@
             transition: all 0.15s ease !important;
             box-sizing: border-box !important;
             word-break: break-word !important;
-            background: #ffffff;
+            background: var(--cando-choice-unselected, #075985) !important;
+            color: #ffffff !important;
+            border: 1px solid #0369a1 !important;
+            opacity: 0.92;
         }
-        .cando-cond-opt-pill-btn {
-            color: #0369a1;
-            border: 1px solid #bfdbfe;
-        }
-        .cando-trig-opt-pill-btn {
-            color: #9a3412;
-            border: 1px solid #fed7aa;
-        }
+        .cando-cond-opt-pill-btn,
+        .cando-trig-opt-pill-btn,
         .cando-opt-pill-btn {
-            color: #166534;
-            border: 1px solid #86efac;
+            background: var(--cando-choice-unselected, #075985) !important;
+            color: #ffffff !important;
+            border: 1px solid #0369a1 !important;
         }
 
-        /* Active Selected State in Light Mode */
-        .cando-cond-opt-pill-btn.active {
-            background: #0369a1 !important;
-            color: #ffffff !important;
-            border: 1.5px solid #0284c7 !important;
-            font-weight: 700 !important;
-            box-shadow: 0 1px 3px rgba(3,105,161,0.3) !important;
-        }
-        .cando-trig-opt-pill-btn.active {
-            background: #ea580c !important;
-            color: #ffffff !important;
-            border: 1.5px solid #c2410c !important;
-            font-weight: 700 !important;
-            box-shadow: 0 1px 3px rgba(234,88,12,0.3) !important;
-        }
+        /* Active Selected State */
+        .cando-state-tile-btn.active,
+        .cando-cond-opt-pill-btn.active,
+        .cando-trig-opt-pill-btn.active,
         .cando-opt-pill-btn.active {
-            background: #16a34a !important;
+            background: var(--cando-choice-selected, #0284c7) !important;
             color: #ffffff !important;
-            border: 1.5px solid #15803d !important;
+            border: 1.5px solid #38bdf8 !important;
             font-weight: 700 !important;
-            box-shadow: 0 1px 3px rgba(22,163,74,0.3) !important;
+            opacity: 1 !important;
+            box-shadow: 0 1px 5px rgba(2, 132, 199, 0.45) !important;
         }
 
-        /* Dark Mode for Unselected Tiles */
-        [data-theme="dark"] .cando-state-tile-btn:not(.active) {
-            background: #0f172a !important;
-            border-color: #334155 !important;
-            color: #cbd5e1 !important;
-        }
-        [data-theme="dark"] .cando-cond-opt-pill-btn:not(.active) {
-            border-color: #0369a1 !important;
-            color: #bfdbfe !important;
-        }
-        [data-theme="dark"] .cando-trig-opt-pill-btn:not(.active) {
-            border-color: #7c2d12 !important;
-            color: #fdba74 !important;
-        }
+        /* Unselected State in Light and Dark Mode */
+        .cando-state-tile-btn:not(.active),
+        .cando-cond-opt-pill-btn:not(.active),
+        .cando-trig-opt-pill-btn:not(.active),
+        .cando-opt-pill-btn:not(.active),
+        [data-theme="dark"] .cando-state-tile-btn:not(.active),
+        [data-theme="dark"] .cando-cond-opt-pill-btn:not(.active),
+        [data-theme="dark"] .cando-trig-opt-pill-btn:not(.active),
         [data-theme="dark"] .cando-opt-pill-btn:not(.active) {
-            border-color: #065f46 !important;
-            color: #a7f3d0 !important;
+            background: var(--cando-choice-unselected, #075985) !important;
+            border-color: #0369a1 !important;
+            color: #ffffff !important;
+            opacity: 0.92 !important;
         }
 
         /* Dark Mode for Active Selected Tiles */
-        [data-theme="dark"] .cando-cond-opt-pill-btn.active {
-            background: #0369a1 !important;
+        [data-theme="dark"] .cando-state-tile-btn.active,
+        [data-theme="dark"] .cando-cond-opt-pill-btn.active,
+        [data-theme="dark"] .cando-trig-opt-pill-btn.active,
+        [data-theme="dark"] .cando-opt-pill-btn.active {
+            background: var(--cando-choice-selected, #0284c7) !important;
             color: #ffffff !important;
             border: 1.5px solid #38bdf8 !important;
-            box-shadow: 0 0 10px rgba(3,105,161,0.5) !important;
-        }
-        [data-theme="dark"] .cando-trig-opt-pill-btn.active {
-            background: #ea580c !important;
-            color: #ffffff !important;
-            border: 1.5px solid #fb923c !important;
-            box-shadow: 0 0 10px rgba(234,88,12,0.5) !important;
-        }
-        [data-theme="dark"] .cando-opt-pill-btn.active {
-            background: #16a34a !important;
-            color: #ffffff !important;
-            border: 1.5px solid #4ade80 !important;
-            box-shadow: 0 0 10px rgba(22,163,74,0.5) !important;
+            box-shadow: 0 0 10px rgba(2, 132, 199, 0.5) !important;
+            opacity: 1 !important;
         }
 
         .cando-state-tile-btn:hover {
             transform: translateY(-1px);
-            filter: brightness(0.97);
+            filter: brightness(1.12);
+        }
+
+        /* Trigger Mode buttons (Single Trigger vs Combined Triggers) */
+        .cando-trig-mode-btn {
+            padding: 0.35rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--m3-shape-xs);
+            border: 1px solid #0369a1;
+            background: var(--cando-choice-unselected, #075985);
+            color: #ffffff;
+            opacity: 0.92;
+            transition: var(--transition);
+        }
+        [data-theme="dark"] .cando-trig-mode-btn {
+            background: var(--cando-choice-unselected, #075985);
+            border-color: #0369a1;
+            color: #ffffff;
+            opacity: 0.92;
+        }
+        .cando-trig-mode-btn:hover {
+            color: #ffffff;
+            filter: brightness(1.12);
+            opacity: 1;
+        }
+        .cando-trig-mode-btn.active {
+            background: var(--cando-choice-selected, #0284c7) !important;
+            color: #ffffff !important;
+            border-color: #38bdf8 !important;
+            font-weight: 700 !important;
+            opacity: 1 !important;
+            box-shadow: 0 1px 5px rgba(2, 132, 199, 0.45) !important;
+        }
+        [data-theme="dark"] .cando-trig-mode-btn.active {
+            background: var(--cando-choice-selected, #0284c7) !important;
+            color: #ffffff !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(2, 132, 199, 0.5) !important;
+            opacity: 1 !important;
         }
 
         .cando-subitem-btn.cando-btn-create-block {
@@ -11540,6 +11564,10 @@
                     const idInput = item.querySelector(".cando-trig-id");
                     if (idInput) idInput.value = preset.id;
                 }
+                if (preset.click_count !== undefined) {
+                    const cc = item.querySelector(".cando-trig-click-count");
+                    if (cc) cc.value = preset.click_count.toString();
+                }
 
                 // Check if preset has state options
                 const optionsBox = item.querySelector(".cando-trig-options-container");
@@ -12390,6 +12418,16 @@
                         </div>
                     </div>
                     <div class="cando-section-body" style="margin-top: 0.6rem;">
+                        <div class="cando-trig-combine-wrap" style="display: flex; align-items: center; justify-content: flex-start; gap: 0.85rem; padding: 0.45rem 0.75rem; margin-bottom: 0.75rem; background: var(--m3-tonal-when-bg); border: 1px solid var(--m3-tonal-when-border); border-radius: var(--m3-shape-sm);">
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <span style="font-size: 0.82rem; font-weight: 700; color: var(--m3-tonal-when-color);">Trigger Mode:</span>
+                            </div>
+                            <div class="cando-trig-mode-group" style="display: flex; gap: 0.4rem;">
+                                <input type="hidden" class="cando-trig-combine-mode" value="${(ruleData.trigger_mode === 'all' || ruleData.trigger_mode === 'and' || ruleData.trigger_mode === 'combo') ? 'all' : 'any'}">
+                                <button type="button" class="system-button cando-trig-mode-btn ${(!ruleData.trigger_mode || ruleData.trigger_mode === 'any' || ruleData.trigger_mode === 'or') ? 'active' : ''}" onclick="setCandoTriggerMode(this, 'any')">Single Trigger</button>
+                                <button type="button" class="system-button cando-trig-mode-btn ${(ruleData.trigger_mode === 'all' || ruleData.trigger_mode === 'and' || ruleData.trigger_mode === 'combo') ? 'active' : ''}" onclick="setCandoTriggerMode(this, 'all')">Combined Triggers</button>
+                            </div>
+                        </div>
                         <div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem;"></div>
                         <div style="position: relative; width: calc(100% + 2.2rem); margin-left: -1.1rem; margin-right: -1.1rem; margin-top: 0.2rem; margin-bottom: 0;">
                             <button type="button" onclick="addCandoTriggerItem(this)" style="width: 100%; padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: var(--transition); border-radius: 0 0 calc(var(--m3-shape-md) - 1px) calc(var(--m3-shape-md) - 1px);">
@@ -12758,6 +12796,7 @@
                 id: currentId,
                 source: item.querySelector(".cando-trig-source")?.value || "preset",
                 preset_val: selectedPresetVal,
+                click_count: parseInt(item.querySelector(".cando-trig-click-count")?.value || "1"),
                 for_sec: forSec,
                 for_ms: Math.round(forSec * 1000),
                 can_id: item.querySelector(".cando-trig-can-id")?.value || "",
@@ -12773,6 +12812,17 @@
                 mqtt_topic: item.querySelector(".cando-trig-mqtt-topic")?.value || "",
                 mqtt_payload: item.querySelector(".cando-trig-mqtt-payload")?.value || ""
             };
+        }
+
+        function setCandoTriggerMode(btn, mode) {
+            const group = btn.closest(".cando-trig-mode-group");
+            if (!group) return;
+            group.querySelectorAll(".cando-trig-mode-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const hidden = group.querySelector(".cando-trig-combine-mode");
+            if (hidden) hidden.value = mode;
+            const card = btn.closest(".cando-rule-card");
+            if (card) updateCandoRuleSummaryPill(card);
         }
 
         function cloneCandoTriggerItem(btn) {
@@ -12954,6 +13004,21 @@
                         </div>
                     </td>
                 </tr>
+                <tr class="trig-field-press-pattern ${source === "clock" || source === "interval" || source === "voltage" ? "hidden" : ""}">
+                    <td style="vertical-align: top; padding-top: 10px;">Press Pattern:</td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <select class="cando-trig-click-count" onchange="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))" style="width: 220px; max-width: 100%; height: 38px; font-weight: 600;">
+                                    <option value="1" ${(!data.click_count || data.click_count == 1) ? "selected" : ""}>Single Press (Default)</option>
+                                    <option value="2" ${data.click_count == 2 ? "selected" : ""}>Double Press</option>
+                                    <option value="3" ${data.click_count == 3 ? "selected" : ""}>Triple Press</option>
+                                </select>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">(Consecutive clicks within 450ms. For multi-button combos, add a 2nd trigger below and set Trigger Combination above to "ALL Triggers".)</span>
+                        </div>
+                    </td>
+                </tr>
             </table>
         `;
             container.appendChild(itemDiv);
@@ -12979,6 +13044,7 @@
             item.querySelectorAll(".trig-field-voltage").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
             item.querySelectorAll(".trig-field-expr").forEach(el => el.classList.toggle("hidden", val !== "state_change"));
             item.querySelectorAll(".trig-field-for").forEach(el => el.classList.toggle("hidden", val === "clock" || val === "interval"));
+            item.querySelectorAll(".trig-field-press-pattern").forEach(el => el.classList.toggle("hidden", val === "clock" || val === "interval" || val === "voltage"));
             if (val === "preset") {
                 const picker = item.querySelector(".cando-trig-preset-picker");
                 if (picker && picker.value !== "") {
@@ -15160,6 +15226,12 @@
                 } else {
                     sText = src;
                 }
+                const clickCount = parseInt(t.querySelector(".cando-trig-click-count")?.value || "1");
+                if (clickCount === 2) {
+                    sText += " (Double Press)";
+                } else if (clickCount === 3) {
+                    sText += " (Triple Press)";
+                }
                 if (forSec > 0 && src !== "clock" && src !== "interval") {
                     sText += ` (for ${forSec}s)`;
                 }
@@ -15234,7 +15306,9 @@
                 }
             });
 
-            const trigStr = trigSummaries.length > 0 ? trigSummaries.join(" OR ") : "No Trigger";
+            const combineMode = card.querySelector(".cando-trig-combine-mode")?.value || "any";
+            const trigJoiner = (combineMode === "all" || combineMode === "and" || combineMode === "combo") ? " ➕ " : " OR ";
+            const trigStr = trigSummaries.length > 0 ? trigSummaries.join(trigJoiner) : "No Trigger";
             const actStr = actSummaries.length > 0 ? actSummaries.join(" ➔ ") : "No Action";
 
             pill.innerHTML = `
@@ -15691,6 +15765,7 @@
                 triggers.push({
                     id: item.querySelector(".cando-trig-id")?.value.trim() || "",
                     source: item.querySelector(".cando-trig-source")?.value || "preset",
+                    click_count: parseInt(item.querySelector(".cando-trig-click-count")?.value || "1"),
                     for_sec: forSec,
                     for_ms: Math.round(forSec * 1000),
                     can_id: item.querySelector(".cando-trig-can-id")?.value || "",
@@ -15737,6 +15812,7 @@
                 ha_expose: haExpose,
                 ha_icon: haIcon,
                 exec_mode: execMode,
+                trigger_mode: card.querySelector(".cando-trig-combine-mode")?.value || "any",
                 cooldown_ms: cooldownMs,
                 timeout_reset_ms: timeoutResetMs,
                 reset_can_id: resetCanId,

@@ -119,8 +119,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             }
 			
             esp_mqtt_client_subscribe(client, mqtt_cmd_topic, 0);
+            esp_mqtt_client_subscribe(client, "wican/cando/trigger", 0);
+            if (device_id) {
+                char cando_dev_sub[64];
+                snprintf(cando_dev_sub, sizeof(cando_dev_sub), "wican/%s/cando/trigger", device_id);
+                esp_mqtt_client_subscribe(client, cando_dev_sub, 0);
+            }
 			gpio_set_level(mqtt_led, LED_ON);
 			esp_mqtt_client_publish(client, mqtt_status_topic, "{\"status\": \"online\"}", 0, 0, 1);
+
+            cando_publish_ha_discovery();
 
             xEventGroupSetBits(s_mqtt_event_group, MQTT_CONNECTED_BIT);
 			break;
@@ -298,10 +306,28 @@ static void mqtt_parse_data(void *handler_args, esp_event_base_t base, int32_t e
         {
             autopid_request_data();
         }
+        else if (strcmp(cmd->valuestring, "cando") == 0 || strcmp(cmd->valuestring, "cando_trigger") == 0)
+        {
+            cJSON *action = cJSON_GetObjectItem(root, "action");
+            const char *act_val = (action && action->valuestring) ? action->valuestring : "";
+            cando_process_mqtt_trigger(event->topic, act_val);
+            sprintf(cmd_response, "{\"rsp\": \"ok\"}");
+            mqtt_publish(mqtt_rsp_topic, cmd_response, strlen(cmd_response), 0, 0);
+        }
         else
         {
-            ESP_LOGW(TAG, "Unknown command received: %s", cmd->valuestring);
+            cando_process_mqtt_trigger(event->topic, cmd->valuestring);
+            ESP_LOGI(TAG, "Command received: %s (checked for CAN Do triggers)", cmd->valuestring);
         }
+    }
+    else if (strstr(event->topic, "cando/trigger") != NULL)
+    {
+        char payload_buf[128] = {0};
+        if (event->data_len > 0) {
+            int len = (event->data_len < (sizeof(payload_buf) - 1)) ? event->data_len : (sizeof(payload_buf) - 1);
+            memcpy(payload_buf, event->data, len);
+        }
+        cando_process_mqtt_trigger(event->topic, payload_buf);
     }
 
 end:

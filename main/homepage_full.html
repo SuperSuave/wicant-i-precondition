@@ -70,7 +70,7 @@
 
             /* Multi-state choice buttons (Trigger mode, preset state options) */
             --cando-choice-selected: #0284c7;
-            --cando-choice-unselected: #075985;
+            --cando-choice-unselected: #0c4a6e;
 
             /* Backward-compatible variables */
             --primary-color: var(--md-sys-color-primary);
@@ -153,7 +153,7 @@
 
             /* Multi-state choice buttons (Trigger mode, preset state options) */
             --cando-choice-selected: #0284c7;
-            --cando-choice-unselected: #075985;
+            --cando-choice-unselected: #0c4a6e;
 
             /* Backward-compatible overrides */
             --primary-color: var(--md-sys-color-primary);
@@ -593,8 +593,8 @@
         }
 
         /* Action & System Buttons (#0369a1 across all tabs) */
-        button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move),
-        .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move),
+        button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn),
+        .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn),
         button.store,
         input[type="submit"]:not(.delete-btn),
         input[type="button"]:not(.delete-btn):not([onclick*="move"]) {
@@ -604,8 +604,8 @@
             box-shadow: var(--shadow-sm);
         }
 
-        button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):hover,
-        .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):hover,
+        button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn):hover,
+        .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn):hover,
         button.store:hover,
         input[type="submit"]:not(.delete-btn):hover,
         input[type="button"]:not(.delete-btn):not([onclick*="move"]):hover {
@@ -616,8 +616,8 @@
             opacity: 1;
         }
 
-        [data-theme="dark"] button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move),
-        [data-theme="dark"] .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move),
+        [data-theme="dark"] button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn),
+        [data-theme="dark"] .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn),
         [data-theme="dark"] button.store,
         [data-theme="dark"] input[type="submit"]:not(.delete-btn),
         [data-theme="dark"] input[type="button"]:not(.delete-btn):not([onclick*="move"]) {
@@ -626,8 +626,8 @@
             border: 1px solid #0284c7 !important;
         }
 
-        [data-theme="dark"] button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):hover,
-        [data-theme="dark"] .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):hover,
+        [data-theme="dark"] button.system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn):hover,
+        [data-theme="dark"] .system-button:not([title*="Move"]):not([title*="move"]):not(.delete-btn):not(.cando-btn-move):not(.cando-step-btn-move):not(.cando-state-tile-btn):not(.cando-trig-mode-btn):not(.cando-opt-pill-btn):not(.cando-cond-opt-pill-btn):not(.cando-trig-opt-pill-btn):hover,
         [data-theme="dark"] button.store:hover,
         [data-theme="dark"] input[type="submit"]:not(.delete-btn):hover,
         [data-theme="dark"] input[type="button"]:not(.delete-btn):not([onclick*="move"]):hover {
@@ -819,6 +819,10 @@
         .cando-options-grid.grid-many {
             grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
         }
+        .cando-act-options-container button,
+        .cando-cond-options-container button,
+        .cando-trig-options-container button,
+        .cando-options-grid button,
         .cando-state-tile-btn {
             min-height: 38px !important;
             height: auto !important;
@@ -835,25 +839,32 @@
             transition: all 0.15s ease !important;
             box-sizing: border-box !important;
             word-break: break-word !important;
-            background: var(--cando-choice-unselected, #075985) !important;
-            color: #ffffff !important;
+            background: #0c4a6e !important;
+            background-color: #0c4a6e !important;
+            color: var(--text-muted) !important;
             border: 1px solid #0369a1 !important;
-            opacity: 0.92;
+            opacity: 1 !important;
         }
         .cando-cond-opt-pill-btn,
         .cando-trig-opt-pill-btn,
         .cando-opt-pill-btn {
-            background: var(--cando-choice-unselected, #075985) !important;
-            color: #ffffff !important;
+            background: #0c4a6e !important;
+            background-color: #0c4a6e !important;
+            color: var(--text-muted) !important;
             border: 1px solid #0369a1 !important;
         }
 
         /* Active Selected State */
+        .cando-act-options-container button.active,
+        .cando-cond-options-container button.active,
+        .cando-trig-options-container button.active,
+        .cando-options-grid button.active,
         .cando-state-tile-btn.active,
         .cando-cond-opt-pill-btn.active,
         .cando-trig-opt-pill-btn.active,
         .cando-opt-pill-btn.active {
-            background: var(--cando-choice-selected, #0284c7) !important;
+            background: #0284c7 !important;
+            background-color: #0284c7 !important;
             color: #ffffff !important;
             border: 1.5px solid #38bdf8 !important;
             font-weight: 700 !important;
@@ -862,76 +873,103 @@
         }
 
         /* Unselected State in Light and Dark Mode */
+        .cando-act-options-container button:not(.active),
+        .cando-cond-options-container button:not(.active),
+        .cando-trig-options-container button:not(.active),
+        .cando-options-grid button:not(.active),
         .cando-state-tile-btn:not(.active),
         .cando-cond-opt-pill-btn:not(.active),
         .cando-trig-opt-pill-btn:not(.active),
         .cando-opt-pill-btn:not(.active),
+        [data-theme="dark"] .cando-act-options-container button:not(.active),
+        [data-theme="dark"] .cando-cond-options-container button:not(.active),
+        [data-theme="dark"] .cando-trig-options-container button:not(.active),
+        [data-theme="dark"] .cando-options-grid button:not(.active),
         [data-theme="dark"] .cando-state-tile-btn:not(.active),
         [data-theme="dark"] .cando-cond-opt-pill-btn:not(.active),
         [data-theme="dark"] .cando-trig-opt-pill-btn:not(.active),
         [data-theme="dark"] .cando-opt-pill-btn:not(.active) {
-            background: var(--cando-choice-unselected, #075985) !important;
+            background: #0c4a6e !important;
+            background-color: #0c4a6e !important;
             border-color: #0369a1 !important;
-            color: #ffffff !important;
-            opacity: 0.92 !important;
+            color: var(--text-muted) !important;
+            opacity: 1 !important;
         }
 
         /* Dark Mode for Active Selected Tiles */
+        [data-theme="dark"] .cando-act-options-container button.active,
+        [data-theme="dark"] .cando-cond-options-container button.active,
+        [data-theme="dark"] .cando-trig-options-container button.active,
+        [data-theme="dark"] .cando-options-grid button.active,
         [data-theme="dark"] .cando-state-tile-btn.active,
         [data-theme="dark"] .cando-cond-opt-pill-btn.active,
         [data-theme="dark"] .cando-trig-opt-pill-btn.active,
         [data-theme="dark"] .cando-opt-pill-btn.active {
-            background: var(--cando-choice-selected, #0284c7) !important;
+            background: #0284c7 !important;
+            background-color: #0284c7 !important;
             color: #ffffff !important;
             border: 1.5px solid #38bdf8 !important;
             box-shadow: 0 0 10px rgba(2, 132, 199, 0.5) !important;
             opacity: 1 !important;
         }
 
+        .cando-act-options-container button:hover,
+        .cando-cond-options-container button:hover,
+        .cando-trig-options-container button:hover,
+        .cando-options-grid button:hover,
         .cando-state-tile-btn:hover {
             transform: translateY(-1px);
             filter: brightness(1.12);
         }
 
         /* Trigger Mode buttons (Single Trigger vs Combined Triggers) */
-        .cando-trig-mode-btn {
+        button.cando-trig-mode-btn,
+        .cando-trig-mode-btn,
+        button.cando-trig-mode-btn:not(.active),
+        .cando-trig-mode-btn:not(.active) {
             padding: 0.35rem 0.85rem;
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             border-radius: var(--m3-shape-xs);
-            border: 1px solid #0369a1;
-            background: var(--cando-choice-unselected, #075985);
-            color: #ffffff;
-            opacity: 0.92;
+            border: 1px solid #0369a1 !important;
+            background: #0c4a6e !important;
+            background-color: #0c4a6e !important;
+            color: var(--text-muted) !important;
+            opacity: 1 !important;
             transition: var(--transition);
         }
-        [data-theme="dark"] .cando-trig-mode-btn {
-            background: var(--cando-choice-unselected, #075985);
-            border-color: #0369a1;
-            color: #ffffff;
-            opacity: 0.92;
+        [data-theme="dark"] button.cando-trig-mode-btn,
+        [data-theme="dark"] .cando-trig-mode-btn,
+        [data-theme="dark"] button.cando-trig-mode-btn:not(.active),
+        [data-theme="dark"] .cando-trig-mode-btn:not(.active) {
+            background: #0c4a6e !important;
+            background-color: #0c4a6e !important;
+            border-color: #0369a1 !important;
+            color: var(--text-muted) !important;
+            opacity: 1 !important;
         }
+        button.cando-trig-mode-btn:hover,
         .cando-trig-mode-btn:hover {
-            color: #ffffff;
-            filter: brightness(1.12);
-            opacity: 1;
+            color: var(--text-heading) !important;
+            filter: brightness(1.15);
+            opacity: 1 !important;
         }
-        .cando-trig-mode-btn.active {
-            background: var(--cando-choice-selected, #0284c7) !important;
+        button.cando-trig-mode-btn.active,
+        .cando-trig-mode-btn.active,
+        [data-theme="dark"] button.cando-trig-mode-btn.active,
+        [data-theme="dark"] .cando-trig-mode-btn.active {
+            background: #0284c7 !important;
+            background-color: #0284c7 !important;
             color: #ffffff !important;
+            border: 1.5px solid #38bdf8 !important;
             border-color: #38bdf8 !important;
             font-weight: 700 !important;
             opacity: 1 !important;
             box-shadow: 0 1px 5px rgba(2, 132, 199, 0.45) !important;
         }
-        [data-theme="dark"] .cando-trig-mode-btn.active {
-            background: var(--cando-choice-selected, #0284c7) !important;
-            color: #ffffff !important;
-            border-color: #38bdf8 !important;
-            box-shadow: 0 0 10px rgba(2, 132, 199, 0.5) !important;
-            opacity: 1 !important;
-        }
+
+
 
         .cando-subitem-btn.cando-btn-create-block {
             background: var(--md-sys-color-surface-container-high) !important;
@@ -11461,7 +11499,7 @@
                             ${preset.options.map((opt, i) => {
                                 const isCur = (i === activeOptIdx);
                                 return `
-                                <button type="button" class="system-button cando-state-tile-btn cando-cond-opt-pill-btn ${isCur ? 'active' : ''}" 
+                                <button type="button" class="cando-state-tile-btn cando-cond-opt-pill-btn ${isCur ? 'active' : ''}" 
                                     onclick="applyCandoCondOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
                                     ${opt.label}
                                 </button>
@@ -11596,7 +11634,7 @@
                                 ${preset.options.map((opt, i) => {
                                     const isCur = (i === activeOptIdx);
                                     return `
-                                    <button type="button" class="system-button cando-state-tile-btn cando-trig-opt-pill-btn ${isCur ? 'active' : ''}"
+                                    <button type="button" class="cando-state-tile-btn cando-trig-opt-pill-btn ${isCur ? 'active' : ''}"
                                         onclick="applyCandoTrigOptionPill(this, '${pType}', ${pIdx}, ${i})">
                                         ${opt.label}
                                     </button>
@@ -12424,8 +12462,8 @@
                             </div>
                             <div class="cando-trig-mode-group" style="display: flex; gap: 0.4rem;">
                                 <input type="hidden" class="cando-trig-combine-mode" value="${(ruleData.trigger_mode === 'all' || ruleData.trigger_mode === 'and' || ruleData.trigger_mode === 'combo') ? 'all' : 'any'}">
-                                <button type="button" class="system-button cando-trig-mode-btn ${(!ruleData.trigger_mode || ruleData.trigger_mode === 'any' || ruleData.trigger_mode === 'or') ? 'active' : ''}" onclick="setCandoTriggerMode(this, 'any')">Single Trigger</button>
-                                <button type="button" class="system-button cando-trig-mode-btn ${(ruleData.trigger_mode === 'all' || ruleData.trigger_mode === 'and' || ruleData.trigger_mode === 'combo') ? 'active' : ''}" onclick="setCandoTriggerMode(this, 'all')">Combined Triggers</button>
+                                <button type="button" class="cando-trig-mode-btn ${(!ruleData.trigger_mode || ruleData.trigger_mode === 'any' || ruleData.trigger_mode === 'or') ? 'active' : ''}" onclick="setCandoTriggerMode(this, 'any')">Single Trigger</button>
+                                <button type="button" class="cando-trig-mode-btn ${(ruleData.trigger_mode === 'all' || ruleData.trigger_mode === 'and' || ruleData.trigger_mode === 'combo') ? 'active' : ''}" onclick="setCandoTriggerMode(this, 'all')">Combined Triggers</button>
                             </div>
                         </div>
                         <div class="cando-triggers-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 0.8rem;"></div>
@@ -14829,7 +14867,7 @@
                                 const label = (isImperial && opt.label_imperial) ? opt.label_imperial : opt.label;
                                 const isCur = (i === defaultOptIdx);
                                 return `
-                                <button type="button" class="system-button cando-state-tile-btn cando-opt-pill-btn ${isCur ? 'active' : ''}" 
+                                <button type="button" class="cando-state-tile-btn cando-opt-pill-btn ${isCur ? 'active' : ''}" 
                                     onclick="applyCandoOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
                                     ${label}
                                 </button>

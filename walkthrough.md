@@ -101,7 +101,7 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
   * **"If - Then - Else" Action Blocks**: Conditional execution within action sequences: runs `THEN` actions if conditions pass, or fallback `ELSE` actions if false.
   * **"Choose" Action Branching**: Multi-trigger decision trees routing different triggers to distinct action sequences within a single rule card, with smart suggestion banners (`💡 2 Triggers Detected`).
   * **Interactive Byte Grid Editor**: 8-byte visual bitmask matrix for viewing and editing CAN payloads with wildcards (`*`) and live hex conversion.
-  * **Trigger Mode Bar & Multi-State Choice Styling**: Segmented button bar (`Trigger Mode: | Single Trigger | | Combined Triggers |`) with high-contrast active states across all multi-state selectors (`#0284c7` selected vs `#075985` unselected) for light and dark themes.
+  * **Trigger Mode Bar & Multi-State Choice Styling**: Segmented button bar (`Trigger Mode: | Single Trigger | | Combined Triggers |`) with high-contrast active states across all multi-state selectors (`#0284c7` selected vs `#0c4a6e` unselected) for light and dark themes.
   * **Granular Cloning & Backup**: Clone rules, triggers, or actions with 1 click; export or restore individual rules or full suites via JSON.
 
 ---

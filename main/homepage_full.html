@@ -6122,6 +6122,7 @@
                 const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
                 store[instanceId] = list;
                 localStorage.setItem("wican_state_widgets", JSON.stringify(store));
+                if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             } catch (e) { }
         }
 
@@ -6137,6 +6138,7 @@
                 const store = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
                 store[instanceId] = list;
                 localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(store));
+                if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             } catch (e) { }
         }
 
@@ -6392,7 +6394,9 @@
                 return;
             }
 
+            let wasCustom = false;
             if (instanceId.startsWith("can_state_")) {
+                wasCustom = true;
                 try {
                     const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
                     delete store[instanceId];
@@ -6401,6 +6405,7 @@
             }
 
             if (instanceId.startsWith("cando_btn_")) {
+                wasCustom = true;
                 try {
                     const store = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
                     delete store[instanceId];
@@ -6409,6 +6414,9 @@
             }
 
             saveDashboardWidgetLayout(filtered);
+            if (wasCustom && typeof autoSaveCandoRules === "function") {
+                autoSaveCandoRules();
+            }
             showNotification("Removed widget card from dashboard", "blue", 2500);
         }
 
@@ -6422,6 +6430,7 @@
                 const newInstId = `can_state_${nextIdx}`;
                 layout.push(newInstId);
                 saveDashboardWidgetLayout(layout);
+                if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
                 showNotification("Added new CAN State Monitor card!", "green", 2500);
                 return;
             }
@@ -6432,6 +6441,7 @@
                 const newInstId = `cando_btn_${nextIdx}`;
                 layout.push(newInstId);
                 saveDashboardWidgetLayout(layout);
+                if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
                 showNotification("Added new CAN Do Buttons card!", "green", 2500);
                 return;
             }
@@ -10887,11 +10897,32 @@
         }
 
         function getCandoDeviceSettings() {
+            let customPresets = {
+                triggers: (typeof getCustomTrigPresets === "function") ? getCustomTrigPresets() : [],
+                actions: (typeof getCustomActPresets === "function") ? getCustomActPresets() : [],
+                conditions: (typeof getCustomCondPresets === "function") ? getCustomCondPresets() : []
+            };
+            let customWidgets = {
+                state_widgets: {},
+                dash_buttons: {},
+                custom_cards: []
+            };
+            try {
+                customWidgets.state_widgets = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
+            } catch (e) { }
+            try {
+                customWidgets.dash_buttons = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+            } catch (e) { }
+            if (typeof getDashboardWidgetLayout === "function") {
+                customWidgets.custom_cards = getDashboardWidgetLayout().filter(id => id.startsWith("can_state_") || id.startsWith("cando_btn_"));
+            }
             return {
                 vehicle_model: localStorage.getItem("wican_vehicle_model") || "all_egmp",
                 vehicle_trim: localStorage.getItem("wican_vehicle_trim") || "all_egmp",
                 vehicle_profile: localStorage.getItem("wican_vehicle_profile") || "all_egmp",
-                unit_system: localStorage.getItem("wican_unit_system") || "metric"
+                unit_system: localStorage.getItem("wican_unit_system") || "metric",
+                custom_presets: customPresets,
+                custom_widgets: customWidgets
             };
         }
 
@@ -11039,6 +11070,7 @@
             list.push(presetObj);
             localStorage.setItem("wican_custom_trig_presets", JSON.stringify(list));
             refreshAllCandoPresetDropdowns();
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
         }
 
         function getCustomActPresets() {
@@ -11052,6 +11084,7 @@
             list.push(presetObj);
             localStorage.setItem("wican_custom_act_presets", JSON.stringify(list));
             refreshAllCandoPresetDropdowns();
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
         }
 
         function getCustomCondPresets() {
@@ -11065,6 +11098,7 @@
             list.push(presetObj);
             localStorage.setItem("wican_custom_cond_presets", JSON.stringify(list));
             refreshAllCandoPresetDropdowns();
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
         }
 
         function isPresetSupportedByVehicle(preset, vehicleId) {
@@ -11711,6 +11745,7 @@
             refreshAllCandoPresetDropdowns();
             picker.value = `c_${idx}`;
             togglePresetToolbarButtons(item);
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             showNotification("✓ Saved custom trigger preset: " + name, "green", 3000);
         }
 
@@ -11732,6 +11767,7 @@
             refreshAllCandoPresetDropdowns();
             picker.value = "";
             togglePresetToolbarButtons(item);
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             showNotification("Deleted custom trigger preset.", "blue", 3000);
         }
 
@@ -11798,6 +11834,7 @@
                 picker.value = `${customCatIdx}:${customIdx}`;
             }
             togglePresetToolbarButtons(item);
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             showNotification("✓ Saved custom condition preset: " + name, "green", 3000);
         }
 
@@ -11825,6 +11862,7 @@
             refreshAllCandoPresetDropdowns();
             picker.value = "";
             togglePresetToolbarButtons(item);
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             showNotification("Deleted custom condition preset.", "blue", 3000);
         }
 
@@ -11874,6 +11912,7 @@
                 picker.value = `${customCatIdx}:${customIdx}`;
             }
             togglePresetToolbarButtons(item);
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             showNotification("✓ Saved custom action template: " + name, "green", 3000);
         }
 
@@ -11901,6 +11940,7 @@
             refreshAllCandoPresetDropdowns();
             picker.value = "";
             togglePresetToolbarButtons(item);
+            if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
             showNotification("Deleted custom action template.", "blue", 3000);
         }
 
@@ -15884,6 +15924,53 @@
                     if (settingsChanged) {
                         initCandoVehicleProfileUI();
                     }
+                    if (data.settings.custom_presets) {
+                        const cp = data.settings.custom_presets;
+                        if (Array.isArray(cp.triggers)) {
+                            localStorage.setItem("wican_custom_trig_presets", JSON.stringify(cp.triggers));
+                        }
+                        if (Array.isArray(cp.actions)) {
+                            localStorage.setItem("wican_custom_act_presets", JSON.stringify(cp.actions));
+                        }
+                        if (Array.isArray(cp.conditions)) {
+                            localStorage.setItem("wican_custom_cond_presets", JSON.stringify(cp.conditions));
+                        }
+                        if (typeof refreshAllCandoPresetDropdowns === "function") {
+                            refreshAllCandoPresetDropdowns();
+                        }
+                    }
+                    if (data.settings.custom_widgets) {
+                        const cw = data.settings.custom_widgets;
+                        if (cw.state_widgets && typeof cw.state_widgets === "object") {
+                            localStorage.setItem("wican_state_widgets", JSON.stringify(cw.state_widgets));
+                        }
+                        if (cw.dash_buttons && typeof cw.dash_buttons === "object") {
+                            localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(cw.dash_buttons));
+                        }
+                        if (typeof getDashboardWidgetLayout === "function") {
+                            const currentLayout = getDashboardWidgetLayout();
+                            let layoutUpdated = false;
+                            const customCards = Array.isArray(cw.custom_cards) ? cw.custom_cards : [
+                                ...Object.keys(cw.state_widgets || {}),
+                                ...Object.keys(cw.dash_buttons || {})
+                            ];
+                            customCards.forEach(id => {
+                                if ((id.startsWith("can_state_") || id.startsWith("cando_btn_")) && !currentLayout.includes(id)) {
+                                    currentLayout.push(id);
+                                    layoutUpdated = true;
+                                }
+                            });
+                            if (layoutUpdated) {
+                                localStorage.setItem("wican_dash_widgets", JSON.stringify(currentLayout));
+                            }
+                            if (typeof renderDashboardGrid === "function") {
+                                renderDashboardGrid();
+                                if (window._lastStatusObj && typeof updateDashboardCards === "function") {
+                                    updateDashboardCards(window._lastStatusObj);
+                                }
+                            }
+                        }
+                    }
                 }
                 const container = document.getElementById("cando_rules_container");
                 if (container) container.innerHTML = "";
@@ -16018,6 +16105,18 @@
                                 changeUnitSystem(data.settings.unit_system, false);
                             }
                             initCandoVehicleProfileUI();
+                            if (data.settings.custom_presets) {
+                                const cp = data.settings.custom_presets;
+                                if (Array.isArray(cp.triggers)) localStorage.setItem("wican_custom_trig_presets", JSON.stringify(cp.triggers));
+                                if (Array.isArray(cp.actions)) localStorage.setItem("wican_custom_act_presets", JSON.stringify(cp.actions));
+                                if (Array.isArray(cp.conditions)) localStorage.setItem("wican_custom_cond_presets", JSON.stringify(cp.conditions));
+                                if (typeof refreshAllCandoPresetDropdowns === "function") refreshAllCandoPresetDropdowns();
+                            }
+                            if (data.settings.custom_widgets) {
+                                const cw = data.settings.custom_widgets;
+                                if (cw.state_widgets && typeof cw.state_widgets === "object") localStorage.setItem("wican_state_widgets", JSON.stringify(cw.state_widgets));
+                                if (cw.dash_buttons && typeof cw.dash_buttons === "object") localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(cw.dash_buttons));
+                            }
                         }
                         const payload = {
                             settings: data.settings || getCandoDeviceSettings(),

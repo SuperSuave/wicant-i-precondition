@@ -185,8 +185,6 @@ static bool activation_is_release(const message_payload_t *msg, const twai_messa
 #define BATTERY_SOC_FRAME_ID 0x2FCU
 #define BATTERY_SOC_INDEX 7U
 #define BATTERY_SOC_DATA_LENGTH 8U
-#define PRECONDITION_BATTERY_SOC_CUTOFF_PCT 20U
-#define PRECONDITION_BATTERY_SOC_CUTOFF_RAW (PRECONDITION_BATTERY_SOC_CUTOFF_PCT * 2U)
 
 #define IS_BATTERY_SOC_FRAME(frame_id) ((frame_id) == BATTERY_SOC_FRAME_ID)
 
@@ -228,7 +226,6 @@ enum {
     EV_STATUS_STARTED,  // car reports preconditioning fully running
     EV_CAR_READY,       // car power entered READY (0x038 edge)
     EV_CAR_NOT_READY,   // car power left READY (0x038 edge)
-    EV_SOC_BECAME_LOW,  // HV battery SoC crossed below the start cutoff
 };
 
 static const sm_state_t S_IDLE, S_REQUESTED, S_CAR_START_DELAY, S_START_BURST,
@@ -258,27 +255,13 @@ typedef enum {
     ATTEMPT_CAR_START,   // persistent-mode relaunch on a car-ready edge; shows the countdown
     ATTEMPT_PERIODIC,    // repeating-mode re-nudge; silent and one-shot
     ATTEMPT_BMU_RESTART, // status-only BMU restart; silent and not retried directly
-    ATTEMPT_RESTORE,     // restored persistent mode on WiCAN startup; silent
 } attempt_kind_t;
-
-// Reason for entering STOPPING. Controls number of stop retries
-// and the message displayed to the user.
-typedef enum {
-    STOP_REASON_USER = 0,
-    STOP_REASON_UNEXPECTED_IDLE,
-    STOP_REASON_TEMPERATURE_REACHED,
-    STOP_REASON_LOW_SOC,
-    STOP_REASON_START_BLOCKED,
-    STOP_REASON_RETRIES_EXHAUSTED,
-} stop_reason_t;
 
 typedef uint8_t precondition_blockers_t;
 
 enum {
     PRECONDITION_BLOCK_NONE = 0U,
-    // Higher bits have higher display and stop-reason priority.
     PRECONDITION_BLOCK_BATTERY_WARM = 1U << 0,
-    PRECONDITION_BLOCK_BATTERY_LOW_SOC = 1U << 1,
 };
 
 // owned by IDLE
@@ -289,8 +272,8 @@ static struct {
     int64_t continuous_disabled_ready_at_us;
 } idle;
 
-// owned by REQUESTED and its children; describes the current session and its
-// most recent start attempt. Attempt fields are dormant in ACTIVE and MANAGED.
+// owned by REQUESTED and its children; describes the most recent start
+// attempt, so it is dormant while ACTIVE or MANAGED is the leaf
 static struct {
     // why this attempt was launched; set on entry from the transition argument
     attempt_kind_t kind;
@@ -309,8 +292,6 @@ static struct {
 
 // owned by STOPPING and its children
 static struct {
-    // why the stop began; controls its one-shot popup and retry policy
-    stop_reason_t reason;
     // timestamp of the start of the most recent stop burst, used for retry timing and the retry display
     int64_t last_attempt_ts;
     // number of times we've re-sent the stop burst within the current stop
@@ -345,34 +326,15 @@ static QueueHandle_t battery_soc_queue = NULL;
 static QueueHandle_t precondition_state_queue = NULL;
 static QueueHandle_t precondition_toggle_queue = NULL;
 
-// Current reasons that a start attempt cannot proceed.
+// Reasons that a start attempt cannot proceed.
 static precondition_blockers_t precon_blockers = PRECONDITION_BLOCK_NONE;
 
-// Update one blocker and report only its inactive-to-active edge.
-static bool update_precon_blocker(precondition_blockers_t blocker, bool active) {
-    bool was_active = (precon_blockers & blocker) != 0U;
+static void set_precon_blocker(precondition_blockers_t blocker, bool active) {
     if (active) {
         precon_blockers |= blocker;
     } else {
         precon_blockers &= ~blocker;
     }
-    return active && !was_active;
-}
-
-// Select the highest set bit, since the blocker enum itself defines priority.
-static precondition_blockers_t primary_precon_blocker(void) {
-    precondition_blockers_t remaining = precon_blockers;
-    precondition_blockers_t primary = PRECONDITION_BLOCK_NONE;
-    unsigned int bit = 1U;
-
-    while (remaining != PRECONDITION_BLOCK_NONE) {
-        if (remaining & 1U) {
-            primary = (precondition_blockers_t)bit;
-        }
-        remaining >>= 1U;
-        bit <<= 1U;
-    }
-    return primary;
 }
 
 // ********************* config snapshot *********************
@@ -412,165 +374,6 @@ static void set_repeating_enabled(bool enabled) {
         persistent_settings_set_precon_enabled(enabled);
     } else {
         continuous_enabled = enabled;
-    }
-}
-
-// ********************* notifications *********************
-
-static const char *precondition_mode_name(bool abbreviated) {
-    switch (precon_config.mode) {
-        case PERSISTENT:
-            return abbreviated ? "Pers." : "Persistent";
-        case CONTINUOUS:
-            return abbreviated ? "Cont." : "Continuous";
-        default:
-            return "Once";
-    }
-}
-
-static void show_once_blocker_notice(precondition_blockers_t blocker) {
-    char message[48];
-    if (blocker == PRECONDITION_BLOCK_BATTERY_LOW_SOC) {
-        precondition_soc_t soc;
-        if (precondition_get_battery_soc(&soc)) {
-            snprintf(message, sizeof(message),
-                     "Once: SoC too low: %u.%u%% < %u%%",
-                     soc.raw / 2U, (soc.raw % 2U) * 5U,
-                     PRECONDITION_BATTERY_SOC_CUTOFF_PCT);
-        } else {
-            snprintf(message, sizeof(message),
-                     "Once: SoC too low: < %u%%",
-                     PRECONDITION_BATTERY_SOC_CUTOFF_PCT);
-        }
-        track_popup_show_error(message);
-        return;
-    }
-
-    if (blocker == PRECONDITION_BLOCK_BATTERY_WARM) {
-        precondition_temperature_t temperature;
-        if (precondition_get_battery_temperature(&temperature)) {
-            snprintf(message, sizeof(message),
-                     "Once: temp too high: %d°C ≥ %d°C",
-                     temperature.min_c, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
-        } else {
-            snprintf(message, sizeof(message),
-                     "Once: temp too high: ≥ %d°C",
-                     PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
-        }
-        track_popup_show_error(message);
-    }
-}
-
-static void show_repeating_soc_notice(void) {
-    char message[48];
-    snprintf(message, sizeof(message),
-             "%s: resuming when SoC ≥ %u%%",
-             precondition_mode_name(true), PRECONDITION_BATTERY_SOC_CUTOFF_PCT);
-    track_popup_show_warning(message);
-}
-
-static void show_repeating_maintaining_notice(void) {
-    precondition_temperature_t temperature;
-    char message[64];
-    if (precondition_get_battery_temperature(&temperature)) {
-        snprintf(message, sizeof(message),
-                 "%s: maintaining %d°C (%d°C now)",
-                 precondition_mode_name(true), PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C,
-                 temperature.min_c);
-    } else {
-        snprintf(message, sizeof(message),
-                 "%s: maintaining %d°C",
-                 precondition_mode_name(false), PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
-    }
-    track_popup_show_info(message);
-}
-
-// Manual starts and persistent car-restart resumes are user-visible. Periodic
-// nudges and BMU-observed restarts are silent.
-static void show_request_started_notice(void) {
-    if (requested.kind != ATTEMPT_MANUAL && requested.kind != ATTEMPT_CAR_START) {
-        return;
-    }
-
-    precondition_blockers_t blocker = primary_precon_blocker();
-    if (precon_config.mode == ONCE) {
-        if (blocker == PRECONDITION_BLOCK_NONE) {
-            precondition_temperature_t temperature;
-            char message[48];
-            if (precondition_get_battery_temperature(&temperature)) {
-                snprintf(message, sizeof(message),
-                         "Once: starting (%d°C now)", temperature.min_c);
-            } else {
-                snprintf(message, sizeof(message), "Once: starting");
-            }
-            track_popup_show_info(message);
-        }
-        // Blocked starts announce their error on entry to STOPPING.
-        return;
-    }
-
-    if (blocker == PRECONDITION_BLOCK_BATTERY_LOW_SOC) {
-        show_repeating_soc_notice();
-    } else {
-        // Repeating modes announce the target temp even when the current
-        // temperature has already reached it.
-        show_repeating_maintaining_notice();
-    }
-}
-
-static stop_reason_t once_stop_reason(void) {
-    switch (primary_precon_blocker()) {
-        case PRECONDITION_BLOCK_BATTERY_LOW_SOC:
-            return STOP_REASON_LOW_SOC;
-        case PRECONDITION_BLOCK_BATTERY_WARM:
-            return STOP_REASON_TEMPERATURE_REACHED;
-        default:
-            return STOP_REASON_UNEXPECTED_IDLE;
-    }
-}
-
-static void show_stopping_notice(stop_reason_t reason) {
-    if (reason != STOP_REASON_USER && precon_config.mode != ONCE) {
-        ESP_LOGE(TAG, "Stop reason %d is only valid in Once mode; current mode is %d",
-                 reason, precon_config.mode);
-        configASSERT(false);
-        return;
-    }
-
-    char message[48];
-    switch (reason) {
-        case STOP_REASON_USER:
-            snprintf(message, sizeof(message), "%s: stopping",
-                     precondition_mode_name(false));
-            track_popup_show_info(message);
-            break;
-        case STOP_REASON_UNEXPECTED_IDLE:
-            // TODO(ejones): Consider the situation that preconditioning was stopped
-            // by the BMU due to temperature or SoC. It's possible that we process
-            // the BMU's precon idle signal before we process the temp/SoC reason,
-            // leading to this message appearing spuriously. If we want to address this,
-            // we could delay the popup for some fixed interval in this case to see if
-            // we can retroactively learn the reason the BMU stopped preconditioning.
-            track_popup_show_warning("Once: stopping (unknown reason)");
-            break;
-        case STOP_REASON_TEMPERATURE_REACHED:
-            snprintf(message, sizeof(message),
-                     "Once: stopping (reached %d°C)",
-                     PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
-            track_popup_show_info(message);
-            break;
-        case STOP_REASON_LOW_SOC:
-            snprintf(message, sizeof(message),
-                     "Once: stopping (<%u%% SoC)",
-                     PRECONDITION_BATTERY_SOC_CUTOFF_PCT);
-            track_popup_show_warning(message);
-            break;
-        case STOP_REASON_START_BLOCKED:
-            show_once_blocker_notice(primary_precon_blocker());
-            break;
-        case STOP_REASON_RETRIES_EXHAUSTED:
-            track_popup_show_error("Once: start failed (out of retries)");
-            break;
     }
 }
 
@@ -651,7 +454,7 @@ static fwd_result_t stopping_display_fwd(sm_t *sm, twai_message_t *to_send, can_
         return FWD_PASSTHROUGH;
     }
     // only display when we can actually confirm/retry the stop, and hide it
-    // once retries are exhausted (including the retryless cleanup stop)
+    // once retries are exhausted (including the silent give-up stop)
     if (!precon_status_available() || stopping.retries >= PRECONDITION_MAX_RETRIES) {
         return FWD_PASSTHROUGH;
     }
@@ -688,8 +491,8 @@ static void start_timeout(sm_t *sm) {
         // retries exhausted in a repeating mode => go back to waiting in MANAGED
         sm_transition(sm, &S_MANAGED);
     } else {
-        // retries exhausted in once mode => send stop request w/o retrying (then IDLE)
-        sm_transition_arg(sm, &S_STOPPING, STOP_REASON_RETRIES_EXHAUSTED);
+        // retries exhausted in once mode => send silent stop request (then IDLE)
+        sm_transition_arg(sm, &S_STOPPING, PRECONDITION_MAX_RETRIES);
     }
 }
 
@@ -702,7 +505,7 @@ static void idle_enter(sm_t *sm) {
     if (repeating_mode() && repeating_mode_enabled()) {
         // the WiCAN just booted and restored persistent mode from flash
         // => wait in MANAGED for car to boot
-        sm_transition_arg(sm, &S_MANAGED, ATTEMPT_RESTORE);
+        sm_transition(sm, &S_MANAGED);
     }
 }
 
@@ -711,7 +514,7 @@ static void idle_tick(sm_t *sm) {
             && ts_elapsed(sm_now(sm), idle.continuous_disabled_ready_at_us)
                     >= PRECONDITION_CAR_START_DELAY_US) {
         idle.continuous_disabled_by_car_off = false;
-        track_popup_show_info("Continuous: disabled by car restart");
+        track_popup_show("Continuous: disabled by car restart");
     }
 }
 
@@ -735,8 +538,23 @@ static void requested_enter(sm_t *sm) {
     requested.kind = (attempt_kind_t)sm_entry_arg(sm);
     if (repeating_mode()) {
         set_repeating_enabled(true);
+        if (requested.kind == ATTEMPT_MANUAL || requested.kind == ATTEMPT_CAR_START) {
+            const char *mode_name = precon_config.mode == PERSISTENT
+                                  ? "Persistent" : "Continuous";
+            precondition_temperature_t temperature;
+            char message[64];
+            if (precondition_get_battery_temperature(&temperature)) {
+                snprintf(message, sizeof(message),
+                         "%s: maintaining %d°C (%d°C)",
+                         mode_name, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C, temperature.min_c);
+            } else {
+                snprintf(message, sizeof(message),
+                         "%s: maintaining %d°C",
+                         mode_name, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
+            }
+            track_popup_show(message);
+        }
     }
-    show_request_started_notice();
     if (requested.kind == ATTEMPT_BMU_RESTART) {
         requested.last_attempt_ts = sm_now(sm);
         // The status event already tells us how far the BMU got, so skip the
@@ -751,7 +569,12 @@ static bool requested_event(sm_t *sm, sm_event_t ev) {
         case EV_TOGGLE:
             // debounce between start and stop
             if (sm_time_in_us(sm, &S_REQUESTED) > PRECONDITION_DEBOUNCE_US) {
-                sm_transition_arg(sm, &S_STOPPING, STOP_REASON_USER);
+                if (precon_config.mode == PERSISTENT) {
+                    track_popup_show("Persistent mode: stopping");
+                } else if (precon_config.mode == CONTINUOUS) {
+                    track_popup_show("Continuous mode: stopping");
+                }
+                sm_transition(sm, &S_STOPPING);
             }
             return true;
         case EV_CAR_NOT_READY:
@@ -764,13 +587,6 @@ static bool requested_event(sm_t *sm, sm_event_t ev) {
                 sm_transition(sm, &S_MANAGED);
             } else {
                 sm_transition_arg(sm, &S_IDLE, true);
-            }
-            return true;
-        case EV_SOC_BECAME_LOW:
-            // The delayed car-start attempt announces low SoC after restore.
-            // Keep restore silent to avoid showing the same popup twice.
-            if (repeating_mode() && requested.kind != ATTEMPT_RESTORE) {
-                show_repeating_soc_notice();
             }
             return true;
     }
@@ -817,29 +633,27 @@ static void car_start_delay_tick(sm_t *sm) {
 
 // ********************* REQUESTED / START_BURST *********************
 
-// Abort an in-progress start attempt when precon is known to be blocked.
-static bool abort_start_if_blocked(sm_t *sm) {
-    precondition_blockers_t blocker = primary_precon_blocker();
-    if (blocker == PRECONDITION_BLOCK_NONE) {
+// Abort an in-progress start attempt when any known blocking condition is active.
+static bool stop_start_if_blocked(sm_t *sm) {
+    if (precon_blockers == PRECONDITION_BLOCK_NONE) {
         return false;
     }
 
-    if (blocker == PRECONDITION_BLOCK_BATTERY_LOW_SOC) {
-        precondition_soc_t soc;
-        if (precondition_get_battery_soc(&soc)) {
-            ESP_LOGI(TAG, "Attempt blocked: HV battery SoC is %u.%u%%",
-                     soc.raw / 2U, (soc.raw % 2U) * 5U);
-        }
-    } else {
+    if (precon_blockers & PRECONDITION_BLOCK_BATTERY_WARM) {
         precondition_temperature_t temperature;
         if (precondition_get_battery_temperature(&temperature)) {
-            ESP_LOGI(TAG, "Attempt blocked: battery minimum temperature is %d C", temperature.min_c);
+            ESP_LOGI(TAG, "Start blocked: battery minimum temperature is %d C", temperature.min_c);
+            if (requested.kind == ATTEMPT_MANUAL && precon_config.mode == ONCE) {
+                char message[48];
+                snprintf(message, sizeof(message), "Once: temp too high: %d°C ≥ %d°C",
+                         temperature.min_c, PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C);
+                track_popup_show(message);
+            }
         }
     }
-
     if (precon_config.mode == ONCE) {
-        // Popup message handled by stopping_enter
-        sm_transition_arg(sm, &S_STOPPING, STOP_REASON_START_BLOCKED);
+        // silent attempt
+        sm_transition_arg(sm, &S_STOPPING, PRECONDITION_MAX_RETRIES);
     } else {
         sm_transition(sm, &S_MANAGED);
     }
@@ -849,11 +663,11 @@ static bool abort_start_if_blocked(sm_t *sm) {
 // retry timers and the countdown display measure from the moment the burst began
 static void start_burst_enter(sm_t *sm) {
     requested.last_attempt_ts = sm_now(sm);
-    abort_start_if_blocked(sm);
+    stop_start_if_blocked(sm);
 }
 
 static void start_burst_tick(sm_t *sm) {
-    if (abort_start_if_blocked(sm)) {
+    if (stop_start_if_blocked(sm)) {
         return;
     }
     uint32_t t = sm_ticks_in_state(sm);
@@ -878,7 +692,7 @@ static void start_burst_tick(sm_t *sm) {
 // ********************* REQUESTED / WAIT_STARTING *********************
 
 static void wait_starting_tick(sm_t *sm) {
-    if (abort_start_if_blocked(sm)) {
+    if (stop_start_if_blocked(sm)) {
         return;
     }
     int64_t time_since_last_attempt = ts_elapsed(sm_now(sm), requested.last_attempt_ts);
@@ -913,7 +727,7 @@ static bool wait_starting_event(sm_t *sm, sm_event_t ev) {
 // ********************* REQUESTED / WAIT_STARTED *********************
 
 static void wait_started_tick(sm_t *sm) {
-    if (abort_start_if_blocked(sm)) {
+    if (stop_start_if_blocked(sm)) {
         return;
     }
     // the car said "starting" but hasn't reached fully started
@@ -947,21 +761,33 @@ static bool wait_started_event(sm_t *sm, sm_event_t ev) {
 static bool active_event(sm_t *sm, sm_event_t ev) {
     switch (ev) {
         case EV_STATUS_STARTED:
+            // still started; all is well.
+            return true;
         case EV_STATUS_STARTING:
-            // Once running, wait for an explicit idle status to end the run.
-            // (EV_STATUS_STARTING here should never actually happen here afaik)
+            // preconditioning was previously fully active, but now it's only showing as starting.
+            if (repeating_mode()) {
+                // The BMU is presumably restarting on its own, so monitor it 
+                // with a fresh silent attempt context.
+                sm_transition_arg(sm, &S_REQUESTED, ATTEMPT_BMU_RESTART);
+            } else {
+                // Once mode: keep retrying with original retry budget.
+                requested.last_attempt_ts = sm_now(sm);
+                sm_transition(sm, &S_WAIT_STARTED);
+            }
             return true;
         case EV_STATUS_IDLE:
-            if (repeating_mode()) {
+            // preconditioning was previously fully active, but now it's showing as off.
+            // the battery has probably reached the target temp or fallen below the
+            // SoC threshold. (TODO(ejones): get a CAN recording of these scenarios)
+            if (repeating_mode_enabled()) {
                 // Keep repeating-mode on and wait before asking the
                 // BMU to start again.
                 sm_transition(sm, &S_MANAGED);
             } else {
                 // Once mode actively stops. This, together with the stopping
                 // MITM, prevents preconditioning from restarting after the
-                // battery falls back below the target temperature. The latest
-                // blocker snapshot supplies a best-effort reason for the popup.
-                sm_transition_arg(sm, &S_STOPPING, once_stop_reason());
+                // battery falls back below the target temperature.
+                sm_transition(sm, &S_STOPPING);
             }
             return true;
     }
@@ -1010,15 +836,11 @@ static bool managed_event(sm_t *sm, sm_event_t ev) {
 
 // ********************* STOPPING (superstate) *********************
 
-// The entry argument states why the stop began. Blocked starts and exhausted
-// start retries use one cleanup burst without retries or a stop countdown.
-// Normal stops use the full confirmation/retry path.
+// the entry argument carries the initial retry count: 0 (the default) for a
+// normal stop, PRECONDITION_MAX_RETRIES for a single silent burst (no display,
+// no retries), which is how a failed start gives up
 static void stopping_enter(sm_t *sm) {
-    stopping.reason = (stop_reason_t)sm_entry_arg(sm);
-    stopping.retries = (stopping.reason == STOP_REASON_START_BLOCKED
-                       || stopping.reason == STOP_REASON_RETRIES_EXHAUSTED)
-                     ? PRECONDITION_MAX_RETRIES : 0U;
-    show_stopping_notice(stopping.reason);
+    stopping.retries = (uint8_t)sm_entry_arg(sm);
 }
 
 static bool stopping_event(sm_t *sm, sm_event_t ev) {
@@ -1183,7 +1005,10 @@ static void push_precondition_state(void);
 
 static void precondition_global_tick(sm_t *sm) {
     track_popup_tick();
-
+    /* [UPSTREAM TRACKING - CAN DO MIGRATION]:
+     * Long-press hold evaluation is now handled by CAN Do.
+     */
+#if 0
     // long press mode: trigger once when the hold crosses the threshold, without
     // waiting for the release frame. state only becomes pressed via the rx hook,
     // so this does nothing when the activation button is disabled
@@ -1193,6 +1018,7 @@ static void precondition_global_tick(sm_t *sm) {
         button.long_press_fired = true;
         sm_send_event(sm, EV_TOGGLE);
     }
+#endif
     // web UI toggle requests are handled here, on the precondition task, so
     // the precondition state machine stays single-writer
     uint8_t toggle_cmd = 0;
@@ -1206,7 +1032,6 @@ static void precondition_global_tick(sm_t *sm) {
 
 static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_bus_t rx_bus) {
     track_popup_rx(to_push, rx_bus);
-
     // 0x038 power status: the low nibble of byte 0 reads 0x04 while the car is
     // in READY. only act on edges
     if (IS_POWER_STATUS_FRAME(to_push->identifier)
@@ -1251,7 +1076,7 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
         };
 
         xQueueOverwrite(battery_temperature_queue, &temperature);
-        update_precon_blocker(
+        set_precon_blocker(
             PRECONDITION_BLOCK_BATTERY_WARM,
             temperature.min_c >= PRECONDITION_BATTERY_TEMPERATURE_CUTOFF_C
         );
@@ -1266,15 +1091,13 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
         };
 
         xQueueOverwrite(battery_soc_queue, &soc);
-        bool became_low = update_precon_blocker(
-            PRECONDITION_BLOCK_BATTERY_LOW_SOC,
-            soc.raw < PRECONDITION_BATTERY_SOC_CUTOFF_RAW
-        );
-        if (became_low) {
-            sm_send_event(sm, EV_SOC_BECAME_LOW);
-        }
     }
 
+    /* [UPSTREAM TRACKING - CAN DO MIGRATION]:
+     * Direct button sniffing is disabled in favor of CAN Do.
+     * If legacy direct button activation is re-enabled, uncomment below:
+     */
+#if 0
     int8_t precon_button_type = precon_config.button_type;
     if (precon_button_type == BUTTON_DISABLED) {
         // activation button disabled in config; don't listen for any button press
@@ -1302,10 +1125,12 @@ static void precondition_global_rx(sm_t *sm, const twai_message_t *to_push, can_
         }
         button.pressed = false;
     }
+#endif
 }
 
 static fwd_result_t precondition_global_fwd(sm_t *sm, twai_message_t *to_send,
                                             can_bus_t fwd_bus) {
+    (void)sm;
     return track_popup_fwd(to_send, fwd_bus);
 }
 
@@ -1352,7 +1177,13 @@ void precondition_toggle_request(void) {
 }
 
 void precondition_init(void) {
-    precon_config.button_type = config_server_precon_button();
+    /* [UPSTREAM TRACKING - CAN DO MIGRATION]:
+     * Direct button sniffing is disabled here in favor of the unified CAN Do automation engine.
+     * All button-activated preconditioning rules are now managed dynamically via CAN Do.
+     * To re-enable legacy direct button activation, uncomment the line below:
+     * precon_config.button_type = config_server_precon_button();
+     */
+    precon_config.button_type = BUTTON_DISABLED;
     precon_config.press_type = config_server_precon_press();
     precon_config.mode = config_server_precon_mode();
     precon_blockers = PRECONDITION_BLOCK_NONE;
@@ -1409,4 +1240,40 @@ bool precondition_get_battery_soc(precondition_soc_t *out) {
     }
 
     return xQueuePeek(battery_soc_queue, out, 0) == pdTRUE;
+}
+
+void precondition_toggle(void) {
+    sm_send_event(&precon_sm, EV_TOGGLE);
+}
+
+bool precondition_is_active(void) {
+    return sm_in(&precon_sm, &S_REQUESTED);
+}
+
+void precondition_action_execute(const char *mode_str, const char *press_str) {
+    if (mode_str && mode_str[0] != '\0') {
+        if (strcmp(mode_str, "cancel") == 0 || strcmp(mode_str, "stop") == 0 || strcmp(mode_str, "off") == 0) {
+            if (precondition_is_active()) {
+                sm_send_event(&precon_sm, EV_TOGGLE);
+            }
+            return;
+        } else if (strcmp(mode_str, "persistent") == 0) {
+            precon_config.mode = PERSISTENT;
+            persistent_settings_init();
+        } else if (strcmp(mode_str, "continuous") == 0) {
+            precon_config.mode = CONTINUOUS;
+        } else if (strcmp(mode_str, "once") == 0) {
+            precon_config.mode = ONCE;
+        }
+    }
+
+    if (press_str && press_str[0] != '\0') {
+        if (strcmp(press_str, "long") == 0) {
+            precon_config.press_type = PRESS_LONG;
+        } else {
+            precon_config.press_type = PRESS_SHORT;
+        }
+    }
+
+    sm_send_event(&precon_sm, EV_TOGGLE);
 }

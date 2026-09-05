@@ -3686,6 +3686,8 @@ static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *
                 cJSON *st = cJSON_GetArrayItem(steps_arr, k);
                 cJSON *sp = cJSON_GetObjectItem(st, "payload");
                 cJSON *rep = cJSON_GetObjectItem(st, "repeat");
+                cJSON *st_delay = cJSON_GetObjectItem(st, "delay_ms");
+                uint32_t step_delay = (st_delay && cJSON_IsNumber(st_delay) && st_delay->valueint >= 0) ? (uint32_t)st_delay->valueint : delay_val;
                 int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
 
                 cando_sequence_step_t parsed_step = {0};
@@ -3696,7 +3698,7 @@ static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *
                     step->tx_can_id = can_id_val;
                     step->is_ext = is_ext;
                     step->target_bus = target_bus;
-                    step->delay_ms = delay_val;
+                    step->delay_ms = step_delay;
                     step->tx_len = parsed_step.tx_len;
                     step->roll_byte_idx = parsed_step.roll_byte_idx;
                     step->roll_mode = parsed_step.roll_mode;

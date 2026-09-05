@@ -17,6 +17,9 @@ typedef struct {
 } precondition_temperature_t;
 
 bool precondition_get_battery_temperature(precondition_temperature_t *out);
+void precondition_toggle(void);
+bool precondition_is_active(void);
+void precondition_action_execute(const char *mode_str, const char *press_str);
 
 typedef struct {
     bool requested;

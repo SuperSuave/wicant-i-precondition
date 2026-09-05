@@ -57,6 +57,7 @@
 #include "precondition.h"
 #include "debug_logs.h"
 #include "debug_logs_config.h"
+#include "time_sync.h"
 
 #define TAG 		__func__
 
@@ -77,7 +78,7 @@ static uint8_t ble_uid[33];
 static char hardware_version[16];
 static char firmware_version[10];
 // Wrapper so we can provide a function pointer for network readiness
-static bool dbg_net_ready(void) { return wifi_network_is_connected(); }
+__attribute__((unused)) static bool dbg_net_ready(void) { return wifi_network_is_connected(); }
 
 static void log_can_to_mqtt(twai_message_t *frame, uint8_t type)
 {
@@ -261,6 +262,7 @@ static void precondition_task(void *arg)
 		if(dev_status_is_bit_set(DEV_AWAKE_BIT))
 		{
 			precondition_tick();
+			cando_process_timer_tick();
 		}
 		// Doing it this way (rather than a periodic 40ms timer) has the advantage
 		// of ensuring at least 40ms elapse between each tick, even if the task
@@ -288,7 +290,6 @@ static void precondition_task_start(void)
 static void can_rx_task(void *pvParameters)
 {
 //	static uint32_t num_msg = 0;
-	static int64_t time_old = 0;
 	// MITM (bridge) vs parallel mode. Read once: a config change restarts
 	// the firmware, and the task is created after the config is loaded.
 	// Single-bus builds have nothing to bridge, so hardcode parallel there.
@@ -539,9 +540,11 @@ void app_main(void)
             derived_mac_addr[3], derived_mac_addr[4], derived_mac_addr[5]);
 	
 	config_server_start(&xmsg_ws_tx_queue, &xMsg_Rx_Queue, CONNECTED_LED_GPIO_NUM, (char*)&uid[0]);
+	time_sync_init();
 	// must run after config_server_start: entering the initial state reads the
 	// precon mode from the config
 	precondition_init();
+	cando_load_config();
 	slcan_init(&send_to_host);
 
 	int8_t can_datarate = config_server_get_can_rate();

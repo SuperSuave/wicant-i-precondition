@@ -4528,7 +4528,7 @@
                 }
 
                 const matchPattern = cmd.match_payload || cmd.to_payload || cmd.from_payload;
-                const hasOptions = Array.isArray(cmd.options) && cmd.options.some(o => o.match_payload || o.payload);
+                const hasOptions = Array.isArray(cmd.options) && cmd.options.some(o => o.match_payload || o.payload || o.to_payload || o.from_payload);
 
                 if (matchPattern || hasOptions) {
                     items.push({
@@ -4541,6 +4541,24 @@
                     });
                 }
             });
+
+            if (typeof getCustomCondPresets === "function") {
+                const custom = getCustomCondPresets();
+                if (Array.isArray(custom)) {
+                    custom.forEach((cp, idx) => {
+                        if (cp && cp.can_id) {
+                            items.push({
+                                id: `custom_cond_${idx}`,
+                                name: cp.name || `Custom Condition #${idx + 1}`,
+                                category: "⭐ My Saved Conditions",
+                                can_id: cp.can_id,
+                                match_payload: cp.match_payload,
+                                options: cp.options
+                            });
+                        }
+                    });
+                }
+            }
 
             return items;
         }
@@ -4574,32 +4592,95 @@
                     Object.keys(grouped).forEach(cat => {
                         optionsHtml += `<optgroup label="${escapeHtml(cat)}">`;
                         grouped[cat].forEach(it => {
-                            optionsHtml += `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.can_id)})</option>`;
+                            optionsHtml += `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)}</option>`;
                         });
                         optionsHtml += `</optgroup>`;
                     });
 
                     let watchedHtml = '';
                     if (watchedList.length === 0) {
-                        watchedHtml = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 0.8rem 0;">No signals configured for this card. Select a signal below to begin tracking.</div>`;
+                        watchedHtml = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 0.8rem 0;">No signals configured for this card. Select a signal above to begin tracking.</div>`;
                     } else {
+                        const cache = window._candoStateCache || {};
                         watchedList.forEach((w, idx) => {
                             const itemDef = items.find(i => i.id === w.catalogId);
                             const title = w.customLabel || (itemDef ? itemDef.name : w.catalogId);
-                            const canId = itemDef ? itemDef.can_id : "--";
+
+                            let badgeText = "Waiting...";
+                            let badgeClass = "dash-badge badge-gray cando-state-badge";
+                            let ageText = "Age: --";
+
+                            if (itemDef) {
+                                let stateObj = null;
+                                if (itemDef.can_id) {
+                                    const parsed = parseInt(itemDef.can_id, 16);
+                                    if (!isNaN(parsed)) {
+                                        const normKey = "0x" + parsed.toString(16).toUpperCase();
+                                        stateObj = cache[normKey] || cache[normKey.toLowerCase()] || cache[itemDef.can_id];
+                                    }
+                                }
+                                if (!stateObj) stateObj = cache[itemDef.can_id] || cache[itemDef.can_id?.toLowerCase()];
+
+                                if (stateObj) {
+                                    const ageMs = stateObj.age_ms || 0;
+                                    const ageSec = Math.round(ageMs / 1000);
+                                    const isStale = ageMs > 30000;
+                                    ageText = `Age: ${ageSec < 60 ? ageSec + 's' : Math.floor(ageSec / 60) + 'm'}${isStale ? ' (Idle)' : ''}`;
+
+                                    const payloadHex = stateObj.data || stateObj.payload || "";
+                                    let activeOption = null;
+                                    if (itemDef.options && Array.isArray(itemDef.options)) {
+                                        activeOption = itemDef.options.find(opt => {
+                                            const pattern = opt.match_payload || opt.payload;
+                                            if (!pattern) return false;
+                                            const tokens = parseCandoPattern(pattern);
+                                            return matchCandoPayload(payloadHex, tokens);
+                                        });
+                                    }
+
+                                    if (activeOption) {
+                                        badgeText = activeOption.label;
+                                        badgeClass = isStale ? "dash-badge badge-yellow cando-state-badge" : "dash-badge badge-green cando-state-badge";
+                                    } else if (itemDef.match_payload) {
+                                        const tokens = parseCandoPattern(itemDef.match_payload);
+                                        const isMatch = matchCandoPayload(payloadHex, tokens);
+                                        badgeText = isMatch ? (isStale ? "Active (Idle)" : "Active") : "Inactive";
+                                        badgeClass = isMatch ? (isStale ? "dash-badge badge-yellow cando-state-badge" : "dash-badge badge-green cando-state-badge") : "dash-badge badge-gray cando-state-badge";
+                                    } else {
+                                        badgeText = isStale ? "Idle" : "Seen";
+                                        badgeClass = isStale ? "dash-badge badge-gray cando-state-badge" : "dash-badge badge-blue cando-state-badge";
+                                    }
+                                }
+                            }
 
                             watchedHtml += `
                             <div class="dash-kv-row" style="padding: 0.5rem 0; border-bottom: 1px dashed var(--border-color);" data-signal-idx="${idx}">
                                 <div>
                                     <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-heading);">${escapeHtml(title)}</div>
-                                    <div class="dash-meta-text">CAN ID: <code style="font-weight: 700;">${escapeHtml(canId)}</code> · <span class="cando-age-label">Age: --</span></div>
+                                    <div class="dash-meta-text"><span class="cando-age-label">${ageText}</span></div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                    <span class="dash-badge badge-gray cando-state-badge">Waiting...</span>
+                                    <span class="${badgeClass}">${escapeHtml(badgeText)}</span>
+                                    ${isEditMode ? `
                                     <button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeWatchedCandoSignal('${instanceId}', ${idx})" title="Remove signal from card" style="width: 20px; height: 20px; font-size: 0.65rem;">🗑️</button>
+                                    ` : ''}
                                 </div>
                             </div>`;
                         });
+                    }
+
+                    let addSectionHtml = '';
+                    if (isEditMode || watchedList.length === 0) {
+                        addSectionHtml = `
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.6rem; margin-bottom: 0.6rem;">
+                            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                                <select class="cando-signal-picker" style="flex: 1; min-width: 160px; font-size: 0.8rem; padding: 4px 8px; height: 32px;">
+                                    ${optionsHtml}
+                                </select>
+                                <button type="button" class="dash-outline-btn" style="padding: 4px 12px; font-size: 0.78rem; height: 32px; cursor: pointer;" onclick="addWatchedCandoSignal('${instanceId}', this)">Add</button>
+                            </div>
+                            <input type="text" class="cando-signal-label" placeholder="Custom Label (Optional)" style="font-size: 0.78rem; padding: 4px 8px; height: 28px; width: 100%; box-sizing: border-box;">
+                        </div>`;
                     }
 
                     return `
@@ -4608,22 +4689,18 @@
                             <span style="font-size: 1.2rem;">🛰️</span> CAN State Monitor
                         </span>
                         <div class="dash-card-actions">
+                            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--text-muted); background: var(--bg-card-hover, rgba(0,0,0,0.05)); padding: 2px 6px; border-radius: 10px;">
+                                <span id="cando_live_indicator_${instanceId}" style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block;" title="Live CAN state tracking"></span> Live
+                            </span>
                             <span class="dash-badge badge-blue">${watchedList.length} Watched</span>
                             ${renderWidgetEditControlsHTML(instanceId, isEditMode)}
                         </div>
                     </div>
-                    <div class="dash-kv-list cando-watched-container" style="margin-bottom: 0.6rem;">
-                        ${watchedHtml}
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 0.4rem; border-top: 1px dashed var(--border-color); padding-top: 0.6rem;">
-                        <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">➕ Monitor New Signal</div>
-                        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-                            <select class="cando-signal-picker" style="flex: 1; min-width: 160px; font-size: 0.8rem; padding: 4px 8px; height: 32px;">
-                                ${optionsHtml}
-                            </select>
-                            <button type="button" class="dash-outline-btn" style="padding: 4px 12px; font-size: 0.78rem; height: 32px; cursor: pointer;" onclick="addWatchedCandoSignal('${instanceId}', this)">Add</button>
+                    <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: flex-start; margin-bottom: auto; width: 100%;">
+                        ${addSectionHtml}
+                        <div class="dash-kv-list cando-watched-container" style="margin-bottom: 0.4rem;">
+                            ${watchedHtml}
                         </div>
-                        <input type="text" class="cando-signal-label" placeholder="Custom Label (Optional)" style="font-size: 0.78rem; padding: 4px 8px; height: 28px; width: 100%; box-sizing: border-box;">
                     </div>`;
                 },
                 update: function () { }
@@ -4713,18 +4790,18 @@
                         </div>
                     </div>
                     <div>
-                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <div style="display: flex; align-items: baseline; gap: 8px;">
-                                <span id="dash_hv_temp_val" class="dash-metric-val">--.-°C</span>
-                                <span id="dash_hv_temp_unit_label" class="dash-metric-label">Cell Temp</span>
-                            </div>
-                            <div style="display: flex; align-items: baseline; gap: 6px;">
-                                <span id="dash_hv_soc_val" class="dash-metric-val" style="font-size: 1.6rem;">--%</span>
-                                <span class="dash-metric-label">SoC</span>
-                            </div>
+                        <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.2rem;">
+                            <span id="dash_hv_temp_val" class="dash-metric-val">--.-°C</span>
+                            <span id="dash_hv_temp_unit_label" class="dash-metric-label">Cell Temp</span>
                         </div>
-                        <div id="dash_hv_subtext" class="dash-subtext">
+                        <div id="dash_hv_subtext" class="dash-subtext" style="margin-bottom: 0.6rem;">
                             Waiting for CAN bus telemetry...
+                        </div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; padding-top: 0.5rem; border-top: 1px dashed var(--border-color); margin-bottom: 0.4rem;">
+                            <div style="display: flex; align-items: baseline; gap: 6px;">
+                                <span id="dash_hv_soc_val" class="dash-metric-val" style="font-size: 1.5rem;">--%</span>
+                                <span class="dash-metric-label">State of Charge</span>
+                            </div>
                         </div>
                         <div class="dash-meta-text" style="margin-bottom: 0.4rem;">
                             Optimal fast charging gate: &gt; 21.0 °C (70 °F)
@@ -5085,7 +5162,7 @@
 
                     let btnListHtml = '';
                     if (buttons.length === 0) {
-                        btnListHtml = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 0.8rem 0;">No quick action buttons configured. Add one below to trigger CAN Do automations directly from your dashboard.</div>`;
+                        btnListHtml = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 0.8rem 0;">No quick action buttons configured. Add one above to trigger CAN Do automations directly from your dashboard.</div>`;
                     } else {
                         btnListHtml = `<div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.2rem;">`;
                         buttons.forEach((b, idx) => {
@@ -5099,7 +5176,7 @@
                                 <div style="display: flex; gap: 2px; align-items: center; flex-shrink: 0;">
                                     <button type="button" class="dash-widget-btn" onclick="moveDashboardCandoButton('${instanceId}', ${idx}, -1)" title="Move Button Up" style="width: 24px; height: 24px; font-size: 0.75rem;">▲</button>
                                     <button type="button" class="dash-widget-btn" onclick="moveDashboardCandoButton('${instanceId}', ${idx}, 1)" title="Move Button Down" style="width: 24px; height: 24px; font-size: 0.75rem;">▼</button>
-                                    <button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeDashboardCandoButton('${instanceId}', ${idx})" title="Remove button" style="width: 24px; height: 24px; font-size: 0.75rem;">🗑️</button>
+                                    <button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeDashboardCandoButton('${instanceId}', ${idx})" title="Remove button" style="width: 20px; height: 20px; font-size: 0.65rem;">🗑️</button>
                                 </div>` : ''}
                             </div>`;
                         });
@@ -5114,8 +5191,7 @@
                     let configSectionHtml = '';
                     if (isEditMode || buttons.length === 0) {
                         configSectionHtml = `
-                        <div style="display: flex; flex-direction: column; gap: 0.4rem; border-top: 1px dashed var(--border-color); padding-top: 0.6rem; margin-top: 0.5rem;">
-                            <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">➕ Add Action Button</div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.6rem; margin-bottom: 0.6rem;">
                             <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
                                 <select class="dash-cando-rule-select" style="flex: 1; min-width: 150px; font-size: 0.8rem; padding: 4px 8px; height: 32px;">
                                     ${ruleOptionsHtml}
@@ -5137,8 +5213,10 @@
                             ${renderWidgetEditControlsHTML(instanceId, isEditMode)}
                         </div>
                     </div>
-                    ${btnListHtml}
-                    ${configSectionHtml}`;
+                    <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: flex-start; margin-bottom: auto; width: 100%;">
+                        ${configSectionHtml}
+                        ${btnListHtml}
+                    </div>`;
                 },
                 update: function (obj) { }
             }
@@ -5257,7 +5335,7 @@
             const icon = (iconInput && iconInput.value.trim()) ? iconInput.value.trim() : "⚡";
 
             const list = getCandoActionButtons(instanceId);
-            list.push({ ruleId: ruleId, ruleName: ruleName, customLabel: customLabel, icon: icon, ruleData: chosen ? chosen.data : null });
+            list.unshift({ ruleId: ruleId, ruleName: ruleName, customLabel: customLabel, icon: icon, ruleData: chosen ? chosen.data : null });
             saveCandoActionButtons(instanceId, list);
 
             if (labelInput) labelInput.value = "";
@@ -5324,7 +5402,7 @@
             }
 
             const list = getWatchedCandoSignals(instanceId);
-            list.push({ catalogId: catalogId, customLabel: customLabel });
+            list.unshift({ catalogId: catalogId, customLabel: customLabel });
             saveWatchedCandoSignals(instanceId, list);
 
             if (labelInput) labelInput.value = "";
@@ -5332,6 +5410,7 @@
 
             renderDashboardGrid();
             if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
+            updateCandoStateWidgets();
             showNotification("Added signal to monitor card!", "green", 2000);
         }
 
@@ -5564,8 +5643,17 @@
             fetch("/api/can_states")
                 .then(res => res.ok ? res.json() : null)
                 .then(data => {
-                    if (!data || !data.states) return;
-                    window._candoStateCache = data.states;
+                    if (!data) return;
+                    const states = data.states || data;
+                    window._candoStateCache = states;
+
+                    monitorCards.forEach(instanceId => {
+                        const ind = document.getElementById(`cando_live_indicator_${instanceId}`);
+                        if (ind) {
+                            ind.style.background = "#10b981";
+                            ind.style.boxShadow = "0 0 6px #10b981";
+                        }
+                    });
 
                     const items = getCandoMonitorableItems();
 
@@ -5590,8 +5678,17 @@
                                 return;
                             }
 
-                            const canKey = itemDef.can_id.toLowerCase();
-                            const stateObj = data.states[canKey] || data.states[itemDef.can_id];
+                            let stateObj = null;
+                            if (itemDef.can_id) {
+                                const parsed = parseInt(itemDef.can_id, 16);
+                                if (!isNaN(parsed)) {
+                                    const normKey = "0x" + parsed.toString(16).toUpperCase();
+                                    stateObj = states[normKey] || states[normKey.toLowerCase()] || states[itemDef.can_id];
+                                }
+                            }
+                            if (!stateObj) {
+                                stateObj = states[itemDef.can_id] || states[itemDef.can_id?.toLowerCase()];
+                            }
 
                             if (!stateObj) {
                                 if (badgeEl) { badgeEl.textContent = "Waiting..."; badgeEl.className = "dash-badge badge-gray cando-state-badge"; }
@@ -5599,8 +5696,15 @@
                                 return;
                             }
 
-                            const ageSec = Math.round((stateObj.age_ms || 0) / 1000);
-                            if (ageEl) ageEl.textContent = `Age: ${ageSec < 60 ? ageSec + 's' : Math.floor(ageSec / 60) + 'm'}`;
+                            const ageMs = stateObj.age_ms || 0;
+                            const ageSec = Math.round(ageMs / 1000);
+                            const isStale = ageMs > 30000;
+                            if (ageEl) {
+                                ageEl.textContent = `Age: ${ageSec < 60 ? ageSec + 's' : Math.floor(ageSec / 60) + 'm'}${isStale ? ' (Idle)' : ''}`;
+                                ageEl.style.color = isStale ? "var(--text-muted)" : "inherit";
+                            }
+
+                            const payloadHex = stateObj.data || stateObj.payload || "";
 
                             let activeOption = null;
                             if (itemDef.options && Array.isArray(itemDef.options)) {
@@ -5608,32 +5712,40 @@
                                     const pattern = opt.match_payload || opt.payload;
                                     if (!pattern) return false;
                                     const tokens = parseCandoPattern(pattern);
-                                    return matchCandoPayload(stateObj.payload, tokens);
+                                    return matchCandoPayload(payloadHex, tokens);
                                 });
                             }
 
                             if (activeOption) {
                                 if (badgeEl) {
                                     badgeEl.textContent = activeOption.label;
-                                    badgeEl.className = "dash-badge badge-green cando-state-badge";
+                                    badgeEl.className = isStale ? "dash-badge badge-yellow cando-state-badge" : "dash-badge badge-green cando-state-badge";
                                 }
                             } else if (itemDef.match_payload) {
                                 const tokens = parseCandoPattern(itemDef.match_payload);
-                                const isMatch = matchCandoPayload(stateObj.payload, tokens);
+                                const isMatch = matchCandoPayload(payloadHex, tokens);
                                 if (badgeEl) {
-                                    badgeEl.textContent = isMatch ? "Active" : "Inactive";
-                                    badgeEl.className = isMatch ? "dash-badge badge-green cando-state-badge" : "dash-badge badge-gray cando-state-badge";
+                                    badgeEl.textContent = isMatch ? (isStale ? "Active (Idle)" : "Active") : "Inactive";
+                                    badgeEl.className = isMatch ? (isStale ? "dash-badge badge-yellow cando-state-badge" : "dash-badge badge-green cando-state-badge") : "dash-badge badge-gray cando-state-badge";
                                 }
                             } else {
                                 if (badgeEl) {
-                                    badgeEl.textContent = "Seen";
-                                    badgeEl.className = "dash-badge badge-blue cando-state-badge";
+                                    badgeEl.textContent = isStale ? "Idle" : "Seen";
+                                    badgeEl.className = isStale ? "dash-badge badge-gray cando-state-badge" : "dash-badge badge-blue cando-state-badge";
                                 }
                             }
                         });
                     });
                 })
-                .catch(() => { });
+                .catch(() => {
+                    monitorCards.forEach(instanceId => {
+                        const ind = document.getElementById(`cando_live_indicator_${instanceId}`);
+                        if (ind) {
+                            ind.style.background = "#94a3b8";
+                            ind.style.boxShadow = "none";
+                        }
+                    });
+                });
         }
 
         setInterval(() => {

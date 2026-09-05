@@ -89,6 +89,14 @@ typedef enum
 	WIFI_MAX
 }wifi_security_t;
 
+#define MAX_STA_NETWORKS 5
+
+typedef struct {
+	char ssid[33];
+	char pass[65];
+	char security[8];
+} sta_network_entry_t;
+
 typedef struct _device_config
 {
 	char wifi_mode[65];
@@ -97,6 +105,8 @@ typedef struct _device_config
 	char sta_ssid[65];
 	char sta_pass[65];
 	char sta_security[8];
+	sta_network_entry_t sta_networks[MAX_STA_NETWORKS];
+	uint8_t sta_network_count;
 	char can_datarate[65];
 	char can_mode[65];
 	char can1_datarate[65];
@@ -138,6 +148,7 @@ typedef struct _device_config
 	char mqtt_tx_topic[64];
 	char mqtt_rx_topic[64];
 	char mqtt_status_topic[64];
+	char webhook_url[256];
     char precon_mode[16];
     char precon_button[32];
     char precon_press[16];
@@ -151,6 +162,8 @@ int8_t config_server_get_ap_ch(void);
 int8_t config_server_get_webhook_en(void);
 char *config_server_get_sta_ssid(void);
 char *config_server_get_sta_pass(void);
+uint8_t config_server_get_sta_network_count(void);
+const sta_network_entry_t *config_server_get_sta_network(uint8_t index);
 int8_t config_server_get_can_rate(void);
 int8_t config_server_get_can_mode(void);
 int8_t config_server_get_can1_rate(void);
@@ -208,3 +221,4 @@ char *config_server_get_status_json(bool remove_sensitive_info);
 int8_t config_server_precon_button(void);
 int8_t config_server_precon_mode(void);
 int8_t config_server_precon_press(void);
+int8_t config_server_protocol(void);

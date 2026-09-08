@@ -82,11 +82,29 @@ set(WEB_SRC_DIR "${CMAKE_SOURCE_DIR}/main/ui_src")
 set(MINIFY_SCRIPT "${CMAKE_SOURCE_DIR}/tools/minify_html.py")
 set(CATALOG_FILE "${CMAKE_SOURCE_DIR}/main/can_do_catalog.json")
 
+set(WEB_JS_MODULES
+    "${WEB_SRC_DIR}/js/network.js"
+    "${WEB_SRC_DIR}/js/ui.js"
+    "${WEB_SRC_DIR}/js/wifi.js"
+    "${WEB_SRC_DIR}/js/system.js"
+    "${WEB_SRC_DIR}/js/time.js"
+    "${WEB_SRC_DIR}/js/can_hardware.js"
+    "${WEB_SRC_DIR}/js/auto_pid.js"
+    "${WEB_SRC_DIR}/js/dashboard.js"
+    "${WEB_SRC_DIR}/js/can_do/catalog.js"
+    "${WEB_SRC_DIR}/js/can_do/byte_grid.js"
+    "${WEB_SRC_DIR}/js/can_do/elements.js"
+    "${WEB_SRC_DIR}/js/can_do/dialog.js"
+    "${WEB_SRC_DIR}/js/can_do/rules_engine.js"
+    "${WEB_SRC_DIR}/js/can_do/storage.js"
+    "${WEB_SRC_DIR}/js/app.js"
+)
+
 set(WEB_DEPENDS
     "${WEB_SRC_DIR}/index.html"
     "${WEB_SRC_DIR}/styles.css"
     "${WEB_SRC_DIR}/icons.svg"
-    "${WEB_SRC_DIR}/app.js"
+    ${WEB_JS_MODULES}
     "${MINIFY_SCRIPT}"
 )
 if(EXISTS "${CATALOG_FILE}")

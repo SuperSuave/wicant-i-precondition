@@ -1793,7 +1793,16 @@ function getDashboardWidgetLayout() {
         if (saved) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed.filter(id => DASH_WIDGET_CATALOG[id] || id.startsWith("can_state_") || id.startsWith("cando_btn_"));
+                // Load backing stores for custom widgets
+                const stateWidgets = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
+                const candoButtons = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+
+                return parsed.filter(id => {
+                    if (DASH_WIDGET_CATALOG[id]) return true;
+                    if (id.startsWith("can_state_")) return stateWidgets.hasOwnProperty(id);
+                    if (id.startsWith("cando_btn_")) return candoButtons.hasOwnProperty(id);
+                    return false;
+                });
             }
         }
     } catch (e) { }

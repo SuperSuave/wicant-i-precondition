@@ -5,13 +5,11 @@
 
 #include "cJSON.h"
 #include "driver/twai.h"
-#include "esp_driver_twai.h"
 #include "esp_err.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include <stdbool.h>
 #include <stdint.h>
-
 
 #ifdef __cplusplus
 extern "C" {

@@ -20,7 +20,7 @@
 
 #include "autopid.h"
 #include "cJSON.h"
-#include "cando.h"
+#include "can_do.h"
 #include "config_server.h"
 #include "debug_logs.h"
 #include "dev_status.h"
@@ -2649,7 +2649,7 @@ void autopid_init(char *id) {
   }
 
   // Hook up CAN Do engine initialization
-  cando_init(id);
+  can_do_init(id);
 
   all_pids = load_all_pids();
 

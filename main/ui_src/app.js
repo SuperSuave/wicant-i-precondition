@@ -1,4 +1,4 @@
-(function() {
+(function () {
     function resolveSafeUrl(url) {
         if (typeof url !== 'string') return url;
         if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') || url.startsWith('data:')) {
@@ -15,13 +15,13 @@
     }
 
     const origXhrOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
         const safe = resolveSafeUrl(url);
         return origXhrOpen.call(this, method, safe, ...rest);
     };
 
     const origFetch = window.fetch;
-    window.fetch = function(input, init) {
+    window.fetch = function (input, init) {
         if (typeof input === 'string') {
             input = resolveSafeUrl(input);
         }
@@ -29,20 +29,20 @@
     };
 })();
 
-window._candoIsDirty = false;
-window._suppressCandoDirty = false;
-window.markCandoDirty = function() {
-    window._candoIsDirty = true;
-    const fab = document.getElementById("cando_anchored_save_fab");
+window._can_doIsDirty = false;
+window._suppressCanDoDirty = false;
+window.markCanDoDirty = function () {
+    window._can_doIsDirty = true;
+    const fab = document.getElementById("can_do_anchored_save_fab");
     if (fab) {
         fab.style.display = "inline-flex";
         fab.classList.add("dirty");
     }
     return "dirty";
 };
-window.clearCandoDirty = function() {
-    window._candoIsDirty = false;
-    const fab = document.getElementById("cando_anchored_save_fab");
+window.clearCanDoDirty = function () {
+    window._can_doIsDirty = false;
+    const fab = document.getElementById("can_do_anchored_save_fab");
     if (fab) {
         fab.classList.remove("dirty");
     }
@@ -53,16 +53,16 @@ document.addEventListener('DOMContentLoaded', async (event) => {
     if (submitBtn) submitBtn.disabled = true;
 
     if (typeof fetchDeviceTime === "function") fetchDeviceTime();
-    if (typeof loadCandoCatalog === "function") {
+    if (typeof loadCanDoCatalog === "function") {
         try {
-            await loadCandoCatalog();
+            await loadCanDoCatalog();
         } catch (e) {
             console.error("Failed to load catalog on init:", e);
         }
     }
 
-    if (typeof loadCandoRulesUI === "function") {
-        loadCandoRulesUI();
+    if (typeof loadCanDoRulesUI === "function") {
+        loadCanDoRulesUI();
     }
 });
 let latest_car_models = null;
@@ -1088,9 +1088,9 @@ function openTab(evt, tabName) {
         submitBtn.style.display = configTabs.includes(tabName) ? "inline-block" : "none";
     }
 
-    const candoFab = document.getElementById("cando_anchored_save_fab");
-    if (candoFab) {
-        candoFab.style.display = (tabName === "automate") ? "inline-flex" : "none";
+    const can_doFab = document.getElementById("can_do_anchored_save_fab");
+    if (can_doFab) {
+        can_doFab.style.display = (tabName === "automate") ? "inline-flex" : "none";
     }
 
     try {
@@ -1138,8 +1138,8 @@ function renderStaNetworkItem(container, data = {}, priority = 1) {
             Priority <span class="sta-net-priority">${priority}</span>:
         </span>
         <div style="display: flex; align-items: center; gap: 0.3rem;">
-            <button type="button" class="system-button cando-btn-move" onclick="moveStaNetworkItem(this, -1)" title="Increase Priority">▲</button>
-            <button type="button" class="system-button cando-btn-move" onclick="moveStaNetworkItem(this, 1)" title="Decrease Priority">▼</button>
+            <button type="button" class="system-button can-do-btn-move" onclick="moveStaNetworkItem(this, -1)" title="Increase Priority">▲</button>
+            <button type="button" class="system-button can-do-btn-move" onclick="moveStaNetworkItem(this, 1)" title="Decrease Priority">▼</button>
             <button type="button" class="delete-btn" onclick="removeStaNetworkItem(this)" title="Remove Network"><svg style="width:14px;height:14px;fill:currentColor;"><use href="#icon-trash"/></svg></button>
         </div>
     </div>
@@ -1376,12 +1376,12 @@ function initActiveTab() {
     }
 }
 initActiveTab();
-(function() {
-    const candoFab = document.getElementById("cando_anchored_save_fab");
+(function () {
+    const can_doFab = document.getElementById("can_do_anchored_save_fab");
     const autoTab = document.getElementById("automate");
-    if (candoFab) {
+    if (can_doFab) {
         const isAutoActive = autoTab && (autoTab.style.display === "block");
-        candoFab.style.display = isAutoActive ? "inline-flex" : "none";
+        can_doFab.style.display = isAutoActive ? "inline-flex" : "none";
     }
 })();
 
@@ -1404,7 +1404,7 @@ function escapeHtml(str) {
     return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function parseCandoPattern(patternStr) {
+function parseCanDoPattern(patternStr) {
     if (!patternStr || typeof patternStr !== "string") return [];
     return patternStr.trim().split(/\s+/).map(tok => {
         if (tok === '*') return { type: 'any' };
@@ -1421,7 +1421,7 @@ function parseCandoPattern(patternStr) {
     });
 }
 
-function matchCandoPayload(hexData, tokens) {
+function matchCanDoPayload(hexData, tokens) {
     if (!hexData || !tokens || tokens.length === 0) return false;
     if (hexData.length < tokens.length * 2) return false;
     for (let i = 0; i < tokens.length; i++) {
@@ -1438,11 +1438,11 @@ function matchCandoPayload(hexData, tokens) {
     return true;
 }
 
-function getCandoMonitorableItems() {
+function getCanDoMonitorableItems() {
     const items = [];
-    if (!CANDO_CATALOG || !Array.isArray(CANDO_CATALOG.commands)) return items;
+    if (!can_do_catalog || !Array.isArray(can_do_catalog.commands)) return items;
 
-    CANDO_CATALOG.commands.forEach(cmd => {
+    can_do_catalog.commands.forEach(cmd => {
         if (!cmd || !cmd.can_id) return;
 
         // Only include commands with trigger or condition roles
@@ -1486,7 +1486,7 @@ function getCandoMonitorableItems() {
 
     return items;
 }
-window._candoStateCache = {};
+window._can_doStateCache = {};
 
 
 // ==========================================================================
@@ -1567,52 +1567,52 @@ const DASH_WIDGET_CATALOG = {
         },
         update: function (obj) { /* Existing network logic */ }
     }
-    // Keep your existing can_hw, cando, and device_clock widgets but update their render() strings to match this pattern.
+    // Keep your existing can_hw, can_do, and device_clock widgets but update their render() strings to match this pattern.
 };
 
-const DEFAULT_DASH_WIDGETS = ["batt_12v", "hv_battery", "precon", "cando", "network", "can_hw"];
+const DEFAULT_DASH_WIDGETS = ["batt_12v", "hv_battery", "precon", "can_do", "network", "can_hw"];
 
-function getWatchedCandoSignals(instanceId) {
+function getWatchedCanDoSignals(instanceId) {
     try {
         const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
         return store[instanceId] || [];
     } catch (e) { return []; }
 }
 
-function saveWatchedCandoSignals(instanceId, list) {
+function saveWatchedCanDoSignals(instanceId, list) {
     try {
         const store = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
         store[instanceId] = list;
         localStorage.setItem("wican_state_widgets", JSON.stringify(store));
-        if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+        if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     } catch (e) { }
 }
 
-function getCandoActionButtons(instanceId) {
+function getCanDoActionButtons(instanceId) {
     try {
-        const store = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+        const store = JSON.parse(localStorage.getItem("wican_dash_can_do_buttons") || "{}");
         return store[instanceId] || [];
     } catch (e) { return []; }
 }
 
-function saveCandoActionButtons(instanceId, list) {
+function saveCanDoActionButtons(instanceId, list) {
     try {
-        const store = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+        const store = JSON.parse(localStorage.getItem("wican_dash_can_do_buttons") || "{}");
         store[instanceId] = list;
-        localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(store));
-        if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+        localStorage.setItem("wican_dash_can_do_buttons", JSON.stringify(store));
+        if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     } catch (e) { }
 }
 
-function getAvailableCandoRulesList() {
-    if (Array.isArray(window._cachedCandoRules) && window._cachedCandoRules.length > 0) {
-        return window._cachedCandoRules.map((r, idx) => ({ id: `rule_${idx}`, name: r.name || `Rule #${idx + 1}`, data: r }));
+function getAvailableCanDoRulesList() {
+    if (Array.isArray(window._cachedCanDoRules) && window._cachedCanDoRules.length > 0) {
+        return window._cachedCanDoRules.map((r, idx) => ({ id: `rule_${idx}`, name: r.name || `Rule #${idx + 1}`, data: r }));
     }
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     if (cards.length > 0) {
         const list = [];
         cards.forEach((c, idx) => {
-            const rData = extractCandoRuleData(c);
+            const rData = extractCanDoRuleData(c);
             if (rData) list.push({ id: `rule_${idx}`, name: rData.name || `Rule #${idx + 1}`, data: rData });
         });
         if (list.length > 0) return list;
@@ -1620,12 +1620,12 @@ function getAvailableCandoRulesList() {
     return [{ id: "rule_0", name: "E-GMP Battery Preconditioning", data: getDefaultPreconditionRule() }];
 }
 
-async function executeDashboardCandoButton(instanceId, idx, btn) {
-    const list = getCandoActionButtons(instanceId);
+async function executeDashboardCanDoButton(instanceId, idx, btn) {
+    const list = getCanDoActionButtons(instanceId);
     const item = list[idx];
     if (!item) return;
 
-    const rules = getAvailableCandoRulesList();
+    const rules = getAvailableCanDoRulesList();
     const matched = rules.find(r => r.id === item.ruleId || r.name === item.ruleName);
     const ruleData = matched ? matched.data : item.ruleData;
 
@@ -1639,7 +1639,7 @@ async function executeDashboardCandoButton(instanceId, idx, btn) {
     btn.disabled = true;
 
     try {
-        const res = await fetch("/test_cando_rule", {
+        const res = await fetch("/test_can_do_rule", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(ruleData)
@@ -1665,12 +1665,12 @@ async function executeDashboardCandoButton(instanceId, idx, btn) {
     }
 }
 
-function addDashboardCandoButton(instanceId, btnElem) {
+function addDashboardCanDoButton(instanceId, btnElem) {
     const card = btnElem.closest(".dash-card");
     if (!card) return;
-    const select = card.querySelector(".dash-cando-rule-select");
-    const iconInput = card.querySelector(".dash-cando-btn-icon");
-    const labelInput = card.querySelector(".dash-cando-btn-label");
+    const select = card.querySelector(".dash-can-do-rule-select");
+    const iconInput = card.querySelector(".dash-can-do-btn-icon");
+    const labelInput = card.querySelector(".dash-can-do-btn-label");
 
     const ruleId = select ? select.value : "";
     if (!ruleId) {
@@ -1678,15 +1678,15 @@ function addDashboardCandoButton(instanceId, btnElem) {
         return;
     }
 
-    const rules = getAvailableCandoRulesList();
+    const rules = getAvailableCanDoRulesList();
     const chosen = rules.find(r => r.id === ruleId);
     const ruleName = chosen ? chosen.name : ruleId;
     const customLabel = labelInput ? labelInput.value.trim() : "";
     const icon = (iconInput && iconInput.value.trim()) ? iconInput.value.trim() : "";
 
-    const list = getCandoActionButtons(instanceId);
+    const list = getCanDoActionButtons(instanceId);
     list.unshift({ ruleId: ruleId, ruleName: ruleName, customLabel: customLabel, icon: icon, ruleData: chosen ? chosen.data : null });
-    saveCandoActionButtons(instanceId, list);
+    saveCanDoActionButtons(instanceId, list);
 
     if (labelInput) labelInput.value = "";
     if (select) select.value = "";
@@ -1696,53 +1696,53 @@ function addDashboardCandoButton(instanceId, btnElem) {
     showNotification(`Added button for "${customLabel || ruleName}"!`, "green", 2000);
 }
 
-function moveDashboardCandoButton(instanceId, idx, dir) {
-    const list = getCandoActionButtons(instanceId);
+function moveDashboardCanDoButton(instanceId, idx, dir) {
+    const list = getCanDoActionButtons(instanceId);
     const targetIdx = idx + dir;
     if (targetIdx < 0 || targetIdx >= list.length) return;
     const item = list.splice(idx, 1)[0];
     list.splice(targetIdx, 0, item);
-    saveCandoActionButtons(instanceId, list);
+    saveCanDoActionButtons(instanceId, list);
     renderDashboardGrid();
     if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
 }
 
-function handleCandoBtnDragStart(event, instanceId, idx) {
+function handleCanDoBtnDragStart(event, instanceId, idx) {
     event.dataTransfer.setData("text/plain", JSON.stringify({ instanceId: instanceId, idx: idx }));
     event.dataTransfer.effectAllowed = "move";
 }
 
-function handleCandoBtnDrop(event, instanceId, targetIdx, elem) {
+function handleCanDoBtnDrop(event, instanceId, targetIdx, elem) {
     event.preventDefault();
     if (elem) elem.style.opacity = "1";
     try {
         const data = JSON.parse(event.dataTransfer.getData("text/plain") || "{}");
         if (data.instanceId === instanceId && typeof data.idx === "number" && data.idx !== targetIdx) {
-            const list = getCandoActionButtons(instanceId);
+            const list = getCanDoActionButtons(instanceId);
             const item = list.splice(data.idx, 1)[0];
             list.splice(targetIdx, 0, item);
-            saveCandoActionButtons(instanceId, list);
+            saveCanDoActionButtons(instanceId, list);
             renderDashboardGrid();
             if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
         }
     } catch (e) { }
 }
 
-function removeDashboardCandoButton(instanceId, idx) {
-    const list = getCandoActionButtons(instanceId);
+function removeDashboardCanDoButton(instanceId, idx) {
+    const list = getCanDoActionButtons(instanceId);
     if (idx >= 0 && idx < list.length) {
         list.splice(idx, 1);
-        saveCandoActionButtons(instanceId, list);
+        saveCanDoActionButtons(instanceId, list);
         renderDashboardGrid();
         if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
     }
 }
 
-function addWatchedCandoSignal(instanceId, btnElem) {
+function addWatchedCanDoSignal(instanceId, btnElem) {
     const card = btnElem.closest(".dash-card");
     if (!card) return;
-    const picker = card.querySelector(".cando-signal-picker");
-    const labelInput = card.querySelector(".cando-signal-label");
+    const picker = card.querySelector(".can-do-signal-picker");
+    const labelInput = card.querySelector(".can-do-signal-label");
     const catalogId = picker ? picker.value : "";
     const customLabel = labelInput ? labelInput.value.trim() : "";
 
@@ -1751,24 +1751,24 @@ function addWatchedCandoSignal(instanceId, btnElem) {
         return;
     }
 
-    const list = getWatchedCandoSignals(instanceId);
+    const list = getWatchedCanDoSignals(instanceId);
     list.unshift({ catalogId: catalogId, customLabel: customLabel });
-    saveWatchedCandoSignals(instanceId, list);
+    saveWatchedCanDoSignals(instanceId, list);
 
     if (labelInput) labelInput.value = "";
     if (picker) picker.value = "";
 
     renderDashboardGrid();
     if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
-    updateCandoStateWidgets();
+    updateCanDoStateWidgets();
     showNotification("Added signal to monitor card!", "green", 2000);
 }
 
-function removeWatchedCandoSignal(instanceId, signalIdx) {
-    const list = getWatchedCandoSignals(instanceId);
+function removeWatchedCanDoSignal(instanceId, signalIdx) {
+    const list = getWatchedCanDoSignals(instanceId);
     if (signalIdx >= 0 && signalIdx < list.length) {
         list.splice(signalIdx, 1);
-        saveWatchedCandoSignals(instanceId, list);
+        saveWatchedCanDoSignals(instanceId, list);
         renderDashboardGrid();
         if (window._lastStatusObj) updateDashboardCards(window._lastStatusObj);
     }
@@ -1781,8 +1781,8 @@ function getWidgetDef(instanceId) {
     if (instanceId.startsWith("can_state_")) {
         return DASH_WIDGET_CATALOG.can_state_monitor;
     }
-    if (instanceId.startsWith("cando_btn_")) {
-        return DASH_WIDGET_CATALOG.cando_buttons;
+    if (instanceId.startsWith("can_do_btn_")) {
+        return DASH_WIDGET_CATALOG.can_do_buttons;
     }
     return null;
 }
@@ -1795,12 +1795,12 @@ function getDashboardWidgetLayout() {
             if (Array.isArray(parsed) && parsed.length > 0) {
                 // Load backing stores for custom widgets
                 const stateWidgets = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
-                const candoButtons = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+                const can_doButtons = JSON.parse(localStorage.getItem("wican_dash_can_do_buttons") || "{}");
 
                 return parsed.filter(id => {
                     if (DASH_WIDGET_CATALOG[id]) return true;
                     if (id.startsWith("can_state_")) return stateWidgets.hasOwnProperty(id);
-                    if (id.startsWith("cando_btn_")) return candoButtons.hasOwnProperty(id);
+                    if (id.startsWith("can_do_btn_")) return can_doButtons.hasOwnProperty(id);
                     return false;
                 });
             }
@@ -1875,18 +1875,18 @@ function removeDashboardWidget(instanceId) {
         } catch (e) { }
     }
 
-    if (instanceId.startsWith("cando_btn_")) {
+    if (instanceId.startsWith("can_do_btn_")) {
         wasCustom = true;
         try {
-            const store = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+            const store = JSON.parse(localStorage.getItem("wican_dash_can_do_buttons") || "{}");
             delete store[instanceId];
-            localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(store));
+            localStorage.setItem("wican_dash_can_do_buttons", JSON.stringify(store));
         } catch (e) { }
     }
 
     saveDashboardWidgetLayout(filtered);
-    if (wasCustom && typeof autoSaveCandoRules === "function") {
-        autoSaveCandoRules();
+    if (wasCustom && typeof autoSaveCanDoRules === "function") {
+        autoSaveCanDoRules();
     }
     showNotification("Removed widget card from dashboard", "blue", 2500);
 }
@@ -1901,18 +1901,18 @@ function addDashboardWidget(widgetId) {
         const newInstId = `can_state_${nextIdx}`;
         layout.push(newInstId);
         saveDashboardWidgetLayout(layout);
-        if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+        if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
         showNotification("Added new CAN State Monitor card!", "green", 2500);
         return;
     }
 
-    if (widgetId === "cando_buttons" || widgetId.startsWith("cando_btn_")) {
+    if (widgetId === "can_do_buttons" || widgetId.startsWith("can_do_btn_")) {
         let nextIdx = 0;
-        while (layout.includes(`cando_btn_${nextIdx}`)) nextIdx++;
-        const newInstId = `cando_btn_${nextIdx}`;
+        while (layout.includes(`can_do_btn_${nextIdx}`)) nextIdx++;
+        const newInstId = `can_do_btn_${nextIdx}`;
         layout.push(newInstId);
         saveDashboardWidgetLayout(layout);
-        if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+        if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
         showNotification("Added new CAN Do Buttons card!", "green", 2500);
         return;
     }
@@ -1950,7 +1950,7 @@ function renderDashboardGrid() {
     });
 
     if (window._dashEditMode) {
-        const inactiveWidgets = Object.keys(DASH_WIDGET_CATALOG).filter(id => id === "can_state_monitor" || id === "cando_buttons" || !layout.includes(id));
+        const inactiveWidgets = Object.keys(DASH_WIDGET_CATALOG).filter(id => id === "can_state_monitor" || id === "can_do_buttons" || !layout.includes(id));
         const addCard = document.createElement("div");
         addCard.className = "dash-add-widget-card";
 
@@ -1989,8 +1989,8 @@ function updateDashboardCards(obj) {
     // Profile pill & clock pill in header
     const profilePill = document.getElementById("dash_profile_pill");
     if (profilePill) {
-        const modelSel = document.getElementById("cando_vehicle_model");
-        const trimSel = document.getElementById("cando_vehicle_trim");
+        const modelSel = document.getElementById("can_do_vehicle_model");
+        const trimSel = document.getElementById("can_do_vehicle_trim");
         const mText = modelSel?.selectedOptions[0]?.text || "All Gen5W";
         const tText = (trimSel && trimSel.value && trimSel.value !== "all_egmp" && trimSel.value !== modelSel?.value) ? ` (${trimSel.selectedOptions[0]?.text || ''})` : "";
         profilePill.textContent = `${mText}${tText}`;
@@ -2002,7 +2002,7 @@ function updateDashboardCards(obj) {
     }
 }
 
-function updateCandoStateWidgets() {
+function updateCanDoStateWidgets() {
     const layout = getDashboardWidgetLayout();
     const monitorCards = layout.filter(id => id.startsWith("can_state_") || id === "can_state_monitor");
     if (monitorCards.length === 0) return;
@@ -2012,34 +2012,34 @@ function updateCandoStateWidgets() {
         .then(data => {
             if (!data) return;
             const states = data.states || data;
-            window._candoStateCache = states;
+            window._can_doStateCache = states;
 
             monitorCards.forEach(instanceId => {
-                const ind = document.getElementById(`cando_live_indicator_${instanceId}`);
+                const ind = document.getElementById(`can_do_live_indicator_${instanceId}`);
                 if (ind) {
                     ind.classList.remove("offline");
                 }
             });
 
-            const items = getCandoMonitorableItems();
+            const items = getCanDoMonitorableItems();
 
             monitorCards.forEach(instanceId => {
                 const cardElem = document.querySelector(`.dash-card[data-widget-id="${instanceId}"]`);
                 if (!cardElem) return;
 
-                const watchedList = getWatchedCandoSignals(instanceId);
-                const rowElems = cardElem.querySelectorAll(".cando-watched-container > .dash-kv-row");
+                const watchedList = getWatchedCanDoSignals(instanceId);
+                const rowElems = cardElem.querySelectorAll(".can-do-watched-container > .dash-kv-row");
 
                 watchedList.forEach((w, idx) => {
                     const row = rowElems[idx];
                     if (!row) return;
 
-                    const badgeEl = row.querySelector(".cando-state-badge");
-                    const ageEl = row.querySelector(".cando-age-label");
+                    const badgeEl = row.querySelector(".can-do-state-badge");
+                    const ageEl = row.querySelector(".can-do-age-label");
                     const itemDef = items.find(i => i.id === w.catalogId);
 
                     if (!itemDef) {
-                        if (badgeEl) { badgeEl.textContent = "Unknown"; badgeEl.className = "dash-badge badge-gray cando-state-badge"; }
+                        if (badgeEl) { badgeEl.textContent = "Unknown"; badgeEl.className = "dash-badge badge-gray can-do-state-badge"; }
                         if (ageEl) ageEl.textContent = "Age: --";
                         return;
                     }
@@ -2057,7 +2057,7 @@ function updateCandoStateWidgets() {
                     }
 
                     if (!stateObj) {
-                        if (badgeEl) { badgeEl.textContent = "Waiting..."; badgeEl.className = "dash-badge badge-gray cando-state-badge"; }
+                        if (badgeEl) { badgeEl.textContent = "Waiting..."; badgeEl.className = "dash-badge badge-gray can-do-state-badge"; }
                         if (ageEl) ageEl.textContent = "Age: --";
                         return;
                     }
@@ -2077,27 +2077,27 @@ function updateCandoStateWidgets() {
                         activeOption = itemDef.options.find(opt => {
                             const pattern = opt.match_payload || opt.payload;
                             if (!pattern) return false;
-                            const tokens = parseCandoPattern(pattern);
-                            return matchCandoPayload(payloadHex, tokens);
+                            const tokens = parseCanDoPattern(pattern);
+                            return matchCanDoPayload(payloadHex, tokens);
                         });
                     }
 
                     if (activeOption) {
                         if (badgeEl) {
                             badgeEl.textContent = activeOption.label;
-                            badgeEl.className = isStale ? "dash-badge badge-yellow cando-state-badge" : "dash-badge badge-green cando-state-badge";
+                            badgeEl.className = isStale ? "dash-badge badge-yellow can-do-state-badge" : "dash-badge badge-green can-do-state-badge";
                         }
                     } else if (itemDef.match_payload) {
-                        const tokens = parseCandoPattern(itemDef.match_payload);
-                        const isMatch = matchCandoPayload(payloadHex, tokens);
+                        const tokens = parseCanDoPattern(itemDef.match_payload);
+                        const isMatch = matchCanDoPayload(payloadHex, tokens);
                         if (badgeEl) {
                             badgeEl.textContent = isMatch ? (isStale ? "Active (Idle)" : "Active") : "Inactive";
-                            badgeEl.className = isMatch ? (isStale ? "dash-badge badge-yellow cando-state-badge" : "dash-badge badge-green cando-state-badge") : "dash-badge badge-gray cando-state-badge";
+                            badgeEl.className = isMatch ? (isStale ? "dash-badge badge-yellow can-do-state-badge" : "dash-badge badge-green can-do-state-badge") : "dash-badge badge-gray can-do-state-badge";
                         }
                     } else {
                         if (badgeEl) {
                             badgeEl.textContent = isStale ? "Idle" : "Seen";
-                            badgeEl.className = isStale ? "dash-badge badge-gray cando-state-badge" : "dash-badge badge-blue cando-state-badge";
+                            badgeEl.className = isStale ? "dash-badge badge-gray can-do-state-badge" : "dash-badge badge-blue can-do-state-badge";
                         }
                     }
                 });
@@ -2105,7 +2105,7 @@ function updateCandoStateWidgets() {
         })
         .catch(() => {
             monitorCards.forEach(instanceId => {
-                const ind = document.getElementById(`cando_live_indicator_${instanceId}`);
+                const ind = document.getElementById(`can_do_live_indicator_${instanceId}`);
                 if (ind) {
                     ind.classList.add("offline");
                 }
@@ -2116,7 +2116,7 @@ function updateCandoStateWidgets() {
 setInterval(() => {
     const dashTab = document.getElementById("dashboard_tab");
     if (dashTab && dashTab.style.display !== "none") {
-        updateCandoStateWidgets();
+        updateCanDoStateWidgets();
     }
 }, 3000);
 
@@ -2188,11 +2188,11 @@ function checkStatus() {
                 if (document.getElementById("git_version")) document.getElementById("git_version").innerHTML = obj.git_version || "-";
                 if (document.getElementById("protocol") && obj.protocol) document.getElementById("protocol").value = obj.protocol;
                 if (document.getElementById("batt_voltage")) document.getElementById("batt_voltage").innerHTML = obj.batt_voltage || "--.-";
-                if (obj.cando_stats && Array.isArray(obj.cando_stats)) {
-                    updateCandoActivityStats(obj.cando_stats);
+                if (obj.can_do_stats && Array.isArray(obj.can_do_stats)) {
+                    updateCanDoActivityStats(obj.can_do_stats);
                 }
                 if ("capture_active" in obj) {
-                    const badge = document.getElementById("cando_capture_active_badge");
+                    const badge = document.getElementById("can_do_capture_active_badge");
                     if (badge) {
                         badge.style.display = obj.capture_active ? "inline-block" : "none";
                     }
@@ -2202,7 +2202,7 @@ function checkStatus() {
                 console.warn("Status parse error:", err);
             }
         };
-        xhttp.onerror = function() {
+        xhttp.onerror = function () {
             // Fallback mock update in preview mode if server is not reachable
             if (window.location.protocol === 'blob:' || window.location.protocol === 'file:') {
                 updateDashboardCards({
@@ -2218,7 +2218,7 @@ function checkStatus() {
         };
         xhttp.open("GET", "/check_status");
         xhttp.send();
-    } catch(e) {
+    } catch (e) {
         console.warn("checkStatus XHR error:", e);
     }
 }
@@ -2622,17 +2622,17 @@ function Load() {
 
                 const subBtn = document.getElementById("submit_button");
                 if (subBtn) subBtn.disabled = true;
-            } catch(parseErr) {
+            } catch (parseErr) {
                 console.warn("Load config parse error:", parseErr);
             }
         };
-        xhttp.onerror = function() {
+        xhttp.onerror = function () {
             console.log("Device offline or running in preview mode. Initializing default controls.");
             if (typeof checkStatus === "function") checkStatus();
         };
         xhttp.open("GET", "/load_config");
         xhttp.send();
-    } catch(xhrErr) {
+    } catch (xhrErr) {
         console.warn("Load XHR initialization error:", xhrErr);
     }
 }
@@ -2796,7 +2796,7 @@ function storeCANFLT() {
     document.getElementById("store_canflt_button").disabled = true;
 }
 
-/* CANDO_CATALOG_START - Dynamic GitHub & SPIFFS Catalog Loader */
+/* can_do_catalog_START - Dynamic GitHub & SPIFFS Catalog Loader */
 const CANDO_DOMAIN_TAXONOMY = {
     exterior_visibility: {
         id: "exterior_visibility",
@@ -2945,16 +2945,16 @@ function getCommandTaxonomy(cmd) {
     return { domain: "system_automation", subdomain: "network_integrations" };
 }
 
-let CANDO_CATALOG = {
-  catalog_version: "0.0.0",
-  vehicles: [],
-  commands: [],
+let can_do_catalog = {
+    catalog_version: "0.0.0",
+    vehicles: [],
+    commands: [],
 };
 
-const DEFAULT_CANDO_CATALOG_URL = "https://raw.githubusercontent.com/supersuave/wicant-i-precondition/main/main/cando_catalog.json";
+const DEFAULT_can_do_catalog_URL = "https://raw.githubusercontent.com/supersuave/wicant-i-precondition/main/main/can_do_catalog.json";
 
-function getCandoCatalogUrl() {
-    let url = localStorage.getItem("wican_cando_catalog_url") || DEFAULT_CANDO_CATALOG_URL;
+function getCanDoCatalogUrl() {
+    let url = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_can_do_catalog_URL;
     url = url.trim();
     // Convert github.com/.../blob/... to raw.githubusercontent.com/... if user pasted regular GitHub URL
     if (url.includes("github.com") && url.includes("/blob/")) {
@@ -2964,25 +2964,25 @@ function getCandoCatalogUrl() {
 }
 
 function configureCatalogUrl() {
-    const current = localStorage.getItem("wican_cando_catalog_url") || DEFAULT_CANDO_CATALOG_URL;
+    const current = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_can_do_catalog_URL;
     const input = prompt("Enter CAN Do Catalog raw JSON URL:\n(Leave empty to reset to default L1Z3/wicant-i-precondition)", current);
     if (input === null) return;
     const trimmed = input.trim();
-    if (!trimmed || trimmed === DEFAULT_CANDO_CATALOG_URL) {
-        localStorage.removeItem("wican_cando_catalog_url");
+    if (!trimmed || trimmed === DEFAULT_can_do_catalog_URL) {
+        localStorage.removeItem("wican_can_do_catalog_url");
         showNotification("Catalog URL reset to default (L1Z3/wicant-i-precondition).", "blue", 3000);
     } else {
-        localStorage.setItem("wican_cando_catalog_url", trimmed);
+        localStorage.setItem("wican_can_do_catalog_url", trimmed);
         showNotification("Catalog URL updated. Syncing now...", "blue", 3000);
     }
     syncCatalogFromGitHub(true);
 }
 
 function updateCatalogStatusUI(status, info) {
-    const badge = document.getElementById("cando_catalog_badge");
+    const badge = document.getElementById("can_do_catalog_badge");
     if (!badge) return;
-    const currentUrl = getCandoCatalogUrl();
-    const isCustom = (localStorage.getItem("wican_cando_catalog_url") && localStorage.getItem("wican_cando_catalog_url") !== DEFAULT_CANDO_CATALOG_URL);
+    const currentUrl = getCanDoCatalogUrl();
+    const isCustom = (localStorage.getItem("wican_can_do_catalog_url") && localStorage.getItem("wican_can_do_catalog_url") !== DEFAULT_can_do_catalog_URL);
     badge.className = "";
     badge.style.background = "";
     badge.style.color = "";
@@ -3008,7 +3008,7 @@ function updateCatalogStatusUI(status, info) {
 }
 
 function syncCatalogToDevice(catalogData) {
-    fetch("/store_cando_catalog", {
+    fetch("/store_can_do_catalog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(catalogData)
@@ -3084,79 +3084,79 @@ function mergeCatalogData(base, custom) {
 }
 
 function getCatalogVehicles() {
-    if (CANDO_CATALOG && Array.isArray(CANDO_CATALOG.vehicles) && CANDO_CATALOG.vehicles.length > 0) {
-        return CANDO_CATALOG.vehicles;
+    if (can_do_catalog && Array.isArray(can_do_catalog.vehicles) && can_do_catalog.vehicles.length > 0) {
+        return can_do_catalog.vehicles;
     }
     return CANDO_DEFAULT_FALLBACK_CATALOG.vehicles || [];
 }
 
-async function loadCandoCatalog() {
-  const applyCatalog = (data, source, info) => {
-    // Preserve custom imported/user presets if present in localStorage
-    const customSaved = localStorage.getItem("wican_custom_imported_catalog");
-    if (customSaved) {
-      try {
-        data = mergeCatalogData(data, JSON.parse(customSaved));
-      } catch (e) {}
-    }
-    CANDO_CATALOG = data;
-    localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
-    updateCatalogStatusUI(source, info);
-    populateVehicleDropdowns(data.vehicles);
-    refreshAllCandoPresetDropdowns();
-  };
-
-  // 1. Instant check from browser cache
-  try {
-    const cached = localStorage.getItem("wican_cando_catalog");
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
-        applyCatalog(parsed, "cached");
-      }
-    }
-  } catch (e) {}
-
-  // 2. Fetch the compressed file served by the ESP32
-  try {
-    const res = await fetch("/cando_catalog.json");
-    if (res.ok) {
-      const data = await res.json();
-      if (data && (data.commands || data.vehicles)) {
-        // Update if newer than cached
-        if (
-          !CANDO_CATALOG ||
-          data.catalog_version !== CANDO_CATALOG.catalog_version
-        ) {
-          applyCatalog(data, "device", data.catalog_version);
+async function loadCanDoCatalog() {
+    const applyCatalog = (data, source, info) => {
+        // Preserve custom imported/user presets if present in localStorage
+        const customSaved = localStorage.getItem("wican_custom_imported_catalog");
+        if (customSaved) {
+            try {
+                data = mergeCatalogData(data, JSON.parse(customSaved));
+            } catch (e) { }
         }
-      }
-    }
-  } catch (err) {
-    console.warn("Failed to load /cando_catalog.json from device:", err);
-  }
+        can_do_catalog = data;
+        localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
+        updateCatalogStatusUI(source, info);
+        populateVehicleDropdowns(data.vehicles);
+        refreshAllCanDoPresetDropdowns();
+    };
 
-  // 3. Optional: Background check upstream GitHub when internet is present
-  if (navigator.onLine) {
-    const catalogUrl = getCandoCatalogUrl();
-    fetch(catalogUrl + "?_t=" + Date.now(), {cache: "no-cache"})
-      .then((res) => (res.ok ? res.json() : null))
-      .then((remoteData) => {
-        if (
-          remoteData &&
-          remoteData.catalog_version !== CANDO_CATALOG?.catalog_version
-        ) {
-          applyCatalog(remoteData, "online", remoteData.catalog_version);
-          // Sync update to ESP32 flash storage
-          fetch("/store_cando_catalog", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(remoteData),
-          }).catch(() => {});
+    // 1. Instant check from browser cache
+    try {
+        const cached = localStorage.getItem("wican_can_do_catalog");
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
+                applyCatalog(parsed, "cached");
+            }
         }
-      })
-      .catch(() => {});
-  }
+    } catch (e) { }
+
+    // 2. Fetch the compressed file served by the ESP32
+    try {
+        const res = await fetch("/can_do_catalog.json");
+        if (res.ok) {
+            const data = await res.json();
+            if (data && (data.commands || data.vehicles)) {
+                // Update if newer than cached
+                if (
+                    !can_do_catalog ||
+                    data.catalog_version !== can_do_catalog.catalog_version
+                ) {
+                    applyCatalog(data, "device", data.catalog_version);
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Failed to load /can_do_catalog.json from device:", err);
+    }
+
+    // 3. Optional: Background check upstream GitHub when internet is present
+    if (navigator.onLine) {
+        const catalogUrl = getCanDoCatalogUrl();
+        fetch(catalogUrl + "?_t=" + Date.now(), { cache: "no-cache" })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((remoteData) => {
+                if (
+                    remoteData &&
+                    remoteData.catalog_version !== can_do_catalog?.catalog_version
+                ) {
+                    applyCatalog(remoteData, "online", remoteData.catalog_version);
+                    // Sync update to ESP32 flash storage
+                    fetch("/store_can_do_catalog", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(remoteData),
+                    }).catch(() => { });
+                }
+            })
+            .catch(() => { });
+    }
 }
 
 const GEN5W_MODEL_LIST = [
@@ -3170,8 +3170,8 @@ function populateVehicleDropdowns(vehicles) {
     if (!vehicles || !Array.isArray(vehicles) || vehicles.length === 0) {
         vehicles = getCatalogVehicles();
     }
-    const modelSel = document.getElementById("cando_vehicle_model");
-    const trimSel = document.getElementById("cando_vehicle_trim");
+    const modelSel = document.getElementById("can_do_vehicle_model");
+    const trimSel = document.getElementById("can_do_vehicle_trim");
     if (!modelSel) return;
 
     let savedModel = localStorage.getItem("wican_vehicle_model") || "all_egmp";
@@ -3200,7 +3200,7 @@ function populateVehicleDropdowns(vehicles) {
 }
 
 function populateTrimDropdown(selectedModel, currentTrimVal, vehicles) {
-    const trimSel = document.getElementById("cando_vehicle_trim");
+    const trimSel = document.getElementById("can_do_vehicle_trim");
     if (!trimSel) return;
     trimSel.innerHTML = "";
 
@@ -3221,7 +3221,7 @@ function populateTrimDropdown(selectedModel, currentTrimVal, vehicles) {
 }
 
 function syncCatalogFromGitHub(manual = true) {
-    const catalogUrl = getCandoCatalogUrl();
+    const catalogUrl = getCanDoCatalogUrl();
     showNotification("Syncing presets from " + catalogUrl + " ...", "blue", 2500);
     fetch(catalogUrl + (catalogUrl.includes("?") ? "&_t=" : "?_t=") + Date.now(), { cache: "no-cache" })
         .then(res => {
@@ -3238,12 +3238,12 @@ function syncCatalogFromGitHub(manual = true) {
                         data = mergeCatalogData(data, customParsed);
                     } catch (e) { }
                 }
-                CANDO_CATALOG = data;
-                localStorage.setItem("wican_cando_catalog", JSON.stringify(data));
-                localStorage.setItem("wican_cando_catalog_sync_time", new Date().toLocaleString());
+                can_do_catalog = data;
+                localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
+                localStorage.setItem("wican_can_do_catalog_sync_time", new Date().toLocaleString());
                 updateCatalogStatusUI("online", new Date().toLocaleTimeString());
                 populateVehicleDropdowns(data.vehicles);
-                refreshAllCandoPresetDropdowns();
+                refreshAllCanDoPresetDropdowns();
                 syncCatalogToDevice(data);
                 const totalCmds = data.commands ? data.commands.length : ((data.trigger_presets || []).length + (data.action_presets || []).reduce((acc, cat) => acc + (cat.presets || []).length, 0));
                 const mergeNote = customSaved ? " (smart merged with your custom presets)" : "";
@@ -3257,7 +3257,7 @@ function syncCatalogFromGitHub(manual = true) {
         });
 }
 
-function importCandoCatalogFile(inputElem) {
+function importCanDoCatalogFile(inputElem) {
     const file = inputElem.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -3268,17 +3268,17 @@ function importCandoCatalogFile(inputElem) {
                 const shouldMerge = confirm("Merge imported presets with existing catalog?\n\n• Click OK to MERGE (recommended - preserves existing presets and adds/updates new ones)\n• Click Cancel to REPLACE (replaces entire catalog with this file)");
                 if (shouldMerge) {
                     localStorage.setItem("wican_custom_imported_catalog", JSON.stringify(data));
-                    CANDO_CATALOG = mergeCatalogData(CANDO_CATALOG, data);
+                    can_do_catalog = mergeCatalogData(can_do_catalog, data);
                 } else {
                     localStorage.removeItem("wican_custom_imported_catalog");
-                    CANDO_CATALOG = data;
+                    can_do_catalog = data;
                 }
-                localStorage.setItem("wican_cando_catalog", JSON.stringify(CANDO_CATALOG));
+                localStorage.setItem("wican_can_do_catalog", JSON.stringify(can_do_catalog));
                 updateCatalogStatusUI("custom");
-                populateVehicleDropdowns(CANDO_CATALOG.vehicles);
-                refreshAllCandoPresetDropdowns();
-                syncCatalogToDevice(CANDO_CATALOG);
-                const totalCmds = CANDO_CATALOG.commands ? CANDO_CATALOG.commands.length : ((CANDO_CATALOG.trigger_presets || []).length + (CANDO_CATALOG.action_presets || []).reduce((acc, cat) => acc + (cat.presets || []).length, 0));
+                populateVehicleDropdowns(can_do_catalog.vehicles);
+                refreshAllCanDoPresetDropdowns();
+                syncCatalogToDevice(can_do_catalog);
+                const totalCmds = can_do_catalog.commands ? can_do_catalog.commands.length : ((can_do_catalog.trigger_presets || []).length + (can_do_catalog.action_presets || []).reduce((acc, cat) => acc + (cat.presets || []).length, 0));
                 showNotification(`✓ Presets ${shouldMerge ? "merged" : "loaded"}: ${totalCmds} commands available.`, "green", 4000);
             } else {
                 showNotification("Invalid catalog format. Missing commands or trigger_presets.", "red", 4000);
@@ -3290,23 +3290,23 @@ function importCandoCatalogFile(inputElem) {
     };
     reader.readAsText(file);
 }
-/* CANDO_CATALOG_END */
+/* can_do_catalog_END */
 
 function getSelectedVehicleProfile() {
-    const trimSel = document.getElementById("cando_vehicle_trim");
+    const trimSel = document.getElementById("can_do_vehicle_trim");
     if (trimSel && trimSel.value) return trimSel.value;
-    const modelSel = document.getElementById("cando_vehicle_model");
+    const modelSel = document.getElementById("can_do_vehicle_model");
     if (modelSel && modelSel.value) return modelSel.value;
-    const hiddenSel = document.getElementById("cando_vehicle_profile");
+    const hiddenSel = document.getElementById("can_do_vehicle_profile");
     if (hiddenSel && hiddenSel.value) return hiddenSel.value;
     return localStorage.getItem("wican_vehicle_profile") || "all_egmp";
 }
 
-function initCandoVehicleProfileUI() {
+function initCanDoVehicleProfileUI() {
     populateVehicleDropdowns(getCatalogVehicles());
 }
 
-function getCandoDeviceSettings() {
+function getCanDoDeviceSettings() {
     let customPresets = {
         triggers: (typeof getCustomTrigPresets === "function") ? getCustomTrigPresets() : [],
         actions: (typeof getCustomActPresets === "function") ? getCustomActPresets() : [],
@@ -3321,10 +3321,10 @@ function getCandoDeviceSettings() {
         customWidgets.state_widgets = JSON.parse(localStorage.getItem("wican_state_widgets") || "{}");
     } catch (e) { }
     try {
-        customWidgets.dash_buttons = JSON.parse(localStorage.getItem("wican_dash_cando_buttons") || "{}");
+        customWidgets.dash_buttons = JSON.parse(localStorage.getItem("wican_dash_can_do_buttons") || "{}");
     } catch (e) { }
     if (typeof getDashboardWidgetLayout === "function") {
-        customWidgets.custom_cards = getDashboardWidgetLayout().filter(id => id.startsWith("can_state_") || id.startsWith("cando_btn_"));
+        customWidgets.custom_cards = getDashboardWidgetLayout().filter(id => id.startsWith("can_state_") || id.startsWith("can_do_btn_"));
     }
     return {
         vehicle_model: localStorage.getItem("wican_vehicle_model") || "all_egmp",
@@ -3336,33 +3336,33 @@ function getCandoDeviceSettings() {
     };
 }
 
-function changeCandoVehicleModel(modelId, syncToDevice = true) {
+function changeCanDoVehicleModel(modelId, syncToDevice = true) {
     localStorage.setItem("wican_vehicle_model", modelId);
     populateTrimDropdown(modelId, modelId, getCatalogVehicles());
-    const trimSel = document.getElementById("cando_vehicle_trim");
+    const trimSel = document.getElementById("can_do_vehicle_trim");
     const activeProfile = (trimSel && trimSel.value) ? trimSel.value : modelId;
     localStorage.setItem("wican_vehicle_profile", activeProfile);
     localStorage.setItem("wican_vehicle_trim", activeProfile);
 
-    const hiddenSel = document.getElementById("cando_vehicle_profile");
+    const hiddenSel = document.getElementById("can_do_vehicle_profile");
     if (hiddenSel) hiddenSel.value = activeProfile;
 
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
 
-    const modelSel = document.getElementById("cando_vehicle_model");
+    const modelSel = document.getElementById("can_do_vehicle_model");
     const mName = modelSel ? (modelSel.selectedOptions[0]?.text || modelId) : modelId;
     showNotification("Vehicle model set to: " + mName, "green", 3000);
     if (syncToDevice) {
-        autoSaveCandoRules();
+        autoSaveCanDoRules();
     }
 }
 
-function changeCandoVehicleTrim(trimId, syncToDevice = true) {
+function changeCanDoVehicleTrim(trimId, syncToDevice = true) {
     const vehicles = getCatalogVehicles();
     const veh = vehicles.find(v => v.id === trimId);
 
     if (veh && veh.family && veh.family !== "all_egmp") {
-        const modelSel = document.getElementById("cando_vehicle_model");
+        const modelSel = document.getElementById("can_do_vehicle_model");
         if (modelSel && modelSel.value !== veh.family) {
             modelSel.value = veh.family;
             localStorage.setItem("wican_vehicle_model", veh.family);
@@ -3373,28 +3373,28 @@ function changeCandoVehicleTrim(trimId, syncToDevice = true) {
     localStorage.setItem("wican_vehicle_trim", trimId);
     localStorage.setItem("wican_vehicle_profile", trimId);
 
-    const hiddenSel = document.getElementById("cando_vehicle_profile");
+    const hiddenSel = document.getElementById("can_do_vehicle_profile");
     if (hiddenSel) hiddenSel.value = trimId;
 
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
 
-    const trimSel = document.getElementById("cando_vehicle_trim");
+    const trimSel = document.getElementById("can_do_vehicle_trim");
     const tName = trimSel ? (trimSel.selectedOptions[0]?.text || trimId) : trimId;
     showNotification("Trim level set to: " + tName, "green", 3000);
     if (syncToDevice) {
-        autoSaveCandoRules();
+        autoSaveCanDoRules();
     }
 }
 
 function getUnitSystem() {
-    const sel = document.getElementById("cando_unit_system");
+    const sel = document.getElementById("can_do_unit_system");
     if (sel && sel.value) return sel.value;
     return localStorage.getItem("wican_unit_system") || "metric";
 }
 
 function initUnitSystemUI() {
     const saved = localStorage.getItem("wican_unit_system") || "metric";
-    const sel = document.getElementById("cando_unit_system");
+    const sel = document.getElementById("can_do_unit_system");
     if (sel) sel.value = saved;
 }
 
@@ -3403,7 +3403,7 @@ function changeUnitSystem(unit, syncToDevice = true) {
     const isImperial = (unit === "imperial");
 
     // 1. Update climate target temperature inputs (Driver and Passenger)
-    document.querySelectorAll(".cando-act-target-temp, .cando-act-pass-temp").forEach(inp => {
+    document.querySelectorAll(".can-do-act-target-temp, .can-do-act-pass-temp").forEach(inp => {
         const currentVal = parseFloat(inp.value);
         if (!isNaN(currentVal)) {
             if (isImperial) {
@@ -3430,12 +3430,12 @@ function changeUnitSystem(unit, syncToDevice = true) {
     });
 
     // 2. Update visible temperature unit indicators
-    document.querySelectorAll(".cando-target-temp-unit").forEach(span => {
+    document.querySelectorAll(".can-do-target-temp-unit").forEach(span => {
         span.textContent = isImperial ? "°F" : "°C";
     });
 
     // 3. Update speed condition labels in all active condition items
-    document.querySelectorAll(".cando-cond-type").forEach(sel => {
+    document.querySelectorAll(".can-do-cond-type").forEach(sel => {
         const speedOpt = sel.querySelector("option[value='speed_zero']");
         if (speedOpt) {
             speedOpt.textContent = `Vehicle Speed == 0 ${isImperial ? "mph" : "km/h"} (Parked)`;
@@ -3443,29 +3443,29 @@ function changeUnitSystem(unit, syncToDevice = true) {
     });
 
     // 4. Update distance/speed/pressure helper labels across the interface
-    document.querySelectorAll(".cando-unit-speed").forEach(el => {
+    document.querySelectorAll(".can-do-unit-speed").forEach(el => {
         el.textContent = isImperial ? "mph" : "km/h";
     });
-    document.querySelectorAll(".cando-unit-distance").forEach(el => {
+    document.querySelectorAll(".can-do-unit-distance").forEach(el => {
         el.textContent = isImperial ? "mi" : "km";
     });
-    document.querySelectorAll(".cando-unit-pressure").forEach(el => {
+    document.querySelectorAll(".can-do-unit-pressure").forEach(el => {
         el.textContent = isImperial ? "psi" : "bar";
     });
 
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
 
-    document.querySelectorAll(".cando-act-preset-picker").forEach(picker => {
-        if (picker.value) applyCandoActionPreset(picker);
+    document.querySelectorAll(".can-do-act-preset-picker").forEach(picker => {
+        if (picker.value) applyCanDoActionPreset(picker);
     });
 
-    document.querySelectorAll(".cando-rule-card").forEach(card => {
-        updateCandoRuleSummaryPill(card);
+    document.querySelectorAll(".can-do-rule-card").forEach(card => {
+        updateCanDoRuleSummaryPill(card);
     });
 
     showNotification(`Unit preference set to: ${isImperial ? "Imperial (mph, mi, °F, psi)" : "Metric (km/h, km, °C, bar)"}`, "green", 3000);
     if (syncToDevice) {
-        autoSaveCandoRules();
+        autoSaveCanDoRules();
     }
 }
 
@@ -3479,8 +3479,8 @@ function saveCustomTrigPreset(presetObj) {
     const list = getCustomTrigPresets();
     list.push(presetObj);
     localStorage.setItem("wican_custom_trig_presets", JSON.stringify(list));
-    refreshAllCandoPresetDropdowns();
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    refreshAllCanDoPresetDropdowns();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
 }
 
 function getCustomActPresets() {
@@ -3493,8 +3493,8 @@ function saveCustomActPreset(presetObj) {
     const list = getCustomActPresets();
     list.push(presetObj);
     localStorage.setItem("wican_custom_act_presets", JSON.stringify(list));
-    refreshAllCandoPresetDropdowns();
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    refreshAllCanDoPresetDropdowns();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
 }
 
 function getCustomCondPresets() {
@@ -3507,15 +3507,15 @@ function saveCustomCondPreset(presetObj) {
     const list = getCustomCondPresets();
     list.push(presetObj);
     localStorage.setItem("wican_custom_cond_presets", JSON.stringify(list));
-    refreshAllCandoPresetDropdowns();
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    refreshAllCanDoPresetDropdowns();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
 }
 
 function isPresetSupportedByVehicle(preset, vehicleId) {
     if (!preset) return false;
     if (!vehicleId || vehicleId === "all_egmp") return true;
 
-    const selVeh = (CANDO_CATALOG.vehicles || []).find(v => v.id === vehicleId);
+    const selVeh = (can_do_catalog.vehicles || []).find(v => v.id === vehicleId);
 
     // Check feature capability requirements (e.g. ventilated seats, heated steering wheel, 360 camera, touch bar)
     if (preset.requires_feature && selVeh && Array.isArray(selVeh.features)) {
@@ -3535,13 +3535,13 @@ function isPresetSupportedByVehicle(preset, vehicleId) {
 function getFilteredTriggerPresets() {
     const vId = getSelectedVehicleProfile();
     let catalogTrigs = [];
-    if (CANDO_CATALOG.commands && Array.isArray(CANDO_CATALOG.commands)) {
-        catalogTrigs = CANDO_CATALOG.commands.filter(cmd => {
+    if (can_do_catalog.commands && Array.isArray(can_do_catalog.commands)) {
+        catalogTrigs = can_do_catalog.commands.filter(cmd => {
             const roles = cmd.roles || ["trigger"];
             return roles.includes("trigger");
         });
-    } else if (CANDO_CATALOG.trigger_presets) {
-        catalogTrigs = CANDO_CATALOG.trigger_presets;
+    } else if (can_do_catalog.trigger_presets) {
+        catalogTrigs = can_do_catalog.trigger_presets;
     }
     const filtered = catalogTrigs.filter(p => isPresetSupportedByVehicle(p, vId));
     const custom = getCustomTrigPresets();
@@ -3551,84 +3551,84 @@ function getFilteredTriggerPresets() {
 function getFilteredActionPresets() {
     const vId = getSelectedVehicleProfile();
     let catalogActs = [];
-    
-    if (CANDO_CATALOG.commands && Array.isArray(CANDO_CATALOG.commands)) {
-        catalogActs = CANDO_CATALOG.commands.filter(cmd => {
+
+    if (can_do_catalog.commands && Array.isArray(can_do_catalog.commands)) {
+        catalogActs = can_do_catalog.commands.filter(cmd => {
             const roles = cmd.roles || ["action"];
             return roles.includes("action");
         });
-    } else if (CANDO_CATALOG.action_presets) {
+    } else if (can_do_catalog.action_presets) {
         // Legacy fallback
-        CANDO_CATALOG.action_presets.forEach(cat => {
+        can_do_catalog.action_presets.forEach(cat => {
             (cat.presets || []).forEach(p => catalogActs.push(p));
         });
     }
-    
+
     const filtered = catalogActs.filter(p => isPresetSupportedByVehicle(p, vId));
     const custom = getCustomActPresets();
-    
+
     const domainMap = new Map();
     if (custom.length > 0) {
         domainMap.set("⭐ My Saved Actions", custom);
     }
-    
+
     filtered.forEach(p => {
         const tax = getCommandTaxonomy(p);
         const dDef = CANDO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation", subdomains: {} };
         const subDef = (dDef.subdomains && dDef.subdomains[tax.subdomain]) ? dDef.subdomains[tax.subdomain].name : (p.category || "General");
         const groupLabel = `${dDef.name} — ${subDef}`;
-        
+
         if (!domainMap.has(groupLabel)) domainMap.set(groupLabel, []);
         domainMap.get(groupLabel).push(p);
     });
-    
+
     const result = [];
     domainMap.forEach((presets, category) => {
         result.push({ category: category, presets: presets });
     });
-    
+
     return result;
 }
 
 function getFilteredConditionPresets() {
     const vId = getSelectedVehicleProfile();
     let catalogConds = [];
-    
-    if (CANDO_CATALOG.commands && Array.isArray(CANDO_CATALOG.commands)) {
-        catalogConds = CANDO_CATALOG.commands.filter(cmd => {
+
+    if (can_do_catalog.commands && Array.isArray(can_do_catalog.commands)) {
+        catalogConds = can_do_catalog.commands.filter(cmd => {
             const roles = cmd.roles || ["condition"];
             return roles.includes("condition");
         });
-    } else if (CANDO_CATALOG.condition_presets) {
+    } else if (can_do_catalog.condition_presets) {
         // Legacy fallback
-        CANDO_CATALOG.condition_presets.forEach(cat => {
+        can_do_catalog.condition_presets.forEach(cat => {
             (cat.presets || []).forEach(p => catalogConds.push(p));
         });
     }
-    
+
     const filtered = catalogConds.filter(p => isPresetSupportedByVehicle(p, vId));
     const custom = getCustomCondPresets();
-    
+
     const domainMap = new Map();
     if (custom.length > 0) {
         domainMap.set("⭐ My Saved Conditions", custom);
     }
-    
+
     filtered.forEach(p => {
         const tax = getCommandTaxonomy(p);
         const dDef = CANDO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation", subdomains: {} };
         const subDef = (dDef.subdomains && dDef.subdomains[tax.subdomain]) ? dDef.subdomains[tax.subdomain].name : (p.category || "General");
         const groupLabel = `${dDef.name} — ${subDef}`;
-        
+
         if (!domainMap.has(groupLabel)) domainMap.set(groupLabel, []);
         domainMap.get(groupLabel).push(p);
     });
-    
+
     const result = [];
     domainMap.forEach((presets, category) => {
         result.push({ category: category, presets: presets });
     });
-    
+
     return result;
 }
 
@@ -3781,12 +3781,12 @@ function renderCondPresetOptionsHTML(selectedValStr = "") {
     return html;
 }
 
-function applyCandoCondPreset(selectElem, notify = true) {
+function applyCanDoCondPreset(selectElem, notify = true) {
     const val = selectElem.value;
-    const item = selectElem.closest(".cando-condition-item");
+    const item = selectElem.closest(".can-do-condition-item");
     if (!item) return;
     if (!val) {
-        const optionsBox = item.querySelector(".cando-cond-options-container");
+        const optionsBox = item.querySelector(".can-do-cond-options-container");
         if (optionsBox) {
             optionsBox.style.display = "none";
             optionsBox.innerHTML = "";
@@ -3805,46 +3805,46 @@ function applyCandoCondPreset(selectElem, notify = true) {
     if (!preset) return;
 
     if (preset.expression !== undefined) {
-        const exp = item.querySelector(".cando-cond-expr");
+        const exp = item.querySelector(".can-do-cond-expr");
         if (exp) exp.value = preset.expression;
     }
     if (preset.can_id) {
-        const cid = item.querySelector(".cando-cond-can-id");
+        const cid = item.querySelector(".can-do-cond-can-id");
         if (cid) cid.value = preset.can_id;
     }
     if (preset.match_payload) {
-        setByteGridString(item, "cando-cond-can", preset.match_payload);
+        setByteGridString(item, "can-do-cond-can", preset.match_payload);
     }
     if (preset.voltage_val) {
-        const vv = item.querySelector(".cando-cond-voltage-val");
+        const vv = item.querySelector(".can-do-cond-voltage-val");
         if (vv) vv.value = preset.voltage_val;
     }
     if (preset.voltage_dir) {
-        const vd = item.querySelector(".cando-cond-voltage-dir");
+        const vd = item.querySelector(".can-do-cond-voltage-dir");
         if (vd) vd.value = preset.voltage_dir;
     }
     if (preset.start_time) {
-        const st = item.querySelector(".cando-cond-start-time");
+        const st = item.querySelector(".can-do-cond-start-time");
         if (st) st.value = preset.start_time;
     }
     if (preset.end_time) {
-        const et = item.querySelector(".cando-cond-end-time");
+        const et = item.querySelector(".can-do-cond-end-time");
         if (et) et.value = preset.end_time;
     }
     if (preset.days && Array.isArray(preset.days)) {
-        item.querySelectorAll(".cando-cond-day").forEach(cb => {
+        item.querySelectorAll(".can-do-cond-day").forEach(cb => {
             cb.checked = preset.days.includes(cb.value);
         });
     }
     if (preset.invert !== undefined) {
-        const inv = item.querySelector(".cando-cond-invert");
+        const inv = item.querySelector(".can-do-cond-invert");
         if (inv) inv.checked = preset.invert;
     }
 
     // Check if preset has state options
-    const optionsBox = item.querySelector(".cando-cond-options-container");
+    const optionsBox = item.querySelector(".can-do-cond-options-container");
     if (preset.options && Array.isArray(preset.options) && preset.options.length > 0) {
-        const curPayload = getByteGridString(item, "cando-cond-can");
+        const curPayload = getByteGridString(item, "can-do-cond-can");
         let activeOptIdx = -1;
         if (curPayload) {
             activeOptIdx = preset.options.findIndex(o => o.match_payload === curPayload);
@@ -3857,15 +3857,15 @@ function applyCandoCondPreset(selectElem, notify = true) {
             const gridClass = preset.options.length > 4 ? "grid-many" : "grid-few";
             optionsBox.innerHTML = `
             <div style="width: 100%;">
-                <div class="cando-options-label">
+                <div class="can-do-options-label">
                     <span>Expected State:</span>
                 </div>
-                <div class="cando-options-grid ${gridClass}">
+                <div class="can-do-options-grid ${gridClass}">
                     ${preset.options.map((opt, i) => {
                 const isCur = (i === activeOptIdx);
                 return `
-                        <button type="button" class="cando-state-tile-btn cando-cond-opt-pill-btn ${isCur ? 'active' : ''}" 
-                            onclick="applyCandoCondOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
+                        <button type="button" class="can-do-state-tile-btn can-do-cond-opt-pill-btn ${isCur ? 'active' : ''}" 
+                            onclick="applyCanDoCondOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
                             ${opt.label}
                         </button>
                         `;
@@ -3875,7 +3875,7 @@ function applyCandoCondPreset(selectElem, notify = true) {
         }
         const activeOpt = preset.options[activeOptIdx];
         if (activeOpt && activeOpt.match_payload) {
-            setByteGridString(item, "cando-cond-can", activeOpt.match_payload);
+            setByteGridString(item, "can-do-cond-can", activeOpt.match_payload);
         }
     } else if (optionsBox) {
         optionsBox.style.display = "none";
@@ -3885,12 +3885,12 @@ function applyCandoCondPreset(selectElem, notify = true) {
     item.dataset.presetType = preset.type || "param_range";
     if (notify) showNotification("Applied condition preset: " + preset.name, "blue", 2500);
     togglePresetToolbarButtons(item);
-    const card = item.closest(".cando-rule-card");
-    if (card) updateCandoRuleSummaryPill(card);
+    const card = item.closest(".can-do-rule-card");
+    if (card) updateCanDoRuleSummaryPill(card);
 }
 
-function applyCandoCondOptionPill(btn, catIdx, pIdx, optIdx) {
-    const item = btn.closest(".cando-condition-item");
+function applyCanDoCondOptionPill(btn, catIdx, pIdx, optIdx) {
+    const item = btn.closest(".can-do-condition-item");
     if (!item) return;
     const cats = getFilteredConditionPresets();
     const preset = cats[catIdx]?.presets[pIdx];
@@ -3898,9 +3898,9 @@ function applyCandoCondOptionPill(btn, catIdx, pIdx, optIdx) {
     if (!opt) return;
 
     // Update active tile styling
-    const box = item.querySelector(".cando-cond-options-container");
+    const box = item.querySelector(".can-do-cond-options-container");
     if (box) {
-        box.querySelectorAll(".cando-cond-opt-pill-btn").forEach((b, i) => {
+        box.querySelectorAll(".can-do-cond-opt-pill-btn").forEach((b, i) => {
             b.classList.toggle("active", i === optIdx);
             b.removeAttribute("style");
         });
@@ -3908,24 +3908,24 @@ function applyCandoCondOptionPill(btn, catIdx, pIdx, optIdx) {
 
     // Apply payload match to byte grid
     if (opt.match_payload) {
-        setByteGridString(item, "cando-cond-can", opt.match_payload);
+        setByteGridString(item, "can-do-cond-can", opt.match_payload);
     }
     if (opt.expression !== undefined) {
-        const exp = item.querySelector(".cando-cond-expr");
+        const exp = item.querySelector(".can-do-cond-expr");
         if (exp) exp.value = opt.expression;
     }
 
     showNotification(`Selected ${preset.name}: ${opt.label}`, "blue", 2500);
-    const card = item.closest(".cando-rule-card");
-    if (card) updateCandoRuleSummaryPill(card);
+    const card = item.closest(".can-do-rule-card");
+    if (card) updateCanDoRuleSummaryPill(card);
 }
 
-function applyCandoTrigPreset(selectElem, notify = true) {
+function applyCanDoTrigPreset(selectElem, notify = true) {
     const val = selectElem.value;
-    const item = selectElem.closest(".cando-trigger-item");
+    const item = selectElem.closest(".can-do-trigger-item");
     if (!item) return;
     if (!val) {
-        const optionsBox = item.querySelector(".cando-trig-options-container");
+        const optionsBox = item.querySelector(".can-do-trig-options-container");
         if (optionsBox) {
             optionsBox.style.display = "none";
             optionsBox.innerHTML = "";
@@ -3950,33 +3950,33 @@ function applyCandoTrigPreset(selectElem, notify = true) {
 
     if (preset) {
         if (preset.can_id) {
-            const cid = item.querySelector(".cando-trig-can-id");
+            const cid = item.querySelector(".can-do-trig-can-id");
             if (cid) cid.value = preset.can_id;
         }
         if (preset.bus !== undefined) {
-            const b = item.querySelector(".cando-trig-bus");
+            const b = item.querySelector(".can-do-trig-bus");
             if (b) b.value = preset.bus.toString();
         }
         if (preset.from_payload !== undefined) {
-            setByteGridString(item, "cando-trig-from", preset.from_payload);
+            setByteGridString(item, "can-do-trig-from", preset.from_payload);
         }
         if (preset.to_payload !== undefined) {
-            setByteGridString(item, "cando-trig-to", preset.to_payload);
+            setByteGridString(item, "can-do-trig-to", preset.to_payload);
         }
         if (preset.id) {
-            const idInput = item.querySelector(".cando-trig-id");
+            const idInput = item.querySelector(".can-do-trig-id");
             if (idInput) idInput.value = preset.id;
         }
         if (preset.click_count !== undefined) {
-            const cc = item.querySelector(".cando-trig-click-count");
+            const cc = item.querySelector(".can-do-trig-click-count");
             if (cc) cc.value = preset.click_count.toString();
         }
 
         // Check if preset has state options
-        const optionsBox = item.querySelector(".cando-trig-options-container");
+        const optionsBox = item.querySelector(".can-do-trig-options-container");
         if (preset.options && Array.isArray(preset.options) && preset.options.length > 0) {
-            const curTo = getByteGridString(item, "cando-trig-to");
-            const curFrom = getByteGridString(item, "cando-trig-from");
+            const curTo = getByteGridString(item, "can-do-trig-to");
+            const curFrom = getByteGridString(item, "can-do-trig-from");
             let activeOptIdx = -1;
             if (curTo || curFrom) {
                 activeOptIdx = preset.options.findIndex(o =>
@@ -3992,15 +3992,15 @@ function applyCandoTrigPreset(selectElem, notify = true) {
                 const gridClass = preset.options.length > 4 ? "grid-many" : "grid-few";
                 optionsBox.innerHTML = `
                 <div style="width: 100%;">
-                    <div class="cando-options-label">
+                    <div class="can-do-options-label">
                         <span>State Event:</span>
                     </div>
-                    <div class="cando-options-grid ${gridClass}">
+                    <div class="can-do-options-grid ${gridClass}">
                         ${preset.options.map((opt, i) => {
                     const isCur = (i === activeOptIdx);
                     return `
-                            <button type="button" class="cando-state-tile-btn cando-trig-opt-pill-btn ${isCur ? 'active' : ''}"
-                                onclick="applyCandoTrigOptionPill(this, '${pType}', ${pIdx}, ${i})">
+                            <button type="button" class="can-do-state-tile-btn can-do-trig-opt-pill-btn ${isCur ? 'active' : ''}"
+                                onclick="applyCanDoTrigOptionPill(this, '${pType}', ${pIdx}, ${i})">
                                 ${opt.label}
                             </button>
                             `;
@@ -4010,8 +4010,8 @@ function applyCandoTrigPreset(selectElem, notify = true) {
             }
             const activeOpt = preset.options[activeOptIdx];
             if (activeOpt) {
-                if (activeOpt.from_payload !== undefined) setByteGridString(item, "cando-trig-from", activeOpt.from_payload);
-                if (activeOpt.to_payload !== undefined) setByteGridString(item, "cando-trig-to", activeOpt.to_payload);
+                if (activeOpt.from_payload !== undefined) setByteGridString(item, "can-do-trig-from", activeOpt.from_payload);
+                if (activeOpt.to_payload !== undefined) setByteGridString(item, "can-do-trig-to", activeOpt.to_payload);
             }
         } else if (optionsBox) {
             optionsBox.style.display = "none";
@@ -4019,17 +4019,17 @@ function applyCandoTrigPreset(selectElem, notify = true) {
         }
 
         if (notify) showNotification("Applied trigger preset: " + preset.name, "blue", 2500);
-        const card = item.closest(".cando-rule-card");
+        const card = item.closest(".can-do-rule-card");
         if (card) {
-            updateCandoRuleTriggerDropdowns(card);
-            updateCandoRuleSummaryPill(card);
+            updateCanDoRuleTriggerDropdowns(card);
+            updateCanDoRuleSummaryPill(card);
         }
     }
     togglePresetToolbarButtons(item);
 }
 
-function applyCandoTrigOptionPill(btn, pType, pIdx, optIdx) {
-    const item = btn.closest(".cando-trigger-item");
+function applyCanDoTrigOptionPill(btn, pType, pIdx, optIdx) {
+    const item = btn.closest(".can-do-trigger-item");
     if (!item) return;
     const { builtIn, custom } = getFilteredTriggerPresets();
     const preset = (pType === "c") ? custom[pIdx] : builtIn[pIdx];
@@ -4037,35 +4037,35 @@ function applyCandoTrigOptionPill(btn, pType, pIdx, optIdx) {
     if (!opt) return;
 
     // Update active tile styling
-    const box = item.querySelector(".cando-trig-options-container");
+    const box = item.querySelector(".can-do-trig-options-container");
     if (box) {
-        box.querySelectorAll(".cando-trig-opt-pill-btn").forEach((b, i) => {
+        box.querySelectorAll(".can-do-trig-opt-pill-btn").forEach((b, i) => {
             b.classList.toggle("active", i === optIdx);
             b.removeAttribute("style");
         });
     }
 
     // Apply payloads to byte grids
-    if (opt.from_payload !== undefined) setByteGridString(item, "cando-trig-from", opt.from_payload);
-    if (opt.to_payload !== undefined) setByteGridString(item, "cando-trig-to", opt.to_payload);
+    if (opt.from_payload !== undefined) setByteGridString(item, "can-do-trig-from", opt.from_payload);
+    if (opt.to_payload !== undefined) setByteGridString(item, "can-do-trig-to", opt.to_payload);
 
     showNotification(`Selected ${preset.name}: ${opt.label}`, "blue", 2500);
-    const card = item.closest(".cando-rule-card");
+    const card = item.closest(".can-do-rule-card");
     if (card) {
-        updateCandoRuleTriggerDropdowns(card);
-        updateCandoRuleSummaryPill(card);
+        updateCanDoRuleTriggerDropdowns(card);
+        updateCanDoRuleSummaryPill(card);
     }
 }
 
 function togglePresetToolbarButtons(item) {
     if (!item) return;
-    const picker = item.querySelector(".cando-trig-preset-picker, .cando-cond-preset-picker, .cando-act-preset-picker");
+    const picker = item.querySelector(".can-do-trig-preset-picker, .can-do-cond-preset-picker, .can-do-act-preset-picker");
     if (!picker) return;
     const val = picker.value || "";
     const selOpt = picker.selectedOptions[0];
     const isCustom = val.startsWith("c_") || (selOpt && selOpt.parentElement && selOpt.parentElement.label && selOpt.parentElement.label.includes("Custom"));
-    const editBtn = item.querySelector(".cando-edit-preset-btn");
-    const delBtn = item.querySelector(".cando-del-preset-btn");
+    const editBtn = item.querySelector(".can-do-edit-preset-btn");
+    const delBtn = item.querySelector(".can-do-del-preset-btn");
 
     if (editBtn) {
         editBtn.style.display = "inline-flex";
@@ -4077,13 +4077,13 @@ function togglePresetToolbarButtons(item) {
     }
 }
 
-function toggleCandoItemDetails(btn) {
-    const item = btn.closest(".cando-action-item, .cando-trigger-item, .cando-condition-item");
+function toggleCanDoItemDetails(btn) {
+    const item = btn.closest(".can-do-action-item, .can-do-trigger-item, .can-do-condition-item");
     if (!item) return;
 
-    const isAction = item.classList.contains("cando-action-item");
-    const isTrigger = item.classList.contains("cando-trigger-item");
-    const isCondition = item.classList.contains("cando-condition-item");
+    const isAction = item.classList.contains("can-do-action-item");
+    const isTrigger = item.classList.contains("can-do-trigger-item");
+    const isCondition = item.classList.contains("can-do-condition-item");
 
     const isCurrentlyOpen = item.dataset.detailsOpen === "true";
     const newOpen = !isCurrentlyOpen;
@@ -4092,9 +4092,9 @@ function toggleCandoItemDetails(btn) {
     btn.innerHTML = newOpen ? "Hide Details" : "Edit Details";
 
     if (isAction) {
-        const actType = item.querySelector(".cando-act-type")?.value || "preset";
+        const actType = item.querySelector(".can-do-act-type")?.value || "preset";
         if (actType === "preset") {
-            const picker = item.querySelector(".cando-act-preset-picker");
+            const picker = item.querySelector(".can-do-act-preset-picker");
             const val = picker?.value || "";
             const parts = val.split(/[:_]/);
             const cats = getFilteredActionPresets();
@@ -4112,13 +4112,13 @@ function toggleCandoItemDetails(btn) {
             item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", !(showPopup || showGeneral)));
         }
     } else if (isTrigger) {
-        const trigSource = item.querySelector(".cando-trig-source")?.value || "preset";
+        const trigSource = item.querySelector(".can-do-trig-source")?.value || "preset";
         if (trigSource === "preset") {
             // Only show/hide the "detail" rows (Bus, byte grids) — not the CAN ID row
             item.querySelectorAll(".trig-preset-detail").forEach(el => el.classList.toggle("hidden", !newOpen));
         }
     } else if (isCondition) {
-        const condType = item.querySelector(".cando-cond-type")?.value || "preset";
+        const condType = item.querySelector(".can-do-cond-type")?.value || "preset";
         if (condType === "preset") {
             const presetType = item.dataset.presetType || "param_range";
             item.querySelectorAll(".cond-field-expr").forEach(el => el.classList.toggle("hidden", !(newOpen && presetType === "param_range")));
@@ -4131,9 +4131,9 @@ function toggleCandoItemDetails(btn) {
 }
 
 function updateCustomTrigPreset(btn) {
-    const item = btn.closest(".cando-trigger-item");
+    const item = btn.closest(".can-do-trigger-item");
     if (!item) return;
-    const picker = item.querySelector(".cando-trig-preset-picker");
+    const picker = item.querySelector(".can-do-trig-preset-picker");
     const val = picker?.value || "";
     const customList = getCustomTrigPresets();
 
@@ -4151,10 +4151,10 @@ function updateCustomTrigPreset(btn) {
     const name = prompt("Enter name to save/update custom trigger preset:", defaultName);
     if (!name || !name.trim()) return;
 
-    const canId = item.querySelector(".cando-trig-can-id")?.value.trim() || "0x448";
-    const bus = parseInt(item.querySelector(".cando-trig-bus")?.value || "0");
-    const toPayload = getByteGridString(item, "cando-trig-to");
-    const fromPayload = getByteGridString(item, "cando-trig-from");
+    const canId = item.querySelector(".can-do-trig-can-id")?.value.trim() || "0x448";
+    const bus = parseInt(item.querySelector(".can-do-trig-bus")?.value || "0");
+    const toPayload = getByteGridString(item, "can-do-trig-to");
+    const fromPayload = getByteGridString(item, "can-do-trig-from");
 
     const newPreset = {
         id: name.toLowerCase().replace(/[^a-z0-9_]/g, "_"),
@@ -4173,17 +4173,17 @@ function updateCustomTrigPreset(btn) {
     }
 
     localStorage.setItem("wican_custom_trig_presets", JSON.stringify(customList));
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
     picker.value = `c_${idx}`;
     togglePresetToolbarButtons(item);
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     showNotification("✓ Saved custom trigger preset: " + name, "green", 3000);
 }
 
 function deleteCustomTrigPreset(btn) {
-    const item = btn.closest(".cando-trigger-item");
+    const item = btn.closest(".can-do-trigger-item");
     if (!item) return;
-    const picker = item.querySelector(".cando-trig-preset-picker");
+    const picker = item.querySelector(".can-do-trig-preset-picker");
     const val = picker?.value || "";
     if (!val.startsWith("c_")) return;
     const idx = parseInt(val.replace("c_", ""));
@@ -4195,17 +4195,17 @@ function deleteCustomTrigPreset(btn) {
 
     customList.splice(idx, 1);
     localStorage.setItem("wican_custom_trig_presets", JSON.stringify(customList));
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
     picker.value = "";
     togglePresetToolbarButtons(item);
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     showNotification("Deleted custom trigger preset.", "blue", 3000);
 }
 
 function updateCustomCondPreset(btn) {
-    const item = btn.closest(".cando-condition-item");
+    const item = btn.closest(".can-do-condition-item");
     if (!item) return;
-    const picker = item.querySelector(".cando-cond-preset-picker");
+    const picker = item.querySelector(".can-do-cond-preset-picker");
     const val = picker?.value || "";
     const customList = getCustomCondPresets();
 
@@ -4230,24 +4230,24 @@ function updateCustomCondPreset(btn) {
     const name = prompt("Enter name to save/update custom condition preset:", defaultName);
     if (!name || !name.trim()) return;
 
-    const condType = item.querySelector(".cando-cond-type")?.value || "param_range";
+    const condType = item.querySelector(".can-do-cond-type")?.value || "param_range";
     const days = [];
-    item.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
+    item.querySelectorAll(".can-do-cond-day:checked").forEach(cb => days.push(cb.value));
 
     const presetObj = {
         id: "custom_" + name.toLowerCase().replace(/[^a-z0-9_]/g, "_") + "_" + Date.now().toString().slice(-4),
         name: name.trim(),
         category: "My Saved Conditions",
         type: condType === "preset" ? (item.dataset.presetType || "param_range") : condType,
-        invert: item.querySelector(".cando-cond-invert")?.checked || false,
-        expression: item.querySelector(".cando-cond-expr")?.value || "",
-        can_id: item.querySelector(".cando-cond-can-id")?.value || "",
-        match_payload: getByteGridString(item, "cando-cond-can"),
+        invert: item.querySelector(".can-do-cond-invert")?.checked || false,
+        expression: item.querySelector(".can-do-cond-expr")?.value || "",
+        can_id: item.querySelector(".can-do-cond-can-id")?.value || "",
+        match_payload: getByteGridString(item, "can-do-cond-can"),
         days: days,
-        start_time: item.querySelector(".cando-cond-start-time")?.value || "",
-        end_time: item.querySelector(".cando-cond-end-time")?.value || "",
-        voltage_val: item.querySelector(".cando-cond-voltage-val")?.value || "",
-        voltage_dir: item.querySelector(".cando-cond-voltage-dir")?.value || "above"
+        start_time: item.querySelector(".can-do-cond-start-time")?.value || "",
+        end_time: item.querySelector(".can-do-cond-end-time")?.value || "",
+        voltage_val: item.querySelector(".can-do-cond-voltage-val")?.value || "",
+        voltage_dir: item.querySelector(".can-do-cond-voltage-dir")?.value || "above"
     };
 
     if (customIdx >= 0 && customIdx < customList.length) {
@@ -4258,21 +4258,21 @@ function updateCustomCondPreset(btn) {
     }
 
     localStorage.setItem("wican_custom_cond_presets", JSON.stringify(customList));
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
     const newCats = getFilteredConditionPresets();
     const customCatIdx = newCats.findIndex(c => c.category.includes("Custom"));
     if (customCatIdx !== -1) {
         picker.value = `${customCatIdx}:${customIdx}`;
     }
     togglePresetToolbarButtons(item);
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     showNotification("✓ Saved custom condition preset: " + name, "green", 3000);
 }
 
 function deleteCustomCondPreset(btn) {
-    const item = btn.closest(".cando-condition-item");
+    const item = btn.closest(".can-do-condition-item");
     if (!item) return;
-    const picker = item.querySelector(".cando-cond-preset-picker");
+    const picker = item.querySelector(".can-do-cond-preset-picker");
     const val = picker?.value || "";
     if (!val) return;
     const parts = val.split(/[:_]/);
@@ -4290,17 +4290,17 @@ function deleteCustomCondPreset(btn) {
 
     customList.splice(pIdx, 1);
     localStorage.setItem("wican_custom_cond_presets", JSON.stringify(customList));
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
     picker.value = "";
     togglePresetToolbarButtons(item);
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     showNotification("Deleted custom condition preset.", "blue", 3000);
 }
 
 function updateCustomActPreset(btn) {
-    const item = btn.closest(".cando-action-item");
+    const item = btn.closest(".can-do-action-item");
     if (!item) return;
-    const picker = item.querySelector(".cando-act-preset-picker");
+    const picker = item.querySelector(".can-do-act-preset-picker");
     const val = picker?.value || "";
     const customList = getCustomActPresets();
 
@@ -4325,7 +4325,7 @@ function updateCustomActPreset(btn) {
     const name = prompt("Enter name to save/update custom action template:", defaultName);
     if (!name || !name.trim()) return;
 
-    const actData = extractCandoActionData(item);
+    const actData = extractCanDoActionData(item);
     actData.name = name.trim();
 
     if (customIdx >= 0 && customIdx < customList.length) {
@@ -4336,21 +4336,21 @@ function updateCustomActPreset(btn) {
     }
 
     localStorage.setItem("wican_custom_act_presets", JSON.stringify(customList));
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
     const newCats = getFilteredActionPresets();
     const customCatIdx = newCats.findIndex(c => c.category.includes("Custom"));
     if (customCatIdx !== -1) {
         picker.value = `${customCatIdx}:${customIdx}`;
     }
     togglePresetToolbarButtons(item);
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     showNotification("✓ Saved custom action template: " + name, "green", 3000);
 }
 
 function deleteCustomActPreset(btn) {
-    const item = btn.closest(".cando-action-item");
+    const item = btn.closest(".can-do-action-item");
     if (!item) return;
-    const picker = item.querySelector(".cando-act-preset-picker");
+    const picker = item.querySelector(".can-do-act-preset-picker");
     const val = picker?.value || "";
     if (!val) return;
     const parts = val.split(/[:_]/);
@@ -4368,22 +4368,22 @@ function deleteCustomActPreset(btn) {
 
     customList.splice(pIdx, 1);
     localStorage.setItem("wican_custom_act_presets", JSON.stringify(customList));
-    refreshAllCandoPresetDropdowns();
+    refreshAllCanDoPresetDropdowns();
     picker.value = "";
     togglePresetToolbarButtons(item);
-    if (typeof autoSaveCandoRules === "function") autoSaveCandoRules();
+    if (typeof autoSaveCanDoRules === "function") autoSaveCanDoRules();
     showNotification("Deleted custom action template.", "blue", 3000);
 }
 
-function testCandoTriggerUI(btn) {
-    const item = btn.closest(".cando-trigger-item");
+function testCanDoTriggerUI(btn) {
+    const item = btn.closest(".can-do-trigger-item");
     if (!item) return;
-    const source = item.querySelector(".cando-trig-source")?.value || "can_msg";
-    const canId = item.querySelector(".cando-trig-can-id")?.value.trim() || "0x448";
-    const bus = parseInt(item.querySelector(".cando-trig-bus")?.value || "0");
-    const toPayload = getByteGridString(item, "cando-trig-to");
-    const fromPayload = getByteGridString(item, "cando-trig-from");
-    const id = item.querySelector(".cando-trig-id")?.value.trim() || "";
+    const source = item.querySelector(".can-do-trig-source")?.value || "can_msg";
+    const canId = item.querySelector(".can-do-trig-can-id")?.value.trim() || "0x448";
+    const bus = parseInt(item.querySelector(".can-do-trig-bus")?.value || "0");
+    const toPayload = getByteGridString(item, "can-do-trig-to");
+    const fromPayload = getByteGridString(item, "can-do-trig-from");
+    const id = item.querySelector(".can-do-trig-id")?.value.trim() || "";
 
     const originalText = btn.textContent;
     btn.textContent = "Simulating...";
@@ -4398,13 +4398,13 @@ function testCandoTriggerUI(btn) {
         from_payload: fromPayload
     };
 
-    fetch("/simulate_cando_trigger", {
+    fetch("/simulate_can_do_trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(trigData)
     }).then(res => {
         if (!res.ok) {
-            return fetch("/test_cando_action", {
+            return fetch("/test_can_do_action", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -4440,16 +4440,16 @@ function testCandoTriggerUI(btn) {
     });
 }
 
-function testCandoConditionUI(btn) {
-    const item = btn.closest(".cando-condition-item");
+function testCanDoConditionUI(btn) {
+    const item = btn.closest(".can-do-condition-item");
     if (!item) return;
-    const condData = extractCandoConditionElement(item);
+    const condData = extractCanDoConditionElement(item);
     const originalText = btn.textContent;
     btn.textContent = "Testing...";
     btn.classList.add("btn-running");
     btn.disabled = true;
 
-    fetch("/test_cando_condition", {
+    fetch("/test_can_do_condition", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(condData)
@@ -4513,30 +4513,30 @@ function testCandoConditionUI(btn) {
     });
 }
 
-function refreshAllCandoPresetDropdowns() {
-    document.querySelectorAll(".cando-trig-preset-picker").forEach(picker => {
+function refreshAllCanDoPresetDropdowns() {
+    document.querySelectorAll(".can-do-trig-preset-picker").forEach(picker => {
         const curVal = picker.value;
         picker.innerHTML = renderTrigPresetOptionsHTML(curVal);
     });
-    document.querySelectorAll(".cando-act-preset-picker").forEach(picker => {
+    document.querySelectorAll(".can-do-act-preset-picker").forEach(picker => {
         const curVal = picker.value || picker.getAttribute("data-selected-preset") || "";
         picker.innerHTML = renderActPresetOptionsHTML(curVal);
     });
-    document.querySelectorAll(".cando-cond-preset-picker").forEach(picker => {
+    document.querySelectorAll(".can-do-cond-preset-picker").forEach(picker => {
         const curVal = picker.value || picker.getAttribute("data-selected-preset") || "";
         picker.innerHTML = renderCondPresetOptionsHTML(curVal);
     });
 }
 
 function saveCurrentTriggerAsPreset(btn) {
-    const item = btn.closest(".cando-trigger-item");
+    const item = btn.closest(".can-do-trigger-item");
     if (!item) return;
-    const canId = item.querySelector(".cando-trig-can-id")?.value.trim() || "0x448";
-    const bus = parseInt(item.querySelector(".cando-trig-bus")?.value || "0");
-    const toPayload = getByteGridString(item, "cando-trig-to");
-    const fromPayload = getByteGridString(item, "cando-trig-from");
+    const canId = item.querySelector(".can-do-trig-can-id")?.value.trim() || "0x448";
+    const bus = parseInt(item.querySelector(".can-do-trig-bus")?.value || "0");
+    const toPayload = getByteGridString(item, "can-do-trig-to");
+    const fromPayload = getByteGridString(item, "can-do-trig-from");
 
-    const defaultName = item.querySelector(".cando-trig-id")?.value.trim() || "Custom Button";
+    const defaultName = item.querySelector(".can-do-trig-id")?.value.trim() || "Custom Button";
     const name = prompt("Enter a name for this custom trigger preset:", defaultName);
     if (!name || !name.trim()) return;
 
@@ -4553,9 +4553,9 @@ function saveCurrentTriggerAsPreset(btn) {
 }
 
 function saveCurrentActionAsPreset(btn) {
-    const item = btn.closest(".cando-action-item");
+    const item = btn.closest(".can-do-action-item");
     if (!item) return;
-    const actData = extractCandoActionData(item);
+    const actData = extractCanDoActionData(item);
     const name = prompt("Enter a name for this custom action template:", "My Action Template");
     if (!name || !name.trim()) return;
 
@@ -4565,22 +4565,22 @@ function saveCurrentActionAsPreset(btn) {
     showNotification("Saved custom action template: " + name, "green", 3500);
 }
 
-function autoSaveCandoRules(notifyText, color = "green") {
+function autoSaveCanDoRules(notifyText, color = "green") {
     let rules = [];
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     cards.forEach(card => {
-        const ruleData = extractCandoRuleData(card);
+        const ruleData = extractCanDoRuleData(card);
         if (ruleData) rules.push(ruleData);
     });
-    if (rules.length === 0 && window._cachedCandoRules && window._cachedCandoRules.length > 0) {
-        rules = window._cachedCandoRules;
+    if (rules.length === 0 && window._cachedCanDoRules && window._cachedCanDoRules.length > 0) {
+        rules = window._cachedCanDoRules;
     }
 
-    fetch("/store_cando", {
+    fetch("/store_can_do", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            settings: getCandoDeviceSettings(),
+            settings: getCanDoDeviceSettings(),
             rules: rules
         })
     }).then(res => res.text()).then(msg => {
@@ -4592,13 +4592,13 @@ function autoSaveCandoRules(notifyText, color = "green") {
     });
 }
 
-function updateCandoRuleStatusToggle(cb) {
-    const card = cb.closest(".cando-rule-card");
-    const label = cb.closest(".cando-toggle-switch");
+function updateCanDoRuleStatusToggle(cb) {
+    const card = cb.closest(".can-do-rule-card");
+    const label = cb.closest(".can-do-toggle-switch");
     const isChecked = cb.checked;
 
     if (label) {
-        const track = label.querySelector(".cando-toggle-track");
+        const track = label.querySelector(".can-do-toggle-track");
         if (track) {
             track.classList.toggle("active", isChecked);
             track.classList.toggle("paused", !isChecked);
@@ -4607,25 +4607,25 @@ function updateCandoRuleStatusToggle(cb) {
     }
 
     if (card) {
-        const badge = card.querySelector(".cando-activity-badge");
+        const badge = card.querySelector(".can-do-activity-badge");
         if (badge) {
-            badge.className = "cando-activity-badge " + (isChecked ? "idle" : "paused");
+            badge.className = "can-do-activity-badge " + (isChecked ? "idle" : "paused");
             badge.textContent = isChecked ? "Idle" : "Paused";
             badge.title = isChecked ? "Live trigger activity" : "Automation paused";
         }
-        const nameVal = card.querySelector(".cando-name")?.value || "CAN Do";
-        autoSaveCandoRules(`"${nameVal}" is now ${isChecked ? 'Active' : 'Paused'}`, isChecked ? "green" : "blue");
+        const nameVal = card.querySelector(".can-do-name")?.value || "CAN Do";
+        autoSaveCanDoRules(`"${nameVal}" is now ${isChecked ? 'Active' : 'Paused'}`, isChecked ? "green" : "blue");
     }
 }
 
-function toggleCandoSection(headerElem) {
-    const sectionBox = headerElem.closest(".cando-section-box, .ha-form-card");
+function toggleCanDoSection(headerElem) {
+    const sectionBox = headerElem.closest(".can-do-section-box, .ha-form-card");
     if (!sectionBox) return;
 
     // Target items container or settings table / form grid
-    const itemsContainer = sectionBox.querySelector(".cando-triggers-container, .cando-conditions-container, .cando-actions-container, .cando-off-actions-container, .ha-form-grid, .compact-form-table");
-    const bannerSlot = sectionBox.querySelector(".cando-choose-banner-slot");
-    const chevron = sectionBox.querySelector(".cando-sec-chevron");
+    const itemsContainer = sectionBox.querySelector(".can-do-triggers-container, .can-do-conditions-container, .can-do-actions-container, .can-do-off-actions-container, .ha-form-grid, .compact-form-table");
+    const bannerSlot = sectionBox.querySelector(".can-do-choose-banner-slot");
+    const chevron = sectionBox.querySelector(".can-do-sec-chevron");
     if (!itemsContainer) return;
 
     const isHidden = itemsContainer.classList.contains("hidden") || itemsContainer.style.display === "none";
@@ -4636,7 +4636,7 @@ function toggleCandoSection(headerElem) {
         if (chevron) chevron.textContent = "▼";
     } else {
         // Check if section is empty (0 items) - already minimal size
-        const countBadge = sectionBox.querySelector(".cando-trig-count-badge, .cando-cond-count-badge, .cando-act-count-badge");
+        const countBadge = sectionBox.querySelector(".can-do-trig-count-badge, .can-do-cond-count-badge, .can-do-act-count-badge");
         if (countBadge && parseInt(countBadge.textContent || "0") === 0 && !sectionBox.classList.contains("ha-form-card")) {
             return;
         }
@@ -4647,44 +4647,44 @@ function toggleCandoSection(headerElem) {
     }
 }
 
-function toggleCandoExecModeUI(selectElem) {
-    const card = selectElem.closest(".cando-rule-card");
+function toggleCanDoExecModeUI(selectElem) {
+    const card = selectElem.closest(".can-do-rule-card");
     if (!card) return;
     const mode = selectElem.value;
     const isToggle = (mode === "toggle");
     const isOneShot = (mode === "one_shot");
     const isPollVerify = (mode === "poll_verify");
 
-    card.querySelectorAll(".cando-latch-row").forEach(row => {
+    card.querySelectorAll(".can-do-latch-row").forEach(row => {
         const show = isOneShot || isPollVerify;
         row.classList.toggle("hidden", !show);
         row.style.display = show ? "" : "none";
     });
-    card.querySelectorAll(".cando-verify-row").forEach(row => {
+    card.querySelectorAll(".can-do-verify-row").forEach(row => {
         const show = isPollVerify;
         row.classList.toggle("hidden", !show);
         row.style.display = show ? "" : "none";
     });
-    card.querySelectorAll(".cando-toggle-revert-row").forEach(row => {
+    card.querySelectorAll(".can-do-toggle-revert-row").forEach(row => {
         const show = isToggle;
         row.classList.toggle("hidden", !show);
         row.style.display = show ? "" : "none";
     });
-    card.querySelectorAll(".cando-off-actions-section").forEach(sec => {
+    card.querySelectorAll(".can-do-off-actions-section").forEach(sec => {
         sec.classList.toggle("hidden", !isToggle);
         sec.style.display = isToggle ? "" : "none";
     });
 
-    const onHeaderTitle = card.querySelector(".cando-on-actions-title");
+    const onHeaderTitle = card.querySelector(".can-do-on-actions-title");
     if (onHeaderTitle) {
         onHeaderTitle.textContent = isToggle ? "Actions (When Activated)" : "Actions";
     }
 }
 
-function toggleCandoExecModeDetails(btn) {
-    const card = btn.closest(".cando-rule-card");
+function toggleCanDoExecModeDetails(btn) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
-    const detailsWrap = card.querySelector(".cando-exec-mode-details-wrap");
+    const detailsWrap = card.querySelector(".can-do-exec-mode-details-wrap");
     if (!detailsWrap) return;
     const isHidden = detailsWrap.classList.contains("hidden") || detailsWrap.style.display === "none";
     if (isHidden) {
@@ -4698,12 +4698,12 @@ function toggleCandoExecModeDetails(btn) {
     }
 }
 
-function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false, isNew = false) {
-    const container = document.getElementById("cando_rules_container");
+function addCanDoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false, isNew = false) {
+    const container = document.getElementById("can_do_rules_container");
     if (!container) return;
 
     const ruleDiv = document.createElement("div");
-    ruleDiv.className = "pid-entry cando-rule-card";
+    ruleDiv.className = "pid-entry can-do-rule-card";
     ruleDiv.style.borderRadius = "var(--m3-shape-lg)";
     ruleDiv.style.padding = "1.35rem";
     ruleDiv.style.marginBottom = "1.5rem";
@@ -4715,47 +4715,47 @@ function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false,
     const isEnabled = ruleData.enabled !== false;
 
     // The template stamps out the frame with empty container slots:
-    // .cando-triggers-container, .cando-conditions-container, .cando-actions-container
+    // .can-do-triggers-container, .can-do-conditions-container, .can-do-actions-container
     ruleDiv.innerHTML = `
-    <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCandoHeaderClick(event, this)">
+    <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCanDoHeaderClick(event, this)">
         <div class="header-left" style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; margin-right: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="cando-activity-badge ${isEnabled ? 'idle' : 'paused'}" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; font-family: monospace; transition: all 0.3s; white-space: nowrap;">${isEnabled ? 'Idle' : 'Paused'}</span>
-                <div class="cando-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
-                    <input type="text" class="cando-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name" onclick="event.stopPropagation();">
+                <span class="can-do-activity-badge ${isEnabled ? 'idle' : 'paused'}" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; font-family: monospace; transition: all 0.3s; white-space: nowrap;">${isEnabled ? 'Idle' : 'Paused'}</span>
+                <div class="can-do-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
+                    <input type="text" class="can-do-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name" onclick="event.stopPropagation();">
                 </div>
             </div>
-            <div class="cando-summary-pill" style="margin-left: 2rem; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
+            <div class="can-do-summary-pill" style="margin-left: 2rem; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
         </div>
         <div class="header-right" style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
-            <label class="cando-toggle-switch" onclick="event.stopPropagation();">
-                <input type="checkbox" class="cando-rule-enabled" ${isEnabled ? "checked" : ""} onchange="updateCandoRuleStatusToggle(this)">
-                <span class="cando-toggle-track ${isEnabled ? 'active' : 'paused'}">
-                    <span class="cando-toggle-thumb"></span>
+            <label class="can-do-toggle-switch" onclick="event.stopPropagation();">
+                <input type="checkbox" class="can-do-rule-enabled" ${isEnabled ? "checked" : ""} onchange="updateCanDoRuleStatusToggle(this)">
+                <span class="can-do-toggle-track ${isEnabled ? 'active' : 'paused'}">
+                    <span class="can-do-toggle-thumb"></span>
                 </span>
             </label>
-            <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, -1);">▲</button>
-            <button type="button" class="system-button cando-btn-move" onclick="event.stopPropagation(); moveCandoRule(this, 1);">▼</button>
-            <button type="button" class="system-button cando-btn-more" onclick="showCandoRuleHeaderMenu(this, event);">⋮</button>
+            <button type="button" class="system-button can-do-btn-move" onclick="event.stopPropagation(); moveCanDoRule(this, -1);">▲</button>
+            <button type="button" class="system-button can-do-btn-move" onclick="event.stopPropagation(); moveCanDoRule(this, 1);">▼</button>
+            <button type="button" class="system-button can-do-btn-more" onclick="showCanDoRuleHeaderMenu(this, event);">⋮</button>
         </div>
     </div>
 
-    <div class="cando-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
+    <div class="can-do-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
         <div class="ha-form-card">
-            <div class="ha-form-card-header" onclick="toggleCandoSection(this)" style="cursor: pointer; user-select: none;">
+            <div class="ha-form-card-header" onclick="toggleCanDoSection(this)" style="cursor: pointer; user-select: none;">
                 <div class="ha-form-card-title">
-                    <span class="cando-sec-chevron">▼</span>
+                    <span class="can-do-sec-chevron">▼</span>
                     <span>Execution Mode &amp; Safeguards</span>
                 </div>
             </div>
-            <div class="cando-section-body">
+            <div class="can-do-section-body">
                 <div class="ha-form-grid">
                     <div class="ha-form-row">
                         <div class="ha-form-label-col">
                             <span class="ha-form-label">Execution Mode</span>
                         </div>
                         <div class="ha-form-control-col">
-                            <select class="ha-form-select cando-exec-mode" onchange="toggleCandoExecModeUI(this)">
+                            <select class="ha-form-select can-do-exec-mode" onchange="toggleCanDoExecModeUI(this)">
                                 <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>Edge-Triggered (On Change)</option>
                                 <option value="toggle" ${ruleData.exec_mode === "toggle" ? "selected" : ""}>Toggle</option>
                                 <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>One-Shot &amp; Latch</option>
@@ -4768,18 +4768,18 @@ function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false,
         </div>
 
         <!-- Triggers Section -->
-        <div class="cando-section-box trig-section">
-            <div class="cando-section-title-wrap" onclick="toggleCandoSection(this)">
-                <div class="cando-section-title">
-                    <span class="cando-sec-chevron">▼</span>
-                    <span class="cando-ha-pill trig-pill">When</span>
+        <div class="can-do-section-box trig-section">
+            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
+                <div class="can-do-section-title">
+                    <span class="can-do-sec-chevron">▼</span>
+                    <span class="can-do-ha-pill trig-pill">When</span>
                     <span>Triggers</span>
-                    <span class="cando-trig-count-badge">0</span>
+                    <span class="can-do-trig-count-badge">0</span>
                 </div>
             </div>
-            <div class="cando-section-body">
-                <div class="cando-triggers-container cando-tree-connect"></div>
-                <button type="button" class="ha-section-add-btn accent-trig" onclick="openAddAutomationElementDialog('trigger', this.closest('.cando-section-box').querySelector('.cando-triggers-container'), this.closest('.cando-rule-card'))">
+            <div class="can-do-section-body">
+                <div class="can-do-triggers-container can-do-tree-connect"></div>
+                <button type="button" class="ha-section-add-btn accent-trig" onclick="openAddAutomationElementDialog('trigger', this.closest('.can-do-section-box').querySelector('.can-do-triggers-container'), this.closest('.can-do-rule-card'))">
                     <svg><use href="#icon-plus"/></svg>
                     <span>Add Trigger</span>
                 </button>
@@ -4787,18 +4787,18 @@ function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false,
         </div>
 
         <!-- Conditions Section -->
-        <div class="cando-section-box cond-section">
-            <div class="cando-section-title-wrap" onclick="toggleCandoSection(this)">
-                <div class="cando-section-title">
-                    <span class="cando-sec-chevron">▼</span>
-                    <span class="cando-ha-pill cond-pill">And if</span>
+        <div class="can-do-section-box cond-section">
+            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
+                <div class="can-do-section-title">
+                    <span class="can-do-sec-chevron">▼</span>
+                    <span class="can-do-ha-pill cond-pill">And if</span>
                     <span>Conditions</span>
-                    <span class="cando-cond-count-badge">0</span>
+                    <span class="can-do-cond-count-badge">0</span>
                 </div>
             </div>
-            <div class="cando-section-body">
-                <div class="cando-conditions-container cando-tree-connect"></div>
-                <button type="button" class="ha-section-add-btn accent-cond" onclick="openAddAutomationElementDialog('condition', this.closest('.cando-section-box').querySelector('.cando-conditions-container'), this.closest('.cando-rule-card'))">
+            <div class="can-do-section-body">
+                <div class="can-do-conditions-container can-do-tree-connect"></div>
+                <button type="button" class="ha-section-add-btn accent-cond" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-section-box').querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
                     <svg><use href="#icon-plus"/></svg>
                     <span>Add Condition</span>
                 </button>
@@ -4806,18 +4806,18 @@ function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false,
         </div>
 
         <!-- Actions Section -->
-        <div class="cando-section-box act-section">
-            <div class="cando-section-title-wrap" onclick="toggleCandoSection(this)">
-                <div class="cando-section-title">
-                    <span class="cando-sec-chevron">▼</span>
-                    <span class="cando-ha-pill act-pill">Then do</span>
+        <div class="can-do-section-box act-section">
+            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
+                <div class="can-do-section-title">
+                    <span class="can-do-sec-chevron">▼</span>
+                    <span class="can-do-ha-pill act-pill">Then do</span>
                     <span>Actions</span>
-                    <span class="cando-act-count-badge">0</span>
+                    <span class="can-do-act-count-badge">0</span>
                 </div>
             </div>
-            <div class="cando-section-body">
-                <div class="cando-actions-container cando-tree-connect"></div>
-                <button type="button" class="ha-section-add-btn accent-act" onclick="openAddAutomationElementDialog('action', this.closest('.cando-section-box').querySelector('.cando-actions-container'), this.closest('.cando-rule-card'))">
+            <div class="can-do-section-body">
+                <div class="can-do-actions-container can-do-tree-connect"></div>
+                <button type="button" class="ha-section-add-btn accent-act" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-section-box').querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
                     <svg><use href="#icon-plus"/></svg>
                     <span>Add Action</span>
                 </button>
@@ -4833,20 +4833,20 @@ function addCandoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false,
     }
 
     // Default to EMPTY arrays instead of [{ source: "preset" }]
-    const trigContainer = ruleDiv.querySelector(".cando-triggers-container");
+    const trigContainer = ruleDiv.querySelector(".can-do-triggers-container");
     const triggers = ruleData.triggers || (ruleData.trigger ? [ruleData.trigger] : []);
-    triggers.forEach(trig => renderCandoTriggerItem(trigContainer, trig));
+    triggers.forEach(trig => renderCanDoTriggerItem(trigContainer, trig));
 
-    const condContainer = ruleDiv.querySelector(".cando-conditions-container");
+    const condContainer = ruleDiv.querySelector(".can-do-conditions-container");
     const conditions = ruleData.conditions || (ruleData.condition && ruleData.condition.type !== "none" ? [ruleData.condition] : []);
-    conditions.forEach(cond => renderCandoConditionItem(condContainer, cond));
+    conditions.forEach(cond => renderCanDoConditionItem(condContainer, cond));
 
-    const actContainer = ruleDiv.querySelector(".cando-actions-container");
+    const actContainer = ruleDiv.querySelector(".can-do-actions-container");
     const actions = ruleData.actions || (ruleData.action ? [ruleData.action] : []);
-    actions.forEach(act => renderCandoActionItem(actContainer, act));
+    actions.forEach(act => renderCanDoActionItem(actContainer, act));
 
-    updateCandoRuleTriggerDropdowns(ruleDiv);
-    updateCandoSectionCountBadges(ruleDiv);
+    updateCanDoRuleTriggerDropdowns(ruleDiv);
+    updateCanDoSectionCountBadges(ruleDiv);
 }
 
 // --- BYTE GRID HELPER FUNCTIONS (D1 - D8) ---
@@ -4881,8 +4881,8 @@ function setByteGridPreset(btn, prefixClass, fillVal) {
     const grid = btn.closest(`.${prefixClass}-grid`);
     if (grid) {
         grid.querySelectorAll(`.${prefixClass}-byte`).forEach(inp => inp.value = fillVal);
-        const card = btn.closest(".cando-rule-card");
-        if (card) updateCandoRuleSummaryPill(card);
+        const card = btn.closest(".can-do-rule-card");
+        if (card) updateCanDoRuleSummaryPill(card);
     }
 }
 
@@ -5047,11 +5047,11 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
 
     if (!targetContainer && ruleCard) {
         if (type === "trigger") {
-            targetContainer = ruleCard.querySelector(".cando-triggers-container");
+            targetContainer = ruleCard.querySelector(".can-do-triggers-container");
         } else if (type === "condition") {
-            targetContainer = ruleCard.querySelector(".cando-conditions-container");
+            targetContainer = ruleCard.querySelector(".can-do-conditions-container");
         } else if (type === "action") {
-            targetContainer = ruleCard.querySelector(".cando-actions-container");
+            targetContainer = ruleCard.querySelector(".can-do-actions-container");
         }
     }
 
@@ -5103,11 +5103,11 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     if (type === "trigger") {
         // Hardware & Standard Triggers
         allItems.push(
-            { id: "custom_can", name: "Custom CAN Message", desc: "Trigger on raw CAN ID and byte payload patterns", domain: "system_automation", subdomain: "network_integrations", icon: "broadcast", onSelect: () => renderCandoTriggerItem(targetContainer, { source: "can_msg" }) },
-            { id: "ha_mqtt", name: "Home Assistant / MQTT Event", desc: "Trigger via MQTT discovery topic or HA action command", domain: "system_automation", subdomain: "network_integrations", icon: "home-assistant", onSelect: () => renderCandoTriggerItem(targetContainer, { source: "ha_mqtt" }) },
-            { id: "clock_schedule", name: "Time / Clock Schedule", desc: "Fire at specific daily clock time (HH:MM:SS)", domain: "system_automation", subdomain: "schedule_time", icon: "clock", onSelect: () => renderCandoTriggerItem(targetContainer, { source: "clock" }) },
-            { id: "interval_timer", name: "Repeating Interval Timer", desc: "Fire repeatedly every X seconds while active", domain: "system_automation", subdomain: "schedule_time", icon: "timer", onSelect: () => renderCandoTriggerItem(targetContainer, { source: "interval" }) },
-            { id: "voltage_level", name: "Battery Voltage Level", desc: "Trigger when 12V aux battery crosses voltage threshold", domain: "energy_powertrain", subdomain: "aux_12v", icon: "battery-12v", onSelect: () => renderCandoTriggerItem(targetContainer, { source: "voltage" }) }
+            { id: "custom_can", name: "Custom CAN Message", desc: "Trigger on raw CAN ID and byte payload patterns", domain: "system_automation", subdomain: "network_integrations", icon: "broadcast", onSelect: () => renderCanDoTriggerItem(targetContainer, { source: "can_msg" }) },
+            { id: "ha_mqtt", name: "Home Assistant / MQTT Event", desc: "Trigger via MQTT discovery topic or HA action command", domain: "system_automation", subdomain: "network_integrations", icon: "home-assistant", onSelect: () => renderCanDoTriggerItem(targetContainer, { source: "ha_mqtt" }) },
+            { id: "clock_schedule", name: "Time / Clock Schedule", desc: "Fire at specific daily clock time (HH:MM:SS)", domain: "system_automation", subdomain: "schedule_time", icon: "clock", onSelect: () => renderCanDoTriggerItem(targetContainer, { source: "clock" }) },
+            { id: "interval_timer", name: "Repeating Interval Timer", desc: "Fire repeatedly every X seconds while active", domain: "system_automation", subdomain: "schedule_time", icon: "timer", onSelect: () => renderCanDoTriggerItem(targetContainer, { source: "interval" }) },
+            { id: "voltage_level", name: "Battery Voltage Level", desc: "Trigger when 12V aux battery crosses voltage threshold", domain: "energy_powertrain", subdomain: "aux_12v", icon: "battery-12v", onSelect: () => renderCanDoTriggerItem(targetContainer, { source: "voltage" }) }
         );
 
         const { builtIn, custom } = getFilteredTriggerPresets();
@@ -5122,7 +5122,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                 icon: "star",
                 options: p.options,
                 onSelect: (stateOpt) => {
-                    renderCandoTriggerItem(targetContainer, {
+                    renderCanDoTriggerItem(targetContainer, {
                         source: "preset",
                         id: p.id,
                         can_id: p.can_id,
@@ -5145,7 +5145,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                 icon: "",
                 options: p.options,
                 onSelect: (stateOpt) => {
-                    renderCandoTriggerItem(targetContainer, {
+                    renderCanDoTriggerItem(targetContainer, {
                         source: "preset",
                         id: p.id,
                         can_id: p.can_id,
@@ -5159,13 +5159,13 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     } else if (type === "condition") {
         // Logic & Comparison Blocks
         allItems.push(
-            { id: "logic_and", name: "AND Logic Block", desc: "Test multiple conditions; all must pass", domain: "system_automation", subdomain: "logic_flow", icon: "code-braces", onSelect: () => renderCandoConditionBlock(targetContainer, { group_type: "and" }) },
-            { id: "logic_or", name: "OR Logic Block", desc: "Test multiple conditions; at least one must pass", domain: "system_automation", subdomain: "logic_flow", icon: "code-braces", onSelect: () => renderCandoConditionBlock(targetContainer, { group_type: "or" }) },
-            { id: "logic_not", name: "NOT Logic Block", desc: "Invert condition outcome; inner condition must fail", domain: "system_automation", subdomain: "logic_flow", icon: "code-braces", onSelect: () => renderCandoConditionBlock(targetContainer, { group_type: "not" }) },
-            { id: "param_compare", name: "Parameter / State Comparison", desc: "Compare vehicle speed, temperatures, battery SOC, or gears", domain: "energy_powertrain", subdomain: "drivetrain_dynamics", icon: "compare", onSelect: () => renderCandoConditionItem(targetContainer, { type: "param_range" }) },
-            { id: "can_state", name: "Exact CAN Payload Match", desc: "Verify live bus state payload against expected pattern", domain: "system_automation", subdomain: "network_integrations", icon: "broadcast", onSelect: () => renderCandoConditionItem(targetContainer, { type: "can_state" }) },
-            { id: "time_window", name: "Time Window / Schedule", desc: "Only allow execution during designated hours or weekdays", domain: "system_automation", subdomain: "schedule_time", icon: "calendar-clock", onSelect: () => renderCandoConditionItem(targetContainer, { type: "time_window" }) },
-            { id: "voltage_check", name: "12V Battery Voltage Check", desc: "Confirm vehicle 12V system is above or below threshold", domain: "energy_powertrain", subdomain: "aux_12v", icon: "battery-12v", onSelect: () => renderCandoConditionItem(targetContainer, { type: "voltage" }) }
+            { id: "logic_and", name: "AND Logic Block", desc: "Test multiple conditions; all must pass", domain: "system_automation", subdomain: "logic_flow", icon: "code-braces", onSelect: () => renderCanDoConditionBlock(targetContainer, { group_type: "and" }) },
+            { id: "logic_or", name: "OR Logic Block", desc: "Test multiple conditions; at least one must pass", domain: "system_automation", subdomain: "logic_flow", icon: "code-braces", onSelect: () => renderCanDoConditionBlock(targetContainer, { group_type: "or" }) },
+            { id: "logic_not", name: "NOT Logic Block", desc: "Invert condition outcome; inner condition must fail", domain: "system_automation", subdomain: "logic_flow", icon: "code-braces", onSelect: () => renderCanDoConditionBlock(targetContainer, { group_type: "not" }) },
+            { id: "param_compare", name: "Parameter / State Comparison", desc: "Compare vehicle speed, temperatures, battery SOC, or gears", domain: "energy_powertrain", subdomain: "drivetrain_dynamics", icon: "compare", onSelect: () => renderCanDoConditionItem(targetContainer, { type: "param_range" }) },
+            { id: "can_state", name: "Exact CAN Payload Match", desc: "Verify live bus state payload against expected pattern", domain: "system_automation", subdomain: "network_integrations", icon: "broadcast", onSelect: () => renderCanDoConditionItem(targetContainer, { type: "can_state" }) },
+            { id: "time_window", name: "Time Window / Schedule", desc: "Only allow execution during designated hours or weekdays", domain: "system_automation", subdomain: "schedule_time", icon: "calendar-clock", onSelect: () => renderCanDoConditionItem(targetContainer, { type: "time_window" }) },
+            { id: "voltage_check", name: "12V Battery Voltage Check", desc: "Confirm vehicle 12V system is above or below threshold", domain: "energy_powertrain", subdomain: "aux_12v", icon: "battery-12v", onSelect: () => renderCanDoConditionItem(targetContainer, { type: "voltage" }) }
         );
 
         const condCats = getFilteredConditionPresets();
@@ -5181,7 +5181,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                     icon: "",
                     options: p.options,
                     onSelect: (stateOpt) => {
-                        renderCandoConditionItem(targetContainer, {
+                        renderCanDoConditionItem(targetContainer, {
                             type: p.type || "preset",
                             expression: stateOpt ? (stateOpt.expression !== undefined ? stateOpt.expression : p.expression) : p.expression,
                             can_id: p.can_id,
@@ -5199,13 +5199,13 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     } else if (type === "action") {
         // Building Blocks & Flow Control
         allItems.push(
-            { id: "flow_ifthen", name: "If - Then - Else", desc: "Perform actions based on nested condition evaluation", domain: "system_automation", subdomain: "logic_flow", icon: "help", onSelect: () => renderCandoIfThenBlock(targetContainer, { type: "if_then" }) },
-            { id: "flow_choose", name: "Choose (Branching)", desc: "Multi-branch sequence executing the first matching condition", domain: "system_automation", subdomain: "logic_flow", icon: "share", onSelect: () => addCandoChooseBlockToContainer(targetContainer, ruleCard) },
-            { id: "act_can_tx", name: "Transmit CAN Sequence", desc: "Send one or more raw CAN frames with interval delays", domain: "system_automation", subdomain: "network_integrations", icon: "broadcast", onSelect: () => renderCandoActionItem(targetContainer, { type: "can_tx" }) },
-            { id: "act_delay", name: "Delay / Wait", desc: "Pause automation execution for a specified duration", domain: "system_automation", subdomain: "schedule_time", icon: "hourglass", onSelect: () => renderCandoActionItem(targetContainer, { type: "delay" }) },
-            { id: "act_popup", name: "Dashboard Popup (OSD)", desc: "Show alert message on the WiCAN Web UI or display", domain: "cabin_media", subdomain: "displays_feedback", icon: "message-alert", onSelect: () => renderCandoActionItem(targetContainer, { type: "popup" }) },
-            { id: "act_mqtt", name: "Publish MQTT Message", desc: "Send state update or event payload to MQTT broker", domain: "system_automation", subdomain: "network_integrations", icon: "home-assistant", onSelect: () => renderCandoActionItem(targetContainer, { type: "mqtt" }) },
-            { id: "act_webhook", name: "Trigger Webhook POST", desc: "Fire HTTP POST request to external URL or Home Assistant", domain: "system_automation", subdomain: "network_integrations", icon: "webhook", onSelect: () => renderCandoActionItem(targetContainer, { type: "webhook" }) }
+            { id: "flow_ifthen", name: "If - Then - Else", desc: "Perform actions based on nested condition evaluation", domain: "system_automation", subdomain: "logic_flow", icon: "help", onSelect: () => renderCanDoIfThenBlock(targetContainer, { type: "if_then" }) },
+            { id: "flow_choose", name: "Choose (Branching)", desc: "Multi-branch sequence executing the first matching condition", domain: "system_automation", subdomain: "logic_flow", icon: "share", onSelect: () => addCanDoChooseBlockToContainer(targetContainer, ruleCard) },
+            { id: "act_can_tx", name: "Transmit CAN Sequence", desc: "Send one or more raw CAN frames with interval delays", domain: "system_automation", subdomain: "network_integrations", icon: "broadcast", onSelect: () => renderCanDoActionItem(targetContainer, { type: "can_tx" }) },
+            { id: "act_delay", name: "Delay / Wait", desc: "Pause automation execution for a specified duration", domain: "system_automation", subdomain: "schedule_time", icon: "hourglass", onSelect: () => renderCanDoActionItem(targetContainer, { type: "delay" }) },
+            { id: "act_popup", name: "Dashboard Popup (OSD)", desc: "Show alert message on the WiCAN Web UI or display", domain: "cabin_media", subdomain: "displays_feedback", icon: "message-alert", onSelect: () => renderCanDoActionItem(targetContainer, { type: "popup" }) },
+            { id: "act_mqtt", name: "Publish MQTT Message", desc: "Send state update or event payload to MQTT broker", domain: "system_automation", subdomain: "network_integrations", icon: "home-assistant", onSelect: () => renderCanDoActionItem(targetContainer, { type: "mqtt" }) },
+            { id: "act_webhook", name: "Trigger Webhook POST", desc: "Fire HTTP POST request to external URL or Home Assistant", domain: "system_automation", subdomain: "network_integrations", icon: "webhook", onSelect: () => renderCanDoActionItem(targetContainer, { type: "webhook" }) }
         );
 
         const actCats = getFilteredActionPresets();
@@ -5221,24 +5221,24 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                     icon: "",
                     options: p.options,
                     onSelect: (stateOpt) => {
-                        renderCandoActionItem(targetContainer, { type: "preset" });
+                        renderCanDoActionItem(targetContainer, { type: "preset" });
                         const lastItem = targetContainer.lastElementChild;
                         if (lastItem) {
-                            const picker = lastItem.querySelector(".cando-act-preset-picker");
+                            const picker = lastItem.querySelector(".can-do-act-preset-picker");
                             if (picker) {
                                 picker.value = `${catIdx}:${pIdx}`;
                                 picker.setAttribute("data-selected-preset", `${catIdx}:${pIdx}`);
-                                applyCandoActionPreset(picker);
+                                applyCanDoActionPreset(picker);
                             }
                             if (stateOpt && stateOpt.payload) {
-                                const stepsContainer = lastItem.querySelector(".cando-payload-steps-container");
+                                const stepsContainer = lastItem.querySelector(".can-do-payload-steps-container");
                                 if (stepsContainer) {
                                     stepsContainer.innerHTML = "";
-                                    renderCandoPayloadStep(stepsContainer, { payload: stateOpt.payload, repeat: 3 });
-                                    renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 3 });
+                                    renderCanDoPayloadStep(stepsContainer, { payload: stateOpt.payload, repeat: 3 });
+                                    renderCanDoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 3 });
                                 }
                             }
-                            const titleSpan = lastItem.querySelector(".cando-subitem-title-act");
+                            const titleSpan = lastItem.querySelector(".can-do-subitem-title-act");
                             if (titleSpan && p.name) {
                                 titleSpan.textContent = p.name;
                             }
@@ -5258,7 +5258,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             <div class="ha-dialog-header">
                 <div class="ha-dialog-header-top">
                     <div class="ha-dialog-title-wrap">
-                        <span class="cando-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
+                        <span class="can-do-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
                         <h3 class="ha-dialog-title">${typeConfig.title}</h3>
                     </div>
                     <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.ha-add-element-dialog-overlay').remove();" title="Close dialog">✕</button>
@@ -5286,7 +5286,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     let currentDomain = null;
     let currentSubdomain = null;
 
-    function getCandoPresetIconName(item, defaultIcon) {
+    function getCanDoPresetIconName(item, defaultIcon) {
         if (item.icon && item.icon.trim()) {
             let ic = item.icon.trim();
             if (ic.startsWith('#icon-')) return ic.replace('#icon-', '');
@@ -5349,14 +5349,14 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
         breadcrumbs.innerHTML = crumbsHTML;
     }
 
-    window.navigateToStep = function(domainKey, subKey) {
+    window.navigateToStep = function (domainKey, subKey) {
         currentDomain = domainKey;
         currentSubdomain = subKey;
         searchInput.value = "";
         renderPicker();
     };
 
-    window.clearSearchAndGoRoot = function() {
+    window.clearSearchAndGoRoot = function () {
         searchInput.value = "";
         navigateToStep(null, null);
     };
@@ -5372,9 +5372,9 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                 const dDef = CANDO_DOMAIN_TAXONOMY[it.domain];
                 const subName = dDef?.subdomains[it.subdomain]?.name || "";
                 return (it.name && it.name.toLowerCase().includes(query)) ||
-                        (it.desc && it.desc.toLowerCase().includes(query)) ||
-                        (dDef && dDef.name.toLowerCase().includes(query)) ||
-                        subName.toLowerCase().includes(query);
+                    (it.desc && it.desc.toLowerCase().includes(query)) ||
+                    (dDef && dDef.name.toLowerCase().includes(query)) ||
+                    subName.toLowerCase().includes(query);
             });
 
             if (matched.length === 0) {
@@ -5483,7 +5483,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             card.style.flexDirection = "column";
             card.style.alignItems = "stretch";
 
-            const iconName = getCandoPresetIconName(item, typeConfig.defaultIcon);
+            const iconName = getCanDoPresetIconName(item, typeConfig.defaultIcon);
 
             let stateChipsHTML = "";
             if (item.options && Array.isArray(item.options) && item.options.length > 0) {
@@ -5539,10 +5539,10 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             scrollToNewBlockHelper(newElem, 80);
         }
         if (ruleCard) {
-            updateCandoRuleTriggerDropdowns(ruleCard);
-            updateCandoSectionCountBadges(ruleCard);
-            updateCandoItemConnectors(ruleCard);
-            updateCandoRuleSummaryPill(ruleCard);
+            updateCanDoRuleTriggerDropdowns(ruleCard);
+            updateCanDoSectionCountBadges(ruleCard);
+            updateCanDoItemConnectors(ruleCard);
+            updateCanDoRuleSummaryPill(ruleCard);
         }
     }
     window.handleTargetSelection = handleTargetSelection;
@@ -5565,94 +5565,94 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     setTimeout(() => searchInput.focus(), 60);
 }
 
-function addCandoTriggerItem(buttonElem) {
-    const card = buttonElem.closest(".cando-rule-card");
-    const container = card.querySelector(".cando-triggers-container");
+function addCanDoTriggerItem(buttonElem) {
+    const card = buttonElem.closest(".can-do-rule-card");
+    const container = card.querySelector(".can-do-triggers-container");
     if (container) {
         container.classList.remove("hidden");
         container.style.display = "";
     }
-    renderCandoTriggerItem(container, { source: "preset" });
+    renderCanDoTriggerItem(container, { source: "preset" });
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
-    updateCandoRuleTriggerDropdowns(card);
-    updateCandoSectionCountBadges(card);
+    updateCanDoRuleTriggerDropdowns(card);
+    updateCanDoSectionCountBadges(card);
 }
 
-function extractCandoTriggerData(item) {
-    const fromPayload = getByteGridString(item, "cando-trig-from");
-    const toPayload = getByteGridString(item, "cando-trig-to");
-    const forSec = parseFloat(item.querySelector(".cando-trig-for-sec")?.value || "0");
-    const picker = item.querySelector(".cando-trig-preset-picker");
+function extractCanDoTriggerData(item) {
+    const fromPayload = getByteGridString(item, "can-do-trig-from");
+    const toPayload = getByteGridString(item, "can-do-trig-to");
+    const forSec = parseFloat(item.querySelector(".can-do-trig-for-sec")?.value || "0");
+    const picker = item.querySelector(".can-do-trig-preset-picker");
     const selectedPresetVal = picker ? picker.getAttribute("data-selected-preset") || picker.value : "";
-    const currentId = item.querySelector(".cando-trig-id")?.value.trim() || "";
+    const currentId = item.querySelector(".can-do-trig-id")?.value.trim() || "";
 
     return {
         id: currentId,
-        source: item.querySelector(".cando-trig-source")?.value || "preset",
+        source: item.querySelector(".can-do-trig-source")?.value || "preset",
         preset_val: selectedPresetVal,
-        click_count: parseInt(item.querySelector(".cando-trig-click-count")?.value || "1"),
+        click_count: parseInt(item.querySelector(".can-do-trig-click-count")?.value || "1"),
         for_sec: forSec,
         for_ms: Math.round(forSec * 1000),
-        can_id: item.querySelector(".cando-trig-can-id")?.value || "",
+        can_id: item.querySelector(".can-do-trig-can-id")?.value || "",
         from_payload: fromPayload,
         to_payload: toPayload,
         match_payload: toPayload,
-        bus: parseInt(item.querySelector(".cando-trig-bus")?.value || "0"),
-        time: item.querySelector(".cando-trig-time")?.value || "",
-        interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
-        voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
-        voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
-        expression: item.querySelector(".cando-trig-expr")?.value || "",
-        mqtt_topic: item.querySelector(".cando-trig-mqtt-topic")?.value || "",
-        mqtt_payload: item.querySelector(".cando-trig-mqtt-payload")?.value || ""
+        bus: parseInt(item.querySelector(".can-do-trig-bus")?.value || "0"),
+        time: item.querySelector(".can-do-trig-time")?.value || "",
+        interval_sec: parseInt(item.querySelector(".can-do-trig-interval-sec")?.value || "10"),
+        voltage_val: item.querySelector(".can-do-trig-voltage-val")?.value || "",
+        voltage_dir: item.querySelector(".can-do-trig-voltage-dir")?.value || "below",
+        expression: item.querySelector(".can-do-trig-expr")?.value || "",
+        mqtt_topic: item.querySelector(".can-do-trig-mqtt-topic")?.value || "",
+        mqtt_payload: item.querySelector(".can-do-trig-mqtt-payload")?.value || ""
     };
 }
 
-function setCandoTriggerMode(btn, mode) {
-    const group = btn.closest(".cando-trig-mode-group");
+function setCanDoTriggerMode(btn, mode) {
+    const group = btn.closest(".can-do-trig-mode-group");
     if (!group) return;
-    group.querySelectorAll(".cando-trig-mode-btn").forEach(b => b.classList.remove("active"));
+    group.querySelectorAll(".can-do-trig-mode-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    const hidden = group.querySelector(".cando-trig-combine-mode");
+    const hidden = group.querySelector(".can-do-trig-combine-mode");
     if (hidden) hidden.value = mode;
-    const card = btn.closest(".cando-rule-card");
-    if (card) updateCandoRuleSummaryPill(card);
+    const card = btn.closest(".can-do-rule-card");
+    if (card) updateCanDoRuleSummaryPill(card);
 }
 
-function cloneCandoTriggerItem(btn) {
-    const trigItem = btn.classList?.contains("cando-trigger-item") ? btn : btn.closest(".cando-trigger-item");
+function cloneCanDoTriggerItem(btn) {
+    const trigItem = btn.classList?.contains("can-do-trigger-item") ? btn : btn.closest(".can-do-trigger-item");
     const container = trigItem.parentElement;
-    const card = trigItem.closest(".cando-rule-card");
-    const trigData = extractCandoTriggerData(trigItem);
+    const card = trigItem.closest(".can-do-rule-card");
+    const trigData = extractCanDoTriggerData(trigItem);
 
     // Append copy suffix to trigger ID if present
     if (trigData.id) {
         trigData.id = `${trigData.id}_copy`;
     }
 
-    renderCandoTriggerItem(container, trigData);
+    renderCanDoTriggerItem(container, trigData);
     const newTrig = container.lastElementChild;
     trigItem.after(newTrig);
     triggerItemAnimation(newTrig, "ha-item-duplicate");
     scrollToNewBlockHelper(newTrig, 80);
     if (card) {
-        updateCandoRuleTriggerDropdowns(card);
-        updateCandoSectionCountBadges(card);
+        updateCanDoRuleTriggerDropdowns(card);
+        updateCanDoSectionCountBadges(card);
     }
     showNotification("Trigger duplicated!", "green", 1800);
 }
 
-function renderCandoTriggerItem(container, data = {}) {
+function renderCanDoTriggerItem(container, data = {}) {
     const source = data.source || "preset";
     const itemDiv = document.createElement("div");
-    itemDiv.className = "cando-trigger-item";
+    itemDiv.className = "can-do-trigger-item";
     itemDiv.style.borderRadius = "var(--m3-shape-md)";
     itemDiv.style.padding = "0.9rem";
     itemDiv.style.boxShadow = "var(--shadow-sm)";
     itemDiv.addEventListener("click", () => {
-        if (!itemDiv.classList.contains("cando-subitem-collapsed")) {
-            selectCandoItem(itemDiv);
+        if (!itemDiv.classList.contains("can-do-subitem-collapsed")) {
+            selectCanDoItem(itemDiv);
         }
     });
 
@@ -5684,30 +5684,30 @@ function renderCandoTriggerItem(container, data = {}) {
     const toPayload = data.to_payload !== undefined ? data.to_payload : (data.match_payload !== undefined ? data.match_payload : (matchedPreset ? (matchedPreset.to_payload || "") : ""));
 
     itemDiv.innerHTML = `
-    <div class="cando-subitem-header trig-header" onclick="toggleCandoItemBody(this, event)" style="cursor: pointer;">
+    <div class="can-do-subitem-header trig-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="cando-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="cando-ha-pill trig-pill">
+            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+            <span class="can-do-ha-pill trig-pill">
                 <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-play"/></svg>
                 When
             </span>
-            <span class="cando-subitem-title-trig" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+            <span class="can-do-subitem-title-trig" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
                 ${matchedPreset ? (matchedPreset.name || "Preset Trigger") : "Trigger"}
             </span>
-            <span class="cando-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
-            <label class="cando-trig-id-container" style="font-size: 0.8rem; color: var(--m3-tonal-when-color); font-weight: 600; display: none; align-items: center; gap: 0.3rem;" onclick="event.stopPropagation();">
+            <span class="can-do-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
+            <label class="can-do-trig-id-container" style="font-size: 0.8rem; color: var(--m3-tonal-when-color); font-weight: 600; display: none; align-items: center; gap: 0.3rem;" onclick="event.stopPropagation();">
                 ID:
-                <input type="text" class="cando-trig-id" value="${data.id || (matchedPreset ? matchedPreset.id : "") || ""}" placeholder="e.g. star_press" oninput="updateCandoRuleTriggerDropdowns(this.closest('.cando-rule-card')); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box;">
+                <input type="text" class="can-do-trig-id" value="${data.id || (matchedPreset ? matchedPreset.id : "") || ""}" placeholder="e.g. star_press" oninput="updateCanDoRuleTriggerDropdowns(this.closest('.can-do-rule-card')); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box;">
             </label>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-sim-trig" onclick="testCandoTriggerUI(this)" title="Simulate this trigger event">Simulate</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Trigger Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Trigger Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'trigger')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-sim-trig" onclick="testCanDoTriggerUI(this)" title="Simulate this trigger event">Simulate</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Trigger Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Trigger Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'trigger')" title="More options">⋮</button>
         </div>
     </div>
-    <div class="cando-subitem-body">
+    <div class="can-do-subitem-body">
         <div class="ha-form-grid" style="margin-top: 0.4rem;">
             <!-- Trigger Source -->
             <div class="ha-form-row">
@@ -5716,7 +5716,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Select how this trigger listens to vehicle CAN or timers.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-trig-source" onchange="toggleCandoTrigItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
+                    <select class="ha-form-select can-do-trig-source" onchange="toggleCanDoTrigItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
                         <option value="preset" ${source === "preset" || !data.source ? "selected" : ""}>CAN Do Catalog</option>
                         <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom CAN Message</option>
                         <option value="ha_mqtt" ${source === "ha_mqtt" || source === "mqtt_cmd" ? "selected" : ""}>Home Assistant / MQTT Command</option>
@@ -5735,17 +5735,17 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Preconfigured button presses and steering wheel triggers.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <div class="cando-preset-toolbar-wrap" style="width: 100%;">
-                        <select class="ha-form-select cando-trig-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCandoTrigPreset(this);" style="font-weight: 600;">
+                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
+                        <select class="ha-form-select can-do-trig-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoTrigPreset(this);" style="font-weight: 600;">
                             ${renderTrigPresetOptionsHTML(selectedPresetVal)}
                         </select>
-                        <div class="cando-preset-action-bar">
-                            <button type="button" class="system-button cando-edit-preset-btn" onclick="toggleCandoItemDetails(this)" title="Show or hide underlying CAN ID, bus, and payload details">Edit Details</button>
-                            <button type="button" class="system-button cando-save-preset-btn" onclick="saveCurrentTriggerAsPreset(this)" title="Save current CAN ID and payload pattern as a custom reusable entry">Save to My Catalog</button>
-                            <button type="button" class="delete-btn cando-del-preset-btn" onclick="deleteCustomTrigPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
+                        <div class="can-do-preset-action-bar">
+                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, bus, and payload details">Edit Details</button>
+                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentTriggerAsPreset(this)" title="Save current CAN ID and payload pattern as a custom reusable entry">Save to My Catalog</button>
+                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomTrigPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
                         </div>
                     </div>
-                    <div class="cando-trig-options-container" style="display: none; width: 100%;"></div>
+                    <div class="can-do-trig-options-container" style="display: none; width: 100%;"></div>
                 </div>
             </div>
 
@@ -5756,7 +5756,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Topic Home Assistant publishes to trigger this rule.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-trig-mqtt-topic" value="${data.mqtt_topic || "wican/cando/trigger"}" placeholder="wican/cando/trigger" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <input type="text" class="ha-form-input can-do-trig-mqtt-topic" value="${data.mqtt_topic || "wican/can_do/trigger"}" placeholder="wican/can_do/trigger" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                 </div>
             </div>
 
@@ -5767,7 +5767,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Match text payload (leave blank to fire on any payload).</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-trig-mqtt-payload" value="${data.mqtt_payload || ""}" placeholder="e.g. start_precon" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <input type="text" class="ha-form-input can-do-trig-mqtt-payload" value="${data.mqtt_payload || ""}" placeholder="e.g. start_precon" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                 </div>
             </div>
 
@@ -5778,7 +5778,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Arbitration ID to detect on the vehicle CAN network.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-trig-can-id" value="${canId}" placeholder="0x448" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <input type="text" class="ha-form-input can-do-trig-can-id" value="${canId}" placeholder="0x448" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                 </div>
             </div>
 
@@ -5789,7 +5789,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Select physical transceiver bus.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-trig-bus">
+                    <select class="ha-form-select can-do-trig-bus">
                         <option value="0" ${busVal === 0 ? "selected" : ""}>CAN 0 (Primary)</option>
                         <option value="1" ${busVal === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
                     </select>
@@ -5803,7 +5803,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Initial state bytes before transition (D1–D8).</span>
                 </div>
                 <div class="ha-form-control-col" style="align-items: flex-start;">
-                    ${renderByteInputsHTML("cando-trig-from", fromPayload)}
+                    ${renderByteInputsHTML("can-do-trig-from", fromPayload)}
                 </div>
             </div>
 
@@ -5814,7 +5814,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Target state bytes after transition (D1–D8).</span>
                 </div>
                 <div class="ha-form-control-col" style="align-items: flex-start;">
-                    ${renderByteInputsHTML("cando-trig-to", toPayload)}
+                    ${renderByteInputsHTML("can-do-trig-to", toPayload)}
                 </div>
             </div>
 
@@ -5825,7 +5825,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Exact wall clock time to execute automation.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-trig-time" value="${data.time || "08:00:00"}" placeholder="08:00:00">
+                    <input type="text" class="ha-form-input can-do-trig-time" value="${data.time || "08:00:00"}" placeholder="08:00:00">
                 </div>
             </div>
 
@@ -5836,7 +5836,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Period in seconds between repeated executions.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="number" class="ha-form-input cando-trig-interval-sec" value="${data.interval_sec || 10}" min="1" max="86400">
+                    <input type="number" class="ha-form-input can-do-trig-interval-sec" value="${data.interval_sec || 10}" min="1" max="86400">
                 </div>
             </div>
 
@@ -5847,7 +5847,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Threshold in Volts (e.g. 12.2V low battery cut-off).</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-trig-voltage-val" value="${data.voltage_val || "12.2"}" placeholder="12.2">
+                    <input type="text" class="ha-form-input can-do-trig-voltage-val" value="${data.voltage_val || "12.2"}" placeholder="12.2">
                 </div>
             </div>
 
@@ -5858,7 +5858,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Triggers when 12V supply crosses threshold.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-trig-voltage-dir">
+                    <select class="ha-form-select can-do-trig-voltage-dir">
                         <option value="below" ${data.voltage_dir === "below" || !data.voltage_dir ? "selected" : ""}>Voltage Drops Below (&lt;)</option>
                         <option value="above" ${data.voltage_dir === "above" ? "selected" : ""}>Voltage Rises Above (&gt;)</option>
                     </select>
@@ -5872,7 +5872,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Live math expression or slice (e.g. [B0:B1]).</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-trig-expr" value="${data.expression || "[B0:B1]"}" placeholder="[B0:B1]">
+                    <input type="text" class="ha-form-input can-do-trig-expr" value="${data.expression || "[B0:B1]"}" placeholder="[B0:B1]">
                 </div>
             </div>
 
@@ -5884,7 +5884,7 @@ function renderCandoTriggerItem(container, data = {}) {
                 </div>
                 <div class="ha-form-control-col">
                     <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                        <input type="number" class="ha-form-input cando-trig-for-sec" value="${data.for_sec !== undefined ? data.for_sec : (data.for_ms ? (data.for_ms / 1000) : 0)}" min="0" max="86400" step="0.5" style="max-width: 100px;" placeholder="0" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                        <input type="number" class="ha-form-input can-do-trig-for-sec" value="${data.for_sec !== undefined ? data.for_sec : (data.for_ms ? (data.for_ms / 1000) : 0)}" min="0" max="86400" step="0.5" style="max-width: 100px;" placeholder="0" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                         <span style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem;">seconds</span>
                     </div>
                 </div>
@@ -5897,7 +5897,7 @@ function renderCandoTriggerItem(container, data = {}) {
                     <span class="ha-form-sublabel">Detect single, double, or triple clicks within 450ms.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-trig-click-count" onchange="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <select class="ha-form-select can-do-trig-click-count" onchange="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                         <option value="1" ${(!data.click_count || data.click_count == 1) ? "selected" : ""}>Single Press (Default)</option>
                         <option value="2" ${data.click_count == 2 ? "selected" : ""}>Double Press</option>
                         <option value="3" ${data.click_count == 3 ? "selected" : ""}>Triple Press</option>
@@ -5912,15 +5912,15 @@ function renderCandoTriggerItem(container, data = {}) {
     if (source === "preset" || !data.source) {
         // Hide the detail rows (bus, byte grids) by default in preset mode
         itemDiv.querySelectorAll(".trig-preset-detail").forEach(el => el.classList.add("hidden"));
-        const picker = itemDiv.querySelector(".cando-trig-preset-picker");
+        const picker = itemDiv.querySelector(".can-do-trig-preset-picker");
         if (picker && picker.value) {
-            applyCandoTrigPreset(picker, false);
+            applyCanDoTrigPreset(picker, false);
         }
     }
 }
 
-function toggleCandoTrigItemUI(selectElem) {
-    const item = selectElem.closest(".cando-trigger-item");
+function toggleCanDoTrigItemUI(selectElem) {
+    const item = selectElem.closest(".can-do-trigger-item");
     const val = selectElem.value;
     item.querySelectorAll(".trig-field-preset").forEach(el => el.classList.toggle("hidden", val !== "preset"));
     item.querySelectorAll(".trig-field-mqtt").forEach(el => el.classList.toggle("hidden", val !== "ha_mqtt" && val !== "mqtt_cmd"));
@@ -5932,69 +5932,69 @@ function toggleCandoTrigItemUI(selectElem) {
     item.querySelectorAll(".trig-field-for").forEach(el => el.classList.toggle("hidden", val === "clock" || val === "interval"));
     item.querySelectorAll(".trig-field-press-pattern").forEach(el => el.classList.toggle("hidden", val === "clock" || val === "interval" || val === "voltage"));
     if (val === "preset") {
-        const picker = item.querySelector(".cando-trig-preset-picker");
+        const picker = item.querySelector(".can-do-trig-preset-picker");
         if (picker && picker.value !== "") {
-            applyCandoTrigPreset(picker);
+            applyCanDoTrigPreset(picker);
         }
     }
 }
 
 // --- CONDITION SUB-ITEMS ---
-function addCandoConditionItem(buttonElem) {
-    const card = buttonElem.closest(".cando-rule-card");
-    const container = card.querySelector(".cando-conditions-container");
+function addCanDoConditionItem(buttonElem) {
+    const card = buttonElem.closest(".can-do-rule-card");
+    const container = card.querySelector(".can-do-conditions-container");
     if (container) {
         container.classList.remove("hidden");
         container.style.display = "";
     }
-    renderCandoConditionItem(container, { type: "preset" });
+    renderCanDoConditionItem(container, { type: "preset" });
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
-    updateCandoSectionCountBadges(card);
+    updateCanDoSectionCountBadges(card);
 }
 
-function cloneCandoConditionItem(btn) {
-    const condItem = btn.classList?.contains("cando-condition-item") ? btn : btn.closest(".cando-condition-item");
+function cloneCanDoConditionItem(btn) {
+    const condItem = btn.classList?.contains("can-do-condition-item") ? btn : btn.closest(".can-do-condition-item");
     const container = condItem.parentElement;
-    const card = condItem.closest(".cando-rule-card");
-    const condData = extractCandoConditionElement(condItem);
+    const card = condItem.closest(".can-do-rule-card");
+    const condData = extractCanDoConditionElement(condItem);
 
-    renderCandoConditionItem(container, condData);
+    renderCanDoConditionItem(container, condData);
     const newCond = container.lastElementChild;
     condItem.after(newCond);
     triggerItemAnimation(newCond, "ha-item-duplicate");
     scrollToNewBlockHelper(newCond, 80);
-    if (card) updateCandoSectionCountBadges(card);
+    if (card) updateCanDoSectionCountBadges(card);
     showNotification("Condition duplicated!", "green", 1800);
 }
 
-function cloneCandoConditionBlock(btn) {
-    const blockItem = (btn.classList?.contains("cando-condition-group") || btn.classList?.contains("cando-condition-block")) ? btn : btn.closest(".cando-condition-group, .cando-condition-block");
+function cloneCanDoConditionBlock(btn) {
+    const blockItem = (btn.classList?.contains("can-do-condition-group") || btn.classList?.contains("can-do-condition-block")) ? btn : btn.closest(".can-do-condition-group, .can-do-condition-block");
     const container = blockItem.parentElement;
-    const card = blockItem.closest(".cando-rule-card");
-    const blockData = extractCandoConditionElement(blockItem);
+    const card = blockItem.closest(".can-do-rule-card");
+    const blockData = extractCanDoConditionElement(blockItem);
 
-    renderCandoConditionBlock(container, blockData);
+    renderCanDoConditionBlock(container, blockData);
     const newBlock = container.lastElementChild;
     blockItem.after(newBlock);
     triggerItemAnimation(newBlock, "ha-item-duplicate");
     scrollToNewBlockHelper(newBlock, 80);
-    if (card) updateCandoSectionCountBadges(card);
+    if (card) updateCanDoSectionCountBadges(card);
     showNotification("Condition block duplicated!", "green", 1800);
 }
 
-function renderCandoConditionItem(container, data = {}) {
+function renderCanDoConditionItem(container, data = {}) {
     const type = data.type || "preset";
     const isInverted = data.invert === true || data.invert === "true";
     const days = data.days || ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
     const itemDiv = document.createElement("div");
-    itemDiv.className = "cando-condition-item";
+    itemDiv.className = "can-do-condition-item";
     itemDiv.style.borderRadius = "var(--m3-shape-md)";
     itemDiv.style.padding = "0.9rem";
     itemDiv.style.boxShadow = "var(--shadow-sm)";
     itemDiv.addEventListener("click", () => {
-        if (!itemDiv.classList.contains("cando-subitem-collapsed")) {
-            selectCandoItem(itemDiv);
+        if (!itemDiv.classList.contains("can-do-subitem-collapsed")) {
+            selectCanDoItem(itemDiv);
         }
     });
 
@@ -6031,29 +6031,29 @@ function renderCandoConditionItem(container, data = {}) {
     const matchPayload = data.match_payload || (matchedPreset ? (matchedPreset.match_payload || "") : "");
 
     itemDiv.innerHTML = `
-    <div class="cando-subitem-header cond-header" onclick="toggleCandoItemBody(this, event)" style="cursor: pointer;">
+    <div class="can-do-subitem-header cond-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="cando-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="cando-ha-pill cond-pill">
+            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+            <span class="can-do-ha-pill cond-pill">
                 <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-settings"/></svg>
                 And if
             </span>
-            <span class="cando-subitem-title-cond" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+            <span class="can-do-subitem-title-cond" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
                 ${matchedPreset ? (matchedPreset.name || "Preset Condition") : "Condition"}
             </span>
             <label style="font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem;" onclick="event.stopPropagation();">
-                <input type="checkbox" class="cando-cond-invert" ${isInverted ? "checked" : ""} onchange="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                <input type="checkbox" class="can-do-cond-invert" ${isInverted ? "checked" : ""} onchange="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                 <span style="font-weight: 600;">Invert (NOT)</span>
             </label>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-test-cond" onclick="testCandoConditionUI(this)" title="Test this condition live">Test</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Condition Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Condition Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'condition')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-test-cond" onclick="testCanDoConditionUI(this)" title="Test this condition live">Test</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Condition Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Condition Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'condition')" title="More options">⋮</button>
         </div>
     </div>
-    <div class="cando-subitem-body">
+    <div class="can-do-subitem-body">
         <div class="ha-form-grid" style="margin-top: 0.4rem;">
             <!-- Condition Type -->
             <div class="ha-form-row">
@@ -6062,7 +6062,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Criteria that must be met before actions run.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-cond-type" onchange="toggleCandoCondItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
+                    <select class="ha-form-select can-do-cond-type" onchange="toggleCanDoCondItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
                         <option value="preset" ${type === "preset" || !data.type ? "selected" : ""}>CAN Do Catalog</option>
                         <option value="param_range" ${type === "param_range" ? "selected" : ""}>Parameter / State Comparison</option>
                         <option value="can_state" ${type === "can_state" ? "selected" : ""}>Exact CAN Payload Match</option>
@@ -6080,17 +6080,17 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Preconfigured vehicle state conditions (e.g. Park, Doors, Speed).</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <div class="cando-preset-toolbar-wrap" style="width: 100%;">
-                        <select class="ha-form-select cando-cond-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCandoCondPreset(this);" style="font-weight: 600;">
+                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
+                        <select class="ha-form-select can-do-cond-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoCondPreset(this);" style="font-weight: 600;">
                             ${renderCondPresetOptionsHTML(selectedPresetVal)}
                         </select>
-                        <div class="cando-preset-action-bar">
-                            <button type="button" class="system-button cando-edit-preset-btn" onclick="toggleCandoItemDetails(this)" title="Show or hide underlying CAN ID, expression, or payload details">Edit Details</button>
-                            <button type="button" class="system-button cando-save-preset-btn" onclick="saveCurrentConditionAsPreset(this)" title="Save current condition settings as a custom reusable entry">Save to My Catalog</button>
-                            <button type="button" class="delete-btn cando-del-preset-btn" onclick="deleteCustomCondPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
+                        <div class="can-do-preset-action-bar">
+                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, expression, or payload details">Edit Details</button>
+                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentConditionAsPreset(this)" title="Save current condition settings as a custom reusable entry">Save to My Catalog</button>
+                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomCondPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
                         </div>
                     </div>
-                    <div class="cando-cond-options-container" style="display: none; width: 100%; margin-top: 6px; padding: 6px 10px; background: var(--m3-tonal-cond-bg); border: 1px solid var(--m3-tonal-cond-border); border-radius: 6px;"></div>
+                    <div class="can-do-cond-options-container" style="display: none; width: 100%; margin-top: 6px; padding: 6px 10px; background: var(--m3-tonal-cond-bg); border: 1px solid var(--m3-tonal-cond-border); border-radius: 6px;"></div>
                 </div>
             </div>
 
@@ -6101,7 +6101,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">e.g. [B0] == 0x01 or [B0:B1] &gt; 50</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-cond-expr" value="${data.expression || "[B0] == 0x01"}" placeholder="[B0] == 0x01 or [B0:B1] &gt; 50" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <input type="text" class="ha-form-input can-do-cond-expr" value="${data.expression || "[B0] == 0x01"}" placeholder="[B0] == 0x01 or [B0:B1] &gt; 50" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                 </div>
             </div>
 
@@ -6112,7 +6112,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Arbitration ID to match against vehicle network.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-cond-can-id" value="${canId}" placeholder="0x448">
+                    <input type="text" class="ha-form-input can-do-cond-can-id" value="${canId}" placeholder="0x448">
                 </div>
             </div>
 
@@ -6123,7 +6123,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Enter exact hex or wildcard * for any nibble/byte.</span>
                 </div>
                 <div class="ha-form-control-col" style="align-items: flex-start;">
-                    ${renderByteInputsHTML("cando-cond-can", matchPayload)}
+                    ${renderByteInputsHTML("can-do-cond-can", matchPayload)}
                 </div>
             </div>
 
@@ -6137,7 +6137,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <div class="ha-days-picker">
                         ${["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(d => `
                             <label class="ha-day-checkbox ${days.includes(d) ? 'active' : ''}">
-                                <input type="checkbox" class="cando-cond-day" value="${d}" ${days.includes(d) ? "checked" : ""} onchange="this.parentElement.classList.toggle('active', this.checked);">
+                                <input type="checkbox" class="can-do-cond-day" value="${d}" ${days.includes(d) ? "checked" : ""} onchange="this.parentElement.classList.toggle('active', this.checked);">
                                 ${d}
                             </label>
                         `).join("")}
@@ -6152,7 +6152,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Beginning of allowed execution window.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-cond-start-time" value="${data.start_time || "07:00"}" placeholder="07:00">
+                    <input type="text" class="ha-form-input can-do-cond-start-time" value="${data.start_time || "07:00"}" placeholder="07:00">
                 </div>
             </div>
 
@@ -6163,7 +6163,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">End of allowed execution window.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-cond-end-time" value="${data.end_time || "18:00"}" placeholder="18:00">
+                    <input type="text" class="ha-form-input can-do-cond-end-time" value="${data.end_time || "18:00"}" placeholder="18:00">
                 </div>
             </div>
 
@@ -6174,7 +6174,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Battery voltage check in Volts (e.g. 12.0V).</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-cond-voltage-val" value="${data.voltage_val || "12.0"}" placeholder="12.0">
+                    <input type="text" class="ha-form-input can-do-cond-voltage-val" value="${data.voltage_val || "12.0"}" placeholder="12.0">
                 </div>
             </div>
 
@@ -6185,7 +6185,7 @@ function renderCandoConditionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Check if vehicle battery is above or below threshold.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-cond-voltage-dir">
+                    <select class="ha-form-select can-do-cond-voltage-dir">
                         <option value="above" ${data.voltage_dir === "above" || !data.voltage_dir ? "selected" : ""}>Voltage &gt; Threshold (Sufficient Battery)</option>
                         <option value="below" ${data.voltage_dir === "below" ? "selected" : ""}>Voltage &lt; Threshold (Low Battery)</option>
                     </select>
@@ -6196,15 +6196,15 @@ function renderCandoConditionItem(container, data = {}) {
 `;
     container.appendChild(itemDiv);
     if (type === "preset" || !data.type) {
-        const picker = itemDiv.querySelector(".cando-cond-preset-picker");
+        const picker = itemDiv.querySelector(".can-do-cond-preset-picker");
         if (picker && picker.value) {
-            applyCandoCondPreset(picker, false);
+            applyCanDoCondPreset(picker, false);
         }
     }
 }
 
-function toggleCandoCondItemUI(selectElem) {
-    const item = selectElem.closest(".cando-condition-item");
+function toggleCanDoCondItemUI(selectElem) {
+    const item = selectElem.closest(".can-do-condition-item");
     const val = selectElem.value;
     item.querySelectorAll(".cond-field-preset").forEach(el => el.classList.toggle("hidden", val !== "preset"));
     item.querySelectorAll(".cond-field-expr").forEach(el => el.classList.toggle("hidden", val !== "param_range"));
@@ -6213,49 +6213,49 @@ function toggleCandoCondItemUI(selectElem) {
     item.querySelectorAll(".cond-field-time").forEach(el => el.classList.toggle("hidden", val !== "time_window"));
     item.querySelectorAll(".cond-field-volt").forEach(el => el.classList.toggle("hidden", val !== "voltage"));
     if (val === "preset") {
-        const picker = item.querySelector(".cando-cond-preset-picker");
+        const picker = item.querySelector(".can-do-cond-preset-picker");
         if (picker && picker.value !== "") {
-            applyCandoCondPreset(picker);
+            applyCanDoCondPreset(picker);
         }
     }
 }
 
-function renderCandoConditionBlock(container, data = {}) {
+function renderCanDoConditionBlock(container, data = {}) {
     const groupType = (data.group_type || (data.type ? data.type.replace("_group", "") : "or")).toLowerCase();
     const isInverted = (data.invert === true || data.invert === "true");
 
     const groupDiv = document.createElement("div");
-    groupDiv.className = "cando-condition-group cando-condition-block";
+    groupDiv.className = "can-do-condition-group can-do-condition-block";
     groupDiv.dataset.groupType = groupType;
     groupDiv.style.borderRadius = "var(--m3-shape-md)";
     groupDiv.style.padding = "0.9rem";
     groupDiv.style.boxShadow = "var(--shadow-sm)";
     groupDiv.addEventListener("click", () => {
-        selectCandoItem(groupDiv);
+        selectCanDoItem(groupDiv);
     });
 
     groupDiv.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.6rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.4rem;">
         <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-            <select class="cando-group-type" onchange="changeCandoConditionBlockType(this)" style="height: 26px; font-weight: 700; font-size: 0.82rem; padding: 0 6px; border-radius: 4px; box-sizing: border-box; display: inline-flex; align-items: center;">
+            <select class="can-do-group-type" onchange="changeCanDoConditionBlockType(this)" style="height: 26px; font-weight: 700; font-size: 0.82rem; padding: 0 6px; border-radius: 4px; box-sizing: border-box; display: inline-flex; align-items: center;">
                 <option value="and" ${groupType === "and" ? "selected" : ""}>AND Block</option>
                 <option value="or" ${groupType === "or" ? "selected" : ""}>OR Block</option>
                 <option value="not" ${groupType === "not" ? "selected" : ""}>NOT Block</option>
             </select>
             <label style="font-size: 0.82rem; color: var(--text-heading); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
-                <input type="checkbox" class="cando-group-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
+                <input type="checkbox" class="can-do-group-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
                 <b>NOT</b> Invert
             </label>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Block Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Block Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'condition_group')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Block Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Block Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'condition_group')" title="More options">⋮</button>
         </div>
     </div>
-    <div class="cando-group-conditions-box" style="margin-top: 0.3rem;">
-        <div class="cando-group-conditions-container" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.6rem;"></div>
-        <button type="button" class="ha-add-element-btn cond subitem cando-group-add-btn" onclick="openAddAutomationElementDialog('condition', this.closest('.cando-section-box').querySelector('.cando-conditions-container'), this.closest('.cando-rule-card'))">
+    <div class="can-do-group-conditions-box" style="margin-top: 0.3rem;">
+        <div class="can-do-group-conditions-container" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.6rem;"></div>
+        <button type="button" class="ha-add-element-btn cond subitem can-do-group-add-btn" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-section-box').querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
             <svg><use href="#icon-plus"/></svg>
             <span>Add Condition to Block</span>
         </button>
@@ -6263,30 +6263,30 @@ function renderCandoConditionBlock(container, data = {}) {
 `;
     container.appendChild(groupDiv);
 
-    const innerContainer = groupDiv.querySelector(".cando-group-conditions-container");
+    const innerContainer = groupDiv.querySelector(".can-do-group-conditions-container");
     if (data.conditions && Array.isArray(data.conditions) && data.conditions.length > 0) {
         data.conditions.forEach(c => {
             if (c.type === "or_group" || c.type === "and_group" || c.type === "not_group" || c.group_type) {
-                renderCandoConditionBlock(innerContainer, c);
+                renderCanDoConditionBlock(innerContainer, c);
             } else {
-                renderCandoConditionItem(innerContainer, c);
+                renderCanDoConditionItem(innerContainer, c);
             }
         });
     } else {
-        renderCandoConditionItem(innerContainer, { type: "preset" });
+        renderCanDoConditionItem(innerContainer, { type: "preset" });
     }
 }
-const renderCandoConditionGroup = renderCandoConditionBlock;
+const renderCanDoConditionGroup = renderCanDoConditionBlock;
 
-function changeCandoConditionBlockType(selectElem) {
-    const groupDiv = selectElem.closest(".cando-condition-group");
+function changeCanDoConditionBlockType(selectElem) {
+    const groupDiv = selectElem.closest(".can-do-condition-group");
     if (!groupDiv) return;
     const groupType = selectElem.value;
     groupDiv.dataset.groupType = groupType;
-    const card = groupDiv.closest(".cando-rule-card");
-    if (card) updateCandoItemConnectors(card);
+    const card = groupDiv.closest(".can-do-rule-card");
+    if (card) updateCanDoItemConnectors(card);
 }
-const changeCandoConditionGroupType = changeCandoConditionBlockType;
+const changeCanDoConditionGroupType = changeCanDoConditionBlockType;
 
 function positionFloatingMenu(menu, targetBtn) {
     document.body.appendChild(menu);
@@ -6326,45 +6326,45 @@ function positionFloatingMenu(menu, targetBtn) {
 
 function showAddConditionMenu(btn, event) {
     if (event) event.stopPropagation();
-    document.querySelectorAll(".cando-floating-menu").forEach(m => m.remove());
+    document.querySelectorAll(".can-do-floating-menu").forEach(m => m.remove());
 
     const menu = document.createElement("div");
-    menu.className = "cando-floating-menu";
+    menu.className = "can-do-floating-menu";
     menu.style.borderRadius = "8px";
     menu.style.boxShadow = "0 10px 25px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.1)";
     menu.style.padding = "6px 0";
     menu.style.minWidth = "260px";
     menu.style.fontSize = "0.84rem";
 
-    const targetContainer = btn.closest(".cando-group-conditions-box")
-        ? btn.closest(".cando-group-conditions-box").querySelector(".cando-group-conditions-container")
-        : (btn.closest(".cando-condition-group")
-            ? btn.closest(".cando-condition-group").querySelector(".cando-group-conditions-container")
-            : (btn.closest(".cando-ifthen-block")
-                ? btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-conditions-container")
-                : btn.closest(".cando-section-box").querySelector(".cando-conditions-container")));
+    const targetContainer = btn.closest(".can-do-group-conditions-box")
+        ? btn.closest(".can-do-group-conditions-box").querySelector(".can-do-group-conditions-container")
+        : (btn.closest(".can-do-condition-group")
+            ? btn.closest(".can-do-condition-group").querySelector(".can-do-group-conditions-container")
+            : (btn.closest(".can-do-ifthen-block")
+                ? btn.closest(".can-do-ifthen-block").querySelector(".can-do-ifthen-conditions-container")
+                : btn.closest(".can-do-section-box").querySelector(".can-do-conditions-container")));
 
     if (targetContainer) {
         targetContainer.classList.remove("hidden");
         targetContainer.style.display = "";
     }
 
-    const card = btn.closest(".cando-rule-card");
+    const card = btn.closest(".can-do-rule-card");
     window._activeCondTargetContainer = targetContainer;
     window._activeCondCard = card;
 
     menu.innerHTML = `
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600;" onclick="renderCandoConditionItem(window._activeCondTargetContainer, { type: 'preset' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600;" onclick="renderCanDoConditionItem(window._activeCondTargetContainer, { type: 'preset' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>Single Condition</span>
     </div>
-    <div class="cando-ha-menu-divider"></div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="renderCandoConditionBlock(window._activeCondTargetContainer, { group_type: 'and' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-ha-menu-divider"></div>
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'and' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>AND Block</span>
     </div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="renderCandoConditionBlock(window._activeCondTargetContainer, { group_type: 'or' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'or' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>OR Block</span>
     </div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="renderCandoConditionBlock(window._activeCondTargetContainer, { group_type: 'not' }); updateCandoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'not' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>NOT Block</span>
     </div>
 `;
@@ -6382,13 +6382,13 @@ function showAddConditionMenu(btn, event) {
 
 function showCreateConditionBlockMenu(btn, event) {
     if (event) event.stopPropagation();
-    document.querySelectorAll(".cando-floating-menu").forEach(m => m.remove());
+    document.querySelectorAll(".can-do-floating-menu").forEach(m => m.remove());
 
-    const item = btn.closest(".cando-condition-item, .cando-condition-group, .cando-condition-block");
+    const item = btn.closest(".can-do-condition-item, .can-do-condition-group, .can-do-condition-block");
     if (!item) return;
 
     const menu = document.createElement("div");
-    menu.className = "cando-floating-menu";
+    menu.className = "can-do-floating-menu";
     menu.style.borderRadius = "8px";
     menu.style.boxShadow = "var(--shadow-lg)";
     menu.style.padding = "6px 0";
@@ -6396,15 +6396,15 @@ function showCreateConditionBlockMenu(btn, event) {
     menu.style.fontSize = "0.84rem";
 
     menu.innerHTML = `
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="wrapConditionInBlock(window._activeWrapItem, 'and'); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="wrapConditionInBlock(window._activeWrapItem, 'and'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>Create AND Block</span>
     </div>
-    <div class="cando-ha-menu-divider"></div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="wrapConditionInBlock(window._activeWrapItem, 'or'); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-ha-menu-divider"></div>
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="wrapConditionInBlock(window._activeWrapItem, 'or'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>Create OR Block</span>
     </div>
-    <div class="cando-ha-menu-divider"></div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="wrapConditionInBlock(window._activeWrapItem, 'not'); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-ha-menu-divider"></div>
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="wrapConditionInBlock(window._activeWrapItem, 'not'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>Create NOT Block</span>
     </div>
 `;
@@ -6424,46 +6424,46 @@ const showWrapConditionMenu = showCreateConditionBlockMenu;
 
 function showAddActionMenu(btn, event) {
     if (event) event.stopPropagation();
-    document.querySelectorAll(".cando-floating-menu").forEach(m => m.remove());
+    document.querySelectorAll(".can-do-floating-menu").forEach(m => m.remove());
 
     const menu = document.createElement("div");
-    menu.className = "cando-floating-menu";
+    menu.className = "can-do-floating-menu";
     menu.style.borderRadius = "8px";
     menu.style.boxShadow = "0 10px 25px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.1)";
     menu.style.padding = "6px 0";
     menu.style.minWidth = "260px";
     menu.style.fontSize = "0.84rem";
 
-    const targetContainer = btn.closest(".cando-opt-actions-box")
-        ? btn.closest(".cando-opt-actions-box").querySelector(".cando-opt-actions-container")
-        : (btn.closest(".cando-choose-option-item")
-            ? btn.closest(".cando-choose-option-item").querySelector(".cando-opt-actions-container")
-            : (btn.closest(".cando-ifthen-block")
+    const targetContainer = btn.closest(".can-do-opt-actions-box")
+        ? btn.closest(".can-do-opt-actions-box").querySelector(".can-do-opt-actions-container")
+        : (btn.closest(".can-do-choose-option-item")
+            ? btn.closest(".can-do-choose-option-item").querySelector(".can-do-opt-actions-container")
+            : (btn.closest(".can-do-ifthen-block")
                 ? (btn.dataset.branch === "else"
-                    ? btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-else-container")
-                    : btn.closest(".cando-ifthen-block").querySelector(".cando-ifthen-then-container"))
-                : (btn.closest(".cando-off-actions-section")
-                    ? btn.closest(".cando-off-actions-section").querySelector(".cando-off-actions-container")
-                    : btn.closest(".cando-section-box").querySelector(".cando-actions-container"))));
+                    ? btn.closest(".can-do-ifthen-block").querySelector(".can-do-ifthen-else-container")
+                    : btn.closest(".can-do-ifthen-block").querySelector(".can-do-ifthen-then-container"))
+                : (btn.closest(".can-do-off-actions-section")
+                    ? btn.closest(".can-do-off-actions-section").querySelector(".can-do-off-actions-container")
+                    : btn.closest(".can-do-section-box").querySelector(".can-do-actions-container"))));
 
     if (targetContainer) {
         targetContainer.classList.remove("hidden");
         targetContainer.style.display = "";
     }
 
-    const card = btn.closest(".cando-rule-card");
+    const card = btn.closest(".can-do-rule-card");
     window._activeActTargetContainer = targetContainer;
     window._activeActCard = card;
 
     menu.innerHTML = `
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-act-color);" onclick="renderCandoActionItem(window._activeActTargetContainer, { type: 'preset' }); updateCandoSectionCountBadges(window._activeActCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-act-color);" onclick="renderCanDoActionItem(window._activeActTargetContainer, { type: 'preset' }); updateCanDoSectionCountBadges(window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>Standard Action Step</span>
     </div>
-    <div class="cando-ha-menu-divider"></div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-ifthen-color);" onclick="renderCandoIfThenBlock(window._activeActTargetContainer, { type: 'if_then' }); updateCandoSectionCountBadges(window._activeActCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-ha-menu-divider"></div>
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-ifthen-color);" onclick="renderCanDoIfThenBlock(window._activeActTargetContainer, { type: 'if_then' }); updateCanDoSectionCountBadges(window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>If - Then - Else Block</span>
     </div>
-    <div class="cando-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-choose-color);" onclick="addCandoChooseBlockToContainer(window._activeActTargetContainer, window._activeActCard); document.querySelectorAll('.cando-floating-menu').forEach(m => m.remove());">
+    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-choose-color);" onclick="addCanDoChooseBlockToContainer(window._activeActTargetContainer, window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
         <span>Choose Block</span>
     </div>
 `;
@@ -6479,104 +6479,104 @@ function showAddActionMenu(btn, event) {
     setTimeout(() => document.addEventListener("click", closeHandler), 10);
 }
 
-function showCandoSubitemMenu(btn, event, type) {
+function showCanDoSubitemMenu(btn, event, type) {
     if (event) event.stopPropagation();
-    document.querySelectorAll(".cando-ha-menu, .cando-floating-menu").forEach(m => m.remove());
+    document.querySelectorAll(".can-do-ha-menu, .can-do-floating-menu").forEach(m => m.remove());
 
-    const item = btn.closest(".cando-trigger-item, .cando-condition-item, .cando-condition-group, .cando-condition-block, .cando-action-item, .cando-choose-block, .cando-choose-option-item, .cando-ifthen-block, .cando-payload-step-item");
+    const item = btn.closest(".can-do-trigger-item, .can-do-condition-item, .can-do-condition-group, .can-do-condition-block, .can-do-action-item, .can-do-choose-block, .can-do-choose-option-item, .can-do-ifthen-block, .can-do-payload-step-item");
     if (!item) return;
 
     const menu = document.createElement("div");
-    menu.className = "cando-ha-menu";
+    menu.className = "can-do-ha-menu";
 
     let menuHTML = "";
     if (type === "trigger") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoTriggerItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoTriggerItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="const card = this.closest('.cando-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) { updateCandoRuleTriggerDropdowns(card); updateCandoSectionCountBadges(card); } document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) { updateCanDoRuleTriggerDropdowns(card); updateCanDoSectionCountBadges(card); } document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete</span>
             </div>
         `;
     } else if (type === "condition") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoConditionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoConditionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'and'); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'and'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Convert to AND Block</span>
             </div>
-            <div class="cando-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'or'); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'or'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Convert to OR Block</span>
             </div>
-            <div class="cando-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'not'); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'not'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Convert to NOT Block</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="const card = this.closest('.cando-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCandoSectionCountBadges(card); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete</span>
             </div>
         `;
     } else if (type === "condition_group") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoConditionBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoConditionBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate Block</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="const card = this.closest('.cando-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCandoSectionCountBadges(card); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete Block</span>
             </div>
         `;
     } else if (type === "action") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoActionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoActionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="const card = this.closest('.cando-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCandoSectionCountBadges(card); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete</span>
             </div>
         `;
     } else if (type === "choose_block") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoChooseBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoChooseBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate Choose Block</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="const card = this.closest('.cando-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCandoSectionCountBadges(card); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete Choose Block</span>
             </div>
         `;
     } else if (type === "choose_option") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoChooseOption(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoChooseOption(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate Option Branch</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="removeCandoChooseOption(window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="removeCanDoChooseOption(window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete Option Branch</span>
             </div>
         `;
     } else if (type === "ifthen_block") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoIfThenBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoIfThenBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate If-Then Block</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="const card = this.closest('.cando-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCandoSectionCountBadges(card); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete If-Then Block</span>
             </div>
         `;
     } else if (type === "payload_step") {
         menuHTML += `
-            <div class="cando-ha-menu-item" onclick="cloneCandoPayloadStep(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-item" onclick="cloneCanDoPayloadStep(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Duplicate Step</span>
             </div>
-            <div class="cando-ha-menu-divider"></div>
-            <div class="cando-ha-menu-item danger" onclick="removeCandoPayloadStep(window._activeMenuBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+            <div class="can-do-ha-menu-divider"></div>
+            <div class="can-do-ha-menu-item danger" onclick="removeCanDoPayloadStep(window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
                 <span>Delete Step</span>
             </div>
         `;
@@ -6585,7 +6585,7 @@ function showCandoSubitemMenu(btn, event, type) {
     menu.innerHTML = menuHTML;
     window._activeMenuItem = item;
     window._activeMenuBtn = btn;
-    window._activeMenuCard = item.closest(".cando-rule-card");
+    window._activeMenuCard = item.closest(".can-do-rule-card");
 
     positionFloatingMenu(menu, btn);
 
@@ -6599,14 +6599,14 @@ function showCandoSubitemMenu(btn, event, type) {
 }
 
 
-function toggleCandoRuleSections(btn, forceState) {
-    const card = btn.closest('.cando-rule-card');
+function toggleCanDoRuleSections(btn, forceState) {
+    const card = btn.closest('.can-do-rule-card');
     if (!card) return;
-    const sections = card.querySelectorAll('.cando-section-box');
+    const sections = card.querySelectorAll('.can-do-section-box');
     // Check if any section is currently expanded
     let anyExpanded = false;
     sections.forEach(sec => {
-        const container = sec.querySelector('.cando-triggers-container, .cando-conditions-container, .cando-actions-container, .cando-off-actions-container');
+        const container = sec.querySelector('.can-do-triggers-container, .can-do-conditions-container, .can-do-actions-container, .can-do-off-actions-container');
         if (container && !container.classList.contains('hidden') && container.style.display !== 'none') {
             anyExpanded = true;
         }
@@ -6614,9 +6614,9 @@ function toggleCandoRuleSections(btn, forceState) {
 
     const targetExpand = (forceState !== undefined) ? forceState : !anyExpanded;
     sections.forEach(sec => {
-        const container = sec.querySelector('.cando-triggers-container, .cando-conditions-container, .cando-actions-container, .cando-off-actions-container');
-        const bannerSlot = sec.querySelector('.cando-choose-banner-slot');
-        const chevron = sec.querySelector('.cando-sec-chevron');
+        const container = sec.querySelector('.can-do-triggers-container, .can-do-conditions-container, .can-do-actions-container, .can-do-off-actions-container');
+        const bannerSlot = sec.querySelector('.can-do-choose-banner-slot');
+        const chevron = sec.querySelector('.can-do-sec-chevron');
         if (container) {
             if (targetExpand) {
                 container.classList.remove('hidden');
@@ -6635,7 +6635,7 @@ function toggleCandoRuleSections(btn, forceState) {
     const safeCard = card.querySelector('.ha-form-card');
     if (safeCard) {
         const safeGrid = safeCard.querySelector('.ha-form-grid');
-        const safeChevron = safeCard.querySelector('.cando-sec-chevron');
+        const safeChevron = safeCard.querySelector('.can-do-sec-chevron');
         if (safeGrid) {
             if (targetExpand) {
                 safeGrid.classList.remove('hidden');
@@ -6654,13 +6654,13 @@ function toggleCandoRuleSections(btn, forceState) {
     }
 }
 
-function runCandoRuleImmediate(cardOrBtn) {
-    const card = cardOrBtn.classList?.contains('cando-rule-card') ? cardOrBtn : cardOrBtn.closest('.cando-rule-card');
+function runCanDoRuleImmediate(cardOrBtn) {
+    const card = cardOrBtn.classList?.contains('can-do-rule-card') ? cardOrBtn : cardOrBtn.closest('.can-do-rule-card');
     if (!card) return;
-    const ruleName = card.querySelector('.cando-name')?.value.trim() || 'Automation Rule';
-    
+    const ruleName = card.querySelector('.can-do-name')?.value.trim() || 'Automation Rule';
+
     // Gather all action items in this rule
-    const actItems = card.querySelectorAll('.cando-actions-container > .cando-action-item');
+    const actItems = card.querySelectorAll('.can-do-actions-container > .can-do-action-item');
     if (!actItems || actItems.length === 0) {
         showNotification(`"${ruleName}" has no action steps to run.`, "orange", 3000);
         return;
@@ -6671,9 +6671,9 @@ function runCandoRuleImmediate(cardOrBtn) {
     // Execute each action step sequentially or test via backend
     let executed = 0;
     actItems.forEach((item, idx) => {
-        const actData = extractCandoActionData(item);
+        const actData = extractCanDoActionData(item);
         setTimeout(() => {
-            fetch("/test_cando_action", {
+            fetch("/test_can_do_action", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(actData)
@@ -6686,38 +6686,38 @@ function runCandoRuleImmediate(cardOrBtn) {
     });
 }
 
-function showCandoRuleHeaderMenu(btn, event) {
+function showCanDoRuleHeaderMenu(btn, event) {
     if (event) event.stopPropagation();
-    document.querySelectorAll(".cando-ha-menu, .cando-floating-menu").forEach(m => m.remove());
+    document.querySelectorAll(".can-do-ha-menu, .can-do-floating-menu").forEach(m => m.remove());
 
-    const card = btn.closest(".cando-rule-card");
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
 
     const menu = document.createElement("div");
-    menu.className = "cando-ha-menu";
+    menu.className = "can-do-ha-menu";
     menu.innerHTML = `
-        <div class="cando-ha-menu-item" onclick="runCandoRuleImmediate(window._activeRuleCard); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-item" onclick="runCanDoRuleImmediate(window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Run Automation Actions</span>
         </div>
-        <div class="cando-ha-menu-item" onclick="toggleCandoRuleSections(window._activeRuleCardBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-item" onclick="toggleCanDoRuleSections(window._activeRuleCardBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Toggle Expand / Collapse Sections</span>
         </div>
-        <div class="cando-ha-menu-divider"></div>
-        <div class="cando-ha-menu-item" onclick="showCandoHaSettingsModal(window._activeRuleCardBtn); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-divider"></div>
+        <div class="can-do-ha-menu-item" onclick="showCanDoHaSettingsModal(window._activeRuleCardBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Home Assistant Entity...</span>
         </div>
-        <div class="cando-ha-menu-divider"></div>
-        <div class="cando-ha-menu-item" onclick="duplicateCandoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-divider"></div>
+        <div class="can-do-ha-menu-item" onclick="duplicateCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Duplicate Rule</span>
         </div>
-        <div class="cando-ha-menu-item" onclick="exportSingleCandoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-item" onclick="exportSingleCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Export JSON</span>
         </div>
-        <div class="cando-ha-menu-item" onclick="copySingleCandoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-item" onclick="copySingleCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Copy JSON</span>
         </div>
-        <div class="cando-ha-menu-divider"></div>
-        <div class="cando-ha-menu-item danger" onclick="deleteCandoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-divider"></div>
+        <div class="can-do-ha-menu-item danger" onclick="deleteCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Delete Rule</span>
         </div>
     `;
@@ -6735,22 +6735,22 @@ function showCandoRuleHeaderMenu(btn, event) {
     setTimeout(() => document.addEventListener("click", closeHandler), 10);
 }
 
-function showCandoHaSettingsModal(btn) {
-    const card = btn ? btn.closest(".cando-rule-card") : null;
+function showCanDoHaSettingsModal(btn) {
+    const card = btn ? btn.closest(".can-do-rule-card") : null;
     if (!card) return;
 
-    document.querySelectorAll(".cando-ha-settings-modal-overlay").forEach(el => el.remove());
+    document.querySelectorAll(".can-do-ha-settings-modal-overlay").forEach(el => el.remove());
 
-    const ruleName = card.querySelector(".cando-name")?.value || "CAN Do Automation";
+    const ruleName = card.querySelector(".can-do-name")?.value || "CAN Do Automation";
     const currentExpose = card.dataset.haExpose !== undefined ? (card.dataset.haExpose === "true") : true;
     const currentIcon = card.dataset.haIcon || "mdi:car-defrost-rear";
 
     const overlay = document.createElement("div");
-    overlay.className = "cando-ha-settings-modal-overlay";
+    overlay.className = "can-do-ha-settings-modal-overlay";
     overlay.style.cssText = "position: fixed; inset: 0; z-index: 1000000; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 1rem;";
 
     overlay.innerHTML = `
-        <div class="cando-ha-settings-modal" style="width: 100%; max-width: 460px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-radius: var(--m3-shape-lg, 16px); padding: 1.5rem; margin: 0; position: relative;" onclick="event.stopPropagation();">
+        <div class="can-do-ha-settings-modal" style="width: 100%; max-width: 460px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-radius: var(--m3-shape-lg, 16px); padding: 1.5rem; margin: 0; position: relative;" onclick="event.stopPropagation();">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
                 <div>
                     <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.5rem;">
@@ -6760,12 +6760,12 @@ function showCandoHaSettingsModal(btn) {
                         "${ruleName}"
                     </span>
                 </div>
-                <button type="button" class="system-button" style="width: 28px; height: 28px; min-width: 28px; padding: 0; font-size: 0.9rem; border-radius: 50%;" onclick="this.closest('.cando-ha-settings-modal-overlay').remove();">✕</button>
+                <button type="button" class="system-button" style="width: 28px; height: 28px; min-width: 28px; padding: 0; font-size: 0.9rem; border-radius: 50%;" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">✕</button>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 1.1rem;">
                 <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
-                    <input type="checkbox" id="cando_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
+                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
                     <div>
                         <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
@@ -6776,24 +6776,24 @@ function showCandoHaSettingsModal(btn) {
                     <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
                         Material Design Icon (MDI):
                     </label>
-                    <input type="text" id="cando_modal_ha_icon" value="${currentIcon}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                    <input type="text" id="can_do_modal_ha_icon" value="${currentIcon}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px;">
                     <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
 
                     <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
                         <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:car-back'">Trunk</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('cando_modal_ha_icon').value='mdi:flash'">Generic</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
+                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
                     </div>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
-                    <button type="button" class="system-button" onclick="this.closest('.cando-ha-settings-modal-overlay').remove();">Cancel</button>
-                    <button type="button" class="primary-button" style="font-weight: 600; margin: 0;" onclick="saveCandoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
+                    <button type="button" class="system-button" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">Cancel</button>
+                    <button type="button" class="primary-button" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
                 </div>
             </div>
         </div>
@@ -6807,25 +6807,25 @@ function showCandoHaSettingsModal(btn) {
     });
 }
 
-function saveCandoHaSettingsModal(btn, card) {
+function saveCanDoHaSettingsModal(btn, card) {
     if (!card) {
         card = window._activeHaTargetCard;
     }
-    const modal = btn ? btn.closest(".cando-ha-settings-modal-overlay") : document.querySelector(".cando-ha-settings-modal-overlay");
+    const modal = btn ? btn.closest(".can-do-ha-settings-modal-overlay") : document.querySelector(".can-do-ha-settings-modal-overlay");
     if (!card || !modal) return;
 
-    const exposeCb = modal.querySelector("#cando_modal_ha_expose");
-    const iconInput = modal.querySelector("#cando_modal_ha_icon");
+    const exposeCb = modal.querySelector("#can_do_modal_ha_expose");
+    const iconInput = modal.querySelector("#can_do_modal_ha_icon");
 
     card.dataset.haExpose = (exposeCb && exposeCb.checked) ? "true" : "false";
     card.dataset.haIcon = (iconInput && iconInput.value.trim()) ? iconInput.value.trim() : "mdi:car-defrost-rear";
 
     modal.remove();
-    autoSaveCandoRules("Updated Home Assistant settings for " + (card.querySelector(".cando-name")?.value || "rule"), "blue");
+    autoSaveCanDoRules("Updated Home Assistant settings for " + (card.querySelector(".can-do-name")?.value || "rule"), "blue");
 }
 
-function addCandoChooseBlockToContainer(container, card) {
-    const triggers = card ? getCandoRuleTriggersInfo(card) : [];
+function addCanDoChooseBlockToContainer(container, card) {
+    const triggers = card ? getCanDoRuleTriggersInfo(card) : [];
     let options = [];
     if (triggers.length >= 2) {
         options = triggers.map(t => ({ trigger_id: t.id, actions: [{ type: "preset" }] }));
@@ -6835,26 +6835,26 @@ function addCandoChooseBlockToContainer(container, card) {
             { trigger_id: "", actions: [{ type: "preset" }] }
         ];
     }
-    renderCandoChooseBlock(container, { type: "choose", options: options });
+    renderCanDoChooseBlock(container, { type: "choose", options: options });
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
     if (card) {
-        updateCandoRuleTriggerDropdowns(card);
-        updateCandoSectionCountBadges(card);
+        updateCanDoRuleTriggerDropdowns(card);
+        updateCanDoSectionCountBadges(card);
     }
 }
 
 function wrapConditionInBlock(item, groupType) {
     if (!item) return;
-    const card = item.closest(".cando-rule-card");
-    const currentData = extractCandoConditionElement(item);
+    const card = item.closest(".can-do-rule-card");
+    const currentData = extractCanDoConditionElement(item);
 
     // Replace item with wrapped block
     const tempDiv = document.createElement("div");
     item.replaceWith(tempDiv);
 
     const groupHolder = document.createElement("div");
-    renderCandoConditionBlock(groupHolder, {
+    renderCanDoConditionBlock(groupHolder, {
         group_type: groupType,
         conditions: [currentData]
     });
@@ -6862,101 +6862,101 @@ function wrapConditionInBlock(item, groupType) {
     const newGroup = groupHolder.firstElementChild;
     tempDiv.replaceWith(newGroup);
 
-    updateCandoSectionCountBadges(card);
+    updateCanDoSectionCountBadges(card);
     showNotification(`Converted condition into ${groupType.toUpperCase()} block!`, "green", 2500);
 }
 const wrapConditionInGroup = wrapConditionInBlock;
 
 // --- PAYLOAD STEP SUB-ITEMS (D1 - D8) ---
-function renderCandoPayloadStep(container, stepData = {}) {
+function renderCanDoPayloadStep(container, stepData = {}) {
     const stepDiv = document.createElement("div");
-    stepDiv.className = "cando-payload-step-item";
+    stepDiv.className = "can-do-payload-step-item";
     stepDiv.style.borderRadius = "var(--m3-shape-sm)";
     stepDiv.style.padding = "0.55rem 0.8rem";
     stepDiv.style.marginBottom = "0.5rem";
 
     const repeatVal = stepData.repeat !== undefined ? stepData.repeat : 1;
     const delayVal = (stepData.delay_ms !== undefined && stepData.delay_ms !== null) ? stepData.delay_ms : "";
-    const stepIdx = container.querySelectorAll(".cando-payload-step-item").length + 1;
+    const stepIdx = container.querySelectorAll(".can-do-payload-step-item").length + 1;
 
     stepDiv.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-        <span class="cando-step-label" style="font-weight: 700; font-size: 0.8rem; color: var(--m3-tonal-act-color);">Step <span class="step-num">${stepIdx}</span>:</span>
+        <span class="can-do-step-label" style="font-weight: 700; font-size: 0.8rem; color: var(--m3-tonal-act-color);">Step <span class="step-num">${stepIdx}</span>:</span>
         <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <button type="button" class="system-button cando-subitem-btn cando-step-btn-move" onclick="moveCandoItem(this, -1)" title="Move Step Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-step-btn-move" onclick="moveCandoItem(this, 1)" title="Move Step Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-step-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Step Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-step-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Step Down">▼</button>
             <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
                 Repeat:
-                <input type="number" class="cando-step-repeat" value="${repeatVal}" min="1" max="1000">
+                <input type="number" class="can-do-step-repeat" value="${repeatVal}" min="1" max="1000">
                 <span style="font-size: 0.75rem;">x</span>
             </label>
             <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;" title="Optional per-step override delay before next frame (ms). Leave blank to use action default.">
                 Delay:
-                <input type="number" class="cando-step-delay-ms" value="${delayVal}" placeholder="def" min="0" max="60000" style="width: 52px; height: 24px; text-align: center; padding: 2px 4px; font-size: 0.8rem;">
+                <input type="number" class="can-do-step-delay-ms" value="${delayVal}" placeholder="def" min="0" max="60000" style="width: 52px; height: 24px; text-align: center; padding: 2px 4px; font-size: 0.8rem;">
                 <span style="font-size: 0.75rem;">ms</span>
             </label>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'payload_step')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'payload_step')" title="More options">⋮</button>
         </div>
     </div>
-    ${renderByteInputsHTML("cando-step-byte", stepData.payload || "")}
+    ${renderByteInputsHTML("can-do-step-byte", stepData.payload || "")}
 `;
     container.appendChild(stepDiv);
 }
 
-function cloneCandoPayloadStep(btn) {
-    const stepItem = btn.classList?.contains("cando-payload-step-item") ? btn : btn.closest(".cando-payload-step-item");
-    const container = stepItem.closest(".cando-payload-steps-container");
-    const payloadStr = getByteGridString(stepItem, "cando-step-byte");
-    const repeatVal = parseInt(stepItem.querySelector(".cando-step-repeat")?.value || "1");
-    const delayInp = stepItem.querySelector(".cando-step-delay-ms")?.value.trim();
+function cloneCanDoPayloadStep(btn) {
+    const stepItem = btn.classList?.contains("can-do-payload-step-item") ? btn : btn.closest(".can-do-payload-step-item");
+    const container = stepItem.closest(".can-do-payload-steps-container");
+    const payloadStr = getByteGridString(stepItem, "can-do-step-byte");
+    const repeatVal = parseInt(stepItem.querySelector(".can-do-step-repeat")?.value || "1");
+    const delayInp = stepItem.querySelector(".can-do-step-delay-ms")?.value.trim();
     const delayVal = delayInp !== "" && !isNaN(parseInt(delayInp)) ? parseInt(delayInp) : undefined;
 
-    renderCandoPayloadStep(container, { payload: payloadStr, repeat: repeatVal, delay_ms: delayVal });
+    renderCanDoPayloadStep(container, { payload: payloadStr, repeat: repeatVal, delay_ms: delayVal });
     // Move the newly added clone to right below the original item
     const newStep = container.lastElementChild;
     stepItem.after(newStep);
-    renumberCandoPayloadSteps(container);
+    renumberCanDoPayloadSteps(container);
     triggerItemAnimation(newStep, "ha-item-duplicate");
     scrollToNewBlockHelper(newStep, 80);
     showNotification("Payload step duplicated!", "green", 1800);
 }
 
-function addCandoPayloadStep(buttonElem) {
-    const card = buttonElem.closest(".cando-action-item");
-    const container = card.querySelector(".cando-payload-steps-container");
-    renderCandoPayloadStep(container, { payload: "", repeat: 3 });
-    renumberCandoPayloadSteps(container);
+function addCanDoPayloadStep(buttonElem) {
+    const card = buttonElem.closest(".can-do-action-item");
+    const container = card.querySelector(".can-do-payload-steps-container");
+    renderCanDoPayloadStep(container, { payload: "", repeat: 3 });
+    renumberCanDoPayloadSteps(container);
 }
 
-function removeCandoPayloadStep(btn) {
-    const container = btn.closest(".cando-payload-steps-container");
-    btn.closest(".cando-payload-step-item").remove();
-    if (container) renumberCandoPayloadSteps(container);
+function removeCanDoPayloadStep(btn) {
+    const container = btn.closest(".can-do-payload-steps-container");
+    btn.closest(".can-do-payload-step-item").remove();
+    if (container) renumberCanDoPayloadSteps(container);
 }
 
-function renumberCandoPayloadSteps(container) {
+function renumberCanDoPayloadSteps(container) {
     if (!container) return;
-    const steps = container.querySelectorAll(".cando-payload-step-item");
+    const steps = container.querySelectorAll(".can-do-payload-step-item");
     steps.forEach((step, idx) => {
         const numSpan = step.querySelector(".step-num");
         if (numSpan) numSpan.textContent = idx + 1;
     });
-    const box = container.closest(".cando-payload-steps-box");
+    const box = container.closest(".can-do-payload-steps-box");
     if (box) {
-        const summarySpan = box.querySelector(".cando-steps-summary-text");
+        const summarySpan = box.querySelector(".can-do-steps-summary-text");
         if (summarySpan) {
             summarySpan.textContent = `${steps.length} Sequence Step${steps.length === 1 ? '' : 's'}`;
         }
     }
-    const card = container.closest(".cando-rule-card");
-    if (card) updateCandoItemConnectors(card);
+    const card = container.closest(".can-do-rule-card");
+    if (card) updateCanDoItemConnectors(card);
 }
 
-function toggleCandoStepsCollapse(btn) {
-    const box = btn.closest(".cando-payload-steps-box");
+function toggleCanDoStepsCollapse(btn) {
+    const box = btn.closest(".can-do-payload-steps-box");
     if (!box) return;
-    const container = box.querySelector(".cando-payload-steps-container");
-    const addBtn = box.querySelector(".cando-attached-add-btn");
+    const container = box.querySelector(".can-do-payload-steps-container");
+    const addBtn = box.querySelector(".can-do-attached-add-btn");
     if (!container) return;
 
     const isCollapsed = (container.style.display === "none");
@@ -6972,34 +6972,34 @@ function toggleCandoStepsCollapse(btn) {
 }
 
 // --- ACTION SUB-ITEMS ---
-function addCandoActionItem(buttonElem) {
-    const card = buttonElem.closest(".cando-rule-card");
-    const container = card.querySelector(".cando-actions-container");
+function addCanDoActionItem(buttonElem) {
+    const card = buttonElem.closest(".can-do-rule-card");
+    const container = card.querySelector(".can-do-actions-container");
     if (container) {
         container.classList.remove("hidden");
         container.style.display = "";
     }
-    renderCandoActionItem(container, { type: "preset" });
+    renderCanDoActionItem(container, { type: "preset" });
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
-    updateCandoRuleTriggerDropdowns(card);
-    updateCandoSectionCountBadges(card);
+    updateCanDoRuleTriggerDropdowns(card);
+    updateCanDoSectionCountBadges(card);
 }
 
-function cloneCandoActionItem(btn) {
-    const actItem = btn.classList?.contains("cando-action-item") ? btn : btn.closest(".cando-action-item");
+function cloneCanDoActionItem(btn) {
+    const actItem = btn.classList?.contains("can-do-action-item") ? btn : btn.closest(".can-do-action-item");
     const container = actItem.parentElement;
-    const card = actItem.closest(".cando-rule-card");
-    const actData = extractCandoActionData(actItem);
+    const card = actItem.closest(".can-do-rule-card");
+    const actData = extractCanDoActionData(actItem);
 
-    renderCandoActionItem(container, actData);
+    renderCanDoActionItem(container, actData);
     const newAct = container.lastElementChild;
     actItem.after(newAct);
     triggerItemAnimation(newAct, "ha-item-duplicate");
     scrollToNewBlockHelper(newAct, 80);
     if (card) {
-        updateCandoRuleTriggerDropdowns(card);
-        updateCandoSectionCountBadges(card);
+        updateCanDoRuleTriggerDropdowns(card);
+        updateCanDoSectionCountBadges(card);
     }
     showNotification("Action step duplicated!", "green", 1800);
 }
@@ -7027,12 +7027,12 @@ function formatDurationDisplay(ms) {
     return timeStr;
 }
 
-function onCandoDelayUnitChange(elem) {
-    const item = elem.closest('.cando-action-item');
+function onCanDoDelayUnitChange(elem) {
+    const item = elem.closest('.can-do-action-item');
     if (!item) return;
     const unit = elem.value;
-    const input = item.querySelector('.cando-act-wait-ms');
-    const helperInput = item.querySelector('.cando-act-wait-helper');
+    const input = item.querySelector('.can-do-act-wait-ms');
+    const helperInput = item.querySelector('.can-do-act-wait-helper');
     if (!input || !helperInput) return;
 
     let currentMs = parseInt(input.value) || 0;
@@ -7045,14 +7045,14 @@ function onCandoDelayUnitChange(elem) {
         helperInput.min = '10';
         helperInput.value = currentMs;
     }
-    updateCandoDelayPill(item);
+    updateCanDoDelayPill(item);
 }
 
-function onCandoDelayHelperInput(elem) {
-    const item = elem.closest('.cando-action-item');
+function onCanDoDelayHelperInput(elem) {
+    const item = elem.closest('.can-do-action-item');
     if (!item) return;
-    const unitSelect = item.querySelector('.cando-act-wait-unit');
-    const hiddenMsInput = item.querySelector('.cando-act-wait-ms');
+    const unitSelect = item.querySelector('.can-do-act-wait-unit');
+    const hiddenMsInput = item.querySelector('.can-do-act-wait-ms');
     if (!unitSelect || !hiddenMsInput) return;
 
     const unit = unitSelect.value;
@@ -7061,16 +7061,16 @@ function onCandoDelayHelperInput(elem) {
     if (totalMs < 0) totalMs = 0;
     hiddenMsInput.value = totalMs;
 
-    updateCandoDelayPill(item);
-    updateCandoRuleSummaryPill(item.closest('.cando-rule-card'));
+    updateCanDoDelayPill(item);
+    updateCanDoRuleSummaryPill(item.closest('.can-do-rule-card'));
 }
 
-function setCandoDelayPreset(btn, ms) {
-    const item = btn.closest('.cando-action-item');
+function setCanDoDelayPreset(btn, ms) {
+    const item = btn.closest('.can-do-action-item');
     if (!item) return;
-    const hiddenMsInput = item.querySelector('.cando-act-wait-ms');
-    const helperInput = item.querySelector('.cando-act-wait-helper');
-    const unitSelect = item.querySelector('.cando-act-wait-unit');
+    const hiddenMsInput = item.querySelector('.can-do-act-wait-ms');
+    const helperInput = item.querySelector('.can-do-act-wait-helper');
+    const unitSelect = item.querySelector('.can-do-act-wait-unit');
     if (!hiddenMsInput || !helperInput || !unitSelect) return;
 
     hiddenMsInput.value = ms;
@@ -7086,16 +7086,16 @@ function setCandoDelayPreset(btn, ms) {
     item.querySelectorAll('.ha-duration-chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
 
-    updateCandoDelayPill(item);
-    updateCandoRuleSummaryPill(item.closest('.cando-rule-card'));
+    updateCanDoDelayPill(item);
+    updateCanDoRuleSummaryPill(item.closest('.can-do-rule-card'));
 }
 
-function updateCandoDelayPill(item) {
+function updateCanDoDelayPill(item) {
     if (!item) return;
-    const hiddenMsInput = item.querySelector('.cando-act-wait-ms');
-    const badge = item.querySelector('.cando-delay-badge');
-    const titleSpan = item.querySelector('.cando-subitem-title-act');
-    const actType = item.querySelector('.cando-act-type')?.value;
+    const hiddenMsInput = item.querySelector('.can-do-act-wait-ms');
+    const badge = item.querySelector('.can-do-delay-badge');
+    const titleSpan = item.querySelector('.can-do-subitem-title-act');
+    const actType = item.querySelector('.can-do-act-type')?.value;
     const ms = parseInt(hiddenMsInput?.value) || 500;
     const formatted = formatDurationDisplay(ms);
 
@@ -7113,7 +7113,7 @@ function updateCandoDelayPill(item) {
     });
 }
 
-function renderCandoActionItem(container, data = {}) {
+function renderCanDoActionItem(container, data = {}) {
     let type = data.type || "preset";
     if (type === "climate_target" || type === "precondition") {
         // Keep action type as preset if it was a high-level template
@@ -7187,37 +7187,37 @@ function renderCandoActionItem(container, data = {}) {
     }
 
     const itemDiv = document.createElement("div");
-    itemDiv.className = "cando-action-item";
+    itemDiv.className = "can-do-action-item";
     itemDiv.style.borderRadius = "var(--m3-shape-md)";
     itemDiv.style.padding = "0.9rem";
     itemDiv.style.boxShadow = "var(--shadow-sm)";
     itemDiv.addEventListener("click", () => {
-        if (!itemDiv.classList.contains("cando-subitem-collapsed")) {
-            selectCandoItem(itemDiv);
+        if (!itemDiv.classList.contains("can-do-subitem-collapsed")) {
+            selectCanDoItem(itemDiv);
         }
     });
 
     itemDiv.innerHTML = `
-    <div class="cando-subitem-header act-header" onclick="toggleCandoItemBody(this, event)" style="cursor: pointer;">
+    <div class="can-do-subitem-header act-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="cando-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="cando-ha-pill act-pill">
+            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+            <span class="can-do-ha-pill act-pill">
                 <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-radiator"/></svg>
                 Then do
             </span>
-            <span class="cando-subitem-title-act" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+            <span class="can-do-subitem-title-act" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
                 ${initialActTitle}
             </span>
-            <span class="cando-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
+            <span class="can-do-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-test-act" onclick="testCandoActionUI(this)" title="Execute this action immediately">Test Step</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Action Step Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Action Step Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'action')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-test-act" onclick="testCanDoActionUI(this)" title="Execute this action immediately">Test Step</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Action Step Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Action Step Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'action')" title="More options">⋮</button>
         </div>
     </div>
-    <div class="cando-subitem-body">
+    <div class="can-do-subitem-body">
         <div class="ha-form-grid" style="margin-top: 0.4rem;">
             <!-- Action Type -->
             <div class="ha-form-row">
@@ -7226,7 +7226,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Select what command or event to fire.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-act-type" onchange="toggleCandoActItemUI(this); updateCandoRuleSummaryPill(this.closest('.cando-rule-card'));">
+                    <select class="ha-form-select can-do-act-type" onchange="toggleCanDoActItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
                         <option value="preset" ${type === "preset" ? "selected" : ""}>CAN Do Catalog</option>
                         <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
                         <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
@@ -7244,16 +7244,16 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Preconfigured vehicle commands (climate, locks, lighting, etc).</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <div class="cando-preset-toolbar-wrap" style="width: 100%;">
-                        <select class="ha-form-select cando-act-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCandoActionPreset(this);" style="font-weight: 600;">
+                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
+                        <select class="ha-form-select can-do-act-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoActionPreset(this);" style="font-weight: 600;">
                             ${renderActPresetOptionsHTML(selectedPresetVal)}
                         </select>
-                        <div class="cando-preset-action-bar">
-                            <button type="button" class="system-button cando-edit-preset-btn" onclick="toggleCandoItemDetails(this)" title="Show or hide underlying CAN ID, bus, delay, payload, and popup text to edit them">Edit Details</button>
-                            <button type="button" class="system-button cando-save-preset-btn" onclick="saveCurrentActionAsPreset(this)" title="Save current action configuration as a custom reusable entry">Save to My Catalog</button>
-                            <button type="button" class="delete-btn cando-del-preset-btn" onclick="deleteCustomActPreset(this)" style="display: none;" title="Delete this custom template">Delete</button>
+                        <div class="can-do-preset-action-bar">
+                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, bus, delay, payload, and popup text to edit them">Edit Details</button>
+                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentActionAsPreset(this)" title="Save current action configuration as a custom reusable entry">Save to My Catalog</button>
+                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomActPreset(this)" style="display: none;" title="Delete this custom template">Delete</button>
                         </div>
-                        <div class="cando-act-options-container" style="display: none; margin-top: 4px; padding: 6px 10px; border: 1px dashed var(--border-color); border-radius: 6px; width: 100%; box-sizing: border-box;"></div>
+                        <div class="can-do-act-options-container" style="display: none; margin-top: 4px; padding: 6px 10px; border: 1px dashed var(--border-color); border-radius: 6px; width: 100%; box-sizing: border-box;"></div>
                     </div>
                 </div>
             </div>
@@ -7267,11 +7267,11 @@ function renderCandoActionItem(container, data = {}) {
                 <div class="ha-form-control-col" style="align-items: flex-start;">
                     <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; width: 100%;">
                         <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; cursor: pointer; user-select: none;">
-                            <input type="checkbox" class="cando-act-climate-sync" ${isSyncOn ? "checked" : ""} ${isDrvOnly ? "disabled" : ""} onchange="updateCandoClimateUI(this)">
+                            <input type="checkbox" class="can-do-act-climate-sync" ${isSyncOn ? "checked" : ""} ${isDrvOnly ? "disabled" : ""} onchange="updateCanDoClimateUI(this)">
                             <span><b>Enable HVAC Sync (Dual Zone)</b></span>
                         </label>
                         <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; cursor: pointer; user-select: none;">
-                            <input type="checkbox" class="cando-act-climate-drv-only" ${isDrvOnly ? "checked" : ""} onchange="updateCandoClimateUI(this)">
+                            <input type="checkbox" class="can-do-act-climate-drv-only" ${isDrvOnly ? "checked" : ""} onchange="updateCanDoClimateUI(this)">
                             <span><b>Driver Only Mode</b></span>
                         </label>
                     </div>
@@ -7281,27 +7281,27 @@ function renderCandoActionItem(container, data = {}) {
             <!-- Driver / Synced Target Temp -->
             <div class="ha-form-row act-field-climate ${hasClimateData ? "" : "hidden"}">
                 <div class="ha-form-label-col">
-                    <span class="ha-form-label cando-climate-drv-label">${(isSyncOn && !isDrvOnly) ? "Synced Cabin Temp:" : "Driver Target Temp:"}</span>
+                    <span class="ha-form-label can-do-climate-drv-label">${(isSyncOn && !isDrvOnly) ? "Synced Cabin Temp:" : "Driver Target Temp:"}</span>
                     <span class="ha-form-sublabel">Set desired cabin temperature.</span>
                 </div>
                 <div class="ha-form-control-col">
                     <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                        <input type="number" class="ha-form-input cando-act-target-temp" value="${initialTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCandoClimateTempChange(this)">
-                        <span class="cando-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
+                        <input type="number" class="ha-form-input can-do-act-target-temp" value="${initialTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCanDoClimateTempChange(this)">
+                        <span class="can-do-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Passenger Target Temp -->
-            <div class="ha-form-row act-field-climate cando-climate-pass-row ${hasClimateData && (!isSyncOn && !isDrvOnly) ? "" : "hidden"}">
+            <div class="ha-form-row act-field-climate can-do-climate-pass-row ${hasClimateData && (!isSyncOn && !isDrvOnly) ? "" : "hidden"}">
                 <div class="ha-form-label-col">
                     <span class="ha-form-label">Passenger Target Temp:</span>
                     <span class="ha-form-sublabel">Separate temperature when sync is disabled.</span>
                 </div>
                 <div class="ha-form-control-col">
                     <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                        <input type="number" class="ha-form-input cando-act-pass-temp" value="${initialPassTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCandoClimateTempChange(this)">
-                        <span class="cando-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
+                        <input type="number" class="ha-form-input can-do-act-pass-temp" value="${initialPassTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCanDoClimateTempChange(this)">
+                        <span class="can-do-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
                     </div>
                 </div>
             </div>
@@ -7313,7 +7313,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">How vehicle temperature is maintained.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-act-precon-mode">
+                    <select class="ha-form-select can-do-act-precon-mode">
                         <option value="persistent" ${(!data.precon_mode || data.precon_mode === "persistent") ? "selected" : ""}>Persistent (Maintain temp &amp; restart on car READY)</option>
                         <option value="continuous" ${data.precon_mode === "continuous" ? "selected" : ""}>Continuous (Maintain temp while car is ON)</option>
                         <option value="once" ${data.precon_mode === "once" ? "selected" : ""}>Once (Single preconditioning cycle)</option>
@@ -7328,7 +7328,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Simulation duration for HVAC power sequence.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-act-precon-press">
+                    <select class="ha-form-select can-do-act-precon-press">
                         <option value="short" ${(!data.precon_press || data.precon_press === "short") ? "selected" : ""}>Short Press</option>
                         <option value="long" ${data.precon_press === "long" ? "selected" : ""}>Long Press (hold 1s)</option>
                     </select>
@@ -7342,17 +7342,17 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Heads-up display alert shown on WiCAN Web UI or vehicle screen.</span>
                 </div>
                 <div class="ha-form-control-col" style="align-items: flex-start;">
-                    <input type="text" class="ha-form-input cando-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <input type="text" class="ha-form-input can-do-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                     <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; user-select: none; margin-top: 4px;">
                         <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted);">Insert Variable:</span>
-                        <code class="cando-livevar-chip" title="Battery temp" onclick="insertCandoPopupTokenUnit(this, 'battery_temp')">Temp</code>
-                        <code class="cando-livevar-chip" title="12V battery voltage" onclick="insertCandoPopupToken(this, '{voltage}')">Voltage</code>
-                        <code class="cando-livevar-chip" title="High-voltage battery SOC%" onclick="insertCandoPopupToken(this, '{soc}')">SOC%</code>
-                        <code class="cando-livevar-chip" title="Vehicle speed" onclick="insertCandoPopupTokenUnit(this, 'speed')">Speed</code>
-                        <code class="cando-livevar-chip" title="Precondition status" onclick="insertCandoPopupToken(this, '{precon_status}')">Precon</code>
-                        <code class="cando-livevar-chip" title="Status" onclick="insertCandoPopupToken(this, '{status}')">Status</code>
-                        <code class="cando-livevar-chip" title="Time HH:MM" onclick="insertCandoPopupToken(this, '{time}')">Time</code>
-                        <code class="cando-livevar-chip" title="Date" onclick="insertCandoPopupToken(this, '{date}')">Date</code>
+                        <code class="can-do-livevar-chip" title="Battery temp" onclick="insertCanDoPopupTokenUnit(this, 'battery_temp')">Temp</code>
+                        <code class="can-do-livevar-chip" title="12V battery voltage" onclick="insertCanDoPopupToken(this, '{voltage}')">Voltage</code>
+                        <code class="can-do-livevar-chip" title="High-voltage battery SOC%" onclick="insertCanDoPopupToken(this, '{soc}')">SOC%</code>
+                        <code class="can-do-livevar-chip" title="Vehicle speed" onclick="insertCanDoPopupTokenUnit(this, 'speed')">Speed</code>
+                        <code class="can-do-livevar-chip" title="Precondition status" onclick="insertCanDoPopupToken(this, '{precon_status}')">Precon</code>
+                        <code class="can-do-livevar-chip" title="Status" onclick="insertCanDoPopupToken(this, '{status}')">Status</code>
+                        <code class="can-do-livevar-chip" title="Time HH:MM" onclick="insertCanDoPopupToken(this, '{time}')">Time</code>
+                        <code class="can-do-livevar-chip" title="Date" onclick="insertCanDoPopupToken(this, '{date}')">Date</code>
                     </div>
                 </div>
             </div>
@@ -7364,7 +7364,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Arbitration ID to transmit on vehicle CAN network.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652" oninput="updateCandoRuleSummaryPill(this.closest('.cando-rule-card'))">
+                    <input type="text" class="ha-form-input can-do-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
                 </div>
             </div>
 
@@ -7375,7 +7375,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Select transceiver to broadcast transmission.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <select class="ha-form-select cando-act-bus">
+                    <select class="ha-form-select can-do-act-bus">
                         <option value="0" ${data.bus === 0 || !data.bus ? "selected" : ""}>CAN 0 (Primary)</option>
                         <option value="1" ${data.bus === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
                     </select>
@@ -7389,7 +7389,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Pause between sequential frame bursts.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="number" class="ha-form-input cando-act-delay-ms" value="${data.delay_ms || 10}">
+                    <input type="number" class="ha-form-input can-do-act-delay-ms" value="${data.delay_ms || 10}">
                 </div>
             </div>
 
@@ -7400,13 +7400,13 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Multi-step frame bursts sent sequentially on execution.</span>
                 </div>
                 <div class="ha-form-control-col" style="align-items: stretch;">
-                    <div class="cando-payload-steps-box" style="width: 100%;">
+                    <div class="can-do-payload-steps-box" style="width: 100%;">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--m3-tonal-act-bg); border-bottom: 1px dashed var(--m3-tonal-act-border); border-radius: 6px 6px 0 0; font-size: 0.78rem;">
-                            <span class="cando-steps-summary-text" style="color: var(--m3-tonal-act-color); font-weight: 700;">Sequence Steps</span>
-                            <button type="button" class="system-button cando-toggle-steps-btn" style="padding: 2px 8px; font-size: 0.7rem; height: 22px;" onclick="toggleCandoStepsCollapse(this)" title="Collapse or expand payload steps preview">↕ Collapse</button>
+                            <span class="can-do-steps-summary-text" style="color: var(--m3-tonal-act-color); font-weight: 700;">Sequence Steps</span>
+                            <button type="button" class="system-button can-do-toggle-steps-btn" style="padding: 2px 8px; font-size: 0.7rem; height: 22px;" onclick="toggleCanDoStepsCollapse(this)" title="Collapse or expand payload steps preview">↕ Collapse</button>
                         </div>
-                        <div class="cando-payload-steps-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.6rem 0.5rem 0.3rem 0.5rem;"></div>
-                        <button type="button" class="ha-add-element-btn act subitem" onclick="addCandoPayloadStep(this)" style="margin: 0; border-radius: 0 0 6px 6px; border-top: none;">
+                        <div class="can-do-payload-steps-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.6rem 0.5rem 0.3rem 0.5rem;"></div>
+                        <button type="button" class="ha-add-element-btn act subitem" onclick="addCanDoPayloadStep(this)" style="margin: 0; border-radius: 0 0 6px 6px; border-top: none;">
                             <svg><use href="#icon-plus"/></svg>
                             <span>Add Frame Step</span>
                         </button>
@@ -7419,33 +7419,33 @@ function renderCandoActionItem(container, data = {}) {
                 <div class="ha-form-label-col">
                     <span class="ha-form-label" style="display: inline-flex; align-items: center; gap: 6px;">
                         Wait Duration
-                        <span class="ha-duration-badge cando-delay-badge">${formatDurationDisplay(data.wait_ms || 500)}</span>
+                        <span class="ha-duration-badge can-do-delay-badge">${formatDurationDisplay(data.wait_ms || 500)}</span>
                     </span>
                     <span class="ha-form-sublabel">Pause execution before continuing to the next action step.</span>
                 </div>
                 <div class="ha-form-control-col" style="align-items: stretch;">
-                    <input type="hidden" class="cando-act-wait-ms" value="${data.wait_ms || 500}">
+                    <input type="hidden" class="can-do-act-wait-ms" value="${data.wait_ms || 500}">
                     <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-                        <input type="number" class="ha-form-input cando-act-wait-helper" 
+                        <input type="number" class="ha-form-input can-do-act-wait-helper" 
                             style="flex: 1; min-width: 90px;" 
                             value="${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? (data.wait_ms / 1000) : (data.wait_ms || 500)}" 
                             min="1" 
                             step="${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? '0.5' : '50'}"
-                            oninput="onCandoDelayHelperInput(this)" 
+                            oninput="onCanDoDelayHelperInput(this)" 
                             placeholder="500">
-                        <select class="ha-form-select cando-act-wait-unit" style="width: 130px;" onchange="onCandoDelayUnitChange(this)">
+                        <select class="ha-form-select can-do-act-wait-unit" style="width: 130px;" onchange="onCanDoDelayUnitChange(this)">
                             <option value="ms" ${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? "" : "selected"}>Milliseconds (ms)</option>
                             <option value="sec" ${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? "selected" : ""}>Seconds (s)</option>
                         </select>
                     </div>
                     <div class="ha-duration-chips">
-                        <span class="ha-duration-chip ${(data.wait_ms === 100) ? 'active' : ''}" data-ms="100" onclick="setCandoDelayPreset(this, 100)">100ms</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 250) ? 'active' : ''}" data-ms="250" onclick="setCandoDelayPreset(this, 250)">250ms</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 500 || !data.wait_ms) ? 'active' : ''}" data-ms="500" onclick="setCandoDelayPreset(this, 500)">500ms</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 1000) ? 'active' : ''}" data-ms="1000" onclick="setCandoDelayPreset(this, 1000)">1s</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 2000) ? 'active' : ''}" data-ms="2000" onclick="setCandoDelayPreset(this, 2000)">2s</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 5000) ? 'active' : ''}" data-ms="5000" onclick="setCandoDelayPreset(this, 5000)">5s</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 10000) ? 'active' : ''}" data-ms="10000" onclick="setCandoDelayPreset(this, 10000)">10s</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 100) ? 'active' : ''}" data-ms="100" onclick="setCanDoDelayPreset(this, 100)">100ms</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 250) ? 'active' : ''}" data-ms="250" onclick="setCanDoDelayPreset(this, 250)">250ms</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 500 || !data.wait_ms) ? 'active' : ''}" data-ms="500" onclick="setCanDoDelayPreset(this, 500)">500ms</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 1000) ? 'active' : ''}" data-ms="1000" onclick="setCanDoDelayPreset(this, 1000)">1s</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 2000) ? 'active' : ''}" data-ms="2000" onclick="setCanDoDelayPreset(this, 2000)">2s</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 5000) ? 'active' : ''}" data-ms="5000" onclick="setCanDoDelayPreset(this, 5000)">5s</span>
+                        <span class="ha-duration-chip ${(data.wait_ms === 10000) ? 'active' : ''}" data-ms="10000" onclick="setCanDoDelayPreset(this, 10000)">10s</span>
                     </div>
                 </div>
             </div>
@@ -7457,7 +7457,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Broker topic to publish event alert.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-act-mqtt-topic" value="${data.mqtt_topic || "homeassistant/sensor/wican/event"}" placeholder="homeassistant/sensor/wican/event">
+                    <input type="text" class="ha-form-input can-do-act-mqtt-topic" value="${data.mqtt_topic || "homeassistant/sensor/wican/event"}" placeholder="homeassistant/sensor/wican/event">
                 </div>
             </div>
 
@@ -7468,7 +7468,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">JSON or string message published.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-act-mqtt-payload" value="${data.mqtt_payload || '{\"event\":\"triggered\"}'}" placeholder='{"event":"triggered"}'>
+                    <input type="text" class="ha-form-input can-do-act-mqtt-payload" value="${data.mqtt_payload || '{\"event\":\"triggered\"}'}" placeholder='{"event":"triggered"}'>
                 </div>
             </div>
 
@@ -7479,7 +7479,7 @@ function renderCandoActionItem(container, data = {}) {
                     <span class="ha-form-sublabel">Endpoint URL receiving HTTP POST on execution.</span>
                 </div>
                 <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input cando-act-webhook-url" value="${data.webhook_url || ''}" placeholder="http://192.168.1.100:8123/api/webhook/my_event">
+                    <input type="text" class="ha-form-input can-do-act-webhook-url" value="${data.webhook_url || ''}" placeholder="http://192.168.1.100:8123/api/webhook/my_event">
                 </div>
             </div>
         </div>
@@ -7487,9 +7487,9 @@ function renderCandoActionItem(container, data = {}) {
     container.appendChild(itemDiv);
 
     // Populate payload steps
-    const stepsContainer = itemDiv.querySelector(".cando-payload-steps-container");
+    const stepsContainer = itemDiv.querySelector(".can-do-payload-steps-container");
     if (data.steps && Array.isArray(data.steps) && data.steps.length > 0) {
-        data.steps.forEach(st => renderCandoPayloadStep(stepsContainer, st));
+        data.steps.forEach(st => renderCanDoPayloadStep(stepsContainer, st));
     } else if (data.payload) {
         const rawLines = data.payload.split("\n");
         rawLines.forEach(line => {
@@ -7509,20 +7509,20 @@ function renderCandoActionItem(container, data = {}) {
                 rep = parseInt(repMatch[1]);
                 p = p.replace(repMatch[0], "").trim();
             }
-            renderCandoPayloadStep(stepsContainer, { payload: p, repeat: rep, delay_ms: delayVal });
+            renderCanDoPayloadStep(stepsContainer, { payload: p, repeat: rep, delay_ms: delayVal });
         });
     } else {
-        renderCandoPayloadStep(stepsContainer, { payload: "", repeat: 3 });
+        renderCanDoPayloadStep(stepsContainer, { payload: "", repeat: 3 });
     }
-    renumberCandoPayloadSteps(stepsContainer);
+    renumberCanDoPayloadSteps(stepsContainer);
 }
 
-function toggleCandoActItemUI(selectElem) {
-    const item = selectElem.closest(".cando-action-item");
+function toggleCanDoActItemUI(selectElem) {
+    const item = selectElem.closest(".can-do-action-item");
     const val = selectElem.value;
-    const titleSpan = item.querySelector(".cando-subitem-title-act");
+    const titleSpan = item.querySelector(".can-do-subitem-title-act");
     if (val === "delay") {
-        updateCandoDelayPill(item);
+        updateCanDoDelayPill(item);
     } else if (val === "can_tx" && titleSpan) {
         titleSpan.textContent = "Transmit CAN Sequence";
     } else if (val === "popup" && titleSpan) {
@@ -7538,15 +7538,15 @@ function toggleCandoActItemUI(selectElem) {
     item.querySelectorAll(".act-field-webhook").forEach(el => el.classList.toggle("hidden", val !== "webhook"));
 
     if (val === "preset") {
-        const picker = item.querySelector(".cando-act-preset-picker");
+        const picker = item.querySelector(".can-do-act-preset-picker");
         if (picker && picker.value !== "") {
-            applyCandoActionPreset(picker);
+            applyCanDoActionPreset(picker);
         } else {
             item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
             item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
             item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
             item.querySelectorAll(".act-field-popup").forEach(el => el.classList.add("hidden"));
-            const optionsBox = item.querySelector(".cando-act-options-container");
+            const optionsBox = item.querySelector(".can-do-act-options-container");
             if (optionsBox) optionsBox.style.display = "none";
         }
     } else if (val === "can_tx") {
@@ -7554,34 +7554,34 @@ function toggleCandoActItemUI(selectElem) {
         item.querySelectorAll(".act-field-popup").forEach(el => el.classList.remove("hidden"));
         item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
-        const optionsBox = item.querySelector(".cando-act-options-container");
+        const optionsBox = item.querySelector(".can-do-act-options-container");
         if (optionsBox) optionsBox.style.display = "none";
     } else if (val === "popup") {
         item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-popup").forEach(el => el.classList.remove("hidden"));
         item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
-        const optionsBox = item.querySelector(".cando-act-options-container");
+        const optionsBox = item.querySelector(".can-do-act-options-container");
         if (optionsBox) optionsBox.style.display = "none";
     } else {
         item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-popup").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
-        const optionsBox = item.querySelector(".cando-act-options-container");
+        const optionsBox = item.querySelector(".can-do-act-options-container");
         if (optionsBox) optionsBox.style.display = "none";
     }
 }
 
-function updateCandoClimateUI(elem) {
-    const item = elem.closest(".cando-action-item");
+function updateCanDoClimateUI(elem) {
+    const item = elem.closest(".can-do-action-item");
     if (!item) return;
-    const isSync = item.querySelector(".cando-act-climate-sync")?.checked || false;
-    const isDrvOnly = item.querySelector(".cando-act-climate-drv-only")?.checked || false;
+    const isSync = item.querySelector(".can-do-act-climate-sync")?.checked || false;
+    const isDrvOnly = item.querySelector(".can-do-act-climate-drv-only")?.checked || false;
 
-    const driverLabel = item.querySelector(".cando-climate-drv-label");
-    const passRow = item.querySelector(".cando-climate-pass-row");
-    const syncCheckbox = item.querySelector(".cando-act-climate-sync");
+    const driverLabel = item.querySelector(".can-do-climate-drv-label");
+    const passRow = item.querySelector(".can-do-climate-pass-row");
+    const syncCheckbox = item.querySelector(".can-do-act-climate-sync");
 
     if (isDrvOnly) {
         if (passRow) passRow.classList.add("hidden");
@@ -7597,20 +7597,20 @@ function updateCandoClimateUI(elem) {
             if (driverLabel) driverLabel.textContent = "Driver Target Temp:";
         }
     }
-    onCandoClimateTempChange(elem);
+    onCanDoClimateTempChange(elem);
 }
 
-function onCandoClimateTempChange(elem) {
-    const item = elem.closest(".cando-action-item");
+function onCanDoClimateTempChange(elem) {
+    const item = elem.closest(".can-do-action-item");
     if (!item) return;
-    const card = elem.closest(".cando-rule-card");
+    const card = elem.closest(".can-do-rule-card");
     const isImp = (getUnitSystem() === "imperial");
     const u = isImp ? "°F" : "°C";
 
-    const drvInput = item.querySelector(".cando-act-target-temp");
-    const passInput = item.querySelector(".cando-act-pass-temp");
-    const isSync = item.querySelector(".cando-act-climate-sync")?.checked || false;
-    const isDrvOnly = item.querySelector(".cando-act-climate-drv-only")?.checked || false;
+    const drvInput = item.querySelector(".can-do-act-target-temp");
+    const passInput = item.querySelector(".can-do-act-pass-temp");
+    const isSync = item.querySelector(".can-do-act-climate-sync")?.checked || false;
+    const isDrvOnly = item.querySelector(".can-do-act-climate-drv-only")?.checked || false;
 
     const drvVal = drvInput ? drvInput.value : (isImp ? "72" : "21.0");
     const passVal = passInput ? passInput.value : drvVal;
@@ -7620,42 +7620,42 @@ function onCandoClimateTempChange(elem) {
         osdText = `Climate: Drv ${drvVal}${u} / Pass ${passVal}${u}`;
     }
 
-    const popupInput = item.querySelector(".cando-act-popup-msg");
+    const popupInput = item.querySelector(".can-do-act-popup-msg");
     if (popupInput) {
         popupInput.value = osdText;
     }
 
-    if (card) updateCandoRuleSummaryPill(card);
+    if (card) updateCanDoRuleSummaryPill(card);
 }
 
-function getCandoRuleTriggersInfo(card) {
+function getCanDoRuleTriggersInfo(card) {
     if (!card) return [];
-    const trigItems = card.querySelectorAll(".cando-trigger-item");
+    const trigItems = card.querySelectorAll(".can-do-trigger-item");
     const list = [];
     trigItems.forEach((t, idx) => {
-        const rawId = t.querySelector(".cando-trig-id")?.value.trim() || "";
+        const rawId = t.querySelector(".can-do-trig-id")?.value.trim() || "";
         const id = rawId || `trig_${idx + 1}`;
-        const src = t.querySelector(".cando-trig-source")?.value || "preset";
+        const src = t.querySelector(".can-do-trig-source")?.value || "preset";
         let label = `Trigger ${idx + 1}`;
         if (src === "preset") {
-            const picker = t.querySelector(".cando-trig-preset-picker");
+            const picker = t.querySelector(".can-do-trig-preset-picker");
             const selText = (picker && picker.selectedIndex >= 0) ? picker.options[picker.selectedIndex].text : "";
             if (selText && !selText.startsWith("--")) label = `Trigger ${idx + 1}: ${selText}`;
         } else if (src === "can_msg") {
-            const cid = t.querySelector(".cando-trig-can-id")?.value.trim() || "";
+            const cid = t.querySelector(".can-do-trig-can-id")?.value.trim() || "";
             label = cid ? `Trigger ${idx + 1}: CAN ${cid}` : `Trigger ${idx + 1}: Raw CAN`;
         } else if (src === "clock") {
-            const tm = t.querySelector(".cando-trig-time")?.value.trim() || "";
+            const tm = t.querySelector(".can-do-trig-time")?.value.trim() || "";
             label = tm ? `Trigger ${idx + 1}: Clock (${tm})` : `Trigger ${idx + 1}: Clock`;
         } else if (src === "voltage") {
-            const v = t.querySelector(".cando-trig-voltage-val")?.value.trim() || "";
+            const v = t.querySelector(".can-do-trig-voltage-val")?.value.trim() || "";
             label = v ? `Trigger ${idx + 1}: Voltage (${v}V)` : `Trigger ${idx + 1}: Voltage`;
         } else if (src === "interval") {
-            const sec = t.querySelector(".cando-trig-interval-sec")?.value.trim() || "";
+            const sec = t.querySelector(".can-do-trig-interval-sec")?.value.trim() || "";
             label = sec ? `Trigger ${idx + 1}: Every ${sec}s` : `Trigger ${idx + 1}: Interval`;
         } else if (src === "ha_mqtt" || src === "mqtt_cmd") {
-            const payload = t.querySelector(".cando-trig-mqtt-payload")?.value.trim() || "";
-            const topic = t.querySelector(".cando-trig-mqtt-topic")?.value.trim() || "wican/cando/trigger";
+            const payload = t.querySelector(".can-do-trig-mqtt-payload")?.value.trim() || "";
+            const topic = t.querySelector(".can-do-trig-mqtt-topic")?.value.trim() || "wican/can_do/trigger";
             label = payload ? `Trigger ${idx + 1}: HA (${payload})` : `Trigger ${idx + 1}: HA (${topic})`;
         }
         if (rawId) {
@@ -7666,20 +7666,20 @@ function getCandoRuleTriggersInfo(card) {
     return list;
 }
 
-function getCandoRuleTriggerIds(card) {
-    return getCandoRuleTriggersInfo(card).map(t => t.id);
+function getCanDoRuleTriggerIds(card) {
+    return getCanDoRuleTriggersInfo(card).map(t => t.id);
 }
 
-function updateCandoRuleTriggerDropdowns(card) {
+function updateCanDoRuleTriggerDropdowns(card) {
     if (!card) return;
-    const trigCount = card.querySelectorAll(".cando-trigger-item").length;
+    const trigCount = card.querySelectorAll(".can-do-trigger-item").length;
     // Show Trigger ID inputs only if >1 trigger exists on the card
-    card.querySelectorAll(".cando-trig-id-container").forEach(el => {
+    card.querySelectorAll(".can-do-trig-id-container").forEach(el => {
         el.style.display = (trigCount > 1) ? "flex" : "none";
     });
 
-    const triggers = getCandoRuleTriggersInfo(card);
-    card.querySelectorAll(".cando-opt-trig-id, .cando-action-item .cando-act-trig-id").forEach(select => {
+    const triggers = getCanDoRuleTriggersInfo(card);
+    card.querySelectorAll(".can-do-opt-trig-id, .can-do-action-item .can-do-act-trig-id").forEach(select => {
         const currentVal = select.value;
         select.innerHTML = `<option value="">Any Trigger (Default)</option>` +
             triggers.map(t => `<option value="${t.id}" ${currentVal === t.id ? "selected" : ""}>${t.label}</option>`).join("") +
@@ -7688,10 +7688,10 @@ function updateCandoRuleTriggerDropdowns(card) {
 }
 
 // --- CHOOSE BLOCK (BRANCHING) ---
-function addCandoChooseBlock(buttonElem) {
-    const card = buttonElem.closest(".cando-rule-card");
-    const container = card.querySelector(".cando-actions-container");
-    const triggers = getCandoRuleTriggersInfo(card);
+function addCanDoChooseBlock(buttonElem) {
+    const card = buttonElem.closest(".can-do-rule-card");
+    const container = card.querySelector(".can-do-actions-container");
+    const triggers = getCanDoRuleTriggersInfo(card);
     let options = [];
     if (triggers.length >= 2) {
         options = triggers.map(t => ({ trigger_id: t.id, actions: [{ type: "preset" }] }));
@@ -7701,24 +7701,24 @@ function addCandoChooseBlock(buttonElem) {
             { trigger_id: "", actions: [{ type: "preset" }] }
         ];
     }
-    renderCandoChooseBlock(container, { type: "choose", options: options });
-    updateCandoRuleTriggerDropdowns(card);
-    updateCandoSectionCountBadges(card);
+    renderCanDoChooseBlock(container, { type: "choose", options: options });
+    updateCanDoRuleTriggerDropdowns(card);
+    updateCanDoSectionCountBadges(card);
 }
 
 function convertActionsToChooseBlock(buttonElem) {
-    const card = buttonElem.closest(".cando-rule-card");
+    const card = buttonElem.closest(".can-do-rule-card");
     if (!card) return;
-    const container = card.querySelector(".cando-actions-container");
+    const container = card.querySelector(".can-do-actions-container");
     if (!container) return;
 
     // Collect existing action data before clearing
     const existingActions = [];
-    container.querySelectorAll(":scope > .cando-action-item").forEach(item => {
-        existingActions.push(extractCandoActionData(item));
+    container.querySelectorAll(":scope > .can-do-action-item").forEach(item => {
+        existingActions.push(extractCanDoActionData(item));
     });
 
-    const triggers = getCandoRuleTriggersInfo(card);
+    const triggers = getCanDoRuleTriggersInfo(card);
     const options = [];
     if (triggers.length >= 2) {
         triggers.forEach((t, idx) => {
@@ -7740,45 +7740,45 @@ function convertActionsToChooseBlock(buttonElem) {
     }
 
     container.innerHTML = "";
-    renderCandoChooseBlock(container, { type: "choose", options: options });
-    updateCandoRuleTriggerDropdowns(card);
-    updateCandoSectionCountBadges(card);
+    renderCanDoChooseBlock(container, { type: "choose", options: options });
+    updateCanDoRuleTriggerDropdowns(card);
+    updateCanDoSectionCountBadges(card);
     showNotification("Actions converted to branching Choose block!", "green", 3500);
 }
 
-function renderCandoChooseBlock(container, data = {}) {
+function renderCanDoChooseBlock(container, data = {}) {
     const groupDiv = document.createElement("div");
-    groupDiv.className = "cando-choose-block";
+    groupDiv.className = "can-do-choose-block";
     groupDiv.style.borderRadius = "var(--m3-shape-md)";
     groupDiv.style.padding = "0";
     groupDiv.style.boxShadow = "var(--shadow-sm)";
     groupDiv.addEventListener("click", () => {
-        if (!groupDiv.classList.contains("cando-subitem-collapsed")) {
-            selectCandoItem(groupDiv);
+        if (!groupDiv.classList.contains("can-do-subitem-collapsed")) {
+            selectCanDoItem(groupDiv);
         }
     });
 
     groupDiv.innerHTML = `
-    <div class="cando-subitem-header choose-header" onclick="toggleCandoItemBody(this, event)" style="cursor: pointer;">
+    <div class="can-do-subitem-header choose-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="cando-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="cando-ha-pill choose-pill">
+            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+            <span class="can-do-ha-pill choose-pill">
                 <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-share"/></svg>
                 Choose
             </span>
-            <span class="cando-subitem-title-choose" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
+            <span class="can-do-subitem-title-choose" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
                 Multi-Branch Condition
             </span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Choose Block Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Choose Block Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'choose_block')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Choose Block Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Choose Block Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'choose_block')" title="More options">⋮</button>
         </div>
     </div>
-    <div class="cando-subitem-body" style="padding: 0.85rem 1rem;">
-        <div class="cando-choose-options-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
-        <button type="button" class="ha-add-element-btn opt" onclick="addCandoOptionToChooseBlock(this)">
+    <div class="can-do-subitem-body" style="padding: 0.85rem 1rem;">
+        <div class="can-do-choose-options-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+        <button type="button" class="ha-add-element-btn opt" onclick="addCanDoOptionToChooseBlock(this)">
             <svg><use href="#icon-plus"/></svg>
             <span>Add Option Branch</span>
         </button>
@@ -7786,48 +7786,48 @@ function renderCandoChooseBlock(container, data = {}) {
 `;
     container.appendChild(groupDiv);
 
-    const optionsContainer = groupDiv.querySelector(".cando-choose-options-container");
+    const optionsContainer = groupDiv.querySelector(".can-do-choose-options-container");
     const options = (data.options && Array.isArray(data.options) && data.options.length > 0)
         ? data.options
         : [{ trigger_id: "", actions: [{ type: "preset" }] }];
-    options.forEach(opt => renderCandoChooseOption(optionsContainer, opt));
-    renumberCandoChooseOptions(optionsContainer);
+    options.forEach(opt => renderCanDoChooseOption(optionsContainer, opt));
+    renumberCanDoChooseOptions(optionsContainer);
 }
 
-function cloneCandoChooseBlock(btn) {
-    const blockItem = btn.classList?.contains("cando-choose-block") ? btn : btn.closest(".cando-choose-block");
+function cloneCanDoChooseBlock(btn) {
+    const blockItem = btn.classList?.contains("can-do-choose-block") ? btn : btn.closest(".can-do-choose-block");
     const container = blockItem.parentElement;
-    const card = blockItem.closest(".cando-rule-card");
-    const blockData = extractCandoActionElement(blockItem);
+    const card = blockItem.closest(".can-do-rule-card");
+    const blockData = extractCanDoActionElement(blockItem);
 
-    renderCandoChooseBlock(container, blockData);
+    renderCanDoChooseBlock(container, blockData);
     const newBlock = container.lastElementChild;
     blockItem.after(newBlock);
     triggerItemAnimation(newBlock, "ha-item-duplicate");
     scrollToNewBlockHelper(newBlock, 80);
     if (card) {
-        updateCandoRuleTriggerDropdowns(card);
-        updateCandoSectionCountBadges(card);
+        updateCanDoRuleTriggerDropdowns(card);
+        updateCanDoSectionCountBadges(card);
     }
     showNotification("Choose block duplicated!", "green", 1800);
 }
 
-function renderCandoChooseOption(container, optData = {}) {
+function renderCanDoChooseOption(container, optData = {}) {
     const optDiv = document.createElement("div");
-    optDiv.className = "cando-choose-option-item ha-flow-branch-card";
+    optDiv.className = "can-do-choose-option-item ha-flow-branch-card";
 
-    const ruleCard = container ? container.closest(".cando-rule-card") : null;
-    const triggers = getCandoRuleTriggersInfo(ruleCard);
+    const ruleCard = container ? container.closest(".can-do-rule-card") : null;
+    const triggers = getCanDoRuleTriggersInfo(ruleCard);
     const selVal = optData.trigger_id || "";
-    const optIdx = container.querySelectorAll(".cando-choose-option-item").length + 1;
+    const optIdx = container.querySelectorAll(".can-do-choose-option-item").length + 1;
 
     optDiv.innerHTML = `
-    <div class="cando-opt-header">
+    <div class="can-do-opt-header">
         <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
             <span class="ha-branch-badge opt" style="margin-left: 2px;">Option <span class="opt-num">${optIdx}</span></span>
             <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
                 Trigger:
-                <select class="ha-form-select cando-opt-trig-id" style="height: 28px; min-width: 150px; padding: 2px 8px; font-size: 0.8rem; border-radius: 6px;">
+                <select class="ha-form-select can-do-opt-trig-id" style="height: 28px; min-width: 150px; padding: 2px 8px; font-size: 0.8rem; border-radius: 6px;">
                     <option value="">Any Trigger (Default)</option>
                     ${triggers.map(t => `<option value="${t.id}" ${selVal === t.id ? "selected" : ""}>${t.label}</option>`).join("")}
                     ${(selVal && !triggers.some(t => t.id === selVal)) ? `<option value="${selVal}" selected>Trigger: ${selVal}</option>` : ""}
@@ -7835,15 +7835,15 @@ function renderCandoChooseOption(container, optData = {}) {
             </label>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move Option Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move Option Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'choose_option')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Option Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Option Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'choose_option')" title="More options">⋮</button>
         </div>
     </div>
-    <div class="cando-opt-body">
-        <div class="cando-opt-actions-box" style="margin-top: 0.4rem;">
-            <div class="cando-opt-actions-container" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
-            <button type="button" class="ha-add-element-btn act subitem" onclick="openAddAutomationElementDialog('action', this.closest('.cando-opt-actions-box')?.querySelector('.cando-opt-actions-container') || this.closest('.cando-section-box')?.querySelector('.cando-actions-container'), this.closest('.cando-rule-card'))">
+    <div class="can-do-opt-body">
+        <div class="can-do-opt-actions-box" style="margin-top: 0.4rem;">
+            <div class="can-do-opt-actions-container" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+            <button type="button" class="ha-add-element-btn act subitem" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-opt-actions-box')?.querySelector('.can-do-opt-actions-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
                 <svg><use href="#icon-plus"/></svg>
                 <span>Add Action Step to Option</span>
             </button>
@@ -7852,156 +7852,156 @@ function renderCandoChooseOption(container, optData = {}) {
 `;
     container.appendChild(optDiv);
 
-    const optActionsContainer = optDiv.querySelector(".cando-opt-actions-container");
+    const optActionsContainer = optDiv.querySelector(".can-do-opt-actions-container");
     if (optData.actions && Array.isArray(optData.actions) && optData.actions.length > 0) {
         optData.actions.forEach(a => {
             if (a.type === "if_then") {
-                renderCandoIfThenBlock(optActionsContainer, a);
+                renderCanDoIfThenBlock(optActionsContainer, a);
             } else {
-                renderCandoActionItem(optActionsContainer, a);
+                renderCanDoActionItem(optActionsContainer, a);
             }
         });
     } else {
-        renderCandoActionItem(optActionsContainer, { type: "preset" });
+        renderCanDoActionItem(optActionsContainer, { type: "preset" });
     }
 }
 
-function cloneCandoChooseOption(btn) {
-    const optItem = btn.classList?.contains("cando-choose-option-item") ? btn : btn.closest(".cando-choose-option-item");
+function cloneCanDoChooseOption(btn) {
+    const optItem = btn.classList?.contains("can-do-choose-option-item") ? btn : btn.closest(".can-do-choose-option-item");
     const container = optItem.parentElement;
-    const card = optItem.closest(".cando-rule-card");
+    const card = optItem.closest(".can-do-rule-card");
 
     // Extract actions from this option
     const optActions = [];
-    optItem.querySelectorAll(".cando-opt-actions-container > .cando-action-item, .cando-opt-actions-container > .cando-choose-block, .cando-opt-actions-container > .cando-ifthen-block").forEach(actItem => {
-        optActions.push(extractCandoActionElement(actItem));
+    optItem.querySelectorAll(".can-do-opt-actions-container > .can-do-action-item, .can-do-opt-actions-container > .can-do-choose-block, .can-do-opt-actions-container > .can-do-ifthen-block").forEach(actItem => {
+        optActions.push(extractCanDoActionElement(actItem));
     });
 
     const optData = {
-        trigger_id: optItem.querySelector(".cando-opt-trig-id")?.value.trim() || "",
+        trigger_id: optItem.querySelector(".can-do-opt-trig-id")?.value.trim() || "",
         actions: optActions
     };
 
-    renderCandoChooseOption(container, optData);
+    renderCanDoChooseOption(container, optData);
     const newOpt = container.lastElementChild;
     optItem.after(newOpt);
-    renumberCandoChooseOptions(container);
+    renumberCanDoChooseOptions(container);
     triggerItemAnimation(newOpt, "ha-item-duplicate");
     scrollToNewBlockHelper(newOpt, 80);
-    if (card) updateCandoSectionCountBadges(card);
+    if (card) updateCanDoSectionCountBadges(card);
     showNotification("Option branch duplicated!", "green", 1800);
 }
 
-function addCandoOptionToChooseBlock(btn) {
-    const groupDiv = btn.closest(".cando-choose-block");
-    const container = groupDiv.querySelector(".cando-choose-options-container");
-    renderCandoChooseOption(container, { trigger_id: "", actions: [{ type: "preset" }] });
-    renumberCandoChooseOptions(container);
+function addCanDoOptionToChooseBlock(btn) {
+    const groupDiv = btn.closest(".can-do-choose-block");
+    const container = groupDiv.querySelector(".can-do-choose-options-container");
+    renderCanDoChooseOption(container, { trigger_id: "", actions: [{ type: "preset" }] });
+    renumberCanDoChooseOptions(container);
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
 }
 
-function addCandoActionToOption(buttonElem) {
-    const optDiv = buttonElem.closest(".cando-choose-option-item");
-    const container = optDiv.querySelector(".cando-opt-actions-container");
-    renderCandoActionItem(container, { type: "preset" });
+function addCanDoActionToOption(buttonElem) {
+    const optDiv = buttonElem.closest(".can-do-choose-option-item");
+    const container = optDiv.querySelector(".can-do-opt-actions-container");
+    renderCanDoActionItem(container, { type: "preset" });
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
-    const card = buttonElem.closest(".cando-rule-card");
-    updateCandoSectionCountBadges(card);
+    const card = buttonElem.closest(".can-do-rule-card");
+    updateCanDoSectionCountBadges(card);
 }
 
-function removeCandoChooseOption(btn) {
-    const item = btn.closest(".cando-choose-option-item");
+function removeCanDoChooseOption(btn) {
+    const item = btn.closest(".can-do-choose-option-item");
     const container = item.parentElement;
     item.remove();
-    renumberCandoChooseOptions(container);
+    renumberCanDoChooseOptions(container);
 }
 
-function renumberCandoChooseOptions(container) {
+function renumberCanDoChooseOptions(container) {
     if (!container) return;
-    const options = container.querySelectorAll(".cando-choose-option-item");
+    const options = container.querySelectorAll(".can-do-choose-option-item");
     options.forEach((opt, idx) => {
         const numSpan = opt.querySelector(".opt-num");
         if (numSpan) numSpan.textContent = idx + 1;
     });
-    const card = container.closest(".cando-rule-card");
+    const card = container.closest(".can-do-rule-card");
     if (card) {
-        updateCandoItemConnectors(card);
-        updateCandoSectionCountBadges(card);
+        updateCanDoItemConnectors(card);
+        updateCanDoSectionCountBadges(card);
     }
 }
 
 // --- IF - THEN - ELSE BLOCK (CONDITIONAL ACTIONS) ---
-function addCandoIfThenBlock(buttonElem) {
-    const card = buttonElem.closest(".cando-rule-card");
-    const container = card.querySelector(".cando-actions-container");
-    renderCandoIfThenBlock(container, { type: "if_then" });
-    updateCandoSectionCountBadges(card);
+function addCanDoIfThenBlock(buttonElem) {
+    const card = buttonElem.closest(".can-do-rule-card");
+    const container = card.querySelector(".can-do-actions-container");
+    renderCanDoIfThenBlock(container, { type: "if_then" });
+    updateCanDoSectionCountBadges(card);
 }
 
-function cloneCandoIfThenBlock(btn) {
-    const blockItem = btn.classList?.contains("cando-ifthen-block") ? btn : btn.closest(".cando-ifthen-block");
+function cloneCanDoIfThenBlock(btn) {
+    const blockItem = btn.classList?.contains("can-do-ifthen-block") ? btn : btn.closest(".can-do-ifthen-block");
     const container = blockItem.parentElement;
-    const card = blockItem.closest(".cando-rule-card");
-    const blockData = extractCandoActionElement(blockItem);
+    const card = blockItem.closest(".can-do-rule-card");
+    const blockData = extractCanDoActionElement(blockItem);
 
-    renderCandoIfThenBlock(container, blockData);
+    renderCanDoIfThenBlock(container, blockData);
     const newBlock = container.lastElementChild;
     blockItem.after(newBlock);
     triggerItemAnimation(newBlock, "ha-item-duplicate");
     scrollToNewBlockHelper(newBlock, 80);
     if (card) {
-        updateCandoRuleTriggerDropdowns(card);
-        updateCandoSectionCountBadges(card);
+        updateCanDoRuleTriggerDropdowns(card);
+        updateCanDoSectionCountBadges(card);
     }
     showNotification("If-Then-Else block duplicated!", "green", 1800);
 }
 
-function renderCandoIfThenBlock(container, data = {}) {
+function renderCanDoIfThenBlock(container, data = {}) {
     const groupDiv = document.createElement("div");
-    groupDiv.className = "cando-ifthen-block";
+    groupDiv.className = "can-do-ifthen-block";
     groupDiv.style.borderRadius = "var(--m3-shape-md)";
     groupDiv.style.padding = "0";
     groupDiv.style.boxShadow = "var(--shadow-sm)";
     groupDiv.addEventListener("click", () => {
-        if (!groupDiv.classList.contains("cando-subitem-collapsed")) {
-            selectCandoItem(groupDiv);
+        if (!groupDiv.classList.contains("can-do-subitem-collapsed")) {
+            selectCanDoItem(groupDiv);
         }
     });
 
     groupDiv.innerHTML = `
-    <div class="cando-subitem-header ifthen-header" onclick="toggleCandoItemBody(this, event)" style="cursor: pointer;">
+    <div class="can-do-subitem-header ifthen-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
         <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="cando-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="cando-ha-pill ifthen-pill">
+            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+            <span class="can-do-ha-pill ifthen-pill">
                 <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-help"/></svg>
                 If - Then
             </span>
-            <span class="cando-subitem-title-ifthen" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
+            <span class="can-do-subitem-title-ifthen" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
                 Conditional Evaluation
             </span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, -1)" title="Move If-Then Block Up">▲</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-move" onclick="moveCandoItem(this, 1)" title="Move If-Then Block Down">▼</button>
-            <button type="button" class="system-button cando-subitem-btn cando-btn-more" onclick="showCandoSubitemMenu(this, event, 'ifthen_block')" title="More options">⋮</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move If-Then Block Up">▲</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move If-Then Block Down">▼</button>
+            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'ifthen_block')" title="More options">⋮</button>
         </div>
     </div>
     
-    <div class="cando-subitem-body" style="padding: 0.85rem 1rem;">
+    <div class="can-do-subitem-body" style="padding: 0.85rem 1rem;">
         <!-- IF: Conditions Branch Card -->
         <div class="ha-flow-branch-card">
-            <div class="cando-branch-header if">
+            <div class="can-do-branch-header if">
                 <div style="display: flex; align-items: center; gap: 0.55rem;">
                     <span class="ha-branch-badge if" style="margin-left: 2px;">IF</span>
                     <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Conditions evaluated before executing actions</span>
                 </div>
             </div>
-            <div class="cando-branch-body">
-                <div class="cando-ifthen-conditions-box">
-                    <div class="cando-ifthen-conditions-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-                    <button type="button" class="ha-add-element-btn cond subitem" onclick="openAddAutomationElementDialog('condition', this.closest('.cando-ifthen-conditions-box')?.querySelector('.cando-ifthen-conditions-container') || this.closest('.cando-section-box')?.querySelector('.cando-conditions-container'), this.closest('.cando-rule-card'))">
+            <div class="can-do-branch-body">
+                <div class="can-do-ifthen-conditions-box">
+                    <div class="can-do-ifthen-conditions-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
+                    <button type="button" class="ha-add-element-btn cond subitem" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-ifthen-conditions-box')?.querySelector('.can-do-ifthen-conditions-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
                         <svg><use href="#icon-plus"/></svg>
                         <span>Add Condition to IF</span>
                     </button>
@@ -8011,16 +8011,16 @@ function renderCandoIfThenBlock(container, data = {}) {
 
         <!-- THEN: Actions Branch Card -->
         <div class="ha-flow-branch-card">
-            <div class="cando-branch-header then">
+            <div class="can-do-branch-header then">
                 <div style="display: flex; align-items: center; gap: 0.55rem;">
                     <span class="ha-branch-badge then" style="margin-left: 2px;">THEN</span>
                     <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Actions executed if all conditions above pass</span>
                 </div>
             </div>
-            <div class="cando-branch-body">
-                <div class="cando-ifthen-then-box">
-                    <div class="cando-ifthen-then-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-                    <button type="button" class="ha-add-element-btn act subitem" data-branch="then" onclick="openAddAutomationElementDialog('action', this.closest('.cando-ifthen-then-box')?.querySelector('.cando-ifthen-then-container') || this.closest('.cando-section-box')?.querySelector('.cando-actions-container'), this.closest('.cando-rule-card'))">
+            <div class="can-do-branch-body">
+                <div class="can-do-ifthen-then-box">
+                    <div class="can-do-ifthen-then-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
+                    <button type="button" class="ha-add-element-btn act subitem" data-branch="then" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-ifthen-then-box')?.querySelector('.can-do-ifthen-then-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
                         <svg><use href="#icon-plus"/></svg>
                         <span>Add Action Step to THEN</span>
                     </button>
@@ -8030,16 +8030,16 @@ function renderCandoIfThenBlock(container, data = {}) {
 
         <!-- ELSE: Actions Branch Card -->
         <div class="ha-flow-branch-card" style="margin-bottom: 0 !important;">
-            <div class="cando-branch-header else">
+            <div class="can-do-branch-header else">
                 <div style="display: flex; align-items: center; gap: 0.55rem;">
                     <span class="ha-branch-badge else" style="margin-left: 2px;">ELSE (Optional)</span>
                     <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Actions executed if conditions fail</span>
                 </div>
             </div>
-            <div class="cando-branch-body">
-                <div class="cando-ifthen-else-box">
-                    <div class="cando-ifthen-else-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-                    <button type="button" class="ha-add-element-btn act subitem" data-branch="else" onclick="openAddAutomationElementDialog('action', this.closest('.cando-ifthen-else-box')?.querySelector('.cando-ifthen-else-container') || this.closest('.cando-section-box')?.querySelector('.cando-actions-container'), this.closest('.cando-rule-card'))">
+            <div class="can-do-branch-body">
+                <div class="can-do-ifthen-else-box">
+                    <div class="can-do-ifthen-else-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
+                    <button type="button" class="ha-add-element-btn act subitem" data-branch="else" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-ifthen-else-box')?.querySelector('.can-do-ifthen-else-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
                         <svg><use href="#icon-plus"/></svg>
                         <span>Add Action Step to ELSE</span>
                     </button>
@@ -8051,54 +8051,54 @@ function renderCandoIfThenBlock(container, data = {}) {
 
     container.appendChild(groupDiv);
 
-    const condContainer = groupDiv.querySelector(".cando-ifthen-conditions-container");
+    const condContainer = groupDiv.querySelector(".can-do-ifthen-conditions-container");
     if (data.conditions && Array.isArray(data.conditions) && data.conditions.length > 0) {
         data.conditions.forEach(c => {
             if (c.type === "or_group" || c.type === "and_group" || c.type === "not_group" || c.group_type) {
-                renderCandoConditionBlock(condContainer, c);
+                renderCanDoConditionBlock(condContainer, c);
             } else {
-                renderCandoConditionItem(condContainer, c);
+                renderCanDoConditionItem(condContainer, c);
             }
         });
     } else {
-        renderCandoConditionItem(condContainer, { type: "speed_zero" });
+        renderCanDoConditionItem(condContainer, { type: "speed_zero" });
     }
 
-    const thenContainer = groupDiv.querySelector(".cando-ifthen-then-container");
+    const thenContainer = groupDiv.querySelector(".can-do-ifthen-then-container");
     if (data.then_actions && Array.isArray(data.then_actions) && data.then_actions.length > 0) {
-        data.then_actions.forEach(a => renderCandoActionItem(thenContainer, a));
+        data.then_actions.forEach(a => renderCanDoActionItem(thenContainer, a));
     } else {
-        renderCandoActionItem(thenContainer, { type: "preset" });
+        renderCanDoActionItem(thenContainer, { type: "preset" });
     }
 
-    const elseContainer = groupDiv.querySelector(".cando-ifthen-else-container");
+    const elseContainer = groupDiv.querySelector(".can-do-ifthen-else-container");
     if (data.else_actions && Array.isArray(data.else_actions) && data.else_actions.length > 0) {
-        data.else_actions.forEach(a => renderCandoActionItem(elseContainer, a));
+        data.else_actions.forEach(a => renderCanDoActionItem(elseContainer, a));
     }
 }
 
-function addCandoActionToIfThen(btn, branch) {
-    const block = btn.closest(".cando-ifthen-block");
+function addCanDoActionToIfThen(btn, branch) {
+    const block = btn.closest(".can-do-ifthen-block");
     const container = branch === "then"
-        ? block.querySelector(".cando-ifthen-then-container")
-        : block.querySelector(".cando-ifthen-else-container");
-    renderCandoActionItem(container, { type: "preset" });
+        ? block.querySelector(".can-do-ifthen-then-container")
+        : block.querySelector(".can-do-ifthen-else-container");
+    renderCanDoActionItem(container, { type: "preset" });
     const newElem = container ? container.lastElementChild : null;
     if (newElem) scrollToNewBlockHelper(newElem, 80);
-    const card = btn.closest(".cando-rule-card");
-    updateCandoSectionCountBadges(card);
+    const card = btn.closest(".can-do-rule-card");
+    updateCanDoSectionCountBadges(card);
 }
 
-function applyCandoActionPreset(selectElem) {
+function applyCanDoActionPreset(selectElem) {
     const val = selectElem.value;
-    const item = selectElem.closest(".cando-action-item");
+    const item = selectElem.closest(".can-do-action-item");
     if (!item) return;
     if (!val) {
         item.querySelectorAll(".act-field-climate").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-precon").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-can").forEach(el => el.classList.add("hidden"));
         item.querySelectorAll(".act-field-popup").forEach(el => el.classList.add("hidden"));
-        const optionsBox = item.querySelector(".cando-act-options-container");
+        const optionsBox = item.querySelector(".can-do-act-options-container");
         if (optionsBox) optionsBox.style.display = "none";
         return;
     }
@@ -8126,11 +8126,11 @@ function applyCandoActionPreset(selectElem) {
     item.querySelectorAll(".act-field-can").forEach(el => el.classList.toggle("hidden", !(isDetailsOpen && (showCan || (!showClimate && !showPrecon)))));
     item.querySelectorAll(".act-field-popup").forEach(el => el.classList.toggle("hidden", !(isDetailsOpen && (showPopup || (!showClimate && !showPrecon)))));
 
-    const optionsBox = item.querySelector(".cando-act-options-container");
+    const optionsBox = item.querySelector(".can-do-act-options-container");
 
     // Climate Target
     if (showClimate) {
-        const tt = item.querySelector(".cando-act-target-temp");
+        const tt = item.querySelector(".can-do-act-target-temp");
         if (tt) {
             if (isImperial) {
                 const f = preset.target_temp_f !== undefined ? preset.target_temp_f : (preset.target_temp_c !== undefined ? Math.round(preset.target_temp_c * 9 / 5 + 32) : 72);
@@ -8140,7 +8140,7 @@ function applyCandoActionPreset(selectElem) {
                 tt.value = Math.min(28.0, Math.max(17.0, c));
             }
         }
-        const pt = item.querySelector(".cando-act-pass-temp");
+        const pt = item.querySelector(".can-do-act-pass-temp");
         if (pt) {
             if (isImperial) {
                 const f = preset.pass_temp_f !== undefined ? preset.pass_temp_f : (preset.target_temp_f !== undefined ? preset.target_temp_f : (preset.target_temp_c !== undefined ? Math.round(preset.target_temp_c * 9 / 5 + 32) : 72));
@@ -8151,29 +8151,29 @@ function applyCandoActionPreset(selectElem) {
             }
         }
         if (preset.climate_zone) {
-            const cz = item.querySelector(".cando-act-climate-zone");
+            const cz = item.querySelector(".can-do-act-climate-zone");
             if (cz) cz.value = preset.climate_zone;
         }
-        const cs = item.querySelector(".cando-act-climate-sync");
+        const cs = item.querySelector(".can-do-act-climate-sync");
         if (cs) cs.checked = (preset.climate_sync_on !== false);
-        const cdo = item.querySelector(".cando-act-climate-drv-only");
+        const cdo = item.querySelector(".can-do-act-climate-drv-only");
         if (cdo) cdo.checked = (preset.climate_driver_only === true);
-        updateCandoClimateUI(item.querySelector(".cando-act-climate-sync") || selectElem);
+        updateCanDoClimateUI(item.querySelector(".can-do-act-climate-sync") || selectElem);
     }
 
     // Preconditioning
     if (preset.precon_mode) {
-        const pm = item.querySelector(".cando-act-precon-mode");
+        const pm = item.querySelector(".can-do-act-precon-mode");
         if (pm) pm.value = preset.precon_mode;
     }
     if (preset.precon_press) {
-        const pp = item.querySelector(".cando-act-precon-press");
+        const pp = item.querySelector(".can-do-act-precon-press");
         if (pp) pp.value = preset.precon_press;
     }
 
     // Popup message
     if (preset.popup_message !== undefined) {
-        const pop = item.querySelector(".cando-act-popup-msg");
+        const pop = item.querySelector(".can-do-act-popup-msg");
         if (pop) {
             pop.value = (isImperial && preset.popup_message_imperial) ? preset.popup_message_imperial : preset.popup_message;
         }
@@ -8181,32 +8181,32 @@ function applyCandoActionPreset(selectElem) {
 
     // CAN ID, bus, delay
     if (preset.can_id) {
-        const cid = item.querySelector(".cando-act-can-id");
+        const cid = item.querySelector(".can-do-act-can-id");
         if (cid) cid.value = preset.can_id;
     }
     if (preset.bus !== undefined) {
-        const b = item.querySelector(".cando-act-bus");
+        const b = item.querySelector(".can-do-act-bus");
         if (b) b.value = preset.bus.toString();
     }
     if (preset.delay_ms !== undefined) {
-        const d = item.querySelector(".cando-act-delay-ms");
+        const d = item.querySelector(".can-do-act-delay-ms");
         if (d) d.value = preset.delay_ms;
     }
     if (preset.wait_ms !== undefined) {
-        const w = item.querySelector(".cando-act-wait-ms");
+        const w = item.querySelector(".can-do-act-wait-ms");
         if (w) w.value = preset.wait_ms;
-        updateCandoDelayPill(item);
+        updateCanDoDelayPill(item);
     }
     if (preset.mqtt_topic) {
-        const mt = item.querySelector(".cando-act-mqtt-topic");
+        const mt = item.querySelector(".can-do-act-mqtt-topic");
         if (mt) mt.value = preset.mqtt_topic;
     }
     if (preset.mqtt_payload) {
-        const mp = item.querySelector(".cando-act-mqtt-payload");
+        const mp = item.querySelector(".can-do-act-mqtt-payload");
         if (mp) mp.value = preset.mqtt_payload;
     }
     if (preset.webhook_url) {
-        const wu = item.querySelector(".cando-act-webhook-url");
+        const wu = item.querySelector(".can-do-act-webhook-url");
         if (wu) wu.value = preset.webhook_url;
     }
 
@@ -8218,16 +8218,16 @@ function applyCandoActionPreset(selectElem) {
             const gridClass = preset.options.length > 4 ? "grid-many" : "grid-few";
             optionsBox.innerHTML = `
             <div style="width: 100%;">
-                <div class="cando-options-label">
+                <div class="can-do-options-label">
                     <span>Target Value:</span>
                 </div>
-                <div class="cando-options-grid ${gridClass}">
+                <div class="can-do-options-grid ${gridClass}">
                     ${preset.options.map((opt, i) => {
                 const label = (isImperial && opt.label_imperial) ? opt.label_imperial : opt.label;
                 const isCur = (i === defaultOptIdx);
                 return `
-                        <button type="button" class="cando-state-tile-btn cando-opt-pill-btn ${isCur ? 'active' : ''}" 
-                            onclick="applyCandoOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
+                        <button type="button" class="can-do-state-tile-btn can-do-opt-pill-btn ${isCur ? 'active' : ''}" 
+                            onclick="applyCanDoOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
                             ${label}
                         </button>
                         `;
@@ -8237,15 +8237,15 @@ function applyCandoActionPreset(selectElem) {
         }
         const activeOpt = preset.options[defaultOptIdx] || preset.options[0];
         if (activeOpt && activeOpt.payload) {
-            const stepsContainer = item.querySelector(".cando-payload-steps-container");
+            const stepsContainer = item.querySelector(".can-do-payload-steps-container");
             if (stepsContainer) {
                 stepsContainer.innerHTML = "";
-                renderCandoPayloadStep(stepsContainer, { payload: activeOpt.payload, repeat: 3 });
-                renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 3 });
+                renderCanDoPayloadStep(stepsContainer, { payload: activeOpt.payload, repeat: 3 });
+                renderCanDoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 3 });
             }
         }
         if (activeOpt && (activeOpt.target_temp_c !== undefined || activeOpt.target_temp_f !== undefined)) {
-            const tt = item.querySelector(".cando-act-target-temp");
+            const tt = item.querySelector(".can-do-act-target-temp");
             if (tt) {
                 if (isImperial) {
                     const f = activeOpt.target_temp_f !== undefined ? activeOpt.target_temp_f : Math.round(activeOpt.target_temp_c * 9 / 5 + 32);
@@ -8257,7 +8257,7 @@ function applyCandoActionPreset(selectElem) {
             }
         }
         if (activeOpt) {
-            const pop = item.querySelector(".cando-act-popup-msg");
+            const pop = item.querySelector(".can-do-act-popup-msg");
             if (pop) {
                 if (isImperial && activeOpt.popup_imperial) pop.value = activeOpt.popup_imperial;
                 else if (activeOpt.popup) pop.value = activeOpt.popup;
@@ -8269,10 +8269,10 @@ function applyCandoActionPreset(selectElem) {
             optionsBox.style.display = "none";
         }
         if (preset.steps && Array.isArray(preset.steps)) {
-            const stepsContainer = item.querySelector(".cando-payload-steps-container");
+            const stepsContainer = item.querySelector(".can-do-payload-steps-container");
             if (stepsContainer) {
                 stepsContainer.innerHTML = "";
-                preset.steps.forEach(s => renderCandoPayloadStep(stepsContainer, s));
+                preset.steps.forEach(s => renderCanDoPayloadStep(stepsContainer, s));
             }
         }
     }
@@ -8282,8 +8282,8 @@ function applyCandoActionPreset(selectElem) {
     togglePresetToolbarButtons(item);
 }
 
-function applyCandoOptionPill(btn, catIdx, pIdx, optIdx) {
-    const item = btn.closest(".cando-action-item");
+function applyCanDoOptionPill(btn, catIdx, pIdx, optIdx) {
+    const item = btn.closest(".can-do-action-item");
     if (!item) return;
     const cats = getFilteredActionPresets();
     const preset = cats[catIdx]?.presets[pIdx];
@@ -8292,9 +8292,9 @@ function applyCandoOptionPill(btn, catIdx, pIdx, optIdx) {
     const isImperial = (getUnitSystem() === "imperial");
 
     // Update active tile styling
-    const box = item.querySelector(".cando-act-options-container");
+    const box = item.querySelector(".can-do-act-options-container");
     if (box) {
-        box.querySelectorAll(".cando-opt-pill-btn").forEach((b, i) => {
+        box.querySelectorAll(".can-do-opt-pill-btn").forEach((b, i) => {
             b.classList.toggle("active", i === optIdx);
             b.removeAttribute("style");
         });
@@ -8302,17 +8302,17 @@ function applyCandoOptionPill(btn, catIdx, pIdx, optIdx) {
 
     // Apply payload to byte steps (3x burst + idle release)
     if (opt.payload) {
-        const stepsContainer = item.querySelector(".cando-payload-steps-container");
+        const stepsContainer = item.querySelector(".can-do-payload-steps-container");
         if (stepsContainer) {
             stepsContainer.innerHTML = "";
-            renderCandoPayloadStep(stepsContainer, { payload: opt.payload, repeat: 3 });
-            renderCandoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 3 });
+            renderCanDoPayloadStep(stepsContainer, { payload: opt.payload, repeat: 3 });
+            renderCanDoPayloadStep(stepsContainer, { payload: "00 00 00 00 00 00 00 00", repeat: 3 });
         }
     }
 
     // Apply target temp
     if (opt.target_temp_c !== undefined || opt.target_temp_f !== undefined) {
-        const tt = item.querySelector(".cando-act-target-temp");
+        const tt = item.querySelector(".can-do-act-target-temp");
         if (tt) {
             if (isImperial) {
                 const f = opt.target_temp_f !== undefined ? opt.target_temp_f : Math.round(opt.target_temp_c * 9 / 5 + 32);
@@ -8326,10 +8326,10 @@ function applyCandoOptionPill(btn, catIdx, pIdx, optIdx) {
 
     // Apply popup
     if (isImperial && opt.popup_imperial) {
-        const pop = item.querySelector(".cando-act-popup-msg");
+        const pop = item.querySelector(".can-do-act-popup-msg");
         if (pop) pop.value = opt.popup_imperial;
     } else if (opt.popup) {
-        const pop = item.querySelector(".cando-act-popup-msg");
+        const pop = item.querySelector(".can-do-act-popup-msg");
         if (pop) pop.value = opt.popup;
     }
 
@@ -8338,17 +8338,17 @@ function applyCandoOptionPill(btn, catIdx, pIdx, optIdx) {
     showNotification(`Selected ${pName}: ${label}`, "green", 2500);
 }
 
-function insertCandoPopupToken(elem, token) {
+function insertCanDoPopupToken(elem, token) {
     const row = elem.closest("tr");
     if (!row) return;
-    const input = row.querySelector(".cando-act-popup-msg");
+    const input = row.querySelector(".can-do-act-popup-msg");
     if (!input) return;
     input.value = (input.value ? input.value + " " : "") + token;
     input.focus();
 }
 
 // Unit-aware token inserter: resolves to the right token based on user's unit preference
-function insertCandoPopupTokenUnit(elem, tokenBase) {
+function insertCanDoPopupTokenUnit(elem, tokenBase) {
     const isImperial = (getUnitSystem() === "imperial");
     let token;
     if (tokenBase === "battery_temp") {
@@ -8358,14 +8358,14 @@ function insertCandoPopupTokenUnit(elem, tokenBase) {
     } else {
         token = "{" + tokenBase + "}";
     }
-    insertCandoPopupToken(elem, token);
+    insertCanDoPopupToken(elem, token);
 }
 // Card toggle collapse helpers
-function toggleCandoRuleCard(elem) {
-    const card = elem.closest(".cando-rule-card");
+function toggleCanDoRuleCard(elem) {
+    const card = elem.closest(".can-do-rule-card");
     if (!card) return;
-    const body = card.querySelector(".cando-rule-body");
-    const nameInput = card.querySelector(".cando-name");
+    const body = card.querySelector(".can-do-rule-body");
+    const nameInput = card.querySelector(".can-do-name");
     if (!body) return;
 
     const isHidden = body.classList.contains("hidden") || body.style.display === "none";
@@ -8388,33 +8388,33 @@ function toggleCandoRuleCard(elem) {
     }
 }
 
-function handleCandoEditSave(btn) {
-    const card = btn.closest(".cando-rule-card");
+function handleCanDoEditSave(btn) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
-    const body = card.querySelector(".cando-rule-body");
+    const body = card.querySelector(".can-do-rule-body");
     const isHidden = body ? (body.classList.contains("hidden") || body.style.display === "none") : false;
 
     if (isHidden) {
-        toggleCandoRuleCard(btn);
+        toggleCanDoRuleCard(btn);
     } else {
-        saveCandoRulesUI(btn);
+        saveCanDoRulesUI(btn);
     }
 }
 
-function handleCandoHeaderClick(event, headerElem) {
+function handleCanDoHeaderClick(event, headerElem) {
     if (event.target.closest("button") || event.target.closest("input") || event.target.closest("select") || event.target.closest("textarea")) {
         return;
     }
-    toggleCandoRuleCard(headerElem);
+    toggleCanDoRuleCard(headerElem);
 }
 
 
 /* --- AUTOMATIONS TOP TOOLBAR HELPERS (MATCHING HOME ASSISTANT) --- */
-function collapseAllCandoRules() {
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+function collapseAllCanDoRules() {
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     cards.forEach(card => {
-        const body = card.querySelector(".cando-rule-body");
-        const editBtn = card.querySelector(".cando-edit-btn");
+        const body = card.querySelector(".can-do-rule-body");
+        const editBtn = card.querySelector(".can-do-edit-btn");
         if (body) {
             body.classList.add("hidden");
             body.style.display = "none";
@@ -8426,7 +8426,7 @@ function collapseAllCandoRules() {
             editBtn.style.background = "";
         }
         // Also collapse inner subitems
-        card.querySelectorAll(".cando-subitem-body").forEach(b => {
+        card.querySelectorAll(".can-do-subitem-body").forEach(b => {
             b.style.display = "none";
         });
     });
@@ -8435,11 +8435,11 @@ function collapseAllCandoRules() {
     }
 }
 
-function expandAllCandoRules() {
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+function expandAllCanDoRules() {
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     cards.forEach(card => {
-        const body = card.querySelector(".cando-rule-body");
-        const editBtn = card.querySelector(".cando-edit-btn");
+        const body = card.querySelector(".can-do-rule-body");
+        const editBtn = card.querySelector(".can-do-edit-btn");
         if (body) {
             body.classList.remove("hidden");
             body.style.display = "block";
@@ -8450,7 +8450,7 @@ function expandAllCandoRules() {
             editBtn.classList.add("btn-save");
         }
         // Also expand inner subitems
-        card.querySelectorAll(".cando-subitem-body").forEach(b => {
+        card.querySelectorAll(".can-do-subitem-body").forEach(b => {
             b.style.display = "";
         });
     });
@@ -8461,19 +8461,19 @@ function expandAllCandoRules() {
 
 function showAutomationsGlobalMenu(btn, event) {
     if (event) event.stopPropagation();
-    document.querySelectorAll(".cando-ha-menu, .cando-floating-menu").forEach(m => m.remove());
+    document.querySelectorAll(".can-do-ha-menu, .can-do-floating-menu").forEach(m => m.remove());
 
     const menu = document.createElement("div");
-    menu.className = "cando-ha-menu";
+    menu.className = "can-do-ha-menu";
     menu.innerHTML = `
-        <div class="cando-ha-menu-item" onclick="toggleCandoGlobalSettingsModal(); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-item" onclick="toggleCanDoGlobalSettingsModal(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Catalog &amp; Settings...</span>
         </div>
-        <div class="cando-ha-menu-divider"></div>
-        <div class="cando-ha-menu-item" onclick="exportCandoRules(); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-divider"></div>
+        <div class="can-do-ha-menu-item" onclick="exportCanDoRules(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Export All (Backup JSON)</span>
         </div>
-        <div class="cando-ha-menu-item" onclick="triggerCandoRulesImport(); document.querySelectorAll('.cando-ha-menu').forEach(m => m.remove());">
+        <div class="can-do-ha-menu-item" onclick="triggerCanDoRulesImport(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
             <span>Import Automations JSON...</span>
         </div>
     `;
@@ -8489,73 +8489,73 @@ function showAutomationsGlobalMenu(btn, event) {
     setTimeout(() => document.addEventListener("click", closeHandler), 10);
 }
 
-function triggerCandoRulesImport() {
-    let input = document.getElementById("cando_import_file");
+function triggerCanDoRulesImport() {
+    let input = document.getElementById("can_do_import_file");
     if (!input) {
         input = document.createElement("input");
         input.type = "file";
-        input.id = "cando_import_file";
+        input.id = "can_do_import_file";
         input.accept = ".json";
         input.style.display = "none";
-        input.onchange = function() { importCandoRules(this); };
+        input.onchange = function () { importCanDoRules(this); };
         document.body.appendChild(input);
     }
     input.click();
 }
 
-function saveCandoCatalogUrl(url) {
+function saveCanDoCatalogUrl(url) {
     if (!url) return;
     const trimmed = url.trim();
-    const current = (localStorage.getItem("wican_cando_catalog_url") || DEFAULT_CANDO_CATALOG_URL).trim();
+    const current = (localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_can_do_catalog_URL).trim();
     if (trimmed !== current) {
-        if (trimmed === DEFAULT_CANDO_CATALOG_URL) {
-            localStorage.removeItem("wican_cando_catalog_url");
+        if (trimmed === DEFAULT_can_do_catalog_URL) {
+            localStorage.removeItem("wican_can_do_catalog_url");
         } else {
-            localStorage.setItem("wican_cando_catalog_url", trimmed);
+            localStorage.setItem("wican_can_do_catalog_url", trimmed);
         }
         syncCatalogFromGitHub(true);
     }
 }
 
-function saveCandoGlobalSettings(btn) {
+function saveCanDoGlobalSettings(btn) {
     try {
         const urlInput = document.getElementById("modal_catalog_url");
         if (urlInput) {
-            saveCandoCatalogUrl(urlInput.value);
+            saveCanDoCatalogUrl(urlInput.value);
         }
     } catch (e) {
         console.error("Error saving catalog URL:", e);
     }
-    const overlay = btn ? btn.closest(".cando-global-settings-modal-overlay") : document.querySelector(".cando-global-settings-modal-overlay");
+    const overlay = btn ? btn.closest(".can-do-global-settings-modal-overlay") : document.querySelector(".can-do-global-settings-modal-overlay");
     if (overlay) {
         overlay.remove();
     }
     showNotification("Settings updated successfully", "green", 2000);
 }
 
-function toggleCandoGlobalSettingsModal() {
-    document.querySelectorAll(".cando-global-settings-modal-overlay").forEach(el => el.remove());
+function toggleCanDoGlobalSettingsModal() {
+    document.querySelectorAll(".can-do-global-settings-modal-overlay").forEach(el => el.remove());
 
     const currentUnit = getUnitSystem();
 
     const overlay = document.createElement("div");
-    overlay.className = "cando-global-settings-modal-overlay ha-add-element-dialog-overlay";
+    overlay.className = "can-do-global-settings-modal-overlay ha-add-element-dialog-overlay";
     overlay.innerHTML = `
         <div class="ha-add-element-dialog" style="max-width: 520px;" onclick="event.stopPropagation();">
             <div class="ha-dialog-header">
                 <div class="ha-dialog-header-top">
                     <div class="ha-dialog-title-wrap">
-                        <span class="cando-ha-pill cond-pill">Settings</span>
+                        <span class="can-do-ha-pill cond-pill">Settings</span>
                         <h3 class="ha-dialog-title">Catalog &amp; Global Settings</h3>
                     </div>
-                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.cando-global-settings-modal-overlay').remove();">✕</button>
+                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.can-do-global-settings-modal-overlay').remove();">✕</button>
                 </div>
             </div>
             <div class="ha-dialog-body" style="padding: 1.25rem; gap: 1.1rem; display: flex; flex-direction: column;">
                 <!-- Vehicle Make & Model Selection -->
                 <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
                     <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Vehicle Model / Platform:</label>
-                    <select id="cando_vehicle_model" class="ha-form-select" onchange="changeCandoVehicleModel(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
+                    <select id="can_do_vehicle_model" class="ha-form-select" onchange="changeCanDoVehicleModel(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
                     </select>
                     <span style="font-size: 0.74rem; color: var(--text-muted);">Select your vehicle model family to load compatible CAN presets and signals.</span>
                 </div>
@@ -8563,7 +8563,7 @@ function toggleCandoGlobalSettingsModal() {
                 <!-- Vehicle Trim Selection -->
                 <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
                     <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Trim Level / Specific Variant:</label>
-                    <select id="cando_vehicle_trim" class="ha-form-select" onchange="changeCandoVehicleTrim(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
+                    <select id="can_do_vehicle_trim" class="ha-form-select" onchange="changeCanDoVehicleTrim(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
                     </select>
                     <span style="font-size: 0.74rem; color: var(--text-muted);">Trim variants enable vehicle-specific features like ventilated seats, AWD, or HUD.</span>
                 </div>
@@ -8571,7 +8571,7 @@ function toggleCandoGlobalSettingsModal() {
                 <!-- Imperial / Metric Unit System -->
                 <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
                     <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Measurement Units:</label>
-                    <select id="cando_unit_system" class="ha-form-select" onchange="changeUnitSystem(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
+                    <select id="can_do_unit_system" class="ha-form-select" onchange="changeUnitSystem(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
                         <option value="metric" ${currentUnit === "metric" ? "selected" : ""}>Metric (°C, km/h, bar, kPa)</option>
                         <option value="imperial" ${currentUnit === "imperial" ? "selected" : ""}>Imperial (°F, mph, psi)</option>
                     </select>
@@ -8584,15 +8584,15 @@ function toggleCandoGlobalSettingsModal() {
                 <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
                     <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Remote Catalog Sync URL:</label>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="text" id="modal_catalog_url" value="${getCandoCatalogUrl()}" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.85rem; color: var(--text-heading); box-sizing: border-box;">
+                        <input type="text" id="modal_catalog_url" value="${getCanDoCatalogUrl()}" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.85rem; color: var(--text-heading); box-sizing: border-box;">
                         <button type="button" class="dash-outline-btn" onclick="syncCatalogFromGitHub(true)" style="padding: 8px 12px; font-size: 0.8rem; white-space: nowrap;">Sync Now</button>
                     </div>
                     <span style="font-size: 0.74rem; color: var(--text-muted);">GitHub RAW or local URL for remote CAN preset catalog JSON.</span>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.5rem;">
-                    <button type="button" class="dash-outline-btn" onclick="this.closest('.cando-global-settings-modal-overlay').remove();">Cancel</button>
-                    <button type="button" class="dash-action-btn" onclick="saveCandoGlobalSettings(this);">Done</button>
+                    <button type="button" class="dash-outline-btn" onclick="this.closest('.can-do-global-settings-modal-overlay').remove();">Cancel</button>
+                    <button type="button" class="dash-action-btn" onclick="saveCanDoGlobalSettings(this);">Done</button>
                 </div>
             </div>
         </div>
@@ -8608,15 +8608,15 @@ function toggleCandoGlobalSettingsModal() {
     }
 }
 
-function filterCandoRules(query) {
+function filterCanDoRules(query) {
     const q = (query || "").toLowerCase().trim();
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     cards.forEach(card => {
         if (!q) {
             card.style.display = "";
             return;
         }
-        const name = (card.querySelector(".cando-name")?.value || "").toLowerCase();
+        const name = (card.querySelector(".can-do-name")?.value || "").toLowerCase();
         const textContent = card.innerText.toLowerCase();
         const inputs = Array.from(card.querySelectorAll("input, select")).map(i => (i.value || "").toLowerCase()).join(" ");
         if (name.includes(q) || textContent.includes(q) || inputs.includes(q)) {
@@ -8628,53 +8628,53 @@ function filterCandoRules(query) {
 }
 
 
-function selectCandoItem(itemElem) {
+function selectCanDoItem(itemElem) {
     if (!itemElem) return;
-    const card = itemElem.closest('.cando-rule-card');
+    const card = itemElem.closest('.can-do-rule-card');
     if (!card) return;
-    card.querySelectorAll('.cando-trigger-item, .cando-condition-item, .cando-action-item, .cando-condition-group, .cando-choose-block, .cando-ifthen-block').forEach(el => {
+    card.querySelectorAll('.can-do-trigger-item, .can-do-condition-item, .can-do-action-item, .can-do-condition-group, .can-do-choose-block, .can-do-ifthen-block').forEach(el => {
         if (el !== itemElem) el.classList.remove('selected');
     });
     itemElem.classList.add('selected');
 }
 
-function toggleCandoItemBody(headerElem, ev) {
+function toggleCanDoItemBody(headerElem, ev) {
     if (ev) {
         // If the user clicked directly on an interactive button or input inside the header, don't toggle
         const interactive = ev.target.closest('button, input, select, label, .system-button');
-        if (interactive && !ev.target.closest('.cando-item-chevron')) {
+        if (interactive && !ev.target.closest('.can-do-item-chevron')) {
             return;
         }
     }
-    const item = headerElem.closest(".cando-trigger-item, .cando-condition-item, .cando-action-item, .cando-choose-block, .cando-ifthen-block");
+    const item = headerElem.closest(".can-do-trigger-item, .can-do-condition-item, .can-do-action-item, .can-do-choose-block, .can-do-ifthen-block");
     if (!item) return;
-    const body = item.querySelector(".cando-subitem-body, .cando-group-conditions-box, .cando-choose-options-container");
+    const body = item.querySelector(".can-do-subitem-body, .can-do-group-conditions-box, .can-do-choose-options-container");
     if (!body) return;
     const isHidden = (body.style.display === "none");
     if (isHidden) {
         // Expanding
         body.style.display = "";
         headerElem.style.borderBottom = "1px solid var(--border-color)";
-        item.classList.remove("cando-subitem-collapsed");
-        selectCandoItem(item);
+        item.classList.remove("can-do-subitem-collapsed");
+        selectCanDoItem(item);
     } else {
         // Collapsing: do NOT force selection; remove selected so collapsed boxes do not glow
         body.style.display = "none";
         headerElem.style.borderBottom = "none";
-        item.classList.add("cando-subitem-collapsed");
+        item.classList.add("can-do-subitem-collapsed");
         item.classList.remove("selected");
     }
 }
 
 
 /* --- MOVE AUTOMATION RULE UP / DOWN --- */
-function moveCandoRule(btn, direction) {
-    const card = btn.closest(".cando-rule-card");
+function moveCanDoRule(btn, direction) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
     const container = card.parentElement;
     if (!container) return;
 
-    const cards = Array.from(container.querySelectorAll(":scope > .cando-rule-card"));
+    const cards = Array.from(container.querySelectorAll(":scope > .can-do-rule-card"));
     const idx = cards.indexOf(card);
     if (idx === -1) return;
 
@@ -8695,10 +8695,10 @@ function moveCandoRule(btn, direction) {
         window.scrollTo({ top: origDocY + deltaY, behavior: "instant" });
     }
 
-    markCandoDirty();
+    markCanDoDirty();
 }
 
-        function scrollToNewBlockHelper(elem, topOffset = 80) {
+function scrollToNewBlockHelper(elem, topOffset = 80) {
     if (!elem) return;
     triggerItemAnimation(elem, "ha-item-duplicate");
     setTimeout(() => {
@@ -8723,19 +8723,19 @@ function triggerItemAnimation(elem, animClass) {
     }, 700);
 }
 
-function moveCandoItem(btn, direction) {
-    const item = btn.closest(".cando-action-item, .cando-trigger-item, .cando-condition-item, .cando-condition-group, .cando-condition-or-group, .cando-choose-block, .cando-ifthen-block, .cando-choose-option-item, .cando-payload-step-item");
+function moveCanDoItem(btn, direction) {
+    const item = btn.closest(".can-do-action-item, .can-do-trigger-item, .can-do-condition-item, .can-do-condition-group, .can-do-condition-or-group, .can-do-choose-block, .can-do-ifthen-block, .can-do-choose-option-item, .can-do-payload-step-item");
     if (!item) return;
     const parent = item.parentElement;
-    const selector = item.classList.contains("cando-payload-step-item")
-        ? ".cando-payload-step-item"
-        : (item.classList.contains("cando-choose-option-item")
-            ? ".cando-choose-option-item"
-            : (item.classList.contains("cando-action-item") || item.classList.contains("cando-choose-block") || item.classList.contains("cando-ifthen-block")
-                ? ":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block"
-                : (item.classList.contains("cando-trigger-item")
-                    ? ".cando-trigger-item"
-                    : ":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group")));
+    const selector = item.classList.contains("can-do-payload-step-item")
+        ? ".can-do-payload-step-item"
+        : (item.classList.contains("can-do-choose-option-item")
+            ? ".can-do-choose-option-item"
+            : (item.classList.contains("can-do-action-item") || item.classList.contains("can-do-choose-block") || item.classList.contains("can-do-ifthen-block")
+                ? ":scope > .can-do-action-item, :scope > .can-do-choose-block, :scope > .can-do-ifthen-block"
+                : (item.classList.contains("can-do-trigger-item")
+                    ? ".can-do-trigger-item"
+                    : ":scope > .can-do-condition-item, :scope > .can-do-condition-group, :scope > .can-do-condition-or-group")));
 
     const siblings = Array.from(parent.querySelectorAll(selector));
     const idx = siblings.indexOf(item);
@@ -8759,30 +8759,30 @@ function moveCandoItem(btn, direction) {
         window.scrollTo({ top: origDocY + deltaY, behavior: "instant" });
     }
 
-    if (item.classList.contains("cando-payload-step-item")) {
-        renumberCandoPayloadSteps(parent);
+    if (item.classList.contains("can-do-payload-step-item")) {
+        renumberCanDoPayloadSteps(parent);
     }
-    if (item.classList.contains("cando-choose-option-item")) {
-        renumberCandoChooseOptions(parent);
+    if (item.classList.contains("can-do-choose-option-item")) {
+        renumberCanDoChooseOptions(parent);
     }
-    const card = btn.closest(".cando-rule-card");
+    const card = btn.closest(".can-do-rule-card");
     if (card) {
-        updateCandoSectionCountBadges(card);
+        updateCanDoSectionCountBadges(card);
     }
 }
 
-function updateCandoItemConnectors(card) {
+function updateCanDoItemConnectors(card) {
     if (!card) return;
 
     // 1. Triggers container
-    const trigContainer = card.querySelector(".cando-triggers-container");
+    const trigContainer = card.querySelector(".can-do-triggers-container");
     if (trigContainer) {
-        trigContainer.querySelectorAll(".cando-connector-divider").forEach(el => el.remove());
-        const trigItems = Array.from(trigContainer.querySelectorAll(".cando-trigger-item"));
+        trigContainer.querySelectorAll(".can-do-connector-divider").forEach(el => el.remove());
+        const trigItems = Array.from(trigContainer.querySelectorAll(".can-do-trigger-item"));
         for (let i = 0; i < trigItems.length - 1; i++) {
             const div = document.createElement("div");
-            div.className = "cando-connector-divider";
-            div.innerHTML = `<span class="cando-connector-line trig"></span><span class="cando-connector-pill trig" style="padding: 2px 12px; font-weight: 800;">OR</span><span class="cando-connector-line trig"></span>`;
+            div.className = "can-do-connector-divider";
+            div.innerHTML = `<span class="can-do-connector-line trig"></span><span class="can-do-connector-pill trig" style="padding: 2px 12px; font-weight: 800;">OR</span><span class="can-do-connector-line trig"></span>`;
             trigContainer.insertBefore(div, trigItems[i + 1]);
         }
     }
@@ -8790,24 +8790,24 @@ function updateCandoItemConnectors(card) {
     // 2. Conditions containers (recursive helper)
     function updateConditionContainerConnectors(container, defaultLabel = "AND", variantClass = "cond") {
         if (!container) return;
-        container.querySelectorAll(":scope > .cando-connector-divider").forEach(el => el.remove());
-        const items = Array.from(container.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group"));
+        container.querySelectorAll(":scope > .can-do-connector-divider").forEach(el => el.remove());
+        const items = Array.from(container.querySelectorAll(":scope > .can-do-condition-item, :scope > .can-do-condition-group, :scope > .can-do-condition-or-group"));
         for (let i = 0; i < items.length - 1; i++) {
             const div = document.createElement("div");
-            div.className = "cando-connector-divider";
-            div.innerHTML = `<span class="cando-connector-line ${variantClass}"></span><span class="cando-connector-pill ${variantClass}" style="padding: 2px 12px; font-weight: 800;">${defaultLabel}</span><span class="cando-connector-line ${variantClass}"></span>`;
+            div.className = "can-do-connector-divider";
+            div.innerHTML = `<span class="can-do-connector-line ${variantClass}"></span><span class="can-do-connector-pill ${variantClass}" style="padding: 2px 12px; font-weight: 800;">${defaultLabel}</span><span class="can-do-connector-line ${variantClass}"></span>`;
             container.insertBefore(div, items[i + 1]);
         }
     }
 
-    const condContainer = card.querySelector(".cando-conditions-container");
+    const condContainer = card.querySelector(".can-do-conditions-container");
     if (condContainer) {
         updateConditionContainerConnectors(condContainer, "AND", "cond");
 
         // Groups (AND, OR, NOT)
-        condContainer.querySelectorAll(".cando-condition-group").forEach(group => {
+        condContainer.querySelectorAll(".can-do-condition-group").forEach(group => {
             const gType = group.dataset.groupType || "or";
-            const innerCont = group.querySelector(".cando-group-conditions-container");
+            const innerCont = group.querySelector(".can-do-group-conditions-container");
             if (gType === "and") {
                 updateConditionContainerConnectors(innerCont, "AND", "group-and");
             } else if (gType === "not") {
@@ -8818,8 +8818,8 @@ function updateCandoItemConnectors(card) {
         });
 
         // Legacy OR groups
-        condContainer.querySelectorAll(".cando-condition-or-group").forEach(group => {
-            const innerCont = group.querySelector(".cando-or-group-container");
+        condContainer.querySelectorAll(".can-do-condition-or-group").forEach(group => {
+            const innerCont = group.querySelector(".can-do-or-group-container");
             updateConditionContainerConnectors(innerCont, "OR", "group-or");
         });
     }
@@ -8827,96 +8827,96 @@ function updateCandoItemConnectors(card) {
     // 3. Actions containers
     function updateActionContainerConnectors(container) {
         if (!container) return;
-        container.querySelectorAll(":scope > .cando-connector-divider").forEach(el => el.remove());
-        const actItems = Array.from(container.querySelectorAll(":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block"));
+        container.querySelectorAll(":scope > .can-do-connector-divider").forEach(el => el.remove());
+        const actItems = Array.from(container.querySelectorAll(":scope > .can-do-action-item, :scope > .can-do-choose-block, :scope > .can-do-ifthen-block"));
         for (let i = 0; i < actItems.length - 1; i++) {
             const div = document.createElement("div");
-            div.className = "cando-connector-divider";
-            div.innerHTML = `<span class="cando-connector-line act"></span><span class="cando-connector-pill act" style="padding: 2px 12px; font-weight: 800;">↓ THEN</span><span class="cando-connector-line act"></span>`;
+            div.className = "can-do-connector-divider";
+            div.innerHTML = `<span class="can-do-connector-line act"></span><span class="can-do-connector-pill act" style="padding: 2px 12px; font-weight: 800;">↓ THEN</span><span class="can-do-connector-line act"></span>`;
             container.insertBefore(div, actItems[i + 1]);
         }
     }
 
-    const actContainer = card.querySelector(".cando-actions-container");
+    const actContainer = card.querySelector(".can-do-actions-container");
     if (actContainer) {
         updateActionContainerConnectors(actContainer);
 
         // Choose blocks
-        actContainer.querySelectorAll(".cando-choose-block").forEach(block => {
-            const optContainer = block.querySelector(".cando-choose-options-container");
+        actContainer.querySelectorAll(".can-do-choose-block").forEach(block => {
+            const optContainer = block.querySelector(".can-do-choose-options-container");
             if (optContainer) {
-                optContainer.querySelectorAll(":scope > .cando-connector-divider").forEach(el => el.remove());
-                const optItems = Array.from(optContainer.querySelectorAll(":scope > .cando-choose-option-item"));
+                optContainer.querySelectorAll(":scope > .can-do-connector-divider").forEach(el => el.remove());
+                const optItems = Array.from(optContainer.querySelectorAll(":scope > .can-do-choose-option-item"));
                 for (let i = 0; i < optItems.length - 1; i++) {
                     const div = document.createElement("div");
-                    div.className = "cando-connector-divider";
-                    div.innerHTML = `<span class="cando-connector-line choose"></span><span class="cando-connector-pill choose" style="padding: 2px 12px; font-weight: 800;">ELSE IF</span><span class="cando-connector-line choose"></span>`;
+                    div.className = "can-do-connector-divider";
+                    div.innerHTML = `<span class="can-do-connector-line choose"></span><span class="can-do-connector-pill choose" style="padding: 2px 12px; font-weight: 800;">ELSE IF</span><span class="can-do-connector-line choose"></span>`;
                     optContainer.insertBefore(div, optItems[i + 1]);
                 }
 
                 optItems.forEach(optItem => {
-                    updateActionContainerConnectors(optItem.querySelector(".cando-opt-actions-container"));
+                    updateActionContainerConnectors(optItem.querySelector(".can-do-opt-actions-container"));
                 });
             }
         });
 
         // If-Then blocks
-        actContainer.querySelectorAll(".cando-ifthen-block").forEach(block => {
-            updateConditionContainerConnectors(block.querySelector(".cando-ifthen-conditions-container"), "AND", "ifthen");
-            updateActionContainerConnectors(block.querySelector(".cando-ifthen-then-container"));
-            updateActionContainerConnectors(block.querySelector(".cando-ifthen-else-container"));
+        actContainer.querySelectorAll(".can-do-ifthen-block").forEach(block => {
+            updateConditionContainerConnectors(block.querySelector(".can-do-ifthen-conditions-container"), "AND", "ifthen");
+            updateActionContainerConnectors(block.querySelector(".can-do-ifthen-then-container"));
+            updateActionContainerConnectors(block.querySelector(".can-do-ifthen-else-container"));
         });
 
         // Inner payload steps
-        actContainer.querySelectorAll(".cando-payload-steps-container").forEach(stepsCont => {
-            stepsCont.querySelectorAll(".cando-connector-divider").forEach(el => el.remove());
-            const stepItems = Array.from(stepsCont.querySelectorAll(".cando-payload-step-item"));
+        actContainer.querySelectorAll(".can-do-payload-steps-container").forEach(stepsCont => {
+            stepsCont.querySelectorAll(".can-do-connector-divider").forEach(el => el.remove());
+            const stepItems = Array.from(stepsCont.querySelectorAll(".can-do-payload-step-item"));
             for (let i = 0; i < stepItems.length - 1; i++) {
                 const div = document.createElement("div");
-                div.className = "cando-connector-divider";
-                div.innerHTML = `<span class="cando-connector-line act"></span><span class="cando-connector-pill act" style="padding: 2px 10px; border-radius: 12px; font-weight: 700;">↓ next frame</span><span class="cando-connector-line act"></span>`;
+                div.className = "can-do-connector-divider";
+                div.innerHTML = `<span class="can-do-connector-line act"></span><span class="can-do-connector-pill act" style="padding: 2px 10px; border-radius: 12px; font-weight: 700;">↓ next frame</span><span class="can-do-connector-line act"></span>`;
                 stepsCont.insertBefore(div, stepItems[i + 1]);
             }
         });
     }
 }
 
-        function updateCandoRuleSummaryPill(card) {
+function updateCanDoRuleSummaryPill(card) {
     if (!card) return;
-    const pill = card.querySelector(".cando-summary-pill");
+    const pill = card.querySelector(".can-do-summary-pill");
     if (!pill) return;
 
     // Triggers summary
-    const trigItems = card.querySelectorAll(".cando-trigger-item");
+    const trigItems = card.querySelectorAll(".can-do-trigger-item");
     const trigSummaries = [];
     trigItems.forEach(t => {
-        const src = t.querySelector(".cando-trig-source")?.value || "preset";
-        const forSec = parseFloat(t.querySelector(".cando-trig-for-sec")?.value || "0");
+        const src = t.querySelector(".can-do-trig-source")?.value || "preset";
+        const forSec = parseFloat(t.querySelector(".can-do-trig-for-sec")?.value || "0");
         let sText = "";
         if (src === "preset") {
-            const picker = t.querySelector(".cando-trig-preset-picker");
+            const picker = t.querySelector(".can-do-trig-preset-picker");
             const selText = (picker && picker.selectedIndex >= 0) ? picker.options[picker.selectedIndex].text : "";
             sText = selText || "Button Preset";
         } else if (src === "can_msg") {
-            const cid = t.querySelector(".cando-trig-can-id")?.value || "";
+            const cid = t.querySelector(".can-do-trig-can-id")?.value || "";
             sText = cid ? `CAN ${cid}` : "Raw CAN";
         } else if (src === "ha_mqtt" || src === "mqtt_cmd") {
-            const payload = t.querySelector(".cando-trig-mqtt-payload")?.value || "";
-            const topic = t.querySelector(".cando-trig-mqtt-topic")?.value || "wican/cando/trigger";
+            const payload = t.querySelector(".can-do-trig-mqtt-payload")?.value || "";
+            const topic = t.querySelector(".can-do-trig-mqtt-topic")?.value || "wican/can_do/trigger";
             sText = payload ? `HA (${payload})` : `HA (${topic})`;
         } else if (src === "clock") {
-            const tm = t.querySelector(".cando-trig-time")?.value || "";
+            const tm = t.querySelector(".can-do-trig-time")?.value || "";
             sText = tm ? `Time: ${tm}` : "Clock";
         } else if (src === "voltage") {
-            const v = t.querySelector(".cando-trig-voltage-val")?.value || "";
+            const v = t.querySelector(".can-do-trig-voltage-val")?.value || "";
             sText = v ? `< ${v}V` : "Voltage";
         } else if (src === "interval") {
-            const sec = t.querySelector(".cando-trig-interval-sec")?.value || "";
+            const sec = t.querySelector(".can-do-trig-interval-sec")?.value || "";
             sText = sec ? `Every ${sec}s` : "Interval";
         } else {
             sText = src;
         }
-        const clickCount = parseInt(t.querySelector(".cando-trig-click-count")?.value || "1");
+        const clickCount = parseInt(t.querySelector(".can-do-trig-click-count")?.value || "1");
         if (clickCount === 2) {
             sText += " (Double)";
         } else if (clickCount === 3) {
@@ -8929,25 +8929,25 @@ function updateCandoItemConnectors(card) {
     });
 
     // Conditions summary
-    const condItems = card.querySelectorAll(".cando-conditions-container > .cando-condition-item, .cando-conditions-container > .cando-condition-group");
+    const condItems = card.querySelectorAll(".can-do-conditions-container > .can-do-condition-item, .can-do-conditions-container > .can-do-condition-group");
     const condSummaries = [];
     condItems.forEach(c => {
-        if (c.classList.contains("cando-condition-group")) {
+        if (c.classList.contains("can-do-condition-group")) {
             const gType = (c.dataset.groupType || "and").toUpperCase();
             condSummaries.push(`${gType} group`);
             return;
         }
-        const cType = c.querySelector(".cando-cond-type")?.value || "preset";
+        const cType = c.querySelector(".can-do-cond-type")?.value || "preset";
         if (cType === "preset") {
-            const picker = c.querySelector(".cando-cond-preset-picker");
+            const picker = c.querySelector(".can-do-cond-preset-picker");
             const selText = (picker && picker.selectedIndex >= 0) ? picker.options[picker.selectedIndex].text : "";
             condSummaries.push(selText || "Preset Condition");
         } else if (cType === "param_range") {
-            const expr = c.querySelector(".cando-cond-expr")?.value || "";
+            const expr = c.querySelector(".can-do-cond-expr")?.value || "";
             condSummaries.push(expr ? `State: ${expr}` : "Param Range");
         } else if (cType === "voltage") {
-            const v = c.querySelector(".cando-cond-voltage-val")?.value || "12.0";
-            const dir = c.querySelector(".cando-cond-voltage-dir")?.value || "below";
+            const v = c.querySelector(".can-do-cond-voltage-val")?.value || "12.0";
+            const dir = c.querySelector(".can-do-cond-voltage-dir")?.value || "below";
             condSummaries.push(`12V ${dir === "below" ? "<" : ">"} ${v}V`);
         } else {
             condSummaries.push(cType);
@@ -8955,43 +8955,43 @@ function updateCandoItemConnectors(card) {
     });
 
     // Actions summary
-    const actItems = card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block");
+    const actItems = card.querySelectorAll(".can-do-actions-container > .can-do-action-item, .can-do-actions-container > .can-do-choose-block, .can-do-actions-container > .can-do-ifthen-block");
     const actSummaries = [];
     actItems.forEach(a => {
-        if (a.classList.contains("cando-choose-block")) {
-            const optCount = a.querySelectorAll(".cando-choose-option-item").length;
+        if (a.classList.contains("can-do-choose-block")) {
+            const optCount = a.querySelectorAll(".can-do-choose-option-item").length;
             actSummaries.push(`Choose (${optCount} branches)`);
             return;
         }
-        if (a.classList.contains("cando-ifthen-block")) {
+        if (a.classList.contains("can-do-ifthen-block")) {
             actSummaries.push("If-Then-Else");
             return;
         }
-        const actType = a.querySelector(".cando-act-type")?.value || "can_tx";
+        const actType = a.querySelector(".can-do-act-type")?.value || "can_tx";
         const isImp = (getUnitSystem() === "imperial");
         const u = isImp ? "°F" : "°C";
         if (actType === "preset") {
-            const picker = a.querySelector(".cando-act-preset-picker");
+            const picker = a.querySelector(".can-do-act-preset-picker");
             const selText = (picker && picker.selectedIndex > 0) ? picker.options[picker.selectedIndex].text : "";
             if (selText) {
                 actSummaries.push(selText);
             } else if (!a.querySelector(".act-field-climate")?.classList.contains("hidden")) {
-                const tt = a.querySelector(".cando-act-target-temp")?.value || (isImp ? "72" : "21.0");
+                const tt = a.querySelector(".can-do-act-target-temp")?.value || (isImp ? "72" : "21.0");
                 actSummaries.push(`Climate ${tt}${u}`);
             } else if (!a.querySelector(".act-field-precon")?.classList.contains("hidden")) {
-                const pm = a.querySelector(".cando-act-precon-mode")?.value || "persistent";
+                const pm = a.querySelector(".can-do-act-precon-mode")?.value || "persistent";
                 actSummaries.push(`Precondition (${pm})`);
             } else {
                 actSummaries.push("Preset Template");
             }
         } else if (actType === "popup") {
-            const pop = a.querySelector(".cando-act-popup-msg")?.value || "";
+            const pop = a.querySelector(".can-do-act-popup-msg")?.value || "";
             actSummaries.push(pop ? `Popup "${pop.substring(0, 15)}${pop.length > 15 ? "…" : ""}"` : "Popup");
         } else if (actType === "can_tx") {
-            const cid = a.querySelector(".cando-act-can-id")?.value || "";
+            const cid = a.querySelector(".can-do-act-can-id")?.value || "";
             actSummaries.push(cid ? `TX ${cid}` : "CAN Sequence");
         } else if (actType === "delay") {
-            const ms = a.querySelector(".cando-act-wait-ms")?.value || "500";
+            const ms = a.querySelector(".can-do-act-wait-ms")?.value || "500";
             actSummaries.push(`Wait ${formatDurationDisplay(ms)}`);
         } else if (actType === "mqtt") {
             actSummaries.push("MQTT Alert");
@@ -9007,42 +9007,42 @@ function updateCandoItemConnectors(card) {
     const actText = actSummaries.length > 0 ? actSummaries.slice(0, 2).join(" • ") + (actSummaries.length > 2 ? ` (+${actSummaries.length - 2})` : "") : "No Action";
 
     pill.innerHTML = `
-        <span class="cando-ha-pill trig-pill" style="font-size: 0.72rem; padding: 2px 7px;">
+        <span class="can-do-ha-pill trig-pill" style="font-size: 0.72rem; padding: 2px 7px;">
             When: ${trigText}
         </span>
-        ${condText ? `<span class="cando-ha-pill cond-pill" style="font-size: 0.72rem; padding: 2px 7px;">And if: ${condText}</span>` : ''}
-        <span class="cando-ha-pill act-pill" style="font-size: 0.72rem; padding: 2px 7px;">
+        ${condText ? `<span class="can-do-ha-pill cond-pill" style="font-size: 0.72rem; padding: 2px 7px;">And if: ${condText}</span>` : ''}
+        <span class="can-do-ha-pill act-pill" style="font-size: 0.72rem; padding: 2px 7px;">
             Then do: ${actText}
         </span>
     `;
 }
 
-function updateCandoSectionCountBadges(card) {
+function updateCanDoSectionCountBadges(card) {
     if (!card) return;
-    const trigCount = card.querySelectorAll(".cando-trigger-item").length;
-    const condCount = card.querySelectorAll(".cando-conditions-container > .cando-condition-item, .cando-conditions-container > .cando-condition-group, .cando-conditions-container > .cando-condition-or-group").length;
-    const actCount = card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block").length;
+    const trigCount = card.querySelectorAll(".can-do-trigger-item").length;
+    const condCount = card.querySelectorAll(".can-do-conditions-container > .can-do-condition-item, .can-do-conditions-container > .can-do-condition-group, .can-do-conditions-container > .can-do-condition-or-group").length;
+    const actCount = card.querySelectorAll(".can-do-actions-container > .can-do-action-item, .can-do-actions-container > .can-do-choose-block, .can-do-actions-container > .can-do-ifthen-block").length;
 
-    const trigBadge = card.querySelector(".cando-trig-count-badge");
+    const trigBadge = card.querySelector(".can-do-trig-count-badge");
     if (trigBadge) trigBadge.textContent = trigCount;
 
-    const condBadge = card.querySelector(".cando-cond-count-badge");
+    const condBadge = card.querySelector(".can-do-cond-count-badge");
     if (condBadge) condBadge.textContent = condCount;
 
-    const actBadge = card.querySelector(".cando-act-count-badge");
+    const actBadge = card.querySelector(".can-do-act-count-badge");
     if (actBadge) actBadge.textContent = actCount;
 
-    const offActCount = card.querySelectorAll(".cando-off-actions-container > .cando-action-item, .cando-off-actions-container > .cando-choose-block, .cando-off-actions-container > .cando-ifthen-block").length;
-    const offActBadge = card.querySelector(".cando-off-act-count-badge");
+    const offActCount = card.querySelectorAll(".can-do-off-actions-container > .can-do-action-item, .can-do-off-actions-container > .can-do-choose-block, .can-do-off-actions-container > .can-do-ifthen-block").length;
+    const offActBadge = card.querySelector(".can-do-off-act-count-badge");
     if (offActBadge) offActBadge.textContent = offActCount;
 
     // Smart 1-click Suggestion Banner for >1 Triggers
-    const bannerSlot = card.querySelector(".cando-choose-banner-slot");
+    const bannerSlot = card.querySelector(".can-do-choose-banner-slot");
     if (bannerSlot) {
-        const hasChooseBlock = card.querySelector(".cando-actions-container > .cando-choose-block") !== null;
+        const hasChooseBlock = card.querySelector(".can-do-actions-container > .can-do-choose-block") !== null;
         if (trigCount >= 2 && !hasChooseBlock) {
             bannerSlot.innerHTML = `
-            <div class="cando-choose-convert-banner" style="margin-bottom: 0.6rem; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+            <div class="can-do-choose-convert-banner" style="margin-bottom: 0.6rem; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
                 <span style="font-weight: 600;"><b>${trigCount} Triggers Detected:</b> Currently running the same actions for all triggers.</span>
                 <button type="button" class="system-button" onclick="convertActionsToChooseBlock(this)" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700; background: var(--m3-tonal-choose-color); color: white; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s;" title="Automatically split and branch actions by trigger">Branch by Trigger (Choose Block)</button>
             </div>
@@ -9052,23 +9052,23 @@ function updateCandoSectionCountBadges(card) {
         }
     }
 
-    updateCandoItemConnectors(card);
-    updateCandoRuleTriggerDropdowns(card);
-    updateCandoRuleSummaryPill(card);
+    updateCanDoItemConnectors(card);
+    updateCanDoRuleTriggerDropdowns(card);
+    updateCanDoRuleSummaryPill(card);
 }
 
-function updateCandoActivityStats(statsArray) {
+function updateCanDoActivityStats(statsArray) {
     if (!statsArray || !Array.isArray(statsArray)) return;
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     statsArray.forEach((st, idx) => {
         const card = cards[idx];
         if (!card) return;
-        const badge = card.querySelector(".cando-activity-badge");
+        const badge = card.querySelector(".can-do-activity-badge");
         if (!badge) return;
 
-        const isRuleEnabled = card.querySelector(".cando-rule-enabled") ? card.querySelector(".cando-rule-enabled").checked : true;
+        const isRuleEnabled = card.querySelector(".can-do-rule-enabled") ? card.querySelector(".can-do-rule-enabled").checked : true;
         if (!isRuleEnabled) {
-            badge.className = "cando-activity-badge paused";
+            badge.className = "can-do-activity-badge paused";
             badge.textContent = "Paused";
             badge.style.background = "";
             badge.style.color = "";
@@ -9082,7 +9082,7 @@ function updateCandoActivityStats(statsArray) {
             const ageSec = (st.age_ms !== undefined && st.age_ms >= 0) ? Math.round(st.age_ms / 1000) : 0;
             let ageStr = `${ageSec}s ago`;
             if (ageSec > 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
-            badge.className = "cando-activity-badge active-on";
+            badge.className = "can-do-activity-badge active-on";
             badge.textContent = `ON (${st.count}x, ${ageStr})`;
             badge.style.background = "";
             badge.style.color = "";
@@ -9090,7 +9090,7 @@ function updateCandoActivityStats(statsArray) {
             badge.style.boxShadow = "";
             badge.title = "Rule is currently TOGGLED ON";
         } else if (st.count === 0 || st.age_ms === -1) {
-            badge.className = "cando-activity-badge idle";
+            badge.className = "can-do-activity-badge idle";
             badge.textContent = "Idle";
             badge.style.background = "";
             badge.style.color = "";
@@ -9108,9 +9108,9 @@ function updateCandoActivityStats(statsArray) {
 
             // Highlight if fired recently (< 4s)
             if (st.age_ms >= 0 && st.age_ms < 4000) {
-                badge.className = "cando-activity-badge recent-fire";
+                badge.className = "can-do-activity-badge recent-fire";
             } else {
-                badge.className = "cando-activity-badge fired";
+                badge.className = "can-do-activity-badge fired";
             }
             badge.style.background = "";
             badge.style.color = "";
@@ -9120,13 +9120,13 @@ function updateCandoActivityStats(statsArray) {
     });
 }
 
-function extractCandoActionData(item) {
+function extractCanDoActionData(item) {
     const steps = [];
     const payloadLines = [];
-    item.querySelectorAll(".cando-payload-step-item").forEach(stepItem => {
-        const p = getByteGridString(stepItem, "cando-step-byte");
-        const rep = parseInt(stepItem.querySelector(".cando-step-repeat")?.value || "1");
-        const delayInp = stepItem.querySelector(".cando-step-delay-ms")?.value.trim();
+    item.querySelectorAll(".can-do-payload-step-item").forEach(stepItem => {
+        const p = getByteGridString(stepItem, "can-do-step-byte");
+        const rep = parseInt(stepItem.querySelector(".can-do-step-repeat")?.value || "1");
+        const delayInp = stepItem.querySelector(".can-do-step-delay-ms")?.value.trim();
         const stepDelay = (delayInp !== "" && !isNaN(parseInt(delayInp))) ? parseInt(delayInp) : undefined;
         if (p) {
             const stepObj = { payload: p, repeat: rep };
@@ -9140,8 +9140,8 @@ function extractCandoActionData(item) {
         }
     });
 
-    let actType = item.querySelector(".cando-act-type")?.value || "can_tx";
-    const presetPicker = item.querySelector(".cando-act-preset-picker");
+    let actType = item.querySelector(".can-do-act-type")?.value || "can_tx";
+    const presetPicker = item.querySelector(".can-do-act-preset-picker");
     const selectedPresetVal = presetPicker?.value || "";
     const selectedPresetName = presetPicker?.selectedOptions[0]?.dataset?.name || "";
 
@@ -9165,7 +9165,7 @@ function extractCandoActionData(item) {
     }
 
     const isImperial = (getUnitSystem() === "imperial");
-    const rawTemp = parseFloat(item.querySelector(".cando-act-target-temp")?.value || (isImperial ? "72" : "21.0"));
+    const rawTemp = parseFloat(item.querySelector(".can-do-act-target-temp")?.value || (isImperial ? "72" : "21.0"));
     let tempC = 21.0;
     let tempF = 72;
     if (isImperial) {
@@ -9176,7 +9176,7 @@ function extractCandoActionData(item) {
         tempF = Math.round(tempC * 9 / 5 + 32);
     }
 
-    const rawPassTemp = parseFloat(item.querySelector(".cando-act-pass-temp")?.value || (isImperial ? "72" : "21.0"));
+    const rawPassTemp = parseFloat(item.querySelector(".can-do-act-pass-temp")?.value || (isImperial ? "72" : "21.0"));
     let passTempC = tempC;
     let passTempF = tempF;
     if (isImperial) {
@@ -9188,42 +9188,42 @@ function extractCandoActionData(item) {
     }
 
     return {
-        trigger_id: item.querySelector(".cando-act-trig-id")?.value.trim() || "",
+        trigger_id: item.querySelector(".can-do-act-trig-id")?.value.trim() || "",
         preset_val: selectedPresetVal,
         preset_name: selectedPresetName,
-        popup_message: item.querySelector(".cando-act-popup-msg")?.value.trim() || "",
+        popup_message: item.querySelector(".can-do-act-popup-msg")?.value.trim() || "",
         type: actType,
-        precon_mode: item.querySelector(".cando-act-precon-mode")?.value || "persistent",
-        precon_press: item.querySelector(".cando-act-precon-press")?.value || "short",
+        precon_mode: item.querySelector(".can-do-act-precon-mode")?.value || "persistent",
+        precon_press: item.querySelector(".can-do-act-precon-press")?.value || "short",
         target_temp_c: tempC,
         target_temp_f: tempF,
         pass_temp_c: passTempC,
         pass_temp_f: passTempF,
-        climate_zone: item.querySelector(".cando-act-climate-zone")?.value || "driver",
-        climate_sync_on: item.querySelector(".cando-act-climate-sync")?.checked !== false,
-        climate_driver_only: item.querySelector(".cando-act-climate-drv-only")?.checked === true,
-        can_id: item.querySelector(".cando-act-can-id")?.value || "",
+        climate_zone: item.querySelector(".can-do-act-climate-zone")?.value || "driver",
+        climate_sync_on: item.querySelector(".can-do-act-climate-sync")?.checked !== false,
+        climate_driver_only: item.querySelector(".can-do-act-climate-drv-only")?.checked === true,
+        can_id: item.querySelector(".can-do-act-can-id")?.value || "",
         steps: steps,
         payload: payloadLines.join("\n"),
-        bus: parseInt(item.querySelector(".cando-act-bus")?.value || "0"),
-        delay_ms: parseInt(item.querySelector(".cando-act-delay-ms")?.value || "10"),
-        wait_ms: parseInt(item.querySelector(".cando-act-wait-ms")?.value || "500"),
-        mqtt_topic: item.querySelector(".cando-act-mqtt-topic")?.value || "",
-        mqtt_payload: item.querySelector(".cando-act-mqtt-payload")?.value || "",
-        webhook_url: item.querySelector(".cando-act-webhook-url")?.value || ""
+        bus: parseInt(item.querySelector(".can-do-act-bus")?.value || "0"),
+        delay_ms: parseInt(item.querySelector(".can-do-act-delay-ms")?.value || "10"),
+        wait_ms: parseInt(item.querySelector(".can-do-act-wait-ms")?.value || "500"),
+        mqtt_topic: item.querySelector(".can-do-act-mqtt-topic")?.value || "",
+        mqtt_payload: item.querySelector(".can-do-act-mqtt-payload")?.value || "",
+        webhook_url: item.querySelector(".can-do-act-webhook-url")?.value || ""
     };
 }
 
-function testCandoActionUI(btn) {
-    const item = btn.closest(".cando-action-item");
+function testCanDoActionUI(btn) {
+    const item = btn.closest(".can-do-action-item");
     if (!item) return;
-    const actData = extractCandoActionData(item);
+    const actData = extractCanDoActionData(item);
     const originalText = btn.textContent;
     btn.textContent = "Running...";
     btn.classList.add("btn-running");
     btn.disabled = true;
 
-    fetch("/test_cando_action", {
+    fetch("/test_can_do_action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(actData)
@@ -9253,17 +9253,17 @@ function testCandoActionUI(btn) {
     });
 }
 
-async function testAllCandoActionsUI(btn) {
-    const card = btn.closest(".cando-rule-card");
+async function testAllCanDoActionsUI(btn) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
-    const ruleData = extractCandoRuleData(card);
+    const ruleData = extractCanDoRuleData(card);
     const originalText = btn.textContent;
     btn.textContent = "Executing All...";
     btn.classList.add("btn-running");
     btn.disabled = true;
 
     try {
-        const res = await fetch("/test_cando_rule", {
+        const res = await fetch("/test_can_do_rule", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(ruleData)
@@ -9290,19 +9290,19 @@ async function testAllCandoActionsUI(btn) {
         }, 2000);
     }
 }
-const testCandoRuleUI = testAllCandoActionsUI;
+const testCanDoRuleUI = testAllCanDoActionsUI;
 
-async function dryRunCandoRuleUI(btn) {
-    const card = btn.closest(".cando-rule-card");
+async function dryRunCanDoRuleUI(btn) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
-    const ruleData = extractCandoRuleData(card);
+    const ruleData = extractCanDoRuleData(card);
     const originalText = btn.textContent;
     btn.textContent = "Simulating...";
     btn.disabled = true;
 
-    const condButtons = card.querySelectorAll(".cando-btn-test-cond");
+    const condButtons = card.querySelectorAll(".can-do-btn-test-cond");
     if (condButtons.length > 0) {
-        condButtons.forEach(b => testCandoConditionUI(b));
+        condButtons.forEach(b => testCanDoConditionUI(b));
         setTimeout(() => {
             btn.textContent = "Evaluated!";
             showNotification(`Dry run complete for "${ruleData.name}": conditions evaluated live without transmitting CAN frames.`, "blue", 4000);
@@ -9321,44 +9321,44 @@ async function dryRunCandoRuleUI(btn) {
     }
 }
 
-function extractCandoConditionElement(elem) {
-    if (elem.classList.contains("cando-condition-group")) {
-        const groupType = elem.querySelector(".cando-group-type")?.value || "or";
-        const innerContainer = elem.querySelector(".cando-group-conditions-container");
+function extractCanDoConditionElement(elem) {
+    if (elem.classList.contains("can-do-condition-group")) {
+        const groupType = elem.querySelector(".can-do-group-type")?.value || "or";
+        const innerContainer = elem.querySelector(".can-do-group-conditions-container");
         const innerConditions = [];
         if (innerContainer) {
-            innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
-                innerConditions.push(extractCandoConditionElement(child));
+            innerContainer.querySelectorAll(":scope > .can-do-condition-item, :scope > .can-do-condition-group, :scope > .can-do-condition-or-group").forEach(child => {
+                innerConditions.push(extractCanDoConditionElement(child));
             });
         }
         return {
             type: groupType + "_group",
             group_type: groupType,
-            invert: elem.querySelector(".cando-group-invert")?.checked || false,
+            invert: elem.querySelector(".can-do-group-invert")?.checked || false,
             conditions: innerConditions
         };
-    } else if (elem.classList.contains("cando-condition-or-group")) {
-        const innerContainer = elem.querySelector(".cando-or-group-container");
+    } else if (elem.classList.contains("can-do-condition-or-group")) {
+        const innerContainer = elem.querySelector(".can-do-or-group-container");
         const innerConditions = [];
         if (innerContainer) {
-            innerContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(child => {
-                innerConditions.push(extractCandoConditionElement(child));
+            innerContainer.querySelectorAll(":scope > .can-do-condition-item, :scope > .can-do-condition-group, :scope > .can-do-condition-or-group").forEach(child => {
+                innerConditions.push(extractCanDoConditionElement(child));
             });
         }
         return {
             type: "or_group",
             group_type: "or",
-            invert: elem.querySelector(".cando-or-group-invert")?.checked || false,
+            invert: elem.querySelector(".can-do-or-group-invert")?.checked || false,
             conditions: innerConditions
         };
     } else {
         const days = [];
-        elem.querySelectorAll(".cando-cond-day:checked").forEach(cb => days.push(cb.value));
-        const condCanPayload = getByteGridString(elem, "cando-cond-can");
-        const presetPicker = elem.querySelector(".cando-cond-preset-picker");
+        elem.querySelectorAll(".can-do-cond-day:checked").forEach(cb => days.push(cb.value));
+        const condCanPayload = getByteGridString(elem, "can-do-cond-can");
+        const presetPicker = elem.querySelector(".can-do-cond-preset-picker");
         const selectedPresetVal = presetPicker ? presetPicker.getAttribute("data-selected-preset") || presetPicker.value : "";
         const selectedPresetName = presetPicker?.selectedOptions[0]?.dataset?.name || "";
-        let condType = elem.querySelector(".cando-cond-type")?.value || "param_range";
+        let condType = elem.querySelector(".can-do-cond-type")?.value || "param_range";
         if (condType === "preset") {
             condType = elem.dataset.presetType || (elem.querySelector(".cond-field-expr:not(.hidden)") ? "param_range" : (elem.querySelector(".cond-field-can:not(.hidden)") ? "can_state" : "param_range"));
         }
@@ -9366,29 +9366,29 @@ function extractCandoConditionElement(elem) {
             type: condType,
             preset_val: selectedPresetVal,
             preset_name: selectedPresetName,
-            invert: elem.querySelector(".cando-cond-invert")?.checked || false,
-            expression: elem.querySelector(".cando-cond-expr")?.value || "",
-            can_id: elem.querySelector(".cando-cond-can-id")?.value || "",
+            invert: elem.querySelector(".can-do-cond-invert")?.checked || false,
+            expression: elem.querySelector(".can-do-cond-expr")?.value || "",
+            can_id: elem.querySelector(".can-do-cond-can-id")?.value || "",
             match_payload: condCanPayload,
             days: days,
-            start_time: elem.querySelector(".cando-cond-start-time")?.value || "",
-            end_time: elem.querySelector(".cando-cond-end-time")?.value || "",
-            voltage_val: elem.querySelector(".cando-cond-voltage-val")?.value || "",
-            voltage_dir: elem.querySelector(".cando-cond-voltage-dir")?.value || "above"
+            start_time: elem.querySelector(".can-do-cond-start-time")?.value || "",
+            end_time: elem.querySelector(".can-do-cond-end-time")?.value || "",
+            voltage_val: elem.querySelector(".can-do-cond-voltage-val")?.value || "",
+            voltage_dir: elem.querySelector(".can-do-cond-voltage-dir")?.value || "above"
         };
     }
 }
 
-function extractCandoActionElement(elem) {
-    if (elem.classList.contains("cando-choose-block")) {
+function extractCanDoActionElement(elem) {
+    if (elem.classList.contains("can-do-choose-block")) {
         const options = [];
-        elem.querySelectorAll(".cando-choose-options-container > .cando-choose-option-item").forEach(optElem => {
+        elem.querySelectorAll(".can-do-choose-options-container > .can-do-choose-option-item").forEach(optElem => {
             const optActions = [];
-            optElem.querySelectorAll(".cando-opt-actions-container > .cando-action-item, .cando-opt-actions-container > .cando-choose-block, .cando-opt-actions-container > .cando-ifthen-block").forEach(actItem => {
-                optActions.push(extractCandoActionElement(actItem));
+            optElem.querySelectorAll(".can-do-opt-actions-container > .can-do-action-item, .can-do-opt-actions-container > .can-do-choose-block, .can-do-opt-actions-container > .can-do-ifthen-block").forEach(actItem => {
+                optActions.push(extractCanDoActionElement(actItem));
             });
             options.push({
-                trigger_id: optElem.querySelector(".cando-opt-trig-id")?.value.trim() || "",
+                trigger_id: optElem.querySelector(".can-do-opt-trig-id")?.value.trim() || "",
                 actions: optActions
             });
         });
@@ -9396,28 +9396,28 @@ function extractCandoActionElement(elem) {
             type: "choose",
             options: options
         };
-    } else if (elem.classList.contains("cando-ifthen-block")) {
-        const condContainer = elem.querySelector(".cando-ifthen-conditions-container");
+    } else if (elem.classList.contains("can-do-ifthen-block")) {
+        const condContainer = elem.querySelector(".can-do-ifthen-conditions-container");
         const ifConditions = [];
         if (condContainer) {
-            condContainer.querySelectorAll(":scope > .cando-condition-item, :scope > .cando-condition-group, :scope > .cando-condition-or-group").forEach(cElem => {
-                ifConditions.push(extractCandoConditionElement(cElem));
+            condContainer.querySelectorAll(":scope > .can-do-condition-item, :scope > .can-do-condition-group, :scope > .can-do-condition-or-group").forEach(cElem => {
+                ifConditions.push(extractCanDoConditionElement(cElem));
             });
         }
 
-        const thenContainer = elem.querySelector(".cando-ifthen-then-container");
+        const thenContainer = elem.querySelector(".can-do-ifthen-then-container");
         const thenActions = [];
         if (thenContainer) {
-            thenContainer.querySelectorAll(":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block").forEach(aElem => {
-                thenActions.push(extractCandoActionElement(aElem));
+            thenContainer.querySelectorAll(":scope > .can-do-action-item, :scope > .can-do-choose-block, :scope > .can-do-ifthen-block").forEach(aElem => {
+                thenActions.push(extractCanDoActionElement(aElem));
             });
         }
 
-        const elseContainer = elem.querySelector(".cando-ifthen-else-container");
+        const elseContainer = elem.querySelector(".can-do-ifthen-else-container");
         const elseActions = [];
         if (elseContainer) {
-            elseContainer.querySelectorAll(":scope > .cando-action-item, :scope > .cando-choose-block, :scope > .cando-ifthen-block").forEach(aElem => {
-                elseActions.push(extractCandoActionElement(aElem));
+            elseContainer.querySelectorAll(":scope > .can-do-action-item, :scope > .can-do-choose-block, :scope > .can-do-ifthen-block").forEach(aElem => {
+                elseActions.push(extractCanDoActionElement(aElem));
             });
         }
 
@@ -9428,74 +9428,74 @@ function extractCandoActionElement(elem) {
             else_actions: elseActions
         };
     } else {
-        return extractCandoActionData(elem);
+        return extractCanDoActionData(elem);
     }
 }
 
-function toggleCandoHaExposeUI(cb) {
-    const row = cb.closest("td")?.querySelector(".cando-ha-details-row");
+function toggleCanDoHaExposeUI(cb) {
+    const row = cb.closest("td")?.querySelector(".can-do-ha-details-row");
     if (row) {
         row.style.display = cb.checked ? "flex" : "none";
     }
 }
 
-function extractCandoRuleData(card) {
+function extractCanDoRuleData(card) {
     if (!card) return null;
-    const execMode = card.querySelector(".cando-exec-mode")?.value || "on_change";
-    const cooldownMs = parseInt(card.querySelector(".cando-cooldown-ms")?.value || "500");
-    const timeoutResetMs = parseInt(card.querySelector(".cando-timeout-reset-ms")?.value || "2000");
-    const resetCanId = card.querySelector(".cando-reset-can-id")?.value || "";
-    const verifyCanId = card.querySelector(".cando-verify-can-id")?.value || card.querySelector(".cando-verify-id")?.value || "";
-    const verifyPayload = getByteGridString(card, "cando-verify");
+    const execMode = card.querySelector(".can-do-exec-mode")?.value || "on_change";
+    const cooldownMs = parseInt(card.querySelector(".can-do-cooldown-ms")?.value || "500");
+    const timeoutResetMs = parseInt(card.querySelector(".can-do-timeout-reset-ms")?.value || "2000");
+    const resetCanId = card.querySelector(".can-do-reset-can-id")?.value || "";
+    const verifyCanId = card.querySelector(".can-do-verify-can-id")?.value || card.querySelector(".can-do-verify-id")?.value || "";
+    const verifyPayload = getByteGridString(card, "can-do-verify");
 
-    const autoRevertSec = parseInt(card.querySelector(".cando-auto-revert-sec")?.value || card.querySelector(".cando-toggle-revert-sec")?.value || "0");
-    const latchTimeoutSec = parseInt(card.querySelector(".cando-latch-timeout")?.value || "300");
+    const autoRevertSec = parseInt(card.querySelector(".can-do-auto-revert-sec")?.value || card.querySelector(".can-do-toggle-revert-sec")?.value || "0");
+    const latchTimeoutSec = parseInt(card.querySelector(".can-do-latch-timeout")?.value || "300");
 
     const haExpose = card.dataset.haExpose !== undefined
         ? (card.dataset.haExpose === "true")
-        : (card.querySelector(".cando-ha-expose") ? card.querySelector(".cando-ha-expose").checked : true);
+        : (card.querySelector(".can-do-ha-expose") ? card.querySelector(".can-do-ha-expose").checked : true);
     const haIcon = card.dataset.haIcon
-        || (card.querySelector(".cando-ha-icon") ? card.querySelector(".cando-ha-icon").value.trim() : "mdi:car-defrost-rear");
+        || (card.querySelector(".can-do-ha-icon") ? card.querySelector(".can-do-ha-icon").value.trim() : "mdi:car-defrost-rear");
 
     const triggers = [];
-    card.querySelectorAll(".cando-trigger-item").forEach(item => {
-        const fromPayload = getByteGridString(item, "cando-trig-from");
-        const toPayload = getByteGridString(item, "cando-trig-to");
-        const forSec = parseFloat(item.querySelector(".cando-trig-for-sec")?.value || "0");
+    card.querySelectorAll(".can-do-trigger-item").forEach(item => {
+        const fromPayload = getByteGridString(item, "can-do-trig-from");
+        const toPayload = getByteGridString(item, "can-do-trig-to");
+        const forSec = parseFloat(item.querySelector(".can-do-trig-for-sec")?.value || "0");
         triggers.push({
-            id: item.querySelector(".cando-trig-id")?.value.trim() || "",
-            source: item.querySelector(".cando-trig-source")?.value || "preset",
-            click_count: parseInt(item.querySelector(".cando-trig-click-count")?.value || "1"),
+            id: item.querySelector(".can-do-trig-id")?.value.trim() || "",
+            source: item.querySelector(".can-do-trig-source")?.value || "preset",
+            click_count: parseInt(item.querySelector(".can-do-trig-click-count")?.value || "1"),
             for_sec: forSec,
             for_ms: Math.round(forSec * 1000),
-            can_id: item.querySelector(".cando-trig-can-id")?.value || "",
+            can_id: item.querySelector(".can-do-trig-can-id")?.value || "",
             from_payload: fromPayload,
             to_payload: toPayload,
             match_payload: toPayload,
-            bus: parseInt(item.querySelector(".cando-trig-bus")?.value || "0"),
-            time: item.querySelector(".cando-trig-time")?.value || "",
-            interval_sec: parseInt(item.querySelector(".cando-trig-interval-sec")?.value || "10"),
-            voltage_val: item.querySelector(".cando-trig-voltage-val")?.value || "",
-            voltage_dir: item.querySelector(".cando-trig-voltage-dir")?.value || "below",
-            expression: item.querySelector(".cando-trig-expr")?.value || "",
-            mqtt_topic: item.querySelector(".cando-trig-mqtt-topic")?.value || "",
-            mqtt_payload: item.querySelector(".cando-trig-mqtt-payload")?.value || ""
+            bus: parseInt(item.querySelector(".can-do-trig-bus")?.value || "0"),
+            time: item.querySelector(".can-do-trig-time")?.value || "",
+            interval_sec: parseInt(item.querySelector(".can-do-trig-interval-sec")?.value || "10"),
+            voltage_val: item.querySelector(".can-do-trig-voltage-val")?.value || "",
+            voltage_dir: item.querySelector(".can-do-trig-voltage-dir")?.value || "below",
+            expression: item.querySelector(".can-do-trig-expr")?.value || "",
+            mqtt_topic: item.querySelector(".can-do-trig-mqtt-topic")?.value || "",
+            mqtt_payload: item.querySelector(".can-do-trig-mqtt-payload")?.value || ""
         });
     });
 
     const conditions = [];
-    card.querySelectorAll(".cando-conditions-container > .cando-condition-item, .cando-conditions-container > .cando-condition-group, .cando-conditions-container > .cando-condition-or-group").forEach(elem => {
-        conditions.push(extractCandoConditionElement(elem));
+    card.querySelectorAll(".can-do-conditions-container > .can-do-condition-item, .can-do-conditions-container > .can-do-condition-group, .can-do-conditions-container > .can-do-condition-or-group").forEach(elem => {
+        conditions.push(extractCanDoConditionElement(elem));
     });
 
     const actions = [];
-    card.querySelectorAll(".cando-actions-container > .cando-action-item, .cando-actions-container > .cando-choose-block, .cando-actions-container > .cando-ifthen-block").forEach(elem => {
-        actions.push(extractCandoActionElement(elem));
+    card.querySelectorAll(".can-do-actions-container > .can-do-action-item, .can-do-actions-container > .can-do-choose-block, .can-do-actions-container > .can-do-ifthen-block").forEach(elem => {
+        actions.push(extractCanDoActionElement(elem));
     });
 
     const offActions = [];
-    card.querySelectorAll(".cando-off-actions-container > .cando-action-item, .cando-off-actions-container > .cando-choose-block, .cando-off-actions-container > .cando-ifthen-block").forEach(elem => {
-        offActions.push(extractCandoActionElement(elem));
+    card.querySelectorAll(".can-do-off-actions-container > .can-do-action-item, .can-do-off-actions-container > .can-do-choose-block, .can-do-off-actions-container > .can-do-ifthen-block").forEach(elem => {
+        offActions.push(extractCanDoActionElement(elem));
     });
 
     // Maintain legacy trigger/condition/action for backward compatibility
@@ -9504,15 +9504,15 @@ function extractCandoRuleData(card) {
     const primaryAct = actions[0] || { type: "precondition" };
     const primaryOffAct = offActions[0] || null;
 
-    const isRuleEnabled = card.querySelector(".cando-rule-enabled") ? card.querySelector(".cando-rule-enabled").checked : true;
+    const isRuleEnabled = card.querySelector(".can-do-rule-enabled") ? card.querySelector(".can-do-rule-enabled").checked : true;
 
     const ruleObj = {
-        name: card.querySelector(".cando-name")?.value || "New CAN Do",
+        name: card.querySelector(".can-do-name")?.value || "New CAN Do",
         enabled: isRuleEnabled,
         ha_expose: haExpose,
         ha_icon: haIcon,
         exec_mode: execMode,
-        trigger_mode: card.querySelector(".cando-trig-combine-mode")?.value || "any",
+        trigger_mode: card.querySelector(".can-do-trig-combine-mode")?.value || "any",
         cooldown_ms: cooldownMs,
         timeout_reset_ms: timeoutResetMs,
         reset_can_id: resetCanId,
@@ -9537,15 +9537,15 @@ function extractCandoRuleData(card) {
     return ruleObj;
 }
 
-function duplicateCandoRuleUI(btnOrCard) {
-    const card = (btnOrCard && btnOrCard.classList?.contains("cando-rule-card")) 
-        ? btnOrCard 
-        : (btnOrCard?.closest ? btnOrCard.closest(".cando-rule-card") : (window._activeRuleCard || window._activeMenuCard));
+function duplicateCanDoRuleUI(btnOrCard) {
+    const card = (btnOrCard && btnOrCard.classList?.contains("can-do-rule-card"))
+        ? btnOrCard
+        : (btnOrCard?.closest ? btnOrCard.closest(".can-do-rule-card") : (window._activeRuleCard || window._activeMenuCard));
     if (!card) {
         console.error("No card found to duplicate");
         return;
     }
-    const ruleData = extractCandoRuleData(card);
+    const ruleData = extractCanDoRuleData(card);
     if (!ruleData) return;
 
     // Clone name with (Copy) suffix
@@ -9555,8 +9555,8 @@ function duplicateCandoRuleUI(btnOrCard) {
         ruleData.name = "New CAN Do (Copy)";
     }
 
-    addCandoRuleUI(ruleData, false, false);
-    const container = document.getElementById("cando_rules_container");
+    addCanDoRuleUI(ruleData, false, false);
+    const container = document.getElementById("can_do_rules_container");
     const newCard = container ? container.lastElementChild : null;
     if (newCard) {
         if (card.nextElementSibling !== newCard) {
@@ -9568,79 +9568,79 @@ function duplicateCandoRuleUI(btnOrCard) {
         }, 80);
     }
     showNotification("Duplicated CAN Do: " + ruleData.name, "green", 2500);
-    autoSaveCandoRules();
+    autoSaveCanDoRules();
 }
 
-function deleteCandoRuleUI(btn) {
-    const card = btn.closest(".cando-rule-card") || btn.closest(".pid-entry");
+function deleteCanDoRuleUI(btn) {
+    const card = btn.closest(".can-do-rule-card") || btn.closest(".pid-entry");
     if (!card) return;
-    const name = card.querySelector(".cando-name")?.value || "CAN Do";
+    const name = card.querySelector(".can-do-name")?.value || "CAN Do";
     card.remove();
 
-    const remaining = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+    const remaining = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     if (remaining.length === 0) {
         const defaultRule = getDefaultPreconditionRule();
         defaultRule.enabled = false;
-        addCandoRuleUI(defaultRule, true);
-        autoSaveCandoRules(`Deleted "${name}". Default rule restored (Paused).`, "blue");
+        addCanDoRuleUI(defaultRule, true);
+        autoSaveCanDoRules(`Deleted "${name}". Default rule restored (Paused).`, "blue");
     } else {
-        autoSaveCandoRules(`Deleted "${name}"`, "blue");
+        autoSaveCanDoRules(`Deleted "${name}"`, "blue");
     }
 }
 
 
 /* --- HOME ASSISTANT ANCHORED SAVE FAB CONTROLLER --- */
-window._candoIsDirty = false;
-window._suppressCandoDirty = false;
+window._can_doIsDirty = false;
+window._suppressCanDoDirty = false;
 
-// markCandoDirty/clearCandoDirty defined at page init; local aliases:
-function markCandoDirty() { window.markCandoDirty(); }
+// markCanDoDirty/clearCanDoDirty defined at page init; local aliases:
+function markCanDoDirty() { window.markCanDoDirty(); }
 
-window.clearCandoDirty = function() {
-    window._candoIsDirty = false;
-    const fab = document.getElementById("cando_anchored_save_fab");
+window.clearCanDoDirty = function () {
+    window._can_doIsDirty = false;
+    const fab = document.getElementById("can_do_anchored_save_fab");
     if (fab) {
         fab.classList.remove("dirty");
         return "dirty state cleared from FAB";
     }
     return "cleared";
 };
-function clearCandoDirty() { return window.clearCandoDirty(); }
+function clearCanDoDirty() { return window.clearCanDoDirty(); }
 
-window.saveAllCandoAutomations = function(btn) {
-    saveCandoRulesUI(btn);
-    clearCandoDirty();
+window.saveAllCanDoAutomations = function (btn) {
+    saveCanDoRulesUI(btn);
+    clearCanDoDirty();
 };
-function saveAllCandoAutomations(btn) { return window.saveAllCandoAutomations(btn); }
+function saveAllCanDoAutomations(btn) { return window.saveAllCanDoAutomations(btn); }
 
 // Comprehensive change listener: input, change, keyup anywhere inside automate tab
-document.addEventListener("input", function(e) {
-    if (e.target.closest("#automate, #cando_rules_container")) {
-        markCandoDirty();
+document.addEventListener("input", function (e) {
+    if (e.target.closest("#automate, #can_do_rules_container")) {
+        markCanDoDirty();
     }
 }, true);
-document.addEventListener("change", function(e) {
-    if (e.target.closest("#automate, #cando_rules_container")) {
-        markCandoDirty();
+document.addEventListener("change", function (e) {
+    if (e.target.closest("#automate, #can_do_rules_container")) {
+        markCanDoDirty();
     }
 }, true);
-document.addEventListener("keyup", function(e) {
-    if (e.target.closest("#automate, #cando_rules_container") && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) {
-        markCandoDirty();
+document.addEventListener("keyup", function (e) {
+    if (e.target.closest("#automate, #can_do_rules_container") && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) {
+        markCanDoDirty();
     }
 }, true);
 
 // Immediate observer attach function
-function initCandoMutationObserver() {
-    const container = document.getElementById("cando_rules_container");
+function initCanDoMutationObserver() {
+    const container = document.getElementById("can_do_rules_container");
     if (!container) return;
-    if (window._candoObserverAttached) return;
-    window._candoObserverAttached = true;
-    const observer = new MutationObserver(function(mutations) {
-        if (window._suppressCandoDirty) return;
+    if (window._can_doObserverAttached) return;
+    window._can_doObserverAttached = true;
+    const observer = new MutationObserver(function (mutations) {
+        if (window._suppressCanDoDirty) return;
         for (let m of mutations) {
             if (m.addedNodes.length > 0 || m.removedNodes.length > 0) {
-                markCandoDirty();
+                markCanDoDirty();
                 break;
             }
         }
@@ -9649,38 +9649,38 @@ function initCandoMutationObserver() {
 }
 
 // Attach observer on DOM ready and also immediately if container is already in DOM
-if (document.getElementById("cando_rules_container")) {
-    initCandoMutationObserver();
+if (document.getElementById("can_do_rules_container")) {
+    initCanDoMutationObserver();
 }
-document.addEventListener("DOMContentLoaded", initCandoMutationObserver);
+document.addEventListener("DOMContentLoaded", initCanDoMutationObserver);
 
 // Save & Load
-function saveCandoRulesUI(sourceElem) {
+function saveCanDoRulesUI(sourceElem) {
     const rules = [];
-    const cards = document.querySelectorAll("#cando_rules_container .cando-rule-card");
+    const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");
     cards.forEach(card => {
-        const ruleData = extractCandoRuleData(card);
+        const ruleData = extractCanDoRuleData(card);
         if (ruleData) rules.push(ruleData);
     });
-    window._cachedCandoRules = rules;
+    window._cachedCanDoRules = rules;
 
-    fetch("/store_cando", {
+    fetch("/store_can_do", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            settings: getCandoDeviceSettings(),
+            settings: getCanDoDeviceSettings(),
             rules: rules
         })
     }).then(res => res.text()).then(msg => {
-        clearCandoDirty();
+        clearCanDoDirty();
         showNotification("CAN Do saved successfully!", "green");
-        const targetCard = sourceElem ? sourceElem.closest(".cando-rule-card") : null;
+        const targetCard = sourceElem ? sourceElem.closest(".can-do-rule-card") : null;
         if (targetCard) {
             // Collapse specifically the saved CAN Do
-            const body = targetCard.querySelector(".cando-rule-body");
-            const editBtn = targetCard.querySelector(".cando-edit-btn");
-            const toggleBtn = targetCard.querySelector(".cando-toggle-btn");
-            const nameInput = targetCard.querySelector(".cando-name");
+            const body = targetCard.querySelector(".can-do-rule-body");
+            const editBtn = targetCard.querySelector(".can-do-edit-btn");
+            const toggleBtn = targetCard.querySelector(".can-do-toggle-btn");
+            const nameInput = targetCard.querySelector(".can-do-name");
             if (body) {
                 body.classList.add("hidden");
                 body.style.display = "none";
@@ -9700,10 +9700,10 @@ function saveCandoRulesUI(sourceElem) {
             }
         } else {
             cards.forEach(card => {
-                const body = card.querySelector(".cando-rule-body");
-                const editBtn = card.querySelector(".cando-edit-btn");
-                const toggleBtn = card.querySelector(".cando-toggle-btn");
-                const nameInput = card.querySelector(".cando-name");
+                const body = card.querySelector(".can-do-rule-body");
+                const editBtn = card.querySelector(".can-do-edit-btn");
+                const toggleBtn = card.querySelector(".can-do-toggle-btn");
+                const nameInput = card.querySelector(".can-do-name");
                 if (body) {
                     body.classList.add("hidden");
                     body.style.display = "none";
@@ -9757,12 +9757,12 @@ function getDefaultPreconditionRule() {
     };
 }
 
-function loadCandoRulesUI() {
-    initCandoVehicleProfileUI();
+function loadCanDoRulesUI() {
+    initCanDoVehicleProfileUI();
     initUnitSystemUI();
-    initCandoCaptureModeUI();
-    loadCandoCatalog();
-    fetch("/load_cando").then(res => res.json()).then(data => {
+    initCanDoCaptureModeUI();
+    loadCanDoCatalog();
+    fetch("/load_can_do").then(res => res.json()).then(data => {
         if (data && data.settings) {
             let settingsChanged = false;
             if (data.settings.vehicle_model) {
@@ -9779,12 +9779,12 @@ function loadCandoRulesUI() {
             }
             if (data.settings.unit_system) {
                 localStorage.setItem("wican_unit_system", data.settings.unit_system);
-                const unitSel = document.getElementById("cando_unit_system");
+                const unitSel = document.getElementById("can_do_unit_system");
                 if (unitSel) unitSel.value = data.settings.unit_system;
                 changeUnitSystem(data.settings.unit_system, false);
             }
             if (settingsChanged) {
-                initCandoVehicleProfileUI();
+                initCanDoVehicleProfileUI();
             }
             if (data.settings.custom_presets) {
                 const cp = data.settings.custom_presets;
@@ -9797,8 +9797,8 @@ function loadCandoRulesUI() {
                 if (Array.isArray(cp.conditions)) {
                     localStorage.setItem("wican_custom_cond_presets", JSON.stringify(cp.conditions));
                 }
-                if (typeof refreshAllCandoPresetDropdowns === "function") {
-                    refreshAllCandoPresetDropdowns();
+                if (typeof refreshAllCanDoPresetDropdowns === "function") {
+                    refreshAllCanDoPresetDropdowns();
                 }
             }
             if (data.settings.custom_widgets) {
@@ -9807,7 +9807,7 @@ function loadCandoRulesUI() {
                     localStorage.setItem("wican_state_widgets", JSON.stringify(cw.state_widgets));
                 }
                 if (cw.dash_buttons && typeof cw.dash_buttons === "object") {
-                    localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(cw.dash_buttons));
+                    localStorage.setItem("wican_dash_can_do_buttons", JSON.stringify(cw.dash_buttons));
                 }
                 if (typeof getDashboardWidgetLayout === "function") {
                     const currentLayout = getDashboardWidgetLayout();
@@ -9817,7 +9817,7 @@ function loadCandoRulesUI() {
                         ...Object.keys(cw.dash_buttons || {})
                     ];
                     customCards.forEach(id => {
-                        if ((id.startsWith("can_state_") || id.startsWith("cando_btn_")) && !currentLayout.includes(id)) {
+                        if ((id.startsWith("can_state_") || id.startsWith("can_do_btn_")) && !currentLayout.includes(id)) {
                             currentLayout.push(id);
                             layoutUpdated = true;
                         }
@@ -9834,36 +9834,36 @@ function loadCandoRulesUI() {
                 }
             }
         }
-        const container = document.getElementById("cando_rules_container");
+        const container = document.getElementById("can_do_rules_container");
         if (container) container.innerHTML = "";
-        window._suppressCandoDirty = true;
+        window._suppressCanDoDirty = true;
         if (data && data.rules && Array.isArray(data.rules) && data.rules.length > 0) {
-            window._cachedCandoRules = data.rules;
-            data.rules.forEach(r => addCandoRuleUI(r, true));
+            window._cachedCanDoRules = data.rules;
+            data.rules.forEach(r => addCanDoRuleUI(r, true));
         } else {
             // Default loaded automation on new installs
             const defRule = getDefaultPreconditionRule();
-            window._cachedCandoRules = [defRule];
-            addCandoRuleUI(defRule, true);
+            window._cachedCanDoRules = [defRule];
+            addCanDoRuleUI(defRule, true);
         }
-        setTimeout(() => { window._suppressCandoDirty = false; clearCandoDirty(); }, 150);
+        setTimeout(() => { window._suppressCanDoDirty = false; clearCanDoDirty(); }, 150);
     }).catch(err => {
         console.log("No saved CAN Do rules found, initializing default rule:", err);
-        const container = document.getElementById("cando_rules_container");
+        const container = document.getElementById("can_do_rules_container");
         if (container && container.children.length === 0) {
-            window._suppressCandoDirty = true;
+            window._suppressCanDoDirty = true;
             const defRule = getDefaultPreconditionRule();
-            window._cachedCandoRules = [defRule];
-            addCandoRuleUI(defRule, true);
+            window._cachedCanDoRules = [defRule];
+            addCanDoRuleUI(defRule, true);
         }
         // Always release suppress so manual edits always work
-        setTimeout(() => { window._suppressCandoDirty = false; window._candoIsDirty = false; }, 500);
+        setTimeout(() => { window._suppressCanDoDirty = false; window._can_doIsDirty = false; }, 500);
     });
 }
 
-function initCandoCaptureModeUI() {
-    const saved = localStorage.getItem("wican_cando_capture_mode") || "auto";
-    const sel = document.getElementById("cando_capture_mode");
+function initCanDoCaptureModeUI() {
+    const saved = localStorage.getItem("wican_can_do_capture_mode") || "auto";
+    const sel = document.getElementById("can_do_capture_mode");
     if (sel) sel.value = saved;
     fetch("/set_capture_mode", {
         method: "POST",
@@ -9872,8 +9872,8 @@ function initCandoCaptureModeUI() {
     }).catch(() => { });
 }
 
-function toggleCandoCaptureMode(val) {
-    localStorage.setItem("wican_cando_capture_mode", val);
+function toggleCanDoCaptureMode(val) {
+    localStorage.setItem("wican_can_do_capture_mode", val);
     fetch("/set_capture_mode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -9890,19 +9890,19 @@ function toggleCandoCaptureMode(val) {
 }
 
 // --- CAN DO BACKUP & RESTORE ---
-function exportSingleCandoRuleUI(btn) {
-    const card = btn.closest(".cando-rule-card");
+function exportSingleCanDoRuleUI(btn) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
-    const ruleData = extractCandoRuleData(card);
+    const ruleData = extractCanDoRuleData(card);
     if (!ruleData) return;
 
-    const cleanName = (ruleData.name || "cando_rule").toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+    const cleanName = (ruleData.name || "can_do_rule").toLowerCase().replace(/[^a-z0-9_-]/g, "_");
     const jsonStr = JSON.stringify(ruleData, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `cando_rule_${cleanName}.json`;
+    a.download = `can_do_rule_${cleanName}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -9910,10 +9910,10 @@ function exportSingleCandoRuleUI(btn) {
     showNotification(`Exported rule "${ruleData.name}"!`, "green", 2500);
 }
 
-function copySingleCandoRuleUI(btn) {
-    const card = btn.closest(".cando-rule-card");
+function copySingleCanDoRuleUI(btn) {
+    const card = btn.closest(".can-do-rule-card");
     if (!card) return;
-    const ruleData = extractCandoRuleData(card);
+    const ruleData = extractCanDoRuleData(card);
     if (!ruleData) return;
 
     const jsonStr = JSON.stringify(ruleData, null, 2);
@@ -9928,18 +9928,18 @@ function copySingleCandoRuleUI(btn) {
     }
 }
 
-function exportCandoRules() {
-    fetch("/load_cando").then(res => res.json()).then(data => {
+function exportCanDoRules() {
+    fetch("/load_can_do").then(res => res.json()).then(data => {
         const exportObj = (data && data.rules) ? data : {
-            settings: getCandoDeviceSettings(),
-            rules: window._cachedCandoRules || []
+            settings: getCanDoDeviceSettings(),
+            rules: window._cachedCanDoRules || []
         };
         const jsonStr = JSON.stringify(exportObj, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "wican_cando_rules.json";
+        a.download = "wican_can_do_rules.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -9950,46 +9950,46 @@ function exportCandoRules() {
     });
 }
 
-function importCandoRules(inputElem) {
+function importCanDoRules(inputElem) {
     const file = inputElem.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function (e) {
         try {
             const data = JSON.parse(e.target.result);
-            const container = document.getElementById("cando_rules_container");
+            const container = document.getElementById("can_do_rules_container");
             if (data && Array.isArray(data.rules)) {
                 if (container) container.innerHTML = "";
-                data.rules.forEach(r => addCandoRuleUI(r, true));
+                data.rules.forEach(r => addCanDoRuleUI(r, true));
                 if (data.settings) {
                     if (data.settings.vehicle_model) localStorage.setItem("wican_vehicle_model", data.settings.vehicle_model);
                     if (data.settings.vehicle_trim) localStorage.setItem("wican_vehicle_trim", data.settings.vehicle_trim);
                     if (data.settings.vehicle_profile) localStorage.setItem("wican_vehicle_profile", data.settings.vehicle_profile);
                     if (data.settings.unit_system) {
                         localStorage.setItem("wican_unit_system", data.settings.unit_system);
-                        const unitSel = document.getElementById("cando_unit_system");
+                        const unitSel = document.getElementById("can_do_unit_system");
                         if (unitSel) unitSel.value = data.settings.unit_system;
                         changeUnitSystem(data.settings.unit_system, false);
                     }
-                    initCandoVehicleProfileUI();
+                    initCanDoVehicleProfileUI();
                     if (data.settings.custom_presets) {
                         const cp = data.settings.custom_presets;
                         if (Array.isArray(cp.triggers)) localStorage.setItem("wican_custom_trig_presets", JSON.stringify(cp.triggers));
                         if (Array.isArray(cp.actions)) localStorage.setItem("wican_custom_act_presets", JSON.stringify(cp.actions));
                         if (Array.isArray(cp.conditions)) localStorage.setItem("wican_custom_cond_presets", JSON.stringify(cp.conditions));
-                        if (typeof refreshAllCandoPresetDropdowns === "function") refreshAllCandoPresetDropdowns();
+                        if (typeof refreshAllCanDoPresetDropdowns === "function") refreshAllCanDoPresetDropdowns();
                     }
                     if (data.settings.custom_widgets) {
                         const cw = data.settings.custom_widgets;
                         if (cw.state_widgets && typeof cw.state_widgets === "object") localStorage.setItem("wican_state_widgets", JSON.stringify(cw.state_widgets));
-                        if (cw.dash_buttons && typeof cw.dash_buttons === "object") localStorage.setItem("wican_dash_cando_buttons", JSON.stringify(cw.dash_buttons));
+                        if (cw.dash_buttons && typeof cw.dash_buttons === "object") localStorage.setItem("wican_dash_can_do_buttons", JSON.stringify(cw.dash_buttons));
                     }
                 }
                 const payload = {
-                    settings: data.settings || getCandoDeviceSettings(),
+                    settings: data.settings || getCanDoDeviceSettings(),
                     rules: data.rules
                 };
-                fetch("/store_cando", {
+                fetch("/store_can_do", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
@@ -10000,7 +10000,7 @@ function importCandoRules(inputElem) {
                 });
             } else if (data && (data.triggers || data.trigger || data.name)) {
                 // Single rule import! Append to existing container without clearing
-                addCandoRuleUI(data, false, true);
+                addCanDoRuleUI(data, false, true);
                 showNotification(`Imported rule "${data.name || 'Custom Rule'}"! Click Save to persist.`, "green", 4000);
             } else {
                 showNotification("Invalid CAN Do backup file format.", "red");
@@ -10124,16 +10124,16 @@ function onTzSelectChange(select) {
 const applyTzPreset = onTzSelectChange;
 
 // --- CAN DO SETTINGS MENU HANDLERS ---
-function toggleCandoSettingsMenu(event) {
+function toggleCanDoSettingsMenu(event) {
     if (event) event.stopPropagation();
-    const menu = document.getElementById("cando_settings_menu");
+    const menu = document.getElementById("can_do_settings_menu");
     if (menu) {
         menu.classList.toggle("show");
     }
 }
 
-function closeCandoSettingsMenu() {
-    const menu = document.getElementById("cando_settings_menu");
+function closeCanDoSettingsMenu() {
+    const menu = document.getElementById("can_do_settings_menu");
     if (menu) {
         menu.classList.remove("show");
     }
@@ -10142,6 +10142,6 @@ function closeCandoSettingsMenu() {
 // Close modal on Escape key
 document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
-        closeCandoSettingsMenu();
+        closeCanDoSettingsMenu();
     }
 });

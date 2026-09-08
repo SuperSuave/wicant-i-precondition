@@ -25,13 +25,13 @@ typedef enum {
   CANDO_TRIG_INTERVAL = 2,     // Triggered by repeating timer interval
   CANDO_TRIG_VOLTAGE = 3,      // Triggered by battery voltage threshold
   CANDO_TRIG_MQTT_COMMAND = 4, // Triggered by incoming MQTT/HA command
-} cando_trigger_source_t;
+} can_do_trigger_source_t;
 
 typedef enum {
   CANDO_MATCH_EXACT = 0, // Match exact payload bytes
   CANDO_MATCH_MASK = 1,  // Match using data bitmask and expected byte values
   CANDO_MATCH_EXPRESSION = 2, // Evaluate math expression on payload
-} cando_match_type_t;
+} can_do_match_type_t;
 
 typedef enum {
   CANDO_EXEC_CONTINUOUS = 0, // Fire every time trigger condition is true
@@ -40,16 +40,16 @@ typedef enum {
   CANDO_EXEC_POLL_VERIFY =
       3, // Fire action and wait for confirmation status CAN message
   CANDO_EXEC_TOGGLE = 4, // Flip-flop toggle mode
-} cando_exec_mode_t;
+} can_do_exec_mode_t;
 
 typedef struct {
   char id[32]; // Optional Trigger ID
-  cando_trigger_source_t source;
+  can_do_trigger_source_t source;
   uint8_t bus;     // CAN_BUS_0 or CAN_BUS_1
   uint32_t can_id; // CAN ID (11-bit standard or 29-bit extended)
   bool is_ext;     // true if 29-bit extended ID
-  cando_match_type_t match_type;
-  cando_exec_mode_t exec_mode;
+  can_do_match_type_t match_type;
+  can_do_exec_mode_t exec_mode;
   uint8_t match_data[8]; // Expected byte pattern (To payload)
   uint8_t match_mask[8]; // Bitmask for matching
   uint8_t data_len;      // Length of expected match payload
@@ -112,14 +112,14 @@ typedef struct {
   uint32_t cooldown_ms;      // Minimum time (ms) between triggers
   int64_t last_triggered_us; // Timestamp of last execution
 
-} cando_trigger_t;
+} can_do_trigger_t;
 
 typedef enum {
   CANDO_ROLL_NONE = 0,
   CANDO_ROLL_SEQ3,      // Cycles 0x0F -> 0x1F -> 0x2F
   CANDO_ROLL_BYTE_INC,  // Cycles 0x00 -> 0xFF
   CANDO_ROLL_NIBBLE_INC // Cycles low nibble 0x0 -> 0xF
-} cando_roll_mode_t;
+} can_do_roll_mode_t;
 
 typedef struct {
   uint8_t target_bus;   // Target bus to play CAN frame
@@ -129,9 +129,9 @@ typedef struct {
   uint8_t tx_len;       // Payload byte length (0-8)
   uint32_t delay_ms;    // Delay before transmitting next frame
   int8_t roll_byte_idx; // -1 if no rolling byte, or 0..7 index
-  cando_roll_mode_t roll_mode;
+  can_do_roll_mode_t roll_mode;
   uint8_t roll_counter; // Dynamic sequence counter state
-} cando_sequence_step_t;
+} can_do_sequence_step_t;
 
 typedef enum {
   CANDO_ACT_CAN_TX = 0,
@@ -141,10 +141,10 @@ typedef enum {
   CANDO_ACT_DELAY,
   CANDO_ACT_MQTT,
   CANDO_ACT_WEBHOOK
-} cando_action_type_t;
+} can_do_action_type_t;
 
 typedef struct {
-  cando_action_type_t type;
+  can_do_action_type_t type;
   char trigger_id[32];          // Only execute if triggered by this trigger_id
   char *popup_message;          // Optional dashboard track popup text
   char precon_mode[16];         // "persistent", "continuous", "once", "cancel"
@@ -155,80 +155,80 @@ typedef struct {
   bool climate_driver_only;     // Optional: Enforce Driver Only Mode
   bool climate_passenger_aware; // Optional: Auto-detect passenger seatbelt /
                                 // occupant status
-  cando_sequence_step_t *steps;
+  can_do_sequence_step_t *steps;
   uint8_t step_count;
   uint32_t delay_ms; // Duration in ms for CANDO_ACT_DELAY step
   char *mqtt_topic;  // Optional MQTT topic for notification alert
   char *webhook_url; // Optional Webhook URL for POST alert
-} cando_action_t;
+} can_do_action_t;
 
 typedef struct {
-  char *name;                  // Rule descriptive name
-  bool enabled;                // Rule active flag
-  bool ha_expose;              // Expose as Home Assistant Button entity
-  char ha_icon[32];            // Optional MDI Icon
-  uint32_t exec_count;         // Number of times this rule has fired
-  int64_t last_exec_us;        // Timestamp of last execution
-  cando_exec_mode_t exec_mode; // Rule execution mode
+  char *name;                   // Rule descriptive name
+  bool enabled;                 // Rule active flag
+  bool ha_expose;               // Expose as Home Assistant Button entity
+  char ha_icon[32];             // Optional MDI Icon
+  uint32_t exec_count;          // Number of times this rule has fired
+  int64_t last_exec_us;         // Timestamp of last execution
+  can_do_exec_mode_t exec_mode; // Rule execution mode
 
   // Stateful Toggle & Cancellation Tracking
   bool is_active_state;     // Toggled ON (true) or OFF (false)
   uint32_t auto_revert_sec; // Auto revert to OFF after N seconds
   int64_t active_since_us;  // Timestamp when rule was toggled ON
 
-  bool trigger_combine_all;  // false = ANY trigger (OR), true = ALL triggers
-                             // (AND)
-  cando_trigger_t *triggers; // Multiple trigger definitions
+  bool trigger_combine_all;   // false = ANY trigger (OR), true = ALL triggers
+                              // (AND)
+  can_do_trigger_t *triggers; // Multiple trigger definitions
   uint8_t trigger_count;
-  cando_trigger_t trigger; // Primary trigger
+  can_do_trigger_t trigger; // Primary trigger
 
   // Primary / ON Actions
-  cando_action_t *actions; // Multiple action blocks
+  can_do_action_t *actions; // Multiple action blocks
   uint8_t action_count;
-  cando_action_t action; // Primary action
+  can_do_action_t action; // Primary action
 
   // OFF / Cancel Actions
-  cando_action_t *off_actions;
+  can_do_action_t *off_actions;
   uint8_t off_action_count;
-  cando_action_t off_action;
+  can_do_action_t off_action;
 
-} cando_rule_t;
+} can_do_rule_t;
 
 typedef enum {
   CANDO_CAPTURE_AUTO = 0,
   CANDO_CAPTURE_ALWAYS_PAUSED = 1,
   CANDO_CAPTURE_DISABLED = 2
-} cando_capture_mode_t;
+} can_do_capture_mode_t;
 
 typedef struct {
-  cando_rule_t *rules;
+  can_do_rule_t *rules;
   uint32_t rule_count;
-  cando_capture_mode_t capture_mode;
+  can_do_capture_mode_t capture_mode;
   bool reverse_engineering_mode;
   SemaphoreHandle_t mutex;
-} cando_rule_set_t;
+} can_do_rule_set_t;
 
 // --------------------------------------------------------------------------
 // Public API
 // --------------------------------------------------------------------------
-void cando_init(const char *device_id_str);
-void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus);
-void cando_process_timer_tick(void);
-void cando_process_mqtt_trigger(const char *topic, const char *payload);
-void cando_publish_ha_discovery(void);
-void cando_unpublish_ha_rule(const char *rule_name);
-bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg,
-                         uint8_t bus);
-esp_err_t cando_load_config(void);
-esp_err_t cando_save_config(const char *json_str);
-char *cando_get_config(void);
-bool cando_test_single_action_json(const char *json_str);
-void cando_get_stats_json(cJSON *root);
-void cando_set_capture_mode(cando_capture_mode_t mode);
-cando_capture_mode_t cando_get_capture_mode(void);
-bool cando_is_capture_active(void);
-void cando_set_reverse_engineering_mode(bool enable);
-bool cando_get_reverse_engineering_mode(void);
+void can_do_init(const char *device_id_str);
+void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus);
+void can_do_process_timer_tick(void);
+void can_do_process_mqtt_trigger(const char *topic, const char *payload);
+void can_do_publish_ha_discovery(void);
+void can_do_unpublish_ha_rule(const char *rule_name);
+bool can_do_evaluate_rule(can_do_rule_t *rule, const twai_message_t *msg,
+                          uint8_t bus);
+esp_err_t can_do_load_config(void);
+esp_err_t can_do_save_config(const char *json_str);
+char *can_do_get_config(void);
+bool can_do_test_single_action_json(const char *json_str);
+void can_do_get_stats_json(cJSON *root);
+void can_do_set_capture_mode(can_do_capture_mode_t mode);
+can_do_capture_mode_t can_do_get_capture_mode(void);
+bool can_do_is_capture_active(void);
+void can_do_set_reverse_engineering_mode(bool enable);
+bool can_do_get_reverse_engineering_mode(void);
 
 #ifdef __cplusplus
 }

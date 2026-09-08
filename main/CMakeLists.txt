@@ -1,11 +1,10 @@
-# See the build system documentation in IDF programming guide
-# for more information about component CMakeLists.txt files.
 set(srcs 
     "main.c" "comm_server.c" "config_server.c" "realdash.c" "slcan.c" 
     "can.c" "ble.c" "wifi_network.c" "gvret.c" "elm327.c" "mqtt.c" 
     "sleep_mode.c" "expression_parser.c" "wc_mdns.c" "dev_status.c" 
     "hsm.c" "precondition.c" "persistent_settings.c" "time_sync.c" 
     "track_popup.c" "isotp_tx.c" "utf8_utf16_converter.c"
+    "can_do.c" "autopid.c" "ftp.c" "hw_config.c" "wc_timer.c"
 )
 
 set(requires 
@@ -16,8 +15,8 @@ set(requires
 )
 
 idf_component_register(
-    SRCS "hw_config.c" "wc_timer.c" "autopid.c" "ftp.c" "cando.c" ${srcs}
+    SRCS ${srcs}
     INCLUDE_DIRS "."
     REQUIRES ${requires}
-    EMBED_FILES "homepage.html.gz" "cando_catalog.json.gz"
+    EMBED_FILES "homepage.html.gz" "can_do_catalog.json.gz"
 )

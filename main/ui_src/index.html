@@ -37,7 +37,7 @@
         </button>
         <button class="tablinks" onclick="openTab(event, 'automate')">
             <svg class="icon">
-                <use href="#icon-egmp-cando" />
+                <use href="#icon-egmpcan-do" />
             </svg> <b>CAN Do</b>
         </button>
         <button class="tablinks" onclick="openTab(event, 'autopid_tab')">
@@ -140,9 +140,9 @@
 
         <!-- 2. CAN DO AUTOMATIONS TAB -->
         <div id="automate" class="tabcontent">
-            <div class="section-title cando-header-title">
-                <svg class="cando-header-icon">
-                    <use href="#icon-egmp-cando" />
+            <div class="section-title can-do-header-title">
+                <svg class="can-do-header-icon">
+                    <use href="#icon-egmpcan-do" />
                 </svg>
                 <span>CAN Do Automations</span>
             </div>
@@ -150,22 +150,22 @@
                 <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; flex-grow: 1; max-width: 480px;">
                     <div style="position: relative; width: 100%; display: flex; align-items: center;">
                         <svg style="position: absolute; left: 12px; width: 16px; height: 16px; fill: var(--text-muted); pointer-events: none;"><use href="#icon-sniffer"/></svg>
-                        <input type="text" id="cando_search_input" placeholder="Search automations by name, trigger, or action..."
-                            oninput="filterCandoRules(this.value)"
+                        <input type="text" id="can_do_search_input" placeholder="Search automations by name, trigger, or action..."
+                            oninput="filterCanDoRules(this.value)"
                             style="width: 100%; padding: 8px 12px 8px 36px; border-radius: var(--m3-shape-full); border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); outline: none; box-sizing: border-box;">
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="dash-action-btn" onclick="addCandoRuleUI({}, false, true)" style="padding: 6px 16px; font-size: 0.85rem; font-weight: 600;">
+                    <button type="button" class="dash-action-btn" onclick="addCanDoRuleUI({}, false, true)" style="padding: 6px 16px; font-size: 0.85rem; font-weight: 600;">
                         <svg class="icon" style="width: 16px; height: 16px;"><use href="#icon-plus"/></svg> Add Automation
                     </button>
 
-                    <button type="button" class="system-button cando-btn-more" onclick="showAutomationsGlobalMenu(this, event)" style="width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;" title="More options and global settings">
+                    <button type="button" class="system-button can-do-btn-more" onclick="showAutomationsGlobalMenu(this, event)" style="width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;" title="More options and global settings">
                         ⋮
                     </button>
                 </div>
             </div>
-            <div id="cando_rules_container"></div>
+            <div id="can_do_rules_container"></div>
 
             
         </div>
@@ -537,9 +537,9 @@
     <!-- BUILD_JS -->
 
     <!-- Home Assistant Style Floating Anchored Save FAB -->
-            <button type="button" id="cando_anchored_save_fab" class="ha-save-fab" onclick="saveAllCandoAutomations(this)" title="Save changes">
+            <button type="button" id="can_do_anchored_save_fab" class="ha-save-fab" onclick="saveAllCanDoAutomations(this)" title="Save changes">
                 <svg class="icon" style="width: 20px; height: 20px; fill: currentColor;"><use href="#icon-save"/></svg>
-                <span class="cando-save-text">Save Changes</span>
+                <span class="can-do-save-text">Save Changes</span>
             </button>
 </body>
 

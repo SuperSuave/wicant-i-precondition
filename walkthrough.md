@@ -19,7 +19,7 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
 4. **Firmware CAN State Cache (`/api/can_states`)**: Background telemetry cache serving decoded signal values to the browser with live activity pulses.
 5. **Vehicle Profiles & Trim Feature Gating**: Make/Model and Trim selection (EV6, Ioniq 5/6, GV60) with automatic capability filtering (ventilated seats, heated steering, power tailgate).
 6. **Dual Unit System**: Comprehensive Imperial (°F, mph, mi, psi) vs. Metric (°C, km/h, km, bar) conversions across all UI controls and conditions.
-7. **Device Flash Persistence (Cross-Device Sync)**: Saves vehicle profile, unit system, custom presets, and custom widget configurations to WiCAN LittleFS flash (`/littlefs/cando.json`), while isolating card column layout in local storage.
+7. **Device Flash Persistence (Cross-Device Sync)**: Saves vehicle profile, unit system, custom presets, and custom widget configurations to WiCAN LittleFS flash (`/littlefs/can_do.json`), while isolating card column layout in local storage.
 8. **Recursive Logic & Advanced Action Blocks**: Home Assistant-style AND/OR/NOT condition nesting, conditional `If-Then-Else` actions, and multi-trigger `Choose` branching.
 9. **Home Assistant MQTT Auto-Discovery & Inbound Triggers**: One-click button entity exposure with MDI icon selection.
 10. **Multi-Network Wi-Fi Priority Fallback**: Storing up to 5 Wi-Fi networks with priority reordering and dynamic failover.
@@ -27,7 +27,7 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
 12. **Sniffer Guard (Capture Mode)**: Auto-pauses automations when SavvyCAN, SavvyLens, or Wireshark connects to port 23.
 13. **Firmware Crash & Persistence Fixes**: Fixed HTTP 500 on config save, stack overflow crashes, sleep mode crash, and single-AP Wi-Fi saving bugs.
 14. **Gzip Web Asset Pipeline**: Minifies and compresses the 823 KB web interface down to ~96 KB (`homepage.html.gz`), preventing ESP32 partition overflows.
-15. **Preset Catalogs**: Over 2,500 lines in `cando_catalog.json`.
+15. **Preset Catalogs**: Over 2,500 lines in `can_do_catalog.json`.
 
 ---
 
@@ -59,7 +59,7 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
   * **Multi-Action Dispatcher**: Injects CAN frames (custom bus, ID, payload, repeat count, inter-frame delays), triggers preconditioning, sends cluster OSD popups, or executes HTTP webhooks.
   * **Double-Press & Multi-Press Patterns**: Configurable click counts (`click_count`: single, double, triple) with release-edge timing windows (`click_window_ms: 450ms`) for rapid button gestures.
   * **Simultaneous Combo Press (`AND` Triggers)**: Tracks real-time pressed state (`is_held`) across disparate CAN frames or IDs (e.g. Steering Wheel + AVN buttons), allowing multi-button chord triggers.
-  * **Rule Dry-Run Endpoint (`/test_cando_rule`)**: Simulates rule execution directly from the web interface for safe testing.
+  * **Rule Dry-Run Endpoint (`/test_can_do_rule`)**: Simulates rule execution directly from the web interface for safe testing.
   * **Boot Engine Auto-Load**: User rules are parsed from LittleFS flash into RAM on device startup across all protocol modes (`SLCAN`, `SAVVYCAN`, `REALDASH`, `ELM327`, `AUTO_PID`).
 
 ---
@@ -106,7 +106,7 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
 
 ---
 
-### 5. 🚗 Vehicle Profiles & Feature Gating (`cando_catalog.json` & DBCs)
+### 5. 🚗 Vehicle Profiles & Feature Gating (`can_do_catalog.json` & DBCs)
 * **L1Z3 Upstream**: Generic E-GMP implementation without trim distinctions.
 * **This Fork**:
   * **Curated Vehicle Profiles**: Make, Model, and Trim selectors for Kia EV6 (Light, Wind, GT-Line, GT), Hyundai Ioniq 5 (SE, SEL, Limited, N), Hyundai Ioniq 6, and Genesis GV60.
@@ -120,23 +120,23 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
 ### 6. 💾 Device Flash Persistence (Cross-Device Sync)
 * **L1Z3 Upstream**: Relied entirely on client browser `localStorage`, causing settings to be lost when switching devices (e.g. from laptop to phone).
 * **This Fork**:
-  * **WiCAN LittleFS Flash Storage (`/littlefs/cando.json`)**:
+  * **WiCAN LittleFS Flash Storage (`/littlefs/can_do.json`)**:
     * Vehicle Model & Trim selection.
     * Metric vs. Imperial unit preferences.
     * Custom Presets (all user-created triggers, actions, and conditions).
-    * Custom Widget Definitions (monitored PIDs in `can_state_X` and shortcut buttons in `cando_btn_X`).
+    * Custom Widget Definitions (monitored PIDs in `can_state_X` and shortcut buttons in `can_do_btn_X`).
   * **Client Browser Isolation (`localStorage`)**:
     * Card ordering and column layouts remain local per device so mobile single-column and desktop multi-column layouts do not interfere.
-  * **Zero C Firmware Changes Needed**: Rides on the existing LittleFS `/store_cando` endpoint, which writes raw JSON and cleanly ignores non-rule keys during boot.
+  * **Zero C Firmware Changes Needed**: Rides on the existing LittleFS `/store_can_do` endpoint, which writes raw JSON and cleanly ignores non-rule keys during boot.
 
 ---
 
 ### 7. 🏠 Home Assistant Integration & Inbound MQTT (`mqtt.c`)
 * **L1Z3 Upstream**: Outbound MQTT telemetry only.
 * **This Fork**:
-  * **Inbound MQTT Triggers**: Automations can trigger via MQTT topics (`wican/cando/trigger` or `wican/<device_id>/cando/trigger`).
+  * **Inbound MQTT Triggers**: Automations can trigger via MQTT topics (`wican/can_do/trigger` or `wican/<device_id>/can_do/trigger`).
   * **MQTT Auto-Discovery Buttons**: Check `☑️ Expose as Button Entity to Home Assistant` on any CAN Do rule with custom MDI icon selection (`mdi:car-defrost-rear`, `mdi:car-electric`, `mdi:fan`, `mdi:car-door`, `mdi:car-key`).
-  * **Zero-YAML Setup**: WiCAN publishes standard MQTT Discovery payloads (`homeassistant/button/wican_<id>/cando_<rule>/config`) with `retain=1`.
+  * **Zero-YAML Setup**: WiCAN publishes standard MQTT Discovery payloads (`homeassistant/button/wican_<id>/can_do_<rule>/config`) with `retain=1`.
 
 ---
 
@@ -176,10 +176,10 @@ This walkthrough details all the enhancements, subsystems, firmware architecture
 | [`main/autopid.c`](file:///d:/Documents/wicant-i-precondition/main/autopid.c) | Basic PID polling | **Major Rewrite** | Reactive CAN Do engine, state cache (`/api/can_states`), dry-run execution, latching, cooldown timers. |
 | [`main/autopid.h`](file:///d:/Documents/wicant-i-precondition/main/autopid.h) | PID headers | **Expanded** | CAN Do rule structs, trigger/condition/action models, execution modes. |
 | [`main/precondition.c`](file:///d:/Documents/wicant-i-precondition/main/precondition.c) | Hardcoded button hooks | **Decoupled** | Disabled direct button sniffing (`BUTTON_DISABLED`); exposed event action API. |
-| [`main/config_server.c`](file:///d:/Documents/wicant-i-precondition/main/config_server.c) | Basic endpoints | **Enhanced** | Added `/store_cando`, `/load_cando`, `/api/can_states`, `/test_cando_rule`, gzip serving, HTTP 500 & stack overflow fixes. |
+| [`main/config_server.c`](file:///d:/Documents/wicant-i-precondition/main/config_server.c) | Basic endpoints | **Enhanced** | Added `/store_can_do`, `/load_can_do`, `/api/can_states`, `/test_can_do_rule`, gzip serving, HTTP 500 & stack overflow fixes. |
 | [`main/homepage_full.html`](file:///d:/Documents/wicant-i-precondition/main/homepage_full.html) | Basic HTML form | **Overhauled** | Dynamic widget dashboard, visual CAN Do builder, vehicle profile selector, dual unit system, flash persistence. |
 | [`main/homepage.html.gz`](file:///d:/Documents/wicant-i-precondition/main/homepage.html.gz) | *Not present* | **NEW** | Gzip-compressed production web asset (~96 KB). |
-| [`main/cando_catalog.json`](file:///d:/Documents/wicant-i-precondition/main/cando_catalog.json) | *Not present* | **NEW** | 2,500+ lines of curated E-GMP commands, triggers, conditions, and PIDs. |
+| [`main/can_do_catalog.json`](file:///d:/Documents/wicant-i-precondition/main/can_do_catalog.json) | *Not present* | **NEW** | 2,500+ lines of curated E-GMP commands, triggers, conditions, and PIDs. |
 | [`main/wifi_network.c`](file:///d:/Documents/wicant-i-precondition/main/wifi_network.c) | Single-AP only | **Enhanced** | Up to 5 networks with priority fallback; fixed single-AP saving bug. |
 | [`main/time_sync.c`](file:///d:/Documents/wicant-i-precondition/main/time_sync.c) | *Not present* | **NEW** | SNTP client and browser clock synchronization engine. |
 | [`main/mqtt.c`](file:///d:/Documents/wicant-i-precondition/main/mqtt.c) | Basic telemetry | **Enhanced** | Inbound CAN Do trigger topics and Home Assistant MQTT auto-discovery buttons. |

@@ -1,6 +1,7 @@
 #include "time_sync.h"
 #include "autopid.h"
 #include "cJSON.h"
+#include "can_do.h"
 #include "esp_log.h"
 #include "esp_sntp.h"
 #include <stdio.h>
@@ -38,7 +39,7 @@ void time_sync_start_sntp(void) {
     return;
   }
 
-  if (cando_get_reverse_engineering_mode()) {
+  if (can_do_get_reverse_engineering_mode()) {
     ESP_LOGI(TAG, "Reverse engineering mode active: SNTP skipped");
     return;
   }

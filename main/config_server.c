@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cando.h"
+#include "can_do.h"
 #include "esp_err.h"
 #include "esp_eth.h"
 #include "esp_netif.h"
@@ -935,7 +935,7 @@ static esp_err_t logo_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-static esp_err_t store_cando_handler(httpd_req_t *req) {
+static esp_err_t store_can_do_handler(httpd_req_t *req) {
   if (!req)
     return ESP_ERR_INVALID_ARG;
   int total_len = req->content_len;
@@ -962,16 +962,16 @@ static esp_err_t store_cando_handler(httpd_req_t *req) {
     cur_len += received;
   }
   buffer[total_len] = '\0';
-  cando_save_config(buffer);
+  can_do_save_config(buffer);
   free(buffer);
   httpd_resp_sendstr(req, "CAN Do configuration saved successfully.");
   return ESP_OK;
 }
 
-static esp_err_t load_cando_handler(httpd_req_t *req) {
+static esp_err_t load_can_do_handler(httpd_req_t *req) {
   if (!req)
     return ESP_ERR_INVALID_ARG;
-  char *resp = cando_get_config();
+  char *resp = can_do_get_config();
   httpd_resp_set_type(req, "application/json");
   httpd_resp_sendstr(req, resp);
   if (resp)
@@ -979,7 +979,7 @@ static esp_err_t load_cando_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-static esp_err_t store_cando_catalog_handler(httpd_req_t *req) {
+static esp_err_t store_can_do_catalog_handler(httpd_req_t *req) {
   if (!req)
     return ESP_ERR_INVALID_ARG;
   int total_len = req->content_len;
@@ -988,7 +988,7 @@ static esp_err_t store_cando_catalog_handler(httpd_req_t *req) {
     return ESP_FAIL;
   }
 
-  FILE *f = fopen(FS_MOUNT_POINT "/cando_catalog.json", "w");
+  FILE *f = fopen(FS_MOUNT_POINT "/can_do_catalog.json", "w");
   if (!f) {
     httpd_resp_send_500(req);
     return ESP_FAIL;
@@ -1004,13 +1004,13 @@ static esp_err_t store_cando_catalog_handler(httpd_req_t *req) {
         continue;
       }
       fclose(f);
-      unlink(FS_MOUNT_POINT "/cando_catalog.json");
+      unlink(FS_MOUNT_POINT "/can_do_catalog.json");
       httpd_resp_send_500(req);
       return ESP_FAIL;
     }
     if (fwrite(buf, 1, received, f) != (size_t)received) {
       fclose(f);
-      unlink(FS_MOUNT_POINT "/cando_catalog.json");
+      unlink(FS_MOUNT_POINT "/can_do_catalog.json");
       httpd_resp_send_500(req);
       return ESP_FAIL;
     }
@@ -1025,10 +1025,10 @@ static esp_err_t store_cando_catalog_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-static esp_err_t load_cando_catalog_handler(httpd_req_t *req) {
+static esp_err_t load_can_do_catalog_handler(httpd_req_t *req) {
   if (!req)
     return ESP_ERR_INVALID_ARG;
-  FILE *f = fopen(FS_MOUNT_POINT "/cando_catalog.json", "r");
+  FILE *f = fopen(FS_MOUNT_POINT "/can_do_catalog.json", "r");
   if (!f) {
     httpd_resp_send_404(req);
     return ESP_FAIL;
@@ -1056,7 +1056,7 @@ static esp_err_t load_cando_catalog_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-static esp_err_t test_cando_action_handler(httpd_req_t *req) {
+static esp_err_t test_can_do_action_handler(httpd_req_t *req) {
   if (!req)
     return ESP_ERR_INVALID_ARG;
   int total_len = req->content_len;
@@ -1080,7 +1080,7 @@ static esp_err_t test_cando_action_handler(httpd_req_t *req) {
     cur_len += received;
   }
   buffer[total_len] = '\0';
-  bool ok = cando_test_single_action_json(buffer);
+  bool ok = can_do_test_single_action_json(buffer);
   free(buffer);
   if (ok) {
     httpd_resp_sendstr(req, "Action executed successfully.");
@@ -1214,15 +1214,15 @@ static esp_err_t set_capture_mode_handler(httpd_req_t *req) {
     cJSON *mode = cJSON_GetObjectItem(root, "mode");
     if (mode) {
       if (cJSON_IsNumber(mode)) {
-        cando_set_capture_mode((cando_capture_mode_t)mode->valueint);
+        can_do_set_capture_mode((can_do_capture_mode_t)mode->valueint);
       } else if (cJSON_IsString(mode)) {
         if (strcmp(mode->valuestring, "always_paused") == 0 ||
             strcmp(mode->valuestring, "paused") == 0) {
-          cando_set_capture_mode(CANDO_CAPTURE_ALWAYS_PAUSED);
+          can_do_set_capture_mode(CANDO_CAPTURE_ALWAYS_PAUSED);
         } else if (strcmp(mode->valuestring, "disabled") == 0) {
-          cando_set_capture_mode(CANDO_CAPTURE_DISABLED);
+          can_do_set_capture_mode(CANDO_CAPTURE_DISABLED);
         } else {
-          cando_set_capture_mode(CANDO_CAPTURE_AUTO);
+          can_do_set_capture_mode(CANDO_CAPTURE_AUTO);
         }
       }
     }
@@ -1558,7 +1558,7 @@ char *config_server_get_status_json(bool remove_sensitive_info) {
   uptime_str[sizeof(uptime_str) - 1] = '\0';
   cJSON_AddStringToObject(root, "uptime", uptime_str);
 
-  cando_get_stats_json(root);
+  can_do_get_stats_json(root);
 
   cJSON_AddStringToObject(root, "mqtt_en", device_config.mqtt_en);
   if (!remove_sensitive_info) {
@@ -2174,33 +2174,33 @@ static const httpd_uri_t precondition_toggle_uri = {
     .handler = precondition_toggle_handler,
     .user_ctx = NULL};
 
-static const httpd_uri_t store_cando_uri = {.uri = "/store_cando",
-                                            .method = HTTP_POST,
-                                            .handler = store_cando_handler,
+static const httpd_uri_t store_can_do_uri = {.uri = "/store_can_do",
+                                             .method = HTTP_POST,
+                                             .handler = store_can_do_handler,
+                                             .user_ctx = NULL};
+
+static const httpd_uri_t load_can_do_uri = {.uri = "/load_can_do",
+                                            .method = HTTP_GET,
+                                            .handler = load_can_do_handler,
                                             .user_ctx = NULL};
 
-static const httpd_uri_t load_cando_uri = {.uri = "/load_cando",
-                                           .method = HTTP_GET,
-                                           .handler = load_cando_handler,
-                                           .user_ctx = NULL};
-
-static const httpd_uri_t store_cando_catalog_uri = {
-    .uri = "/store_cando_catalog",
+static const httpd_uri_t store_can_do_catalog_uri = {
+    .uri = "/store_can_do_catalog",
     .method = HTTP_POST,
-    .handler = store_cando_catalog_handler,
+    .handler = store_can_do_catalog_handler,
     .user_ctx = NULL};
 
-static const httpd_uri_t load_cando_catalog_uri = {
-    .uri = "/load_cando_catalog",
+static const httpd_uri_t load_can_do_catalog_uri = {
+    .uri = "/load_can_do_catalog",
     .method = HTTP_GET,
-    .handler = load_cando_catalog_handler,
+    .handler = load_can_do_catalog_handler,
     .user_ctx = NULL};
 
-static const httpd_uri_t test_cando_action_uri = {.uri = "/test_cando_action",
-                                                  .method = HTTP_POST,
-                                                  .handler =
-                                                      test_cando_action_handler,
-                                                  .user_ctx = NULL};
+static const httpd_uri_t test_can_do_action_uri = {
+    .uri = "/test_can_do_action",
+    .method = HTTP_POST,
+    .handler = test_can_do_action_handler,
+    .user_ctx = NULL};
 
 static const httpd_uri_t set_capture_mode_uri = {.uri = "/set_capture_mode",
                                                  .method = HTTP_POST,
@@ -3108,11 +3108,11 @@ static httpd_handle_t config_server_init(void) {
     httpd_register_uri_handler(server, &track_popup);
     httpd_register_uri_handler(server, &store_canflt_uri);
     httpd_register_uri_handler(server, &load_canflt_uri);
-    httpd_register_uri_handler(server, &store_cando_uri);
-    httpd_register_uri_handler(server, &load_cando_uri);
-    httpd_register_uri_handler(server, &store_cando_catalog_uri);
-    httpd_register_uri_handler(server, &load_cando_catalog_uri);
-    httpd_register_uri_handler(server, &test_cando_action_uri);
+    httpd_register_uri_handler(server, &store_can_do_uri);
+    httpd_register_uri_handler(server, &load_can_do_uri);
+    httpd_register_uri_handler(server, &store_can_do_catalog_uri);
+    httpd_register_uri_handler(server, &load_can_do_catalog_uri);
+    httpd_register_uri_handler(server, &test_can_do_action_uri);
     httpd_register_uri_handler(server, &set_capture_mode_uri);
     httpd_register_uri_handler(server, &get_time_uri);
     httpd_register_uri_handler(server, &set_time_uri);
@@ -3158,11 +3158,11 @@ void config_server_restart(void) {
     httpd_register_uri_handler(server, &track_popup);
     httpd_register_uri_handler(server, &store_canflt_uri);
     httpd_register_uri_handler(server, &load_canflt_uri);
-    httpd_register_uri_handler(server, &store_cando_uri);
-    httpd_register_uri_handler(server, &load_cando_uri);
-    httpd_register_uri_handler(server, &store_cando_catalog_uri);
-    httpd_register_uri_handler(server, &load_cando_catalog_uri);
-    httpd_register_uri_handler(server, &test_cando_action_uri);
+    httpd_register_uri_handler(server, &store_can_do_uri);
+    httpd_register_uri_handler(server, &load_can_do_uri);
+    httpd_register_uri_handler(server, &store_can_do_catalog_uri);
+    httpd_register_uri_handler(server, &load_can_do_catalog_uri);
+    httpd_register_uri_handler(server, &test_can_do_action_uri);
     httpd_register_uri_handler(server, &set_capture_mode_uri);
     httpd_register_uri_handler(server, &get_time_uri);
     httpd_register_uri_handler(server, &set_time_uri);

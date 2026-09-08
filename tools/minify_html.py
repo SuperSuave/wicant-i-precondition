@@ -14,7 +14,7 @@ def bundle_and_minify(
     src_dir="main/ui_src",
     full_dst_path="main/homepage_full.html",
     min_dst_path="main/homepage.html",
-    catalog_path="main/cando_catalog.json",
+    catalog_path="main/can_do_catalog.json",
 ):
     # Guard against legacy invocations passing a file path instead of a directory
     if os.path.isfile(src_dir) or not os.path.isdir(src_dir):
@@ -133,5 +133,5 @@ if __name__ == "__main__":
         full_dst = sys.argv[2] if len(sys.argv) > 2 else "main/homepage_full.html"
         min_dst = sys.argv[3] if len(sys.argv) > 3 else "main/homepage.html"
 
-    catalog = "main/cando_catalog.json"
+    catalog = "main/can_do_catalog.json"
     bundle_and_minify(src, full_dst, min_dst, catalog)

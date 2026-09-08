@@ -20,7 +20,7 @@
 
 #include "ble.h"
 #include "can.h"
-#include "cando.h"
+#include "can_do.h"
 #include "comm_server.h"
 #include "config_server.h"
 #include "driver/gpio.h"
@@ -50,7 +50,6 @@
 #include "wifi_network.h"
 #include <string.h>
 
-
 #include "autopid.h"
 #include "cJSON.h"
 #include "dev_status.h"
@@ -63,7 +62,6 @@
 #include "wifi_network.h"
 #include <ctype.h>
 #include <stdbool.h>
-
 
 #define TAG __func__
 // #define TAG 		"MQTT_CLIENT"
@@ -116,18 +114,18 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
     }
 
     esp_mqtt_client_subscribe(client, mqtt_cmd_topic, 0);
-    esp_mqtt_client_subscribe(client, "wican/cando/trigger", 0);
+    esp_mqtt_client_subscribe(client, "wican/can_do/trigger", 0);
     if (device_id) {
-      char cando_dev_sub[64];
-      snprintf(cando_dev_sub, sizeof(cando_dev_sub), "wican/%s/cando/trigger",
-               device_id);
-      esp_mqtt_client_subscribe(client, cando_dev_sub, 0);
+      char can_do_dev_sub[64];
+      snprintf(can_do_dev_sub, sizeof(can_do_dev_sub),
+               "wican/%s/can_do/trigger", device_id);
+      esp_mqtt_client_subscribe(client, can_do_dev_sub, 0);
     }
     gpio_set_level(mqtt_led, LED_ON);
     esp_mqtt_client_publish(client, mqtt_status_topic,
                             "{\"status\": \"online\"}", 0, 0, 1);
 
-    cando_publish_ha_discovery();
+    can_do_publish_ha_discovery();
 
     xEventGroupSetBits(s_mqtt_event_group, MQTT_CONNECTED_BIT);
     break;
@@ -151,7 +149,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
   case MQTT_EVENT_DATA:
     ESP_LOGI(TAG, "MQTT_EVENT_DATA");
     //			printf("TOPIC=%.*s\r\n", event->topic_len,
-    //event->topic); 			printf("DATA=%.*s\r\n", event->data_len, event->data);
+    // event->topic); 			printf("DATA=%.*s\r\n", event->data_len,
+    // event->data);
     break;
   case MQTT_EVENT_ERROR:
     ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -183,7 +182,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
 // {"bus":0,"type":"tx","frame":[{"id":123,"dlc":8,"rtr":false,"extd":true,"data":[1,2,3,4,5,6,7,8]},{"id":124,"dlc":8,"rtr":false,"extd":true,"data":[1,2,3,4,5,6,7,8]}]}
 
 //															 	    id:0x7E0
-//PID: 47 or0x2F get fuel level send:
+// PID: 47 or0x2F get fuel level send:
 // {"bus":0,"type":"tx","ts":35519,"frame":[{"id":2016,"dlc":8,"rtr":false,"extd":false,"data":[2,1,47,170,170,170,170,170]}]}
 
 static void mqtt_parse_data(void *handler_args, esp_event_base_t base,
@@ -298,16 +297,16 @@ static void mqtt_parse_data(void *handler_args, esp_event_base_t base,
       mqtt_publish(mqtt_rsp_topic, cmd_response, strlen(cmd_response), 0, 0);
     } else if (strcmp(cmd->valuestring, "get_autopid_data") == 0) {
       autopid_request_data();
-    } else if (strcmp(cmd->valuestring, "cando") == 0 ||
-               strcmp(cmd->valuestring, "cando_trigger") == 0) {
+    } else if (strcmp(cmd->valuestring, "can_do") == 0 ||
+               strcmp(cmd->valuestring, "can_do_trigger") == 0) {
       cJSON *action = cJSON_GetObjectItem(root, "action");
       const char *act_val =
           (action && action->valuestring) ? action->valuestring : "";
-      cando_process_mqtt_trigger(event->topic, act_val);
+      can_do_process_mqtt_trigger(event->topic, act_val);
       sprintf(cmd_response, "{\"rsp\": \"ok\"}");
       mqtt_publish(mqtt_rsp_topic, cmd_response, strlen(cmd_response), 0, 0);
     } else {
-      cando_process_mqtt_trigger(event->topic, cmd->valuestring);
+      can_do_process_mqtt_trigger(event->topic, cmd->valuestring);
       ESP_LOGI(TAG, "Command received: %s (checked for CAN Do triggers)",
                cmd->valuestring);
     }
@@ -319,7 +318,7 @@ static void mqtt_parse_data(void *handler_args, esp_event_base_t base,
     memcpy(topic_buf, event->topic, len);
     topic_buf[len] = '\0';
 
-    if (strstr(topic_buf, "cando/trigger") != NULL) {
+    if (strstr(topic_buf, "can_do/trigger") != NULL) {
       char payload_buf[128] = {0};
       if (event->data_len > 0) {
         int plen = (event->data_len < (sizeof(payload_buf) - 1))
@@ -327,7 +326,7 @@ static void mqtt_parse_data(void *handler_args, esp_event_base_t base,
                        : (sizeof(payload_buf) - 1);
         memcpy(payload_buf, event->data, plen);
       }
-      cando_process_mqtt_trigger(topic_buf, payload_buf);
+      can_do_process_mqtt_trigger(topic_buf, payload_buf);
     }
   }
 

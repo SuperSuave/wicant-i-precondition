@@ -80,7 +80,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 set(WEB_SRC_DIR "${CMAKE_SOURCE_DIR}/main/ui_src")
 set(MINIFY_SCRIPT "${CMAKE_SOURCE_DIR}/tools/minify_html.py")
-set(CATALOG_FILE "${CMAKE_SOURCE_DIR}/main/cando_catalog.json")
+set(CATALOG_FILE "${CMAKE_SOURCE_DIR}/main/can_do_catalog.json")
 
 set(WEB_DEPENDS
     "${WEB_SRC_DIR}/index.html"
@@ -97,7 +97,7 @@ set(WEB_OUTPUTS
     "${CMAKE_SOURCE_DIR}/main/homepage_full.html"
     "${CMAKE_SOURCE_DIR}/main/homepage.html"
     "${CMAKE_SOURCE_DIR}/main/homepage.html.gz"
-    "${CMAKE_SOURCE_DIR}/main/cando_catalog.json.gz"
+    "${CMAKE_SOURCE_DIR}/main/can_do_catalog.json.gz"
 )
 
 add_custom_command(

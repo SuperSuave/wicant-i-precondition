@@ -20,7 +20,7 @@
 #include "autopid.h"
 #include "ble.h"
 #include "can.h"
-#include "cando.h"
+#include "can_do.h"
 #include "comm_server.h"
 #include "config_server.h"
 #include "debug_logs.h"
@@ -230,7 +230,7 @@ static void precondition_task(void *arg) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     if (dev_status_is_bit_set(DEV_AWAKE_BIT)) {
       precondition_tick();
-      cando_process_timer_tick();
+      can_do_process_timer_tick();
     }
     // Doing it this way (rather than a periodic 40ms timer) has the advantage
     // of ensuring at least 40ms elapse between each tick, even if the task
@@ -304,7 +304,7 @@ static void can_rx_task(void *pvParameters) {
     // blocking is what makes prio 7 safe: the task only outranks the TCP
     // tasks while there is frame work to do.
     if (can_receive(&rx_msg, &rx_bus, pdMS_TO_TICKS(10)) != ESP_OK) {
-      cando_process_timer_tick();
+      can_do_process_timer_tick();
       continue;
     }
     do {
@@ -438,11 +438,11 @@ static void can_rx_task(void *pvParameters) {
       }
 
       // PASS FRAME TO CAN DO AUTOMATION ENGINE
-      cando_process_rx_frame(&rx_msg, rx_bus);
+      can_do_process_rx_frame(&rx_msg, rx_bus);
 
     } while (can_receive(&rx_msg, &rx_bus, 0) == ESP_OK);
 
-    cando_process_timer_tick();
+    can_do_process_timer_tick();
   }
 }
 
@@ -499,7 +499,7 @@ void app_main(void) {
   // must run after config_server_start: entering the initial state reads the
   // precon mode from the config
   precondition_init();
-  cando_load_config();
+  can_do_load_config();
   slcan_init(&send_to_host);
 
   int8_t can_datarate = config_server_get_can_rate();

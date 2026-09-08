@@ -27,8 +27,8 @@
 #include "sleep_mode.h"
 #include "track_popup.h"
 
-#define TAG "CANDO"
-#define DEFAULT_CANDO_JSON                                                     \
+#define TAG "CAN_DO"
+#define DEFAULT_CAN_DO_JSON                                                    \
   "{\"enabled\":true,\"reverse_engineering_mode\":false,\"rules\":[{\"name\":" \
   "\"E-GMP Battery "                                                           \
   "Preconditioning\",\"enabled\":true,\"trigger\":{\"id\":\"sw_star\","        \
@@ -135,7 +135,7 @@ static bool can_do_evaluate_trigger(can_do_trigger_t *trig,
   if (!trig)
     return false;
 
-  if (trig->source == CANDO_TRIG_CAN_MESSAGE) {
+  if (trig->source == CAN_DO_TRIG_CAN_MESSAGE) {
     if (!msg)
       return false;
     if (trig->bus != bus)
@@ -171,7 +171,7 @@ static bool can_do_evaluate_trigger(can_do_trigger_t *trig,
     }
 
     if (trig->any_change || (!trig->has_from && !trig->has_to &&
-                             trig->match_type != CANDO_MATCH_EXPRESSION)) {
+                             trig->match_type != CAN_DO_MATCH_EXPRESSION)) {
       if (trig->has_last_payload) {
         if (memcmp(trig->last_payload, msg->data, msg->data_length_code) == 0) {
           return false;
@@ -179,7 +179,7 @@ static bool can_do_evaluate_trigger(can_do_trigger_t *trig,
       }
     }
 
-    if (trig->match_type == CANDO_MATCH_EXPRESSION) {
+    if (trig->match_type == CAN_DO_MATCH_EXPRESSION) {
       if (trig->expression) {
         double val = 0.0;
         if (evaluate_expression((uint8_t *)trig->expression,
@@ -402,24 +402,24 @@ static void can_do_execute_action(can_do_action_t *act,
     track_popup_show(formatted_msg);
   }
 
-  if (act->type == CANDO_ACT_PRECONDITION) {
+  if (act->type == CAN_DO_ACT_PRECONDITION) {
     precondition_action_execute(act->precon_mode, act->precon_press);
   }
 
-  if (act->type == CANDO_ACT_CLIMATE_TARGET) {
+  if (act->type == CAN_DO_ACT_CLIMATE_TARGET) {
     can_do_execute_climate_target(
         act->target_temp_c, act->climate_zone, act->climate_sync_on,
         act->climate_driver_only, act->climate_passenger_aware);
   }
 
-  if (act->type == CANDO_ACT_DELAY) {
+  if (act->type == CAN_DO_ACT_DELAY) {
     uint32_t ms = (act->delay_ms > 0) ? act->delay_ms : 500;
     ESP_LOGI(TAG, "Executing Delay Action: pausing %lu ms", (unsigned long)ms);
     vTaskDelay(pdMS_TO_TICKS(ms));
     return;
   }
 
-  if (act->type == CANDO_ACT_CAN_TX || act->type == 0) {
+  if (act->type == CAN_DO_ACT_CAN_TX || act->type == 0) {
     for (uint8_t s = 0; s < act->step_count; s++) {
       can_do_sequence_step_t *step = &act->steps[s];
       uint8_t payload[8] = {0};
@@ -427,13 +427,13 @@ static void can_do_execute_action(can_do_action_t *act,
         memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
       }
       if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
-        if (step->roll_mode == CANDO_ROLL_SEQ3) {
+        if (step->roll_mode == CAN_DO_ROLL_SEQ3) {
           payload[step->roll_byte_idx] =
               (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
           step->roll_counter = (step->roll_counter + 1) % 3;
-        } else if (step->roll_mode == CANDO_ROLL_BYTE_INC) {
+        } else if (step->roll_mode == CAN_DO_ROLL_BYTE_INC) {
           payload[step->roll_byte_idx] = step->roll_counter++;
-        } else if (step->roll_mode == CANDO_ROLL_NIBBLE_INC) {
+        } else if (step->roll_mode == CAN_DO_ROLL_NIBBLE_INC) {
           payload[step->roll_byte_idx] =
               (uint8_t)((payload[step->roll_byte_idx] & 0xF0) |
                         (step->roll_counter & 0x0F));
@@ -459,7 +459,7 @@ static void can_do_execute_rule_actions(can_do_rule_t *rule,
   if (!rule)
     return;
 
-  if (rule->exec_mode == CANDO_EXEC_TOGGLE) {
+  if (rule->exec_mode == CAN_DO_EXEC_TOGGLE) {
     if (!rule->is_active_state) {
       rule->is_active_state = true;
       rule->active_since_us = now_us;
@@ -490,12 +490,12 @@ static void can_do_execute_rule_actions(can_do_rule_t *rule,
         bool has_precon = false;
         if (rule->action_count > 0 && rule->actions) {
           for (uint8_t a = 0; a < rule->action_count; a++) {
-            if (rule->actions[a].type == CANDO_ACT_PRECONDITION) {
+            if (rule->actions[a].type == CAN_DO_ACT_PRECONDITION) {
               has_precon = true;
               break;
             }
           }
-        } else if (rule->action.type == CANDO_ACT_PRECONDITION) {
+        } else if (rule->action.type == CAN_DO_ACT_PRECONDITION) {
           has_precon = true;
         }
         if (has_precon && precondition_is_active()) {
@@ -579,7 +579,7 @@ void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
 
     for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
       can_do_trigger_t *trig = &trig_list[t_idx];
-      if (trig->source != CANDO_TRIG_CAN_MESSAGE)
+      if (trig->source != CAN_DO_TRIG_CAN_MESSAGE)
         continue;
       if (trig->bus != bus || trig->can_id != msg->identifier)
         continue;
@@ -627,7 +627,7 @@ void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
 
     for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
       can_do_trigger_t *trig = &trig_list[t_idx];
-      if (trig->source != CANDO_TRIG_CAN_MESSAGE)
+      if (trig->source != CAN_DO_TRIG_CAN_MESSAGE)
         continue;
       if (trig->bus != bus || trig->can_id != msg->identifier)
         continue;
@@ -640,7 +640,7 @@ void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
         continue;
       }
 
-      if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY && trig->pending_verify) {
+      if (trig->exec_mode == CAN_DO_EXEC_POLL_VERIFY && trig->pending_verify) {
         if (trig->verify_can_id > 0 && msg->identifier == trig->verify_can_id) {
           bool verify_ok = true;
           if (trig->has_verify) {
@@ -791,19 +791,19 @@ void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
           continue;
         }
 
-        if (trig->exec_mode == CANDO_EXEC_ONE_SHOT) {
+        if (trig->exec_mode == CAN_DO_EXEC_ONE_SHOT) {
           if (trig->triggered_latched)
             continue;
           trig->triggered_latched = true;
         }
 
-        if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY) {
+        if (trig->exec_mode == CAN_DO_EXEC_POLL_VERIFY) {
           if (trig->triggered_latched || trig->pending_verify)
             continue;
           trig->pending_verify = true;
         }
 
-        if (trig->exec_mode == CANDO_EXEC_ON_CHANGE && !payload_changed) {
+        if (trig->exec_mode == CAN_DO_EXEC_ON_CHANGE && !payload_changed) {
           continue;
         }
 
@@ -814,7 +814,7 @@ void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
         if (rule->trigger_combine_all && t_count > 1) {
           for (uint8_t k = 0; k < t_count; k++) {
             trig_list[k].last_triggered_us = now_us;
-            if (trig_list[k].exec_mode == CANDO_EXEC_ONE_SHOT)
+            if (trig_list[k].exec_mode == CAN_DO_EXEC_ONE_SHOT)
               trig_list[k].triggered_latched = true;
           }
         }
@@ -867,7 +867,7 @@ void can_do_process_mqtt_trigger(const char *topic, const char *payload) {
 
     for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
       can_do_trigger_t *trig = &trig_list[t_idx];
-      if (trig->source != CANDO_TRIG_MQTT_COMMAND)
+      if (trig->source != CAN_DO_TRIG_MQTT_COMMAND)
         continue;
 
       if (trig->mqtt_topic[0] != '\0' && strcmp(trig->mqtt_topic, "#") != 0 &&
@@ -948,7 +948,7 @@ void can_do_process_timer_tick(void) {
         }
       }
 
-      if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY && trig->pending_verify) {
+      if (trig->exec_mode == CAN_DO_EXEC_POLL_VERIFY && trig->pending_verify) {
         uint32_t v_timeout =
             (trig->timeout_reset_ms > 0) ? trig->timeout_reset_ms : 3000;
         if ((now_us - trig->last_triggered_us) > ((int64_t)v_timeout * 1000)) {
@@ -957,7 +957,7 @@ void can_do_process_timer_tick(void) {
       }
     }
 
-    if (rule->exec_mode == CANDO_EXEC_TOGGLE && rule->is_active_state &&
+    if (rule->exec_mode == CAN_DO_EXEC_TOGGLE && rule->is_active_state &&
         rule->auto_revert_sec > 0) {
       if (rule->active_since_us > 0 &&
           (now_us - rule->active_since_us) >=
@@ -974,8 +974,8 @@ void can_do_process_timer_tick(void) {
 static void can_do_parse_single_trigger(cJSON *r, cJSON *trig_obj,
                                         can_do_trigger_t *trig) {
   memset(trig, 0, sizeof(can_do_trigger_t));
-  trig->source = CANDO_TRIG_CAN_MESSAGE;
-  trig->exec_mode = CANDO_EXEC_ON_CHANGE;
+  trig->source = CAN_DO_TRIG_CAN_MESSAGE;
+  trig->exec_mode = CAN_DO_EXEC_ON_CHANGE;
   trig->cooldown_ms = 500;
   trig->timeout_reset_ms = 2000;
   trig->click_count_target = 1;
@@ -1002,15 +1002,15 @@ static void can_do_parse_single_trigger(cJSON *r, cJSON *trig_obj,
                        : cJSON_GetObjectItem(r, "exec_mode");
   if (em && em->valuestring) {
     if (strcmp(em->valuestring, "one_shot") == 0)
-      trig->exec_mode = CANDO_EXEC_ONE_SHOT;
+      trig->exec_mode = CAN_DO_EXEC_ONE_SHOT;
     else if (strcmp(em->valuestring, "on_change") == 0)
-      trig->exec_mode = CANDO_EXEC_ON_CHANGE;
+      trig->exec_mode = CAN_DO_EXEC_ON_CHANGE;
     else if (strcmp(em->valuestring, "poll_verify") == 0)
-      trig->exec_mode = CANDO_EXEC_POLL_VERIFY;
+      trig->exec_mode = CAN_DO_EXEC_POLL_VERIFY;
     else if (strcmp(em->valuestring, "continuous") == 0)
-      trig->exec_mode = CANDO_EXEC_CONTINUOUS;
+      trig->exec_mode = CAN_DO_EXEC_CONTINUOUS;
     else if (strcmp(em->valuestring, "toggle") == 0)
-      trig->exec_mode = CANDO_EXEC_TOGGLE;
+      trig->exec_mode = CAN_DO_EXEC_TOGGLE;
   }
 
   cJSON *f_ms = trig_obj ? cJSON_GetObjectItem(trig_obj, "for_ms") : NULL;
@@ -1074,7 +1074,7 @@ static void can_do_parse_single_trigger(cJSON *r, cJSON *trig_obj,
   }
 
   if (to_p && to_p->valuestring && strlen(to_p->valuestring) > 0) {
-    trig->match_type = CANDO_MATCH_MASK;
+    trig->match_type = CAN_DO_MATCH_MASK;
     can_do_parse_payload_pattern(to_p->valuestring, trig->match_data,
                                  trig->match_mask, &trig->data_len,
                                  &trig->has_to);
@@ -1086,15 +1086,15 @@ static void can_do_parse_single_trigger(cJSON *r, cJSON *trig_obj,
     if (strcmp(src->valuestring, "ha_mqtt") == 0 ||
         strcmp(src->valuestring, "mqtt_cmd") == 0 ||
         strcmp(src->valuestring, "mqtt") == 0) {
-      trig->source = CANDO_TRIG_MQTT_COMMAND;
+      trig->source = CAN_DO_TRIG_MQTT_COMMAND;
     } else if (strcmp(src->valuestring, "clock") == 0) {
-      trig->source = CANDO_TRIG_CLOCK;
+      trig->source = CAN_DO_TRIG_CLOCK;
     } else if (strcmp(src->valuestring, "interval") == 0) {
-      trig->source = CANDO_TRIG_INTERVAL;
+      trig->source = CAN_DO_TRIG_INTERVAL;
     } else if (strcmp(src->valuestring, "voltage") == 0) {
-      trig->source = CANDO_TRIG_VOLTAGE;
+      trig->source = CAN_DO_TRIG_VOLTAGE;
     } else {
-      trig->source = CANDO_TRIG_CAN_MESSAGE;
+      trig->source = CAN_DO_TRIG_CAN_MESSAGE;
     }
   }
 
@@ -1119,7 +1119,7 @@ static void can_do_parse_step_payload(const char *payload_str,
   if (!step)
     return;
   step->roll_byte_idx = -1;
-  step->roll_mode = CANDO_ROLL_NONE;
+  step->roll_mode = CAN_DO_ROLL_NONE;
   step->roll_counter = 0;
   step->tx_len = 0;
   memset(step->tx_data, 0, sizeof(step->tx_data));
@@ -1137,18 +1137,18 @@ static void can_do_parse_step_payload(const char *payload_str,
     if (strcasecmp(token, "SEQ3") == 0 || strcasecmp(token, "~3") == 0 ||
         strcasecmp(token, "SQ") == 0) {
       step->roll_byte_idx = idx;
-      step->roll_mode = CANDO_ROLL_SEQ3;
+      step->roll_mode = CAN_DO_ROLL_SEQ3;
       step->roll_counter = 0;
       step->tx_data[idx] = 0x0F;
     } else if (strcasecmp(token, "INC") == 0 ||
                strcasecmp(token, "ROLL") == 0 || strcmp(token, "++") == 0) {
       step->roll_byte_idx = idx;
-      step->roll_mode = CANDO_ROLL_BYTE_INC;
+      step->roll_mode = CAN_DO_ROLL_BYTE_INC;
       step->roll_counter = 0;
       step->tx_data[idx] = 0x00;
     } else if (strcasecmp(token, "*R") == 0 || strcasecmp(token, "R*") == 0) {
       step->roll_byte_idx = idx;
-      step->roll_mode = CANDO_ROLL_NIBBLE_INC;
+      step->roll_mode = CAN_DO_ROLL_NIBBLE_INC;
       step->roll_counter = 0;
       step->tx_data[idx] = 0x00;
     } else {
@@ -1183,23 +1183,23 @@ static void can_do_parse_single_action(cJSON *r, cJSON *act_obj,
                                 : cJSON_GetObjectItem(r, "action_type");
   if (act_type_obj && act_type_obj->valuestring) {
     if (strcmp(act_type_obj->valuestring, "can_tx") == 0)
-      act->type = CANDO_ACT_CAN_TX;
+      act->type = CAN_DO_ACT_CAN_TX;
     else if (strcmp(act_type_obj->valuestring, "popup") == 0)
-      act->type = CANDO_ACT_POPUP;
+      act->type = CAN_DO_ACT_POPUP;
     else if (strcmp(act_type_obj->valuestring, "precondition") == 0)
-      act->type = CANDO_ACT_PRECONDITION;
+      act->type = CAN_DO_ACT_PRECONDITION;
     else if (strcmp(act_type_obj->valuestring, "climate_target") == 0)
-      act->type = CANDO_ACT_CLIMATE_TARGET;
+      act->type = CAN_DO_ACT_CLIMATE_TARGET;
     else if (strcmp(act_type_obj->valuestring, "delay") == 0)
-      act->type = CANDO_ACT_DELAY;
+      act->type = CAN_DO_ACT_DELAY;
     else if (strcmp(act_type_obj->valuestring, "mqtt") == 0)
-      act->type = CANDO_ACT_MQTT;
+      act->type = CAN_DO_ACT_MQTT;
     else if (strcmp(act_type_obj->valuestring, "webhook") == 0)
-      act->type = CANDO_ACT_WEBHOOK;
+      act->type = CAN_DO_ACT_WEBHOOK;
     else
-      act->type = CANDO_ACT_CAN_TX;
+      act->type = CAN_DO_ACT_CAN_TX;
   } else {
-    act->type = CANDO_ACT_CAN_TX;
+    act->type = CAN_DO_ACT_CAN_TX;
   }
 
   cJSON *tt = act_obj ? cJSON_GetObjectItem(act_obj, "target_temp_c")
@@ -1362,10 +1362,10 @@ static void can_do_init_default_precondition_rule(void) {
     can_do_trigger_t *trig = &rule->triggers[0];
     memset(trig, 0, sizeof(can_do_trigger_t));
     strncpy(trig->id, "sw_star", sizeof(trig->id) - 1);
-    trig->source = CANDO_TRIG_CAN_MESSAGE;
+    trig->source = CAN_DO_TRIG_CAN_MESSAGE;
     trig->can_id = 0x448;
     trig->bus = 0;
-    trig->exec_mode = CANDO_EXEC_ONE_SHOT;
+    trig->exec_mode = CAN_DO_EXEC_ONE_SHOT;
     trig->cooldown_ms = 500;
     trig->timeout_reset_ms = 2000;
     trig->has_to = true;
@@ -1384,7 +1384,7 @@ static void can_do_init_default_precondition_rule(void) {
   if (rule->actions) {
     can_do_action_t *act = &rule->actions[0];
     memset(act, 0, sizeof(can_do_action_t));
-    act->type = CANDO_ACT_PRECONDITION;
+    act->type = CAN_DO_ACT_PRECONDITION;
     strncpy(act->trigger_id, "sw_star", sizeof(act->trigger_id) - 1);
     act->popup_message = NULL;
     strncpy(act->precon_mode, "persistent", sizeof(act->precon_mode) - 1);
@@ -1512,17 +1512,17 @@ esp_err_t can_do_load_config(void) {
           cJSON *rule_em = cJSON_GetObjectItem(r, "exec_mode");
           if (rule_em && rule_em->valuestring) {
             if (strcmp(rule_em->valuestring, "toggle") == 0)
-              rule->exec_mode = CANDO_EXEC_TOGGLE;
+              rule->exec_mode = CAN_DO_EXEC_TOGGLE;
             else if (strcmp(rule_em->valuestring, "one_shot") == 0)
-              rule->exec_mode = CANDO_EXEC_ONE_SHOT;
+              rule->exec_mode = CAN_DO_EXEC_ONE_SHOT;
             else if (strcmp(rule_em->valuestring, "poll_verify") == 0)
-              rule->exec_mode = CANDO_EXEC_POLL_VERIFY;
+              rule->exec_mode = CAN_DO_EXEC_POLL_VERIFY;
             else if (strcmp(rule_em->valuestring, "continuous") == 0)
-              rule->exec_mode = CANDO_EXEC_CONTINUOUS;
+              rule->exec_mode = CAN_DO_EXEC_CONTINUOUS;
             else
-              rule->exec_mode = CANDO_EXEC_ON_CHANGE;
+              rule->exec_mode = CAN_DO_EXEC_ON_CHANGE;
           } else {
-            rule->exec_mode = CANDO_EXEC_ON_CHANGE;
+            rule->exec_mode = CAN_DO_EXEC_ON_CHANGE;
           }
 
           cJSON *rev_sec = cJSON_GetObjectItem(r, "auto_revert_sec");
@@ -1630,14 +1630,14 @@ esp_err_t can_do_save_config(const char *json_str) {
 char *can_do_get_config(void) {
   if (g_can_do_rules.mutex &&
       xSemaphoreTake(g_can_do_rules.mutex, pdMS_TO_TICKS(50)) != pdTRUE) {
-    return strdup(DEFAULT_CANDO_JSON);
+    return strdup(DEFAULT_CAN_DO_JSON);
   }
 
   FILE *f = fopen(FS_MOUNT_POINT "/can_do.json", "r");
   if (!f) {
     if (g_can_do_rules.mutex)
       xSemaphoreGive(g_can_do_rules.mutex);
-    return strdup(DEFAULT_CANDO_JSON);
+    return strdup(DEFAULT_CAN_DO_JSON);
   }
 
   fseek(f, 0, SEEK_END);
@@ -1648,7 +1648,7 @@ char *can_do_get_config(void) {
     fclose(f);
     if (g_can_do_rules.mutex)
       xSemaphoreGive(g_can_do_rules.mutex);
-    return strdup(DEFAULT_CANDO_JSON);
+    return strdup(DEFAULT_CAN_DO_JSON);
   }
 
   char *buf = malloc(sz + 1);
@@ -1656,7 +1656,7 @@ char *can_do_get_config(void) {
     fclose(f);
     if (g_can_do_rules.mutex)
       xSemaphoreGive(g_can_do_rules.mutex);
-    return strdup(DEFAULT_CANDO_JSON);
+    return strdup(DEFAULT_CAN_DO_JSON);
   }
   size_t n = fread(buf, 1, sz, f);
   fclose(f);
@@ -1686,20 +1686,20 @@ bool can_do_test_single_action_json(const char *json_str) {
     track_popup_show(formatted_msg);
   }
 
-  if (act.type == CANDO_ACT_PRECONDITION) {
+  if (act.type == CAN_DO_ACT_PRECONDITION) {
     precondition_action_execute(act.precon_mode, act.precon_press);
   }
 
-  if (act.type == CANDO_ACT_CLIMATE_TARGET) {
+  if (act.type == CAN_DO_ACT_CLIMATE_TARGET) {
     can_do_execute_climate_target(act.target_temp_c, act.climate_zone,
                                   act.climate_sync_on, act.climate_driver_only,
                                   act.climate_passenger_aware);
   }
 
-  if (act.type == CANDO_ACT_DELAY) {
+  if (act.type == CAN_DO_ACT_DELAY) {
     uint32_t ms = (act.delay_ms > 0) ? act.delay_ms : 500;
     vTaskDelay(pdMS_TO_TICKS(ms));
-  } else if (act.type == CANDO_ACT_CAN_TX || act.type == 0) {
+  } else if (act.type == CAN_DO_ACT_CAN_TX || act.type == 0) {
     for (uint8_t s = 0; s < act.step_count; s++) {
       can_do_sequence_step_t *step = &act.steps[s];
       uint8_t payload[8] = {0};
@@ -1707,13 +1707,13 @@ bool can_do_test_single_action_json(const char *json_str) {
         memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
       }
       if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
-        if (step->roll_mode == CANDO_ROLL_SEQ3) {
+        if (step->roll_mode == CAN_DO_ROLL_SEQ3) {
           payload[step->roll_byte_idx] =
               (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
           step->roll_counter = (step->roll_counter + 1) % 3;
-        } else if (step->roll_mode == CANDO_ROLL_BYTE_INC) {
+        } else if (step->roll_mode == CAN_DO_ROLL_BYTE_INC) {
           payload[step->roll_byte_idx] = step->roll_counter++;
-        } else if (step->roll_mode == CANDO_ROLL_NIBBLE_INC) {
+        } else if (step->roll_mode == CAN_DO_ROLL_NIBBLE_INC) {
           payload[step->roll_byte_idx] =
               (uint8_t)((payload[step->roll_byte_idx] & 0xF0) |
                         (step->roll_counter & 0x0F));
@@ -1779,7 +1779,7 @@ void can_do_get_stats_json(cJSON *root) {
 void can_do_set_capture_mode(can_do_capture_mode_t mode) {
   g_can_do_rules.capture_mode = mode;
   g_can_do_rules.reverse_engineering_mode =
-      (mode == CANDO_CAPTURE_ALWAYS_PAUSED);
+      (mode == CAN_DO_CAPTURE_ALWAYS_PAUSED);
 }
 
 can_do_capture_mode_t can_do_get_capture_mode(void) {
@@ -1787,11 +1787,11 @@ can_do_capture_mode_t can_do_get_capture_mode(void) {
 }
 
 bool can_do_is_capture_active(void) {
-  if (g_can_do_rules.capture_mode == CANDO_CAPTURE_ALWAYS_PAUSED ||
+  if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_ALWAYS_PAUSED ||
       g_can_do_rules.reverse_engineering_mode) {
     return true;
   }
-  if (g_can_do_rules.capture_mode == CANDO_CAPTURE_DISABLED) {
+  if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_DISABLED) {
     return false;
   }
   int8_t proto = config_server_protocol();
@@ -1802,8 +1802,8 @@ bool can_do_is_capture_active(void) {
 }
 
 void can_do_set_reverse_engineering_mode(bool enable) {
-  can_do_set_capture_mode(enable ? CANDO_CAPTURE_ALWAYS_PAUSED
-                                 : CANDO_CAPTURE_AUTO);
+  can_do_set_capture_mode(enable ? CAN_DO_CAPTURE_ALWAYS_PAUSED
+                                 : CAN_DO_CAPTURE_AUTO);
 }
 
 bool can_do_get_reverse_engineering_mode(void) {
@@ -1868,7 +1868,7 @@ void can_do_publish_ha_discovery(void) {
                                       ? rule->triggers
                                       : &rule->trigger;
     for (uint8_t t = 0; t < t_count; t++) {
-      if (trig_list[t].source == CANDO_TRIG_MQTT_COMMAND) {
+      if (trig_list[t].source == CAN_DO_TRIG_MQTT_COMMAND) {
         should_expose = true;
         if (trig_list[t].mqtt_payload[0] != '\0')
           trigger_payload = trig_list[t].mqtt_payload;

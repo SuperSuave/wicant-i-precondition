@@ -29,10 +29,10 @@
     };
 })();
 
-window._can_doIsDirty = false;
+window._canDoIsDirty = false;
 window._suppressCanDoDirty = false;
 window.markCanDoDirty = function () {
-    window._can_doIsDirty = true;
+    window._canDoIsDirty = true;
     const fab = document.getElementById("can_do_anchored_save_fab");
     if (fab) {
         fab.style.display = "inline-flex";
@@ -41,7 +41,7 @@ window.markCanDoDirty = function () {
     return "dirty";
 };
 window.clearCanDoDirty = function () {
-    window._can_doIsDirty = false;
+    window._canDoIsDirty = false;
     const fab = document.getElementById("can_do_anchored_save_fab");
     if (fab) {
         fab.classList.remove("dirty");
@@ -312,109 +312,109 @@ async function scanAvailablePIDs() {
     }
 }
 const pidEntryStyles = `
-.pid-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 0.5rem;
-margin-top: 0.5rem;
-border: 2px solid var(--gray-300);
-border-radius: 8px;
-}
+                .pid-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+                margin-top: 0.5rem;
+                border: 2px solid var(--gray-300);
+                border-radius: 8px;
+                }
 
-.header-right {
-display: flex;
-gap: 0.5rem;
-}
+                .header-right {
+                display: flex;
+                gap: 0.5rem;
+                }
 
-.collapse-btn {
-background: none;
-border: none;
-cursor: pointer;
-font-size: 1.2rem;
-padding: 0.25rem 0.5rem;
-color: var(--gray-700);
-}
+                .collapse-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 1.2rem;
+                padding: 0.25rem 0.5rem;
+                color: var(--gray-700);
+                }
 
-.pid-content {
-display: flex;
-flex-direction: column;
-gap: 1.5rem;
-transition: height 0.3s ease;
-}
+                .pid-content {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                transition: height 0.3s ease;
+                }
 
-.pid-content.hidden {
-display: none;
-}
-`;
+                .pid-content.hidden {
+                display: none;
+                }
+                `;
 function addCollapsibleRow(rowData = {}) {
     const container = document.querySelector('.pid-entries');
     const entry = document.createElement('div');
     entry.className = 'pid-entry';
 
     entry.innerHTML = `
-<div class="pid-header">
-    <div class="header-left">
-        <button type="button" class="collapse-btn">▼</button>
-        <span class="pid-title">New PID</span>
-    </div>
-    <div class="header-right">
-        <button type="button" class="delete-btn">Delete</button>
-    </div>
-</div>
-<div class="pid-content hidden">
-    <table class="compact-form-table">
-        <tr>
-            <td>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-            <td><input type="text" class="name-input" value="${rowData.Name || ''}" 
-                placeholder="Parameter Name"></td>
-        </tr>
-        <tr>
-            <td>Init:</td>
-            <td><input type="text" class="init-input" value="${rowData.Init || ''}" 
-                placeholder="PID Init"></td>
-        </tr>
-        <tr>
-            <td>PID:</td>
-            <td><input type="text" class="pid-input" value="${rowData.PID || ''}" 
-                placeholder="PID"></td>
-        </tr>
-        <tr>
-            <td>Expression:</td>
-            <td><input type="text" class="expression-input" value="${rowData.Expression || ''}" 
-                placeholder="Enter expression"></td>
-        </tr>
-        <tr>
-            <td>Min Value:</td>
-            <td><input type="number" class="min-value-input" value="${rowData.MinValue || ''}" 
-                step="0.01" placeholder="Minimum value"></td>
-        </tr>
-        <tr>
-            <td>Max Value:</td>
-            <td><input type="number" class="max-value-input" value="${rowData.MaxValue || ''}" 
-                step="0.01" placeholder="Maximum value"></td>
-        </tr>
-        <tr>
-            <td>Period(ms):</td>
-            <td><input type="number" class="period-input" value="${rowData.Period || ''}" 
-                placeholder="ms"></td>
-        </tr>
-        <tr>
-            <td>Destination Type:</td>
-            <td><select class="type-select">
-                <option value="Default" ${rowData.Type === 'Default' ? 'selected' : ''}>Default</option>
-                <option value="MQTT_Topic" ${rowData.Type === 'MQTT_Topic' ? 'selected' : ''}>MQTT_Topic</option>
-                <option value="MQTT_WallBox" ${rowData.Type === 'MQTT_WallBox' ? 'selected' : ''}>MQTT_WallBox</option>
-            </select></td>
-        </tr>
-        <tr>
-            <td>Send_to:</td>
-            <td><input type="text" class="send-to-input" value="${rowData.Send_to || ''}"
-                placeholder="Enter destination"></td>
-        </tr>
-    </table>
-</div>
-`;
+                <div class="pid-header">
+                    <div class="header-left">
+                        <button type="button" class="collapse-btn">▼</button>
+                        <span class="pid-title">New PID</span>
+                    </div>
+                    <div class="header-right">
+                        <button type="button" class="delete-btn">Delete</button>
+                    </div>
+                </div>
+                <div class="pid-content hidden">
+                    <table class="compact-form-table">
+                        <tr>
+                            <td>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                            <td><input type="text" class="name-input" value="${rowData.Name || ''}" 
+                                placeholder="Parameter Name"></td>
+                        </tr>
+                        <tr>
+                            <td>Init:</td>
+                            <td><input type="text" class="init-input" value="${rowData.Init || ''}" 
+                                placeholder="PID Init"></td>
+                        </tr>
+                        <tr>
+                            <td>PID:</td>
+                            <td><input type="text" class="pid-input" value="${rowData.PID || ''}" 
+                                placeholder="PID"></td>
+                        </tr>
+                        <tr>
+                            <td>Expression:</td>
+                            <td><input type="text" class="expression-input" value="${rowData.Expression || ''}" 
+                                placeholder="Enter expression"></td>
+                        </tr>
+                        <tr>
+                            <td>Min Value:</td>
+                            <td><input type="number" class="min-value-input" value="${rowData.MinValue || ''}" 
+                                step="0.01" placeholder="Minimum value"></td>
+                        </tr>
+                        <tr>
+                            <td>Max Value:</td>
+                            <td><input type="number" class="max-value-input" value="${rowData.MaxValue || ''}" 
+                                step="0.01" placeholder="Maximum value"></td>
+                        </tr>
+                        <tr>
+                            <td>Period(ms):</td>
+                            <td><input type="number" class="period-input" value="${rowData.Period || ''}" 
+                                placeholder="ms"></td>
+                        </tr>
+                        <tr>
+                            <td>Destination Type:</td>
+                            <td><select class="type-select">
+                                <option value="Default" ${rowData.Type === 'Default' ? 'selected' : ''}>Default</option>
+                                <option value="MQTT_Topic" ${rowData.Type === 'MQTT_Topic' ? 'selected' : ''}>MQTT_Topic</option>
+                                <option value="MQTT_WallBox" ${rowData.Type === 'MQTT_WallBox' ? 'selected' : ''}>MQTT_WallBox</option>
+                            </select></td>
+                        </tr>
+                        <tr>
+                            <td>Send_to:</td>
+                            <td><input type="text" class="send-to-input" value="${rowData.Send_to || ''}"
+                                placeholder="Enter destination"></td>
+                        </tr>
+                    </table>
+                </div>
+                `;
     console.log("addCollapsibleRow:", rowData);
     console.log("Send_to value:", rowData.Send_to);
     // Add these CSS styles
@@ -469,47 +469,47 @@ function addSelectedPID(rowData = {}) {
         entry.className = 'std-pid-entry';
 
         entry.innerHTML = `
-    <div class="pid-header">
-        <div class="header-left">
-            <button type="button" class="collapse-btn">▼</button>
-            <span class="pid-title">${selectedPID}</span>
-        </div>
-        <div class="header-right">
-            <button type="button" class="delete-btn">Delete</button>
-        </div>
-    </div>
-    <div class="pid-content" style="display: none;">
-        <table class="compact-form-table">
-            <tr>
-                <td>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                <td><input type="text" class="name-input" value="${selectedPID}" readonly></td>
-            </tr>
-            <tr>
-                <td>Receive Header:</td>
-                <td><input type="text" class="receive-header-input" value="${rowData.ReceiveHeader || ''}" 
-                    placeholder="Optional Receive Header" maxlength="8"></td>
-            </tr>
-            <tr>
-                <td>Period(ms):</td>
-                <td><input type="number" class="period-input" value="${rowData.Period || '1000'}" 
-                    min="100" max="120000"></td>
-            </tr>
-            <tr>
-                <td>Destination Type:</td>
-                <td><select class="type-select">
-                    <option value="Default" ${rowData.Type === 'Default' ? 'selected' : ''}>Default</option>
-                    <option value="MQTT_Topic" ${rowData.Type === 'MQTT_Topic' ? 'selected' : ''}>MQTT_Topic</option>
-                    <option value="MQTT_WallBox" ${rowData.Type === 'MQTT_WallBox' ? 'selected' : ''}>MQTT_WallBox</option>
-                </select></td>
-            </tr>
-            <tr>
-                <td>Destination:</td>
-                <td><input type="text" class="send-to-input" value="${rowData.Send_to || ''}" 
-                    placeholder="Enter destination"></td>
-            </tr>
-        </table>
-    </div>
-`;
+                    <div class="pid-header">
+                        <div class="header-left">
+                            <button type="button" class="collapse-btn">▼</button>
+                            <span class="pid-title">${selectedPID}</span>
+                        </div>
+                        <div class="header-right">
+                            <button type="button" class="delete-btn">Delete</button>
+                        </div>
+                    </div>
+                    <div class="pid-content" style="display: none;">
+                        <table class="compact-form-table">
+                            <tr>
+                                <td>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                <td><input type="text" class="name-input" value="${selectedPID}" readonly></td>
+                            </tr>
+                            <tr>
+                                <td>Receive Header:</td>
+                                <td><input type="text" class="receive-header-input" value="${rowData.ReceiveHeader || ''}" 
+                                    placeholder="Optional Receive Header" maxlength="8"></td>
+                            </tr>
+                            <tr>
+                                <td>Period(ms):</td>
+                                <td><input type="number" class="period-input" value="${rowData.Period || '1000'}" 
+                                    min="100" max="120000"></td>
+                            </tr>
+                            <tr>
+                                <td>Destination Type:</td>
+                                <td><select class="type-select">
+                                    <option value="Default" ${rowData.Type === 'Default' ? 'selected' : ''}>Default</option>
+                                    <option value="MQTT_Topic" ${rowData.Type === 'MQTT_Topic' ? 'selected' : ''}>MQTT_Topic</option>
+                                    <option value="MQTT_WallBox" ${rowData.Type === 'MQTT_WallBox' ? 'selected' : ''}>MQTT_WallBox</option>
+                                </select></td>
+                            </tr>
+                            <tr>
+                                <td>Destination:</td>
+                                <td><input type="text" class="send-to-input" value="${rowData.Send_to || ''}" 
+                                    placeholder="Enter destination"></td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
 
 
         const style = document.createElement('style');
@@ -551,70 +551,70 @@ function addCarParameter(rowData = {}) {
         entry.className = 'specific-pid-entry';
 
         entry.innerHTML = `
-    <div class="pid-header">
-        <div class="header-left">
-            <button type="button" class="collapse-btn">▼</button>
-            <span class="pid-title">${rowData.name}</span>
-        </div>
-        <div class="header-right">
-            <button type="button" class="delete-btn">Delete</button>
-        </div>
-    </div>
-    <div class="pid-content" style="display: none;">
-        <table class="compact-form-table">
-            <tr>
-                <td>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                <td><input type="text" class="name-input" value="${rowData.name}"></td>
-            </tr>
-            <tr>
-                <td>PID:</td>
-                <td><input type="text" class="pid-input" value="${rowData.pid || ''}" placeholder="PID"></td>
-            </tr>
-            <tr>
-                <td>PID Init:</td>
-                <td><input type="text" class="pid-init-input" value="${rowData.pid_init || ''}" placeholder="Init"></td>
-            </tr>
-            <tr>
-                <td>Expression:</td>
-                <td><input type="text" class="expression-input" value="${rowData.expression || ''}" placeholder="Expression"></td>
-            </tr>
-            <tr>
-                <td>Unit:</td>
-                <td><input type="text" class="unit-input" value="${rowData.unit || ''}" placeholder="Unit"></td>
-            </tr>
-            <tr>
-                <td>Class:</td>
-                <td><input type="text" class="class-input" value="${rowData.class || ''}" placeholder="Class"></td>
-            </tr>
+                    <div class="pid-header">
+                        <div class="header-left">
+                            <button type="button" class="collapse-btn">▼</button>
+                            <span class="pid-title">${rowData.name}</span>
+                        </div>
+                        <div class="header-right">
+                            <button type="button" class="delete-btn">Delete</button>
+                        </div>
+                    </div>
+                    <div class="pid-content" style="display: none;">
+                        <table class="compact-form-table">
+                            <tr>
+                                <td>Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                <td><input type="text" class="name-input" value="${rowData.name}"></td>
+                            </tr>
+                            <tr>
+                                <td>PID:</td>
+                                <td><input type="text" class="pid-input" value="${rowData.pid || ''}" placeholder="PID"></td>
+                            </tr>
+                            <tr>
+                                <td>PID Init:</td>
+                                <td><input type="text" class="pid-init-input" value="${rowData.pid_init || ''}" placeholder="Init"></td>
+                            </tr>
+                            <tr>
+                                <td>Expression:</td>
+                                <td><input type="text" class="expression-input" value="${rowData.expression || ''}" placeholder="Expression"></td>
+                            </tr>
+                            <tr>
+                                <td>Unit:</td>
+                                <td><input type="text" class="unit-input" value="${rowData.unit || ''}" placeholder="Unit"></td>
+                            </tr>
+                            <tr>
+                                <td>Class:</td>
+                                <td><input type="text" class="class-input" value="${rowData.class || ''}" placeholder="Class"></td>
+                            </tr>
 
-            <tr>
-                <td>Min Value:</td>
-                <td><input type="number" class="min-input" value="${rowData.min || ''}" step="0.01" placeholder="Min"></td>
-            </tr>
-            <tr>
-                <td>Max Value:</td>
-                <td><input type="number" class="max-input" value="${rowData.max || ''}" step="0.01" placeholder="Max"></td>
-            </tr>
-            <tr>
-                <td>Period(ms):</td>
-                <td><input type="number" class="period-input" value="${rowData.period || '5000'}" min="100" max="60000"></td>
-            </tr>
-            <tr>
-                <td>Destination Type:</td>
-                <td><select class="type-select">
-                    <option value="Default" ${rowData.type === 'Default' ? 'selected' : ''}>Default</option>
-                    <option value="MQTT_Topic" ${rowData.type === 'MQTT_Topic' ? 'selected' : ''}>MQTT_Topic</option>
-                    <option value="MQTT_WallBox" ${rowData.type === 'MQTT_WallBox' ? 'selected' : ''}>MQTT_WallBox</option>
-                </select></td>
-            </tr>
-            <tr>
-                <td>Destination:</td>
-                <td><input type="text" class="send-to-input" value="${rowData.send_to || ''}" 
-                    placeholder="Destination"></td>
-            </tr>
-        </table>
-    </div>
-`;
+                            <tr>
+                                <td>Min Value:</td>
+                                <td><input type="number" class="min-input" value="${rowData.min || ''}" step="0.01" placeholder="Min"></td>
+                            </tr>
+                            <tr>
+                                <td>Max Value:</td>
+                                <td><input type="number" class="max-input" value="${rowData.max || ''}" step="0.01" placeholder="Max"></td>
+                            </tr>
+                            <tr>
+                                <td>Period(ms):</td>
+                                <td><input type="number" class="period-input" value="${rowData.period || '5000'}" min="100" max="60000"></td>
+                            </tr>
+                            <tr>
+                                <td>Destination Type:</td>
+                                <td><select class="type-select">
+                                    <option value="Default" ${rowData.type === 'Default' ? 'selected' : ''}>Default</option>
+                                    <option value="MQTT_Topic" ${rowData.type === 'MQTT_Topic' ? 'selected' : ''}>MQTT_Topic</option>
+                                    <option value="MQTT_WallBox" ${rowData.type === 'MQTT_WallBox' ? 'selected' : ''}>MQTT_WallBox</option>
+                                </select></td>
+                            </tr>
+                            <tr>
+                                <td>Destination:</td>
+                                <td><input type="text" class="send-to-input" value="${rowData.send_to || ''}" 
+                                    placeholder="Destination"></td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
 
 
 
@@ -1088,9 +1088,9 @@ function openTab(evt, tabName) {
         submitBtn.style.display = configTabs.includes(tabName) ? "inline-block" : "none";
     }
 
-    const can_doFab = document.getElementById("can_do_anchored_save_fab");
-    if (can_doFab) {
-        can_doFab.style.display = (tabName === "automate") ? "inline-flex" : "none";
+    const canDoFab = document.getElementById("can_do_anchored_save_fab");
+    if (canDoFab) {
+        canDoFab.style.display = (tabName === "automate") ? "inline-flex" : "none";
     }
 
     try {
@@ -1133,37 +1133,37 @@ function renderStaNetworkItem(container, data = {}, priority = 1) {
     div.className = "sta-net-card";
 
     div.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="sta-net-title">
-            Priority <span class="sta-net-priority">${priority}</span>:
-        </span>
-        <div style="display: flex; align-items: center; gap: 0.3rem;">
-            <button type="button" class="system-button can-do-btn-move" onclick="moveStaNetworkItem(this, -1)" title="Increase Priority">▲</button>
-            <button type="button" class="system-button can-do-btn-move" onclick="moveStaNetworkItem(this, 1)" title="Decrease Priority">▼</button>
-            <button type="button" class="delete-btn" onclick="removeStaNetworkItem(this)" title="Remove Network"><svg style="width:14px;height:14px;fill:currentColor;"><use href="#icon-trash"/></svg></button>
-        </div>
-    </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 90px; gap: 0.5rem; align-items: center;">
-        <div>
-            <label>SSID:</label>
-            <input type="text" class="sta-net-ssid" value="${data.ssid || ''}" placeholder="Wi-Fi SSID" oninput="updateLegacyStaFields()">
-        </div>
-        <div>
-            <label>Password:</label>
-            <div class="sta-net-pass-wrap">
-                <input type="password" class="sta-net-pass" value="${data.pass || ''}" placeholder="Password" oninput="updateLegacyStaFields()">
-                <button type="button" class="sta-net-toggle-pass" onclick="togglePassVisibility(this)" title="Toggle Password">Show</button>
-            </div>
-        </div>
-        <div>
-            <label>Security:</label>
-            <select class="sta-net-sec" onchange="updateLegacyStaFields()">
-                <option value="wpa3" ${data.security === 'wpa3' ? 'selected' : ''}>WPA3</option>
-                <option value="wpa2" ${data.security === 'wpa2' ? 'selected' : ''}>WPA2</option>
-            </select>
-        </div>
-    </div>
-`;
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="sta-net-title">
+                            Priority <span class="sta-net-priority">${priority}</span>:
+                        </span>
+                        <div style="display: flex; align-items: center; gap: 0.3rem;">
+                            <button type="button" class="system-button can-do-btn-move" onclick="moveStaNetworkItem(this, -1)" title="Increase Priority">▲</button>
+                            <button type="button" class="system-button can-do-btn-move" onclick="moveStaNetworkItem(this, 1)" title="Decrease Priority">▼</button>
+                            <button type="button" class="delete-btn" onclick="removeStaNetworkItem(this)" title="Remove Network"><svg style="width:14px;height:14px;fill:currentColor;"><use href="#icon-trash"/></svg></button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 90px; gap: 0.5rem; align-items: center;">
+                        <div>
+                            <label>SSID:</label>
+                            <input type="text" class="sta-net-ssid" value="${data.ssid || ''}" placeholder="Wi-Fi SSID" oninput="updateLegacyStaFields()">
+                        </div>
+                        <div>
+                            <label>Password:</label>
+                            <div class="sta-net-pass-wrap">
+                                <input type="password" class="sta-net-pass" value="${data.pass || ''}" placeholder="Password" oninput="updateLegacyStaFields()">
+                                <button type="button" class="sta-net-toggle-pass" onclick="togglePassVisibility(this)" title="Toggle Password">Show</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Security:</label>
+                            <select class="sta-net-sec" onchange="updateLegacyStaFields()">
+                                <option value="wpa3" ${data.security === 'wpa3' ? 'selected' : ''}>WPA3</option>
+                                <option value="wpa2" ${data.security === 'wpa2' ? 'selected' : ''}>WPA2</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
     container.appendChild(div);
     updateStaNetworksUI();
 }
@@ -1377,11 +1377,11 @@ function initActiveTab() {
 }
 initActiveTab();
 (function () {
-    const can_doFab = document.getElementById("can_do_anchored_save_fab");
+    const canDoFab = document.getElementById("can_do_anchored_save_fab");
     const autoTab = document.getElementById("automate");
-    if (can_doFab) {
+    if (canDoFab) {
         const isAutoActive = autoTab && (autoTab.style.display === "block");
-        can_doFab.style.display = isAutoActive ? "inline-flex" : "none";
+        canDoFab.style.display = isAutoActive ? "inline-flex" : "none";
     }
 })();
 
@@ -1440,9 +1440,9 @@ function matchCanDoPayload(hexData, tokens) {
 
 function getCanDoMonitorableItems() {
     const items = [];
-    if (!can_do_catalog || !Array.isArray(can_do_catalog.commands)) return items;
+    if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.commands)) return items;
 
-    can_do_catalog.commands.forEach(cmd => {
+    CAN_DO_CATALOG.commands.forEach(cmd => {
         if (!cmd || !cmd.can_id) return;
 
         // Only include commands with trigger or condition roles
@@ -1486,7 +1486,7 @@ function getCanDoMonitorableItems() {
 
     return items;
 }
-window._can_doStateCache = {};
+window._canDoStateCache = {};
 
 
 // ==========================================================================
@@ -1501,10 +1501,10 @@ const DASH_WIDGET_CATALOG = {
         id: "batt_12v", name: "12V Auxiliary Battery", icon: "", category: "Power",
         render: function (isEditMode) {
             return `<div class="dash-card-header"><span class="dash-card-title"><svg class="icon"><use href="#icon-battery-12v"/></svg> 12V Aux Battery</span>
-                    <div class="dash-card-actions"><div id="dash_batt_status_badge" class="dash-status"><span class="status-dot green"></span> Healthy</div></div></div>
-                    <div><div class="dash-metric-row"><span id="dash_batt_voltage_val" class="dash-metric-val">--.- V</span></div>
-                    <div class="dash-progress-track" style="margin-bottom: 0.6rem; height: 4px;"><div id="dash_batt_gauge" class="dash-progress-fill dash-gauge-level-good" style="width: 75%;"></div></div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem;"><span>Low (12.0V)</span><span>Normal (12.6V)</span><span>Charging</span></div></div>`;
+                                    <div class="dash-card-actions"><div id="dash_batt_status_badge" class="dash-status"><span class="status-dot green"></span> Healthy</div></div></div>
+                                    <div><div class="dash-metric-row"><span id="dash_batt_voltage_val" class="dash-metric-val">--.- V</span></div>
+                                    <div class="dash-progress-track" style="margin-bottom: 0.6rem; height: 4px;"><div id="dash_batt_gauge" class="dash-progress-fill dash-gauge-level-good" style="width: 75%;"></div></div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem;"><span>Low (12.0V)</span><span>Normal (12.6V)</span><span>Charging</span></div></div>`;
         },
         update: function (obj) {
             const el = document.getElementById("dash_batt_voltage_val"), bad = document.getElementById("dash_batt_status_badge");
@@ -1520,10 +1520,10 @@ const DASH_WIDGET_CATALOG = {
         id: "hv_battery", name: "HV Traction Battery", icon: "", category: "EV Battery",
         render: function (isEditMode) {
             return `<div class="dash-card-header"><span class="dash-card-title"><svg class="icon"><use href="#icon-battery-hv"/></svg> HV Traction Battery</span>
-                    <div class="dash-card-actions"><div id="dash_hv_state_badge" class="dash-status"><span class="status-dot blue"></span> Active</div></div></div>
-                    <div><div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.2rem;"><span id="dash_hv_temp_val" class="dash-metric-val">--.-°C</span><span id="dash_hv_temp_unit_label" class="dash-metric-label">Cell Temp</span></div>
-                    <div id="dash_hv_subtext" class="dash-subtext" style="margin-bottom: 0.6rem;">Waiting for CAN bus telemetry...</div>
-                    <div style="padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.4rem;"><div style="display: flex; align-items: baseline; gap: 6px;"><span id="dash_hv_soc_val" class="dash-metric-val" style="font-size: 1.5rem;">--%</span><span class="dash-metric-label">State of Charge</span></div></div></div>`;
+                                    <div class="dash-card-actions"><div id="dash_hv_state_badge" class="dash-status"><span class="status-dot blue"></span> Active</div></div></div>
+                                    <div><div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 0.2rem;"><span id="dash_hv_temp_val" class="dash-metric-val">--.-°C</span><span id="dash_hv_temp_unit_label" class="dash-metric-label">Cell Temp</span></div>
+                                    <div id="dash_hv_subtext" class="dash-subtext" style="margin-bottom: 0.6rem;">Waiting for CAN bus telemetry...</div>
+                                    <div style="padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.4rem;"><div style="display: flex; align-items: baseline; gap: 6px;"><span id="dash_hv_soc_val" class="dash-metric-val" style="font-size: 1.5rem;">--%</span><span class="dash-metric-label">State of Charge</span></div></div></div>`;
         },
         update: function (obj) {
             // Update this inside your existing logic
@@ -1540,9 +1540,9 @@ const DASH_WIDGET_CATALOG = {
         id: "precon", name: "EV Preconditioning", icon: "", category: "Quick Action",
         render: function (isEditMode) {
             return `<div class="dash-card-header"><span class="dash-card-title"><svg class="icon"><use href="#icon-radiator"/></svg> Preconditioning</span>
-                    <div class="dash-card-actions"><div id="dash_precon_badge" class="dash-status"><span class="status-dot gray"></span> Inactive</div></div></div>
-                    <div><div style="margin-bottom: 0.8rem;"><div class="settings-desc">Heats HV traction battery pack to optimal DC fast charging temperature.</div></div></div>
-                    <button type="button" id="dash_precon_toggle_btn" onclick="preconActivate()" class="dash-outline-btn" style="width: 100%;">Activate Preconditioning</button>`;
+                                    <div class="dash-card-actions"><div id="dash_precon_badge" class="dash-status"><span class="status-dot gray"></span> Inactive</div></div></div>
+                                    <div><div style="margin-bottom: 0.8rem;"><div class="settings-desc">Heats HV traction battery pack to optimal DC fast charging temperature.</div></div></div>
+                                    <button type="button" id="dash_precon_toggle_btn" onclick="preconActivate()" class="dash-outline-btn" style="width: 100%;">Activate Preconditioning</button>`;
         },
         update: function (obj) {
             const preconBadge = document.getElementById("dash_precon_badge"), preconBtn = document.getElementById("dash_precon_toggle_btn");
@@ -1560,10 +1560,10 @@ const DASH_WIDGET_CATALOG = {
         id: "network", name: "Network & Wireless", icon: "", category: "System",
         render: function (isEditMode) {
             return `<div class="dash-card-header"><span class="dash-card-title"><svg class="icon"><use href="#icon-network"/></svg> Network</span>
-                    <div class="dash-card-actions"><div id="dash_net_badge" class="dash-status"><span class="status-dot blue"></span> AP Mode</div></div></div>
-                    <div><div class="dash-kv-list"><div class="dash-kv-row"><span class="dash-kv-label">Mode:</span><strong id="dash_wifi_mode_text" class="dash-kv-val">AP</strong></div>
-                    <div class="dash-kv-row"><span class="dash-kv-label">Station IP:</span><strong id="dash_sta_ip_text" class="dash-kv-val" style="font-family: monospace;">192.168.3.1</strong></div></div></div>
-                    <button type="button" onclick="openTab(event, 'connectivity_tab')" class="dash-outline-btn" style="width: 100%; border: none; background: rgba(255,255,255,0.04);">Configure Networks</button>`;
+                                    <div class="dash-card-actions"><div id="dash_net_badge" class="dash-status"><span class="status-dot blue"></span> AP Mode</div></div></div>
+                                    <div><div class="dash-kv-list"><div class="dash-kv-row"><span class="dash-kv-label">Mode:</span><strong id="dash_wifi_mode_text" class="dash-kv-val">AP</strong></div>
+                                    <div class="dash-kv-row"><span class="dash-kv-label">Station IP:</span><strong id="dash_sta_ip_text" class="dash-kv-val" style="font-family: monospace;">192.168.3.1</strong></div></div></div>
+                                    <button type="button" onclick="openTab(event, 'connectivity_tab')" class="dash-outline-btn" style="width: 100%; border: none; background: rgba(255,255,255,0.04);">Configure Networks</button>`;
         },
         update: function (obj) { /* Existing network logic */ }
     }
@@ -1822,11 +1822,11 @@ function saveDashboardWidgetLayout(layoutArray) {
 function renderWidgetEditControlsHTML(widgetId, isEditMode) {
     if (!isEditMode) return "";
     return `
-    <div class="dash-widget-edit-bar">
-        <button type="button" class="dash-widget-btn" onclick="moveDashboardWidget('${widgetId}', -1)" title="Move Widget Left / Up">▲</button>
-        <button type="button" class="dash-widget-btn" onclick="moveDashboardWidget('${widgetId}', 1)" title="Move Widget Right / Down">▼</button>
-        <button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeDashboardWidget('${widgetId}')" title="Hide this widget"><svg style="width:14px;height:14px;fill:currentColor;"><use href="#icon-trash"/></svg></button>
-    </div>`;
+                    <div class="dash-widget-edit-bar">
+                        <button type="button" class="dash-widget-btn" onclick="moveDashboardWidget('${widgetId}', -1)" title="Move Widget Left / Up">▲</button>
+                        <button type="button" class="dash-widget-btn" onclick="moveDashboardWidget('${widgetId}', 1)" title="Move Widget Right / Down">▼</button>
+                        <button type="button" class="dash-widget-btn dash-widget-del-btn" onclick="removeDashboardWidget('${widgetId}')" title="Hide this widget"><svg style="width:14px;height:14px;fill:currentColor;"><use href="#icon-trash"/></svg></button>
+                    </div>`;
 }
 
 function toggleDashboardEditMode() {
@@ -1955,14 +1955,14 @@ function renderDashboardGrid() {
         addCard.className = "dash-add-widget-card";
 
         addCard.innerHTML = `
-        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-heading);">Add Widget to Dashboard</div>
-        <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 280px;">Select an available widget from the catalog to add to your grid:</div>
-        <div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 280px; margin-top: 4px;">
-            <select id="dash_new_widget_select" style="font-size: 0.82rem; padding: 6px 8px; font-weight: 600;">
-                ${inactiveWidgets.map(id => `<option value="${id}">${DASH_WIDGET_CATALOG[id].icon} ${DASH_WIDGET_CATALOG[id].name}</option>`).join("")}
-            </select>
-            <button type="button" class="system-button" onclick="addDashboardWidget(document.getElementById('dash_new_widget_select').value)" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; white-space: nowrap;">Add</button>
-        </div>`;
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-heading);">Add Widget to Dashboard</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 280px;">Select an available widget from the catalog to add to your grid:</div>
+                        <div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 280px; margin-top: 4px;">
+                            <select id="dash_new_widget_select" style="font-size: 0.82rem; padding: 6px 8px; font-weight: 600;">
+                                ${inactiveWidgets.map(id => `<option value="${id}">${DASH_WIDGET_CATALOG[id].icon} ${DASH_WIDGET_CATALOG[id].name}</option>`).join("")}
+                            </select>
+                            <button type="button" class="system-button" onclick="addDashboardWidget(document.getElementById('dash_new_widget_select').value)" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; white-space: nowrap;">Add</button>
+                        </div>`;
 
         container.appendChild(addCard);
     }
@@ -2012,7 +2012,7 @@ function updateCanDoStateWidgets() {
         .then(data => {
             if (!data) return;
             const states = data.states || data;
-            window._can_doStateCache = states;
+            window._canDoStateCache = states;
 
             monitorCards.forEach(instanceId => {
                 const ind = document.getElementById(`can_do_live_indicator_${instanceId}`);
@@ -2796,8 +2796,8 @@ function storeCANFLT() {
     document.getElementById("store_canflt_button").disabled = true;
 }
 
-/* can_do_catalog_START - Dynamic GitHub & SPIFFS Catalog Loader */
-const CANDO_DOMAIN_TAXONOMY = {
+/* CAN_DO_CATALOG_START - Dynamic GitHub & SPIFFS Catalog Loader */
+const CAN_DO_DOMAIN_TAXONOMY = {
     exterior_visibility: {
         id: "exterior_visibility",
         name: "Exterior & Visibility",
@@ -2945,16 +2945,16 @@ function getCommandTaxonomy(cmd) {
     return { domain: "system_automation", subdomain: "network_integrations" };
 }
 
-let can_do_catalog = {
+let CAN_DO_CATALOG = {
     catalog_version: "0.0.0",
     vehicles: [],
     commands: [],
 };
 
-const DEFAULT_can_do_catalog_URL = "https://raw.githubusercontent.com/supersuave/wicant-i-precondition/main/main/can_do_catalog.json";
+const DEFAULT_CAN_DO_CATALOG_URL = "https://raw.githubusercontent.com/supersuave/wicant-i-precondition/main/main/can_do_catalog.json";
 
 function getCanDoCatalogUrl() {
-    let url = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_can_do_catalog_URL;
+    let url = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_CAN_DO_CATALOG_URL;
     url = url.trim();
     // Convert github.com/.../blob/... to raw.githubusercontent.com/... if user pasted regular GitHub URL
     if (url.includes("github.com") && url.includes("/blob/")) {
@@ -2964,11 +2964,11 @@ function getCanDoCatalogUrl() {
 }
 
 function configureCatalogUrl() {
-    const current = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_can_do_catalog_URL;
+    const current = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_CAN_DO_CATALOG_URL;
     const input = prompt("Enter CAN Do Catalog raw JSON URL:\n(Leave empty to reset to default L1Z3/wicant-i-precondition)", current);
     if (input === null) return;
     const trimmed = input.trim();
-    if (!trimmed || trimmed === DEFAULT_can_do_catalog_URL) {
+    if (!trimmed || trimmed === DEFAULT_CAN_DO_CATALOG_URL) {
         localStorage.removeItem("wican_can_do_catalog_url");
         showNotification("Catalog URL reset to default (L1Z3/wicant-i-precondition).", "blue", 3000);
     } else {
@@ -2982,7 +2982,7 @@ function updateCatalogStatusUI(status, info) {
     const badge = document.getElementById("can_do_catalog_badge");
     if (!badge) return;
     const currentUrl = getCanDoCatalogUrl();
-    const isCustom = (localStorage.getItem("wican_can_do_catalog_url") && localStorage.getItem("wican_can_do_catalog_url") !== DEFAULT_can_do_catalog_URL);
+    const isCustom = (localStorage.getItem("wican_can_do_catalog_url") && localStorage.getItem("wican_can_do_catalog_url") !== DEFAULT_CAN_DO_CATALOG_URL);
     badge.className = "";
     badge.style.background = "";
     badge.style.color = "";
@@ -3016,7 +3016,7 @@ function syncCatalogToDevice(catalogData) {
 }
 
 function mergeCatalogData(base, custom) {
-    if (!custom) return base || CANDO_DEFAULT_FALLBACK_CATALOG;
+    if (!custom) return base || CAN_DO_DEFAULT_FALLBACK_CATALOG;
     if (!base) return custom;
 
     // 1. Merge vehicles
@@ -3084,10 +3084,10 @@ function mergeCatalogData(base, custom) {
 }
 
 function getCatalogVehicles() {
-    if (can_do_catalog && Array.isArray(can_do_catalog.vehicles) && can_do_catalog.vehicles.length > 0) {
-        return can_do_catalog.vehicles;
+    if (CAN_DO_CATALOG && Array.isArray(CAN_DO_CATALOG.vehicles) && CAN_DO_CATALOG.vehicles.length > 0) {
+        return CAN_DO_CATALOG.vehicles;
     }
-    return CANDO_DEFAULT_FALLBACK_CATALOG.vehicles || [];
+    return CAN_DO_DEFAULT_FALLBACK_CATALOG.vehicles || [];
 }
 
 async function loadCanDoCatalog() {
@@ -3099,7 +3099,7 @@ async function loadCanDoCatalog() {
                 data = mergeCatalogData(data, JSON.parse(customSaved));
             } catch (e) { }
         }
-        can_do_catalog = data;
+        CAN_DO_CATALOG = data;
         localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
         updateCatalogStatusUI(source, info);
         populateVehicleDropdowns(data.vehicles);
@@ -3125,8 +3125,8 @@ async function loadCanDoCatalog() {
             if (data && (data.commands || data.vehicles)) {
                 // Update if newer than cached
                 if (
-                    !can_do_catalog ||
-                    data.catalog_version !== can_do_catalog.catalog_version
+                    !CAN_DO_CATALOG ||
+                    data.catalog_version !== CAN_DO_CATALOG.catalog_version
                 ) {
                     applyCatalog(data, "device", data.catalog_version);
                 }
@@ -3144,7 +3144,7 @@ async function loadCanDoCatalog() {
             .then((remoteData) => {
                 if (
                     remoteData &&
-                    remoteData.catalog_version !== can_do_catalog?.catalog_version
+                    remoteData.catalog_version !== CAN_DO_CATALOG?.catalog_version
                 ) {
                     applyCatalog(remoteData, "online", remoteData.catalog_version);
                     // Sync update to ESP32 flash storage
@@ -3238,7 +3238,7 @@ function syncCatalogFromGitHub(manual = true) {
                         data = mergeCatalogData(data, customParsed);
                     } catch (e) { }
                 }
-                can_do_catalog = data;
+                CAN_DO_CATALOG = data;
                 localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
                 localStorage.setItem("wican_can_do_catalog_sync_time", new Date().toLocaleString());
                 updateCatalogStatusUI("online", new Date().toLocaleTimeString());
@@ -3268,17 +3268,17 @@ function importCanDoCatalogFile(inputElem) {
                 const shouldMerge = confirm("Merge imported presets with existing catalog?\n\n• Click OK to MERGE (recommended - preserves existing presets and adds/updates new ones)\n• Click Cancel to REPLACE (replaces entire catalog with this file)");
                 if (shouldMerge) {
                     localStorage.setItem("wican_custom_imported_catalog", JSON.stringify(data));
-                    can_do_catalog = mergeCatalogData(can_do_catalog, data);
+                    CAN_DO_CATALOG = mergeCatalogData(CAN_DO_CATALOG, data);
                 } else {
                     localStorage.removeItem("wican_custom_imported_catalog");
-                    can_do_catalog = data;
+                    CAN_DO_CATALOG = data;
                 }
-                localStorage.setItem("wican_can_do_catalog", JSON.stringify(can_do_catalog));
+                localStorage.setItem("wican_can_do_catalog", JSON.stringify(CAN_DO_CATALOG));
                 updateCatalogStatusUI("custom");
-                populateVehicleDropdowns(can_do_catalog.vehicles);
+                populateVehicleDropdowns(CAN_DO_CATALOG.vehicles);
                 refreshAllCanDoPresetDropdowns();
-                syncCatalogToDevice(can_do_catalog);
-                const totalCmds = can_do_catalog.commands ? can_do_catalog.commands.length : ((can_do_catalog.trigger_presets || []).length + (can_do_catalog.action_presets || []).reduce((acc, cat) => acc + (cat.presets || []).length, 0));
+                syncCatalogToDevice(CAN_DO_CATALOG);
+                const totalCmds = CAN_DO_CATALOG.commands ? CAN_DO_CATALOG.commands.length : ((CAN_DO_CATALOG.trigger_presets || []).length + (CAN_DO_CATALOG.action_presets || []).reduce((acc, cat) => acc + (cat.presets || []).length, 0));
                 showNotification(`✓ Presets ${shouldMerge ? "merged" : "loaded"}: ${totalCmds} commands available.`, "green", 4000);
             } else {
                 showNotification("Invalid catalog format. Missing commands or trigger_presets.", "red", 4000);
@@ -3290,7 +3290,7 @@ function importCanDoCatalogFile(inputElem) {
     };
     reader.readAsText(file);
 }
-/* can_do_catalog_END */
+/* CAN_DO_CATALOG_END */
 
 function getSelectedVehicleProfile() {
     const trimSel = document.getElementById("can_do_vehicle_trim");
@@ -3515,7 +3515,7 @@ function isPresetSupportedByVehicle(preset, vehicleId) {
     if (!preset) return false;
     if (!vehicleId || vehicleId === "all_egmp") return true;
 
-    const selVeh = (can_do_catalog.vehicles || []).find(v => v.id === vehicleId);
+    const selVeh = (CAN_DO_CATALOG.vehicles || []).find(v => v.id === vehicleId);
 
     // Check feature capability requirements (e.g. ventilated seats, heated steering wheel, 360 camera, touch bar)
     if (preset.requires_feature && selVeh && Array.isArray(selVeh.features)) {
@@ -3535,13 +3535,13 @@ function isPresetSupportedByVehicle(preset, vehicleId) {
 function getFilteredTriggerPresets() {
     const vId = getSelectedVehicleProfile();
     let catalogTrigs = [];
-    if (can_do_catalog.commands && Array.isArray(can_do_catalog.commands)) {
-        catalogTrigs = can_do_catalog.commands.filter(cmd => {
+    if (CAN_DO_CATALOG.commands && Array.isArray(CAN_DO_CATALOG.commands)) {
+        catalogTrigs = CAN_DO_CATALOG.commands.filter(cmd => {
             const roles = cmd.roles || ["trigger"];
             return roles.includes("trigger");
         });
-    } else if (can_do_catalog.trigger_presets) {
-        catalogTrigs = can_do_catalog.trigger_presets;
+    } else if (CAN_DO_CATALOG.trigger_presets) {
+        catalogTrigs = CAN_DO_CATALOG.trigger_presets;
     }
     const filtered = catalogTrigs.filter(p => isPresetSupportedByVehicle(p, vId));
     const custom = getCustomTrigPresets();
@@ -3552,14 +3552,14 @@ function getFilteredActionPresets() {
     const vId = getSelectedVehicleProfile();
     let catalogActs = [];
 
-    if (can_do_catalog.commands && Array.isArray(can_do_catalog.commands)) {
-        catalogActs = can_do_catalog.commands.filter(cmd => {
+    if (CAN_DO_CATALOG.commands && Array.isArray(CAN_DO_CATALOG.commands)) {
+        catalogActs = CAN_DO_CATALOG.commands.filter(cmd => {
             const roles = cmd.roles || ["action"];
             return roles.includes("action");
         });
-    } else if (can_do_catalog.action_presets) {
+    } else if (CAN_DO_CATALOG.action_presets) {
         // Legacy fallback
-        can_do_catalog.action_presets.forEach(cat => {
+        CAN_DO_CATALOG.action_presets.forEach(cat => {
             (cat.presets || []).forEach(p => catalogActs.push(p));
         });
     }
@@ -3574,7 +3574,7 @@ function getFilteredActionPresets() {
 
     filtered.forEach(p => {
         const tax = getCommandTaxonomy(p);
-        const dDef = CANDO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation", subdomains: {} };
+        const dDef = CAN_DO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation", subdomains: {} };
         const subDef = (dDef.subdomains && dDef.subdomains[tax.subdomain]) ? dDef.subdomains[tax.subdomain].name : (p.category || "General");
         const groupLabel = `${dDef.name} — ${subDef}`;
 
@@ -3594,14 +3594,14 @@ function getFilteredConditionPresets() {
     const vId = getSelectedVehicleProfile();
     let catalogConds = [];
 
-    if (can_do_catalog.commands && Array.isArray(can_do_catalog.commands)) {
-        catalogConds = can_do_catalog.commands.filter(cmd => {
+    if (CAN_DO_CATALOG.commands && Array.isArray(CAN_DO_CATALOG.commands)) {
+        catalogConds = CAN_DO_CATALOG.commands.filter(cmd => {
             const roles = cmd.roles || ["condition"];
             return roles.includes("condition");
         });
-    } else if (can_do_catalog.condition_presets) {
+    } else if (CAN_DO_CATALOG.condition_presets) {
         // Legacy fallback
-        can_do_catalog.condition_presets.forEach(cat => {
+        CAN_DO_CATALOG.condition_presets.forEach(cat => {
             (cat.presets || []).forEach(p => catalogConds.push(p));
         });
     }
@@ -3616,7 +3616,7 @@ function getFilteredConditionPresets() {
 
     filtered.forEach(p => {
         const tax = getCommandTaxonomy(p);
-        const dDef = CANDO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation", subdomains: {} };
+        const dDef = CAN_DO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation", subdomains: {} };
         const subDef = (dDef.subdomains && dDef.subdomains[tax.subdomain]) ? dDef.subdomains[tax.subdomain].name : (p.category || "General");
         const groupLabel = `${dDef.name} — ${subDef}`;
 
@@ -3648,7 +3648,7 @@ function renderTrigPresetOptionsHTML(selectedIdxStr = "") {
     const domainMap = new Map();
     builtIn.forEach((p, idx) => {
         const tax = getCommandTaxonomy(p);
-        const dDef = CANDO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation" };
+        const dDef = CAN_DO_DOMAIN_TAXONOMY[tax.domain] || { name: "System & Automation" };
         const subDef = (dDef.subdomains && dDef.subdomains[tax.subdomain]) ? dDef.subdomains[tax.subdomain].name : (p.category || "General");
         const groupLabel = `${dDef.name} — ${subDef}`;
         if (!domainMap.has(groupLabel)) domainMap.set(groupLabel, []);
@@ -3856,22 +3856,22 @@ function applyCanDoCondPreset(selectElem, notify = true) {
             optionsBox.style.display = "block";
             const gridClass = preset.options.length > 4 ? "grid-many" : "grid-few";
             optionsBox.innerHTML = `
-            <div style="width: 100%;">
-                <div class="can-do-options-label">
-                    <span>Expected State:</span>
-                </div>
-                <div class="can-do-options-grid ${gridClass}">
-                    ${preset.options.map((opt, i) => {
+                            <div style="width: 100%;">
+                                <div class="can-do-options-label">
+                                    <span>Expected State:</span>
+                                </div>
+                                <div class="can-do-options-grid ${gridClass}">
+                                    ${preset.options.map((opt, i) => {
                 const isCur = (i === activeOptIdx);
                 return `
-                        <button type="button" class="can-do-state-tile-btn can-do-cond-opt-pill-btn ${isCur ? 'active' : ''}" 
-                            onclick="applyCanDoCondOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
-                            ${opt.label}
-                        </button>
-                        `;
+                                        <button type="button" class="can-do-state-tile-btn can-do-cond-opt-pill-btn ${isCur ? 'active' : ''}" 
+                                            onclick="applyCanDoCondOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
+                                            ${opt.label}
+                                        </button>
+                                        `;
             }).join("")}
-                </div>
-            </div>`;
+                                </div>
+                            </div>`;
         }
         const activeOpt = preset.options[activeOptIdx];
         if (activeOpt && activeOpt.match_payload) {
@@ -3991,22 +3991,22 @@ function applyCanDoTrigPreset(selectElem, notify = true) {
                 optionsBox.style.display = "block";
                 const gridClass = preset.options.length > 4 ? "grid-many" : "grid-few";
                 optionsBox.innerHTML = `
-                <div style="width: 100%;">
-                    <div class="can-do-options-label">
-                        <span>State Event:</span>
-                    </div>
-                    <div class="can-do-options-grid ${gridClass}">
-                        ${preset.options.map((opt, i) => {
+                                <div style="width: 100%;">
+                                    <div class="can-do-options-label">
+                                        <span>State Event:</span>
+                                    </div>
+                                    <div class="can-do-options-grid ${gridClass}">
+                                        ${preset.options.map((opt, i) => {
                     const isCur = (i === activeOptIdx);
                     return `
-                            <button type="button" class="can-do-state-tile-btn can-do-trig-opt-pill-btn ${isCur ? 'active' : ''}"
-                                onclick="applyCanDoTrigOptionPill(this, '${pType}', ${pIdx}, ${i})">
-                                ${opt.label}
-                            </button>
-                            `;
+                                            <button type="button" class="can-do-state-tile-btn can-do-trig-opt-pill-btn ${isCur ? 'active' : ''}"
+                                                onclick="applyCanDoTrigOptionPill(this, '${pType}', ${pIdx}, ${i})">
+                                                ${opt.label}
+                                            </button>
+                                            `;
                 }).join("")}
-                    </div>
-                </div>`;
+                                    </div>
+                                </div>`;
             }
             const activeOpt = preset.options[activeOptIdx];
             if (activeOpt) {
@@ -4717,114 +4717,114 @@ function addCanDoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false,
     // The template stamps out the frame with empty container slots:
     // .can-do-triggers-container, .can-do-conditions-container, .can-do-actions-container
     ruleDiv.innerHTML = `
-    <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCanDoHeaderClick(event, this)">
-        <div class="header-left" style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; margin-right: 0.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="can-do-activity-badge ${isEnabled ? 'idle' : 'paused'}" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; font-family: monospace; transition: all 0.3s; white-space: nowrap;">${isEnabled ? 'Idle' : 'Paused'}</span>
-                <div class="can-do-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
-                    <input type="text" class="can-do-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name" onclick="event.stopPropagation();">
-                </div>
-            </div>
-            <div class="can-do-summary-pill" style="margin-left: 2rem; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
-        </div>
-        <div class="header-right" style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
-            <label class="can-do-toggle-switch" onclick="event.stopPropagation();">
-                <input type="checkbox" class="can-do-rule-enabled" ${isEnabled ? "checked" : ""} onchange="updateCanDoRuleStatusToggle(this)">
-                <span class="can-do-toggle-track ${isEnabled ? 'active' : 'paused'}">
-                    <span class="can-do-toggle-thumb"></span>
-                </span>
-            </label>
-            <button type="button" class="system-button can-do-btn-move" onclick="event.stopPropagation(); moveCanDoRule(this, -1);">▲</button>
-            <button type="button" class="system-button can-do-btn-move" onclick="event.stopPropagation(); moveCanDoRule(this, 1);">▼</button>
-            <button type="button" class="system-button can-do-btn-more" onclick="showCanDoRuleHeaderMenu(this, event);">⋮</button>
-        </div>
-    </div>
-
-    <div class="can-do-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
-        <div class="ha-form-card">
-            <div class="ha-form-card-header" onclick="toggleCanDoSection(this)" style="cursor: pointer; user-select: none;">
-                <div class="ha-form-card-title">
-                    <span class="can-do-sec-chevron">▼</span>
-                    <span>Execution Mode &amp; Safeguards</span>
-                </div>
-            </div>
-            <div class="can-do-section-body">
-                <div class="ha-form-grid">
-                    <div class="ha-form-row">
-                        <div class="ha-form-label-col">
-                            <span class="ha-form-label">Execution Mode</span>
+                    <div class="pid-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; cursor: pointer;" onclick="handleCanDoHeaderClick(event, this)">
+                        <div class="header-left" style="display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; margin-right: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="can-do-activity-badge ${isEnabled ? 'idle' : 'paused'}" style="padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; font-family: monospace; transition: all 0.3s; white-space: nowrap;">${isEnabled ? 'Idle' : 'Paused'}</span>
+                                <div class="can-do-name-wrapper" style="position: relative; display: flex; align-items: center; flex-grow: 1; max-width: 440px;">
+                                    <input type="text" class="can-do-name" value="${ruleData.name || "New CAN Do"}" placeholder="CAN Do Name" onclick="event.stopPropagation();">
+                                </div>
+                            </div>
+                            <div class="can-do-summary-pill" style="margin-left: 2rem; font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
                         </div>
-                        <div class="ha-form-control-col">
-                            <select class="ha-form-select can-do-exec-mode" onchange="toggleCanDoExecModeUI(this)">
-                                <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>Edge-Triggered (On Change)</option>
-                                <option value="toggle" ${ruleData.exec_mode === "toggle" ? "selected" : ""}>Toggle</option>
-                                <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>One-Shot &amp; Latch</option>
-                                <option value="continuous" ${ruleData.exec_mode === "continuous" ? "selected" : ""}>Continuous</option>
-                            </select>
+                        <div class="header-right" style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
+                            <label class="can-do-toggle-switch" onclick="event.stopPropagation();">
+                                <input type="checkbox" class="can-do-rule-enabled" ${isEnabled ? "checked" : ""} onchange="updateCanDoRuleStatusToggle(this)">
+                                <span class="can-do-toggle-track ${isEnabled ? 'active' : 'paused'}">
+                                    <span class="can-do-toggle-thumb"></span>
+                                </span>
+                            </label>
+                            <button type="button" class="system-button can-do-btn-move" onclick="event.stopPropagation(); moveCanDoRule(this, -1);">▲</button>
+                            <button type="button" class="system-button can-do-btn-move" onclick="event.stopPropagation(); moveCanDoRule(this, 1);">▼</button>
+                            <button type="button" class="system-button can-do-btn-more" onclick="showCanDoRuleHeaderMenu(this, event);">⋮</button>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Triggers Section -->
-        <div class="can-do-section-box trig-section">
-            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
-                <div class="can-do-section-title">
-                    <span class="can-do-sec-chevron">▼</span>
-                    <span class="can-do-ha-pill trig-pill">When</span>
-                    <span>Triggers</span>
-                    <span class="can-do-trig-count-badge">0</span>
-                </div>
-            </div>
-            <div class="can-do-section-body">
-                <div class="can-do-triggers-container can-do-tree-connect"></div>
-                <button type="button" class="ha-section-add-btn accent-trig" onclick="openAddAutomationElementDialog('trigger', this.closest('.can-do-section-box').querySelector('.can-do-triggers-container'), this.closest('.can-do-rule-card'))">
-                    <svg><use href="#icon-plus"/></svg>
-                    <span>Add Trigger</span>
-                </button>
-            </div>
-        </div>
+                    <div class="can-do-rule-body ${isCollapsed ? "hidden" : ""}" style="${isCollapsed ? "display: none;" : ""}">
+                        <div class="ha-form-card">
+                            <div class="ha-form-card-header" onclick="toggleCanDoSection(this)" style="cursor: pointer; user-select: none;">
+                                <div class="ha-form-card-title">
+                                    <span class="can-do-sec-chevron">▼</span>
+                                    <span>Execution Mode &amp; Safeguards</span>
+                                </div>
+                            </div>
+                            <div class="can-do-section-body">
+                                <div class="ha-form-grid">
+                                    <div class="ha-form-row">
+                                        <div class="ha-form-label-col">
+                                            <span class="ha-form-label">Execution Mode</span>
+                                        </div>
+                                        <div class="ha-form-control-col">
+                                            <select class="ha-form-select can-do-exec-mode" onchange="toggleCanDoExecModeUI(this)">
+                                                <option value="on_change" ${(!ruleData.exec_mode || ruleData.exec_mode === "on_change") ? "selected" : ""}>Edge-Triggered (On Change)</option>
+                                                <option value="toggle" ${ruleData.exec_mode === "toggle" ? "selected" : ""}>Toggle</option>
+                                                <option value="one_shot" ${ruleData.exec_mode === "one_shot" ? "selected" : ""}>One-Shot &amp; Latch</option>
+                                                <option value="continuous" ${ruleData.exec_mode === "continuous" ? "selected" : ""}>Continuous</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- Conditions Section -->
-        <div class="can-do-section-box cond-section">
-            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
-                <div class="can-do-section-title">
-                    <span class="can-do-sec-chevron">▼</span>
-                    <span class="can-do-ha-pill cond-pill">And if</span>
-                    <span>Conditions</span>
-                    <span class="can-do-cond-count-badge">0</span>
-                </div>
-            </div>
-            <div class="can-do-section-body">
-                <div class="can-do-conditions-container can-do-tree-connect"></div>
-                <button type="button" class="ha-section-add-btn accent-cond" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-section-box').querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
-                    <svg><use href="#icon-plus"/></svg>
-                    <span>Add Condition</span>
-                </button>
-            </div>
-        </div>
+                        <!-- Triggers Section -->
+                        <div class="can-do-section-box trig-section">
+                            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
+                                <div class="can-do-section-title">
+                                    <span class="can-do-sec-chevron">▼</span>
+                                    <span class="can-do-ha-pill trig-pill">When</span>
+                                    <span>Triggers</span>
+                                    <span class="can-do-trig-count-badge">0</span>
+                                </div>
+                            </div>
+                            <div class="can-do-section-body">
+                                <div class="can-do-triggers-container can-do-tree-connect"></div>
+                                <button type="button" class="ha-section-add-btn accent-trig" onclick="openAddAutomationElementDialog('trigger', this.closest('.can-do-section-box').querySelector('.can-do-triggers-container'), this.closest('.can-do-rule-card'))">
+                                    <svg><use href="#icon-plus"/></svg>
+                                    <span>Add Trigger</span>
+                                </button>
+                            </div>
+                        </div>
 
-        <!-- Actions Section -->
-        <div class="can-do-section-box act-section">
-            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
-                <div class="can-do-section-title">
-                    <span class="can-do-sec-chevron">▼</span>
-                    <span class="can-do-ha-pill act-pill">Then do</span>
-                    <span>Actions</span>
-                    <span class="can-do-act-count-badge">0</span>
-                </div>
-            </div>
-            <div class="can-do-section-body">
-                <div class="can-do-actions-container can-do-tree-connect"></div>
-                <button type="button" class="ha-section-add-btn accent-act" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-section-box').querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
-                    <svg><use href="#icon-plus"/></svg>
-                    <span>Add Action</span>
-                </button>
-            </div>
-        </div>
-    </div>
-    `;
+                        <!-- Conditions Section -->
+                        <div class="can-do-section-box cond-section">
+                            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
+                                <div class="can-do-section-title">
+                                    <span class="can-do-sec-chevron">▼</span>
+                                    <span class="can-do-ha-pill cond-pill">And if</span>
+                                    <span>Conditions</span>
+                                    <span class="can-do-cond-count-badge">0</span>
+                                </div>
+                            </div>
+                            <div class="can-do-section-body">
+                                <div class="can-do-conditions-container can-do-tree-connect"></div>
+                                <button type="button" class="ha-section-add-btn accent-cond" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-section-box').querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
+                                    <svg><use href="#icon-plus"/></svg>
+                                    <span>Add Condition</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Actions Section -->
+                        <div class="can-do-section-box act-section">
+                            <div class="can-do-section-title-wrap" onclick="toggleCanDoSection(this)">
+                                <div class="can-do-section-title">
+                                    <span class="can-do-sec-chevron">▼</span>
+                                    <span class="can-do-ha-pill act-pill">Then do</span>
+                                    <span>Actions</span>
+                                    <span class="can-do-act-count-badge">0</span>
+                                </div>
+                            </div>
+                            <div class="can-do-section-body">
+                                <div class="can-do-actions-container can-do-tree-connect"></div>
+                                <button type="button" class="ha-section-add-btn accent-act" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-section-box').querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
+                                    <svg><use href="#icon-plus"/></svg>
+                                    <span>Add Action</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
 
     container.appendChild(ruleDiv);
 
@@ -4859,21 +4859,21 @@ function renderByteInputsHTML(prefixClass, payloadStr = "") {
         if (val === "SEQ3") val = "~3";
         if (val === "INC" || val === "ROLL") val = "++";
         html += `
-        <div style="display: flex; flex-direction: column; align-items: center;">
-            <span class="byte-label" onclick="cycleByteCounter(this)" title="Click to cycle rolling counter (~3 -> ++ -> *R -> Clear)" style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px; cursor: pointer; user-select: none;">D${i + 1}</span>
-            <input type="text" class="${prefixClass}-byte byte-input" data-idx="${i}" maxlength="4" value="${val}" placeholder="*" 
-                    oninput="handleByteInput(this)" onkeydown="handleByteKeyDown(event, this)" onpaste="handleBytePaste(event, this)"
-                    title="Hex byte (e.g. 0F), wildcard (*), 3-step roll (~3/SEQ3), or increment (++)"
-                    style="width: 32px; height: 26px; text-align: center; font-family: monospace; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; padding: 0;">
-        </div>
-    `;
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <span class="byte-label" onclick="cycleByteCounter(this)" title="Click to cycle rolling counter (~3 -> ++ -> *R -> Clear)" style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px; cursor: pointer; user-select: none;">D${i + 1}</span>
+                            <input type="text" class="${prefixClass}-byte byte-input" data-idx="${i}" maxlength="4" value="${val}" placeholder="*" 
+                                    oninput="handleByteInput(this)" onkeydown="handleByteKeyDown(event, this)" onpaste="handleBytePaste(event, this)"
+                                    title="Hex byte (e.g. 0F), wildcard (*), 3-step roll (~3/SEQ3), or increment (++)"
+                                    style="width: 32px; height: 26px; text-align: center; font-family: monospace; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; padding: 0;">
+                        </div>
+                    `;
     }
     html += `
-    <button type="button" class="system-button" onclick="setByteGridPreset(this, '${prefixClass}', '00')" title="Fill all bytes with 00" style="height: 26px; padding: 0 5px; font-size: 0.72rem; margin-left: 4px;">00</button>
-    <button type="button" class="system-button" onclick="setByteGridPreset(this, '${prefixClass}', 'FF')" title="Fill all bytes with FF" style="height: 26px; padding: 0 5px; font-size: 0.72rem; margin-left: 2px;">FF</button>
-    <button type="button" class="system-button" onclick="setByteGridPreset(this, '${prefixClass}', '')" title="Set all bytes to wildcard (*)" style="height: 26px; padding: 0 5px; font-size: 0.72rem; margin-left: 2px;">**</button>
-    <button type="button" class="system-button" onclick="clearByteInputs(this, '${prefixClass}')" title="Clear all bytes" style="height: 26px; padding: 0 6px; font-size: 0.72rem; margin-left: 2px;">Clear</button>
-</div>`;
+                    <button type="button" class="system-button" onclick="setByteGridPreset(this, '${prefixClass}', '00')" title="Fill all bytes with 00" style="height: 26px; padding: 0 5px; font-size: 0.72rem; margin-left: 4px;">00</button>
+                    <button type="button" class="system-button" onclick="setByteGridPreset(this, '${prefixClass}', 'FF')" title="Fill all bytes with FF" style="height: 26px; padding: 0 5px; font-size: 0.72rem; margin-left: 2px;">FF</button>
+                    <button type="button" class="system-button" onclick="setByteGridPreset(this, '${prefixClass}', '')" title="Set all bytes to wildcard (*)" style="height: 26px; padding: 0 5px; font-size: 0.72rem; margin-left: 2px;">**</button>
+                    <button type="button" class="system-button" onclick="clearByteInputs(this, '${prefixClass}')" title="Clear all bytes" style="height: 26px; padding: 0 6px; font-size: 0.72rem; margin-left: 2px;">Clear</button>
+                </div>`;
     return html;
 }
 
@@ -5254,27 +5254,27 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     overlay.className = "ha-add-element-dialog-overlay";
 
     overlay.innerHTML = `
-        <div class="ha-add-element-dialog" onclick="event.stopPropagation();">
-            <div class="ha-dialog-header">
-                <div class="ha-dialog-header-top">
-                    <div class="ha-dialog-title-wrap">
-                        <span class="can-do-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
-                        <h3 class="ha-dialog-title">${typeConfig.title}</h3>
-                    </div>
-                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.ha-add-element-dialog-overlay').remove();" title="Close dialog">✕</button>
-                </div>
-                <div class="ha-dialog-search-wrap">
-                    <svg class="ha-dialog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" class="ha-dialog-search-input" placeholder="${typeConfig.searchPlaceholder}" autofocus>
-                </div>
-                <div class="ha-dialog-breadcrumbs" id="ha_dialog_breadcrumbs"></div>
-            </div>
-            <div class="ha-dialog-body" id="ha_dialog_body"></div>
-        </div>
-    `;
+                        <div class="ha-add-element-dialog" onclick="event.stopPropagation();">
+                            <div class="ha-dialog-header">
+                                <div class="ha-dialog-header-top">
+                                    <div class="ha-dialog-title-wrap">
+                                        <span class="can-do-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
+                                        <h3 class="ha-dialog-title">${typeConfig.title}</h3>
+                                    </div>
+                                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.ha-add-element-dialog-overlay').remove();" title="Close dialog">✕</button>
+                                </div>
+                                <div class="ha-dialog-search-wrap">
+                                    <svg class="ha-dialog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                    <input type="text" class="ha-dialog-search-input" placeholder="${typeConfig.searchPlaceholder}" autofocus>
+                                </div>
+                                <div class="ha-dialog-breadcrumbs" id="ha_dialog_breadcrumbs"></div>
+                            </div>
+                            <div class="ha-dialog-body" id="ha_dialog_body"></div>
+                        </div>
+                    `;
 
     document.body.appendChild(overlay);
 
@@ -5316,32 +5316,32 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     function updateBreadcrumbs(query = "") {
         if (query) {
             breadcrumbs.innerHTML = `
-                <button type="button" class="ha-dialog-crumb-btn" onclick="clearSearchAndGoRoot()">
-                    <span>All Domains</span>
-                </button>
-                <span>›</span>
-                <span class="ha-dialog-crumb-current">Search Results ("${escapeHtml(query)}")</span>
-            `;
+                                <button type="button" class="ha-dialog-crumb-btn" onclick="clearSearchAndGoRoot()">
+                                    <span>All Domains</span>
+                                </button>
+                                <span>›</span>
+                                <span class="ha-dialog-crumb-current">Search Results ("${escapeHtml(query)}")</span>
+                            `;
             return;
         }
 
         let crumbsHTML = `
-            <button type="button" class="ha-dialog-crumb-btn" onclick="navigateToStep(null, null)">
-                <span>All Domains</span>
-            </button>
-        `;
+                            <button type="button" class="ha-dialog-crumb-btn" onclick="navigateToStep(null, null)">
+                                <span>All Domains</span>
+                            </button>
+                        `;
 
         if (currentDomain) {
-            const dDef = CANDO_DOMAIN_TAXONOMY[currentDomain];
+            const dDef = CAN_DO_DOMAIN_TAXONOMY[currentDomain];
             crumbsHTML += `<span>›</span>`;
             if (currentSubdomain) {
                 crumbsHTML += `
-                    <button type="button" class="ha-dialog-crumb-btn" onclick="navigateToStep('${currentDomain}', null)">
-                        <span>${dDef.name}</span>
-                    </button>
-                    <span>›</span>
-                    <span class="ha-dialog-crumb-current">${dDef.subdomains[currentSubdomain]?.name || currentSubdomain}</span>
-                `;
+                                    <button type="button" class="ha-dialog-crumb-btn" onclick="navigateToStep('${currentDomain}', null)">
+                                        <span>${dDef.name}</span>
+                                    </button>
+                                    <span>›</span>
+                                    <span class="ha-dialog-crumb-current">${dDef.subdomains[currentSubdomain]?.name || currentSubdomain}</span>
+                                `;
             } else {
                 crumbsHTML += `<span class="ha-dialog-crumb-current">${dDef.name}</span>`;
             }
@@ -5369,7 +5369,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
         // Global search mode
         if (query) {
             const matched = allItems.filter(it => {
-                const dDef = CANDO_DOMAIN_TAXONOMY[it.domain];
+                const dDef = CAN_DO_DOMAIN_TAXONOMY[it.domain];
                 const subName = dDef?.subdomains[it.subdomain]?.name || "";
                 return (it.name && it.name.toLowerCase().includes(query)) ||
                     (it.desc && it.desc.toLowerCase().includes(query)) ||
@@ -5391,28 +5391,28 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             const grid = document.createElement("div");
             grid.className = "ha-dialog-domain-grid";
 
-            Object.keys(CANDO_DOMAIN_TAXONOMY).forEach(dKey => {
-                const dDef = CANDO_DOMAIN_TAXONOMY[dKey];
+            Object.keys(CAN_DO_DOMAIN_TAXONOMY).forEach(dKey => {
+                const dDef = CAN_DO_DOMAIN_TAXONOMY[dKey];
                 const count = allItems.filter(it => it.domain === dKey).length;
                 const subCount = Object.keys(dDef.subdomains).length;
 
                 const card = document.createElement("div");
                 card.className = "ha-dialog-domain-card";
                 card.innerHTML = `
-                    <div class="ha-dialog-domain-icon-box">
-                        <svg style="width: 22px; height: 22px; fill: currentColor;"><use href="#icon-${dDef.icon}"/></svg>
-                    </div>
-                    <div class="ha-dialog-domain-content">
-                        <div class="ha-dialog-domain-title">
-                            <span>${dDef.name}</span>
-                            <span class="ha-dialog-domain-count">${count} items</span>
-                        </div>
-                        <div class="ha-dialog-domain-desc">${dDef.desc}</div>
-                        <div style="margin-top: 6px; font-size: 0.72rem; color: var(--md-sys-color-primary); font-weight: 600;">
-                            ${subCount} Device Classes ›
-                        </div>
-                    </div>
-                `;
+                                    <div class="ha-dialog-domain-icon-box">
+                                        <svg style="width: 22px; height: 22px; fill: currentColor;"><use href="#icon-${dDef.icon}"/></svg>
+                                    </div>
+                                    <div class="ha-dialog-domain-content">
+                                        <div class="ha-dialog-domain-title">
+                                            <span>${dDef.name}</span>
+                                            <span class="ha-dialog-domain-count">${count} items</span>
+                                        </div>
+                                        <div class="ha-dialog-domain-desc">${dDef.desc}</div>
+                                        <div style="margin-top: 6px; font-size: 0.72rem; color: var(--md-sys-color-primary); font-weight: 600;">
+                                            ${subCount} Device Classes ›
+                                        </div>
+                                    </div>
+                                `;
                 card.onclick = () => {
                     currentDomain = dKey;
                     currentSubdomain = null;
@@ -5425,7 +5425,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             return;
         }
 
-        const domainDef = CANDO_DOMAIN_TAXONOMY[currentDomain];
+        const domainDef = CAN_DO_DOMAIN_TAXONOMY[currentDomain];
 
         // STEP 2: Sub-Domains / Device Classes
         if (currentDomain && !currentSubdomain) {
@@ -5439,17 +5439,17 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                 const card = document.createElement("div");
                 card.className = "ha-dialog-domain-card";
                 card.innerHTML = `
-                    <div class="ha-dialog-domain-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
-                        <svg style="width: 22px; height: 22px; fill: currentColor;"><use href="#icon-${domainDef.icon}"/></svg>
-                    </div>
-                    <div class="ha-dialog-domain-content">
-                        <div class="ha-dialog-domain-title">
-                            <span>${sDef.name}</span>
-                            <span class="ha-dialog-domain-count">${subItems.length}</span>
-                        </div>
-                        <div class="ha-dialog-domain-desc">${sDef.desc}</div>
-                    </div>
-                `;
+                                    <div class="ha-dialog-domain-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                                        <svg style="width: 22px; height: 22px; fill: currentColor;"><use href="#icon-${domainDef.icon}"/></svg>
+                                    </div>
+                                    <div class="ha-dialog-domain-content">
+                                        <div class="ha-dialog-domain-title">
+                                            <span>${sDef.name}</span>
+                                            <span class="ha-dialog-domain-count">${subItems.length}</span>
+                                        </div>
+                                        <div class="ha-dialog-domain-desc">${sDef.desc}</div>
+                                    </div>
+                                `;
                 card.onclick = () => {
                     currentSubdomain = sKey;
                     renderPicker();
@@ -5488,28 +5488,28 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             let stateChipsHTML = "";
             if (item.options && Array.isArray(item.options) && item.options.length > 0) {
                 stateChipsHTML = `
-                    <div class="ha-target-state-chips" onclick="event.stopPropagation();">
-                        ${item.options.slice(0, 4).map(opt => `
-                            <span class="ha-target-state-chip" onclick="handleTargetSelection(window._targetItemSelectMap['${item.id}'], window._targetItemOptionMap['${item.id}_${opt.label.replace(/[^a-zA-Z0-9]/g, '')}'])">
-                                ${opt.label}
-                            </span>
-                        `).join("")}
-                    </div>
-                `;
+                                    <div class="ha-target-state-chips" onclick="event.stopPropagation();">
+                                        ${item.options.slice(0, 4).map(opt => `
+                                            <span class="ha-target-state-chip" onclick="handleTargetSelection(window._targetItemSelectMap['${item.id}'], window._targetItemOptionMap['${item.id}_${opt.label.replace(/[^a-zA-Z0-9]/g, '')}'])">
+                                                ${opt.label}
+                                            </span>
+                                        `).join("")}
+                                    </div>
+                                `;
             }
 
             card.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div class="ha-dialog-item-icon-box ${typeConfig.iconBoxClass}">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;"><use href="#icon-${iconName}"/></svg>
-                    </div>
-                    <div class="ha-dialog-item-content">
-                        <span class="ha-dialog-item-title">${item.name}</span>
-                        <span class="ha-dialog-item-desc">${item.desc}</span>
-                    </div>
-                </div>
-                ${stateChipsHTML}
-            `;
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="ha-dialog-item-icon-box ${typeConfig.iconBoxClass}">
+                                        <svg style="width: 20px; height: 20px; fill: currentColor;"><use href="#icon-${iconName}"/></svg>
+                                    </div>
+                                    <div class="ha-dialog-item-content">
+                                        <span class="ha-dialog-item-title">${item.name}</span>
+                                        <span class="ha-dialog-item-desc">${item.desc}</span>
+                                    </div>
+                                </div>
+                                ${stateChipsHTML}
+                            `;
 
             window._targetItemSelectMap = window._targetItemSelectMap || {};
             window._targetItemOptionMap = window._targetItemOptionMap || {};
@@ -5684,229 +5684,229 @@ function renderCanDoTriggerItem(container, data = {}) {
     const toPayload = data.to_payload !== undefined ? data.to_payload : (data.match_payload !== undefined ? data.match_payload : (matchedPreset ? (matchedPreset.to_payload || "") : ""));
 
     itemDiv.innerHTML = `
-    <div class="can-do-subitem-header trig-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="can-do-ha-pill trig-pill">
-                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-play"/></svg>
-                When
-            </span>
-            <span class="can-do-subitem-title-trig" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
-                ${matchedPreset ? (matchedPreset.name || "Preset Trigger") : "Trigger"}
-            </span>
-            <span class="can-do-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
-            <label class="can-do-trig-id-container" style="font-size: 0.8rem; color: var(--m3-tonal-when-color); font-weight: 600; display: none; align-items: center; gap: 0.3rem;" onclick="event.stopPropagation();">
-                ID:
-                <input type="text" class="can-do-trig-id" value="${data.id || (matchedPreset ? matchedPreset.id : "") || ""}" placeholder="e.g. star_press" oninput="updateCanDoRuleTriggerDropdowns(this.closest('.can-do-rule-card')); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box;">
-            </label>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-sim-trig" onclick="testCanDoTriggerUI(this)" title="Simulate this trigger event">Simulate</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Trigger Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Trigger Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'trigger')" title="More options">⋮</button>
-        </div>
-    </div>
-    <div class="can-do-subitem-body">
-        <div class="ha-form-grid" style="margin-top: 0.4rem;">
-            <!-- Trigger Source -->
-            <div class="ha-form-row">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Trigger Type</span>
-                    <span class="ha-form-sublabel">Select how this trigger listens to vehicle CAN or timers.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-trig-source" onchange="toggleCanDoTrigItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
-                        <option value="preset" ${source === "preset" || !data.source ? "selected" : ""}>CAN Do Catalog</option>
-                        <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom CAN Message</option>
-                        <option value="ha_mqtt" ${source === "ha_mqtt" || source === "mqtt_cmd" ? "selected" : ""}>Home Assistant / MQTT Command</option>
-                        <option value="clock" ${source === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
-                        <option value="interval" ${source === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
-                        <option value="voltage" ${source === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
-                        <option value="state_change" ${source === "state_change" ? "selected" : ""}>Parameter / State Change</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Catalog Preset Selector -->
-            <div class="ha-form-row trig-field-preset ${source === "preset" || !data.source ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Catalog Preset</span>
-                    <span class="ha-form-sublabel">Preconfigured button presses and steering wheel triggers.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
-                        <select class="ha-form-select can-do-trig-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoTrigPreset(this);" style="font-weight: 600;">
-                            ${renderTrigPresetOptionsHTML(selectedPresetVal)}
-                        </select>
-                        <div class="can-do-preset-action-bar">
-                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, bus, and payload details">Edit Details</button>
-                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentTriggerAsPreset(this)" title="Save current CAN ID and payload pattern as a custom reusable entry">Save to My Catalog</button>
-                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomTrigPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
+                    <div class="can-do-subitem-header trig-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+                            <span class="can-do-ha-pill trig-pill">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-play"/></svg>
+                                When
+                            </span>
+                            <span class="can-do-subitem-title-trig" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+                                ${matchedPreset ? (matchedPreset.name || "Preset Trigger") : "Trigger"}
+                            </span>
+                            <span class="can-do-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
+                            <label class="can-do-trig-id-container" style="font-size: 0.8rem; color: var(--m3-tonal-when-color); font-weight: 600; display: none; align-items: center; gap: 0.3rem;" onclick="event.stopPropagation();">
+                                ID:
+                                <input type="text" class="can-do-trig-id" value="${data.id || (matchedPreset ? matchedPreset.id : "") || ""}" placeholder="e.g. star_press" oninput="updateCanDoRuleTriggerDropdowns(this.closest('.can-do-rule-card')); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));" style="width: 110px; height: 26px; padding: 0 6px; font-size: 0.8rem; border-radius: 4px; box-sizing: border-box;">
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-sim-trig" onclick="testCanDoTriggerUI(this)" title="Simulate this trigger event">Simulate</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Trigger Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Trigger Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'trigger')" title="More options">⋮</button>
                         </div>
                     </div>
-                    <div class="can-do-trig-options-container" style="display: none; width: 100%;"></div>
-                </div>
-            </div>
+                    <div class="can-do-subitem-body">
+                        <div class="ha-form-grid" style="margin-top: 0.4rem;">
+                            <!-- Trigger Source -->
+                            <div class="ha-form-row">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Trigger Type</span>
+                                    <span class="ha-form-sublabel">Select how this trigger listens to vehicle CAN or timers.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-trig-source" onchange="toggleCanDoTrigItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
+                                        <option value="preset" ${source === "preset" || !data.source ? "selected" : ""}>CAN Do Catalog</option>
+                                        <option value="can_msg" ${source === "can_msg" ? "selected" : ""}>Custom CAN Message</option>
+                                        <option value="ha_mqtt" ${source === "ha_mqtt" || source === "mqtt_cmd" ? "selected" : ""}>Home Assistant / MQTT Command</option>
+                                        <option value="clock" ${source === "clock" ? "selected" : ""}>Schedule / Clock Time</option>
+                                        <option value="interval" ${source === "interval" ? "selected" : ""}>Repeating Interval Timer</option>
+                                        <option value="voltage" ${source === "voltage" ? "selected" : ""}>Battery Voltage Threshold</option>
+                                        <option value="state_change" ${source === "state_change" ? "selected" : ""}>Parameter / State Change</option>
+                                    </select>
+                                </div>
+                            </div>
 
-            <!-- MQTT Command Topic -->
-            <div class="ha-form-row trig-field-mqtt ${source === "ha_mqtt" || source === "mqtt_cmd" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">MQTT Command Topic</span>
-                    <span class="ha-form-sublabel">Topic Home Assistant publishes to trigger this rule.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-trig-mqtt-topic" value="${data.mqtt_topic || "wican/can_do/trigger"}" placeholder="wican/can_do/trigger" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                </div>
-            </div>
+                            <!-- Catalog Preset Selector -->
+                            <div class="ha-form-row trig-field-preset ${source === "preset" || !data.source ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Catalog Preset</span>
+                                    <span class="ha-form-sublabel">Preconfigured button presses and steering wheel triggers.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
+                                        <select class="ha-form-select can-do-trig-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoTrigPreset(this);" style="font-weight: 600;">
+                                            ${renderTrigPresetOptionsHTML(selectedPresetVal)}
+                                        </select>
+                                        <div class="can-do-preset-action-bar">
+                                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, bus, and payload details">Edit Details</button>
+                                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentTriggerAsPreset(this)" title="Save current CAN ID and payload pattern as a custom reusable entry">Save to My Catalog</button>
+                                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomTrigPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
+                                        </div>
+                                    </div>
+                                    <div class="can-do-trig-options-container" style="display: none; width: 100%;"></div>
+                                </div>
+                            </div>
 
-            <!-- MQTT Expected Payload -->
-            <div class="ha-form-row trig-field-mqtt ${source === "ha_mqtt" || source === "mqtt_cmd" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Expected Payload / Event</span>
-                    <span class="ha-form-sublabel">Match text payload (leave blank to fire on any payload).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-trig-mqtt-payload" value="${data.mqtt_payload || ""}" placeholder="e.g. start_precon" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                </div>
-            </div>
+                            <!-- MQTT Command Topic -->
+                            <div class="ha-form-row trig-field-mqtt ${source === "ha_mqtt" || source === "mqtt_cmd" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">MQTT Command Topic</span>
+                                    <span class="ha-form-sublabel">Topic Home Assistant publishes to trigger this rule.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-trig-mqtt-topic" value="${data.mqtt_topic || "wican/can_do/trigger"}" placeholder="wican/can_do/trigger" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                </div>
+                            </div>
 
-            <!-- Trigger CAN ID -->
-            <div class="ha-form-row trig-field-can ${source === "can_msg" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Trigger CAN ID (Hex)</span>
-                    <span class="ha-form-sublabel">Arbitration ID to detect on the vehicle CAN network.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-trig-can-id" value="${canId}" placeholder="0x448" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                </div>
-            </div>
+                            <!-- MQTT Expected Payload -->
+                            <div class="ha-form-row trig-field-mqtt ${source === "ha_mqtt" || source === "mqtt_cmd" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Expected Payload / Event</span>
+                                    <span class="ha-form-sublabel">Match text payload (leave blank to fire on any payload).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-trig-mqtt-payload" value="${data.mqtt_payload || ""}" placeholder="e.g. start_precon" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                </div>
+                            </div>
 
-            <!-- Bus Selector -->
-            <div class="ha-form-row trig-field-can trig-preset-detail ${source === "can_msg" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">CAN Bus Channel</span>
-                    <span class="ha-form-sublabel">Select physical transceiver bus.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-trig-bus">
-                        <option value="0" ${busVal === 0 ? "selected" : ""}>CAN 0 (Primary)</option>
-                        <option value="1" ${busVal === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
-                    </select>
-                </div>
-            </div>
+                            <!-- Trigger CAN ID -->
+                            <div class="ha-form-row trig-field-can ${source === "can_msg" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Trigger CAN ID (Hex)</span>
+                                    <span class="ha-form-sublabel">Arbitration ID to detect on the vehicle CAN network.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-trig-can-id" value="${canId}" placeholder="0x448" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                </div>
+                            </div>
 
-            <!-- From Payload Grid -->
-            <div class="ha-form-row trig-field-can trig-preset-detail ${source === "can_msg" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">From Payload (Optional)</span>
-                    <span class="ha-form-sublabel">Initial state bytes before transition (D1–D8).</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: flex-start;">
-                    ${renderByteInputsHTML("can-do-trig-from", fromPayload)}
-                </div>
-            </div>
+                            <!-- Bus Selector -->
+                            <div class="ha-form-row trig-field-can trig-preset-detail ${source === "can_msg" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">CAN Bus Channel</span>
+                                    <span class="ha-form-sublabel">Select physical transceiver bus.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-trig-bus">
+                                        <option value="0" ${busVal === 0 ? "selected" : ""}>CAN 0 (Primary)</option>
+                                        <option value="1" ${busVal === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
+                                    </select>
+                                </div>
+                            </div>
 
-            <!-- To Payload Grid -->
-            <div class="ha-form-row trig-field-can trig-preset-detail ${source === "can_msg" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">To Payload (Optional)</span>
-                    <span class="ha-form-sublabel">Target state bytes after transition (D1–D8).</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: flex-start;">
-                    ${renderByteInputsHTML("can-do-trig-to", toPayload)}
-                </div>
-            </div>
+                            <!-- From Payload Grid -->
+                            <div class="ha-form-row trig-field-can trig-preset-detail ${source === "can_msg" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">From Payload (Optional)</span>
+                                    <span class="ha-form-sublabel">Initial state bytes before transition (D1–D8).</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: flex-start;">
+                                    ${renderByteInputsHTML("can-do-trig-from", fromPayload)}
+                                </div>
+                            </div>
 
-            <!-- Schedule / Clock Time -->
-            <div class="ha-form-row trig-field-clock ${source === "clock" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Trigger Time (HH:MM:SS)</span>
-                    <span class="ha-form-sublabel">Exact wall clock time to execute automation.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-trig-time" value="${data.time || "08:00:00"}" placeholder="08:00:00">
-                </div>
-            </div>
+                            <!-- To Payload Grid -->
+                            <div class="ha-form-row trig-field-can trig-preset-detail ${source === "can_msg" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">To Payload (Optional)</span>
+                                    <span class="ha-form-sublabel">Target state bytes after transition (D1–D8).</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: flex-start;">
+                                    ${renderByteInputsHTML("can-do-trig-to", toPayload)}
+                                </div>
+                            </div>
 
-            <!-- Interval Timer -->
-            <div class="ha-form-row trig-field-interval ${source === "interval" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Repeating Interval (Seconds)</span>
-                    <span class="ha-form-sublabel">Period in seconds between repeated executions.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="number" class="ha-form-input can-do-trig-interval-sec" value="${data.interval_sec || 10}" min="1" max="86400">
-                </div>
-            </div>
+                            <!-- Schedule / Clock Time -->
+                            <div class="ha-form-row trig-field-clock ${source === "clock" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Trigger Time (HH:MM:SS)</span>
+                                    <span class="ha-form-sublabel">Exact wall clock time to execute automation.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-trig-time" value="${data.time || "08:00:00"}" placeholder="08:00:00">
+                                </div>
+                            </div>
 
-            <!-- Voltage Threshold -->
-            <div class="ha-form-row trig-field-voltage ${source === "voltage" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Battery Voltage Threshold</span>
-                    <span class="ha-form-sublabel">Threshold in Volts (e.g. 12.2V low battery cut-off).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-trig-voltage-val" value="${data.voltage_val || "12.2"}" placeholder="12.2">
-                </div>
-            </div>
+                            <!-- Interval Timer -->
+                            <div class="ha-form-row trig-field-interval ${source === "interval" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Repeating Interval (Seconds)</span>
+                                    <span class="ha-form-sublabel">Period in seconds between repeated executions.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="number" class="ha-form-input can-do-trig-interval-sec" value="${data.interval_sec || 10}" min="1" max="86400">
+                                </div>
+                            </div>
 
-            <!-- Voltage Direction -->
-            <div class="ha-form-row trig-field-voltage ${source === "voltage" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Condition Direction</span>
-                    <span class="ha-form-sublabel">Triggers when 12V supply crosses threshold.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-trig-voltage-dir">
-                        <option value="below" ${data.voltage_dir === "below" || !data.voltage_dir ? "selected" : ""}>Voltage Drops Below (&lt;)</option>
-                        <option value="above" ${data.voltage_dir === "above" ? "selected" : ""}>Voltage Rises Above (&gt;)</option>
-                    </select>
-                </div>
-            </div>
+                            <!-- Voltage Threshold -->
+                            <div class="ha-form-row trig-field-voltage ${source === "voltage" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Battery Voltage Threshold</span>
+                                    <span class="ha-form-sublabel">Threshold in Volts (e.g. 12.2V low battery cut-off).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-trig-voltage-val" value="${data.voltage_val || "12.2"}" placeholder="12.2">
+                                </div>
+                            </div>
 
-            <!-- Expression / Parameter -->
-            <div class="ha-form-row trig-field-expr ${source === "state_change" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Parameter Expression</span>
-                    <span class="ha-form-sublabel">Live math expression or slice (e.g. [B0:B1]).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-trig-expr" value="${data.expression || "[B0:B1]"}" placeholder="[B0:B1]">
-                </div>
-            </div>
+                            <!-- Voltage Direction -->
+                            <div class="ha-form-row trig-field-voltage ${source === "voltage" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Condition Direction</span>
+                                    <span class="ha-form-sublabel">Triggers when 12V supply crosses threshold.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-trig-voltage-dir">
+                                        <option value="below" ${data.voltage_dir === "below" || !data.voltage_dir ? "selected" : ""}>Voltage Drops Below (&lt;)</option>
+                                        <option value="above" ${data.voltage_dir === "above" ? "selected" : ""}>Voltage Rises Above (&gt;)</option>
+                                    </select>
+                                </div>
+                            </div>
 
-            <!-- Hold Duration (For) -->
-            <div class="ha-form-row trig-field-for ${source === "clock" || source === "interval" ? "hidden" : ""}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Hold Duration (For)</span>
-                    <span class="ha-form-sublabel">Must stay continuously active for this duration (0 = Instant).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                        <input type="number" class="ha-form-input can-do-trig-for-sec" value="${data.for_sec !== undefined ? data.for_sec : (data.for_ms ? (data.for_ms / 1000) : 0)}" min="0" max="86400" step="0.5" style="max-width: 100px;" placeholder="0" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                        <span style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem;">seconds</span>
+                            <!-- Expression / Parameter -->
+                            <div class="ha-form-row trig-field-expr ${source === "state_change" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Parameter Expression</span>
+                                    <span class="ha-form-sublabel">Live math expression or slice (e.g. [B0:B1]).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-trig-expr" value="${data.expression || "[B0:B1]"}" placeholder="[B0:B1]">
+                                </div>
+                            </div>
+
+                            <!-- Hold Duration (For) -->
+                            <div class="ha-form-row trig-field-for ${source === "clock" || source === "interval" ? "hidden" : ""}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Hold Duration (For)</span>
+                                    <span class="ha-form-sublabel">Must stay continuously active for this duration (0 = Instant).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                                        <input type="number" class="ha-form-input can-do-trig-for-sec" value="${data.for_sec !== undefined ? data.for_sec : (data.for_ms ? (data.for_ms / 1000) : 0)}" min="0" max="86400" step="0.5" style="max-width: 100px;" placeholder="0" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                        <span style="font-weight: 600; color: var(--text-heading); font-size: 0.85rem;">seconds</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Press Pattern -->
+                            <div class="ha-form-row trig-field-press-pattern ${source === "clock" || source === "interval" || source === "voltage" ? "hidden" : ""}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Press Pattern</span>
+                                    <span class="ha-form-sublabel">Detect single, double, or triple clicks within 450ms.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-trig-click-count" onchange="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                        <option value="1" ${(!data.click_count || data.click_count == 1) ? "selected" : ""}>Single Press (Default)</option>
+                                        <option value="2" ${data.click_count == 2 ? "selected" : ""}>Double Press</option>
+                                        <option value="3" ${data.click_count == 3 ? "selected" : ""}>Triple Press</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Press Pattern -->
-            <div class="ha-form-row trig-field-press-pattern ${source === "clock" || source === "interval" || source === "voltage" ? "hidden" : ""}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Press Pattern</span>
-                    <span class="ha-form-sublabel">Detect single, double, or triple clicks within 450ms.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-trig-click-count" onchange="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                        <option value="1" ${(!data.click_count || data.click_count == 1) ? "selected" : ""}>Single Press (Default)</option>
-                        <option value="2" ${data.click_count == 2 ? "selected" : ""}>Double Press</option>
-                        <option value="3" ${data.click_count == 3 ? "selected" : ""}>Triple Press</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-`;
+                `;
     container.appendChild(itemDiv);
     itemDiv.dataset.detailsOpen = "false";
     if (source === "preset" || !data.source) {
@@ -6031,169 +6031,169 @@ function renderCanDoConditionItem(container, data = {}) {
     const matchPayload = data.match_payload || (matchedPreset ? (matchedPreset.match_payload || "") : "");
 
     itemDiv.innerHTML = `
-    <div class="can-do-subitem-header cond-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="can-do-ha-pill cond-pill">
-                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-settings"/></svg>
-                And if
-            </span>
-            <span class="can-do-subitem-title-cond" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
-                ${matchedPreset ? (matchedPreset.name || "Preset Condition") : "Condition"}
-            </span>
-            <label style="font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem;" onclick="event.stopPropagation();">
-                <input type="checkbox" class="can-do-cond-invert" ${isInverted ? "checked" : ""} onchange="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                <span style="font-weight: 600;">Invert (NOT)</span>
-            </label>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-test-cond" onclick="testCanDoConditionUI(this)" title="Test this condition live">Test</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Condition Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Condition Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'condition')" title="More options">⋮</button>
-        </div>
-    </div>
-    <div class="can-do-subitem-body">
-        <div class="ha-form-grid" style="margin-top: 0.4rem;">
-            <!-- Condition Type -->
-            <div class="ha-form-row">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Condition Type</span>
-                    <span class="ha-form-sublabel">Criteria that must be met before actions run.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-cond-type" onchange="toggleCanDoCondItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
-                        <option value="preset" ${type === "preset" || !data.type ? "selected" : ""}>CAN Do Catalog</option>
-                        <option value="param_range" ${type === "param_range" ? "selected" : ""}>Parameter / State Comparison</option>
-                        <option value="can_state" ${type === "can_state" ? "selected" : ""}>Exact CAN Payload Match</option>
-                        <option value="day_of_week" ${type === "day_of_week" ? "selected" : ""}>Day of the Week</option>
-                        <option value="time_window" ${type === "time_window" ? "selected" : ""}>Time Window (Between Hours)</option>
-                        <option value="voltage" ${type === "voltage" ? "selected" : ""}>12V Battery Voltage Check</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Catalog Preset Selector -->
-            <div class="ha-form-row cond-field-preset ${type === "preset" || !data.type ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Catalog Preset</span>
-                    <span class="ha-form-sublabel">Preconfigured vehicle state conditions (e.g. Park, Doors, Speed).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
-                        <select class="ha-form-select can-do-cond-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoCondPreset(this);" style="font-weight: 600;">
-                            ${renderCondPresetOptionsHTML(selectedPresetVal)}
-                        </select>
-                        <div class="can-do-preset-action-bar">
-                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, expression, or payload details">Edit Details</button>
-                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentConditionAsPreset(this)" title="Save current condition settings as a custom reusable entry">Save to My Catalog</button>
-                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomCondPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
+                    <div class="can-do-subitem-header cond-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+                            <span class="can-do-ha-pill cond-pill">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-settings"/></svg>
+                                And if
+                            </span>
+                            <span class="can-do-subitem-title-cond" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+                                ${matchedPreset ? (matchedPreset.name || "Preset Condition") : "Condition"}
+                            </span>
+                            <label style="font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.4rem;" onclick="event.stopPropagation();">
+                                <input type="checkbox" class="can-do-cond-invert" ${isInverted ? "checked" : ""} onchange="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                <span style="font-weight: 600;">Invert (NOT)</span>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-test-cond" onclick="testCanDoConditionUI(this)" title="Test this condition live">Test</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Condition Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Condition Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'condition')" title="More options">⋮</button>
                         </div>
                     </div>
-                    <div class="can-do-cond-options-container" style="display: none; width: 100%; margin-top: 6px; padding: 6px 10px; background: var(--m3-tonal-cond-bg); border: 1px solid var(--m3-tonal-cond-border); border-radius: 6px;"></div>
-                </div>
-            </div>
+                    <div class="can-do-subitem-body">
+                        <div class="ha-form-grid" style="margin-top: 0.4rem;">
+                            <!-- Condition Type -->
+                            <div class="ha-form-row">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Condition Type</span>
+                                    <span class="ha-form-sublabel">Criteria that must be met before actions run.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-cond-type" onchange="toggleCanDoCondItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
+                                        <option value="preset" ${type === "preset" || !data.type ? "selected" : ""}>CAN Do Catalog</option>
+                                        <option value="param_range" ${type === "param_range" ? "selected" : ""}>Parameter / State Comparison</option>
+                                        <option value="can_state" ${type === "can_state" ? "selected" : ""}>Exact CAN Payload Match</option>
+                                        <option value="day_of_week" ${type === "day_of_week" ? "selected" : ""}>Day of the Week</option>
+                                        <option value="time_window" ${type === "time_window" ? "selected" : ""}>Time Window (Between Hours)</option>
+                                        <option value="voltage" ${type === "voltage" ? "selected" : ""}>12V Battery Voltage Check</option>
+                                    </select>
+                                </div>
+                            </div>
 
-            <!-- Expression / Comparison -->
-            <div class="ha-form-row cond-field-expr ${type === "param_range" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Expression / State Comparison</span>
-                    <span class="ha-form-sublabel">e.g. [B0] == 0x01 or [B0:B1] &gt; 50</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-cond-expr" value="${data.expression || "[B0] == 0x01"}" placeholder="[B0] == 0x01 or [B0:B1] &gt; 50" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                </div>
-            </div>
+                            <!-- Catalog Preset Selector -->
+                            <div class="ha-form-row cond-field-preset ${type === "preset" || !data.type ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Catalog Preset</span>
+                                    <span class="ha-form-sublabel">Preconfigured vehicle state conditions (e.g. Park, Doors, Speed).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
+                                        <select class="ha-form-select can-do-cond-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoCondPreset(this);" style="font-weight: 600;">
+                                            ${renderCondPresetOptionsHTML(selectedPresetVal)}
+                                        </select>
+                                        <div class="can-do-preset-action-bar">
+                                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, expression, or payload details">Edit Details</button>
+                                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentConditionAsPreset(this)" title="Save current condition settings as a custom reusable entry">Save to My Catalog</button>
+                                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomCondPreset(this)" style="display: none;" title="Delete this custom preset">Delete</button>
+                                        </div>
+                                    </div>
+                                    <div class="can-do-cond-options-container" style="display: none; width: 100%; margin-top: 6px; padding: 6px 10px; background: var(--m3-tonal-cond-bg); border: 1px solid var(--m3-tonal-cond-border); border-radius: 6px;"></div>
+                                </div>
+                            </div>
 
-            <!-- CAN ID -->
-            <div class="ha-form-row cond-field-can ${type === "can_state" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">CAN ID (Hex)</span>
-                    <span class="ha-form-sublabel">Arbitration ID to match against vehicle network.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-cond-can-id" value="${canId}" placeholder="0x448">
-                </div>
-            </div>
+                            <!-- Expression / Comparison -->
+                            <div class="ha-form-row cond-field-expr ${type === "param_range" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Expression / State Comparison</span>
+                                    <span class="ha-form-sublabel">e.g. [B0] == 0x01 or [B0:B1] &gt; 50</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-cond-expr" value="${data.expression || "[B0] == 0x01"}" placeholder="[B0] == 0x01 or [B0:B1] &gt; 50" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                </div>
+                            </div>
 
-            <!-- Match Payload Grid -->
-            <div class="ha-form-row cond-field-can ${type === "can_state" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Match Payload (D1–D8)</span>
-                    <span class="ha-form-sublabel">Enter exact hex or wildcard * for any nibble/byte.</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: flex-start;">
-                    ${renderByteInputsHTML("can-do-cond-can", matchPayload)}
-                </div>
-            </div>
+                            <!-- CAN ID -->
+                            <div class="ha-form-row cond-field-can ${type === "can_state" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">CAN ID (Hex)</span>
+                                    <span class="ha-form-sublabel">Arbitration ID to match against vehicle network.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-cond-can-id" value="${canId}" placeholder="0x448">
+                                </div>
+                            </div>
 
-            <!-- Day of the Week -->
-            <div class="ha-form-row cond-field-days ${type === "day_of_week" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Allowed Days of Week</span>
-                    <span class="ha-form-sublabel">Allow rule execution only on selected days.</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: flex-start;">
-                    <div class="ha-days-picker">
-                        ${["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(d => `
-                            <label class="ha-day-checkbox ${days.includes(d) ? 'active' : ''}">
-                                <input type="checkbox" class="can-do-cond-day" value="${d}" ${days.includes(d) ? "checked" : ""} onchange="this.parentElement.classList.toggle('active', this.checked);">
-                                ${d}
-                            </label>
-                        `).join("")}
+                            <!-- Match Payload Grid -->
+                            <div class="ha-form-row cond-field-can ${type === "can_state" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Match Payload (D1–D8)</span>
+                                    <span class="ha-form-sublabel">Enter exact hex or wildcard * for any nibble/byte.</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: flex-start;">
+                                    ${renderByteInputsHTML("can-do-cond-can", matchPayload)}
+                                </div>
+                            </div>
+
+                            <!-- Day of the Week -->
+                            <div class="ha-form-row cond-field-days ${type === "day_of_week" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Allowed Days of Week</span>
+                                    <span class="ha-form-sublabel">Allow rule execution only on selected days.</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: flex-start;">
+                                    <div class="ha-days-picker">
+                                        ${["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(d => `
+                                            <label class="ha-day-checkbox ${days.includes(d) ? 'active' : ''}">
+                                                <input type="checkbox" class="can-do-cond-day" value="${d}" ${days.includes(d) ? "checked" : ""} onchange="this.parentElement.classList.toggle('active', this.checked);">
+                                                ${d}
+                                            </label>
+                                        `).join("")}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Time Window Start -->
+                            <div class="ha-form-row cond-field-time ${type === "time_window" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Start Time (HH:MM)</span>
+                                    <span class="ha-form-sublabel">Beginning of allowed execution window.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-cond-start-time" value="${data.start_time || "07:00"}" placeholder="07:00">
+                                </div>
+                            </div>
+
+                            <!-- Time Window End -->
+                            <div class="ha-form-row cond-field-time ${type === "time_window" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">End Time (HH:MM)</span>
+                                    <span class="ha-form-sublabel">End of allowed execution window.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-cond-end-time" value="${data.end_time || "18:00"}" placeholder="18:00">
+                                </div>
+                            </div>
+
+                            <!-- Voltage Threshold -->
+                            <div class="ha-form-row cond-field-volt ${type === "voltage" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Voltage Threshold (V)</span>
+                                    <span class="ha-form-sublabel">Battery voltage check in Volts (e.g. 12.0V).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-cond-voltage-val" value="${data.voltage_val || "12.0"}" placeholder="12.0">
+                                </div>
+                            </div>
+
+                            <!-- Voltage Direction -->
+                            <div class="ha-form-row cond-field-volt ${type === "voltage" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Voltage Comparison</span>
+                                    <span class="ha-form-sublabel">Check if vehicle battery is above or below threshold.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-cond-voltage-dir">
+                                        <option value="above" ${data.voltage_dir === "above" || !data.voltage_dir ? "selected" : ""}>Voltage &gt; Threshold (Sufficient Battery)</option>
+                                        <option value="below" ${data.voltage_dir === "below" ? "selected" : ""}>Voltage &lt; Threshold (Low Battery)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Time Window Start -->
-            <div class="ha-form-row cond-field-time ${type === "time_window" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Start Time (HH:MM)</span>
-                    <span class="ha-form-sublabel">Beginning of allowed execution window.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-cond-start-time" value="${data.start_time || "07:00"}" placeholder="07:00">
-                </div>
-            </div>
-
-            <!-- Time Window End -->
-            <div class="ha-form-row cond-field-time ${type === "time_window" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">End Time (HH:MM)</span>
-                    <span class="ha-form-sublabel">End of allowed execution window.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-cond-end-time" value="${data.end_time || "18:00"}" placeholder="18:00">
-                </div>
-            </div>
-
-            <!-- Voltage Threshold -->
-            <div class="ha-form-row cond-field-volt ${type === "voltage" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Voltage Threshold (V)</span>
-                    <span class="ha-form-sublabel">Battery voltage check in Volts (e.g. 12.0V).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-cond-voltage-val" value="${data.voltage_val || "12.0"}" placeholder="12.0">
-                </div>
-            </div>
-
-            <!-- Voltage Direction -->
-            <div class="ha-form-row cond-field-volt ${type === "voltage" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Voltage Comparison</span>
-                    <span class="ha-form-sublabel">Check if vehicle battery is above or below threshold.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-cond-voltage-dir">
-                        <option value="above" ${data.voltage_dir === "above" || !data.voltage_dir ? "selected" : ""}>Voltage &gt; Threshold (Sufficient Battery)</option>
-                        <option value="below" ${data.voltage_dir === "below" ? "selected" : ""}>Voltage &lt; Threshold (Low Battery)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-`;
+                `;
     container.appendChild(itemDiv);
     if (type === "preset" || !data.type) {
         const picker = itemDiv.querySelector(".can-do-cond-preset-picker");
@@ -6235,32 +6235,32 @@ function renderCanDoConditionBlock(container, data = {}) {
     });
 
     groupDiv.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.6rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.4rem;">
-        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-            <select class="can-do-group-type" onchange="changeCanDoConditionBlockType(this)" style="height: 26px; font-weight: 700; font-size: 0.82rem; padding: 0 6px; border-radius: 4px; box-sizing: border-box; display: inline-flex; align-items: center;">
-                <option value="and" ${groupType === "and" ? "selected" : ""}>AND Block</option>
-                <option value="or" ${groupType === "or" ? "selected" : ""}>OR Block</option>
-                <option value="not" ${groupType === "not" ? "selected" : ""}>NOT Block</option>
-            </select>
-            <label style="font-size: 0.82rem; color: var(--text-heading); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
-                <input type="checkbox" class="can-do-group-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
-                <b>NOT</b> Invert
-            </label>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Block Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Block Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'condition_group')" title="More options">⋮</button>
-        </div>
-    </div>
-    <div class="can-do-group-conditions-box" style="margin-top: 0.3rem;">
-        <div class="can-do-group-conditions-container" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.6rem;"></div>
-        <button type="button" class="ha-add-element-btn cond subitem can-do-group-add-btn" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-section-box').querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
-            <svg><use href="#icon-plus"/></svg>
-            <span>Add Condition to Block</span>
-        </button>
-    </div>
-`;
+                    <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 0.6rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.4rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                            <select class="can-do-group-type" onchange="changeCanDoConditionBlockType(this)" style="height: 26px; font-weight: 700; font-size: 0.82rem; padding: 0 6px; border-radius: 4px; box-sizing: border-box; display: inline-flex; align-items: center;">
+                                <option value="and" ${groupType === "and" ? "selected" : ""}>AND Block</option>
+                                <option value="or" ${groupType === "or" ? "selected" : ""}>OR Block</option>
+                                <option value="not" ${groupType === "not" ? "selected" : ""}>NOT Block</option>
+                            </select>
+                            <label style="font-size: 0.82rem; color: var(--text-heading); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
+                                <input type="checkbox" class="can-do-group-invert" ${isInverted ? "checked" : ""} style="width: auto; height: auto; margin: 0;">
+                                <b>NOT</b> Invert
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Block Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Block Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'condition_group')" title="More options">⋮</button>
+                        </div>
+                    </div>
+                    <div class="can-do-group-conditions-box" style="margin-top: 0.3rem;">
+                        <div class="can-do-group-conditions-container" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.6rem;"></div>
+                        <button type="button" class="ha-add-element-btn cond subitem can-do-group-add-btn" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-section-box').querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
+                            <svg><use href="#icon-plus"/></svg>
+                            <span>Add Condition to Block</span>
+                        </button>
+                    </div>
+                `;
     container.appendChild(groupDiv);
 
     const innerContainer = groupDiv.querySelector(".can-do-group-conditions-container");
@@ -6354,20 +6354,20 @@ function showAddConditionMenu(btn, event) {
     window._activeCondCard = card;
 
     menu.innerHTML = `
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600;" onclick="renderCanDoConditionItem(window._activeCondTargetContainer, { type: 'preset' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>Single Condition</span>
-    </div>
-    <div class="can-do-ha-menu-divider"></div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'and' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>AND Block</span>
-    </div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'or' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>OR Block</span>
-    </div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'not' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>NOT Block</span>
-    </div>
-`;
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600;" onclick="renderCanDoConditionItem(window._activeCondTargetContainer, { type: 'preset' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>Single Condition</span>
+                    </div>
+                    <div class="can-do-ha-menu-divider"></div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'and' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>AND Block</span>
+                    </div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'or' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>OR Block</span>
+                    </div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="renderCanDoConditionBlock(window._activeCondTargetContainer, { group_type: 'not' }); updateCanDoSectionCountBadges(window._activeCondCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>NOT Block</span>
+                    </div>
+                `;
 
     positionFloatingMenu(menu, btn);
 
@@ -6396,18 +6396,18 @@ function showCreateConditionBlockMenu(btn, event) {
     menu.style.fontSize = "0.84rem";
 
     menu.innerHTML = `
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="wrapConditionInBlock(window._activeWrapItem, 'and'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>Create AND Block</span>
-    </div>
-    <div class="can-do-ha-menu-divider"></div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="wrapConditionInBlock(window._activeWrapItem, 'or'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>Create OR Block</span>
-    </div>
-    <div class="can-do-ha-menu-divider"></div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="wrapConditionInBlock(window._activeWrapItem, 'not'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>Create NOT Block</span>
-    </div>
-`;
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-cond-color);" onclick="wrapConditionInBlock(window._activeWrapItem, 'and'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>Create AND Block</span>
+                    </div>
+                    <div class="can-do-ha-menu-divider"></div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-tertiary);" onclick="wrapConditionInBlock(window._activeWrapItem, 'or'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>Create OR Block</span>
+                    </div>
+                    <div class="can-do-ha-menu-divider"></div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--md-sys-color-error);" onclick="wrapConditionInBlock(window._activeWrapItem, 'not'); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>Create NOT Block</span>
+                    </div>
+                `;
 
     window._activeWrapItem = item;
     positionFloatingMenu(menu, btn);
@@ -6456,17 +6456,17 @@ function showAddActionMenu(btn, event) {
     window._activeActCard = card;
 
     menu.innerHTML = `
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-act-color);" onclick="renderCanDoActionItem(window._activeActTargetContainer, { type: 'preset' }); updateCanDoSectionCountBadges(window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>Standard Action Step</span>
-    </div>
-    <div class="can-do-ha-menu-divider"></div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-ifthen-color);" onclick="renderCanDoIfThenBlock(window._activeActTargetContainer, { type: 'if_then' }); updateCanDoSectionCountBadges(window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>If - Then - Else Block</span>
-    </div>
-    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-choose-color);" onclick="addCanDoChooseBlockToContainer(window._activeActTargetContainer, window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
-        <span>Choose Block</span>
-    </div>
-`;
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-act-color);" onclick="renderCanDoActionItem(window._activeActTargetContainer, { type: 'preset' }); updateCanDoSectionCountBadges(window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>Standard Action Step</span>
+                    </div>
+                    <div class="can-do-ha-menu-divider"></div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-ifthen-color);" onclick="renderCanDoIfThenBlock(window._activeActTargetContainer, { type: 'if_then' }); updateCanDoSectionCountBadges(window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>If - Then - Else Block</span>
+                    </div>
+                    <div class="can-do-menu-item" style="padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--m3-tonal-choose-color);" onclick="addCanDoChooseBlockToContainer(window._activeActTargetContainer, window._activeActCard); document.querySelectorAll('.can-do-floating-menu').forEach(m => m.remove());">
+                        <span>Choose Block</span>
+                    </div>
+                `;
 
     positionFloatingMenu(menu, btn);
 
@@ -6492,94 +6492,94 @@ function showCanDoSubitemMenu(btn, event, type) {
     let menuHTML = "";
     if (type === "trigger") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoTriggerItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) { updateCanDoRuleTriggerDropdowns(card); updateCanDoSectionCountBadges(card); } document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoTriggerItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) { updateCanDoRuleTriggerDropdowns(card); updateCanDoSectionCountBadges(card); } document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete</span>
+                            </div>
+                        `;
     } else if (type === "condition") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoConditionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'and'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Convert to AND Block</span>
-            </div>
-            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'or'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Convert to OR Block</span>
-            </div>
-            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'not'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Convert to NOT Block</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoConditionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'and'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Convert to AND Block</span>
+                            </div>
+                            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'or'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Convert to OR Block</span>
+                            </div>
+                            <div class="can-do-ha-menu-item" onclick="wrapConditionInBlock(window._activeMenuItem, 'not'); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Convert to NOT Block</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete</span>
+                            </div>
+                        `;
     } else if (type === "condition_group") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoConditionBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate Block</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete Block</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoConditionBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate Block</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete Block</span>
+                            </div>
+                        `;
     } else if (type === "action") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoActionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoActionItem(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete</span>
+                            </div>
+                        `;
     } else if (type === "choose_block") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoChooseBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate Choose Block</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete Choose Block</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoChooseBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate Choose Block</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete Choose Block</span>
+                            </div>
+                        `;
     } else if (type === "choose_option") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoChooseOption(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate Option Branch</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="removeCanDoChooseOption(window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete Option Branch</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoChooseOption(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate Option Branch</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="removeCanDoChooseOption(window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete Option Branch</span>
+                            </div>
+                        `;
     } else if (type === "ifthen_block") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoIfThenBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate If-Then Block</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete If-Then Block</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoIfThenBlock(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate If-Then Block</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="const card = this.closest('.can-do-rule-card') || window._activeMenuCard; window._activeMenuItem.remove(); if (card) updateCanDoSectionCountBadges(card); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete If-Then Block</span>
+                            </div>
+                        `;
     } else if (type === "payload_step") {
         menuHTML += `
-            <div class="can-do-ha-menu-item" onclick="cloneCanDoPayloadStep(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Duplicate Step</span>
-            </div>
-            <div class="can-do-ha-menu-divider"></div>
-            <div class="can-do-ha-menu-item danger" onclick="removeCanDoPayloadStep(window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-                <span>Delete Step</span>
-            </div>
-        `;
+                            <div class="can-do-ha-menu-item" onclick="cloneCanDoPayloadStep(window._activeMenuItem || window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Duplicate Step</span>
+                            </div>
+                            <div class="can-do-ha-menu-divider"></div>
+                            <div class="can-do-ha-menu-item danger" onclick="removeCanDoPayloadStep(window._activeMenuBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                                <span>Delete Step</span>
+                            </div>
+                        `;
     }
 
     menu.innerHTML = menuHTML;
@@ -6696,31 +6696,31 @@ function showCanDoRuleHeaderMenu(btn, event) {
     const menu = document.createElement("div");
     menu.className = "can-do-ha-menu";
     menu.innerHTML = `
-        <div class="can-do-ha-menu-item" onclick="runCanDoRuleImmediate(window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Run Automation Actions</span>
-        </div>
-        <div class="can-do-ha-menu-item" onclick="toggleCanDoRuleSections(window._activeRuleCardBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Toggle Expand / Collapse Sections</span>
-        </div>
-        <div class="can-do-ha-menu-divider"></div>
-        <div class="can-do-ha-menu-item" onclick="showCanDoHaSettingsModal(window._activeRuleCardBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Home Assistant Entity...</span>
-        </div>
-        <div class="can-do-ha-menu-divider"></div>
-        <div class="can-do-ha-menu-item" onclick="duplicateCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Duplicate Rule</span>
-        </div>
-        <div class="can-do-ha-menu-item" onclick="exportSingleCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Export JSON</span>
-        </div>
-        <div class="can-do-ha-menu-item" onclick="copySingleCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Copy JSON</span>
-        </div>
-        <div class="can-do-ha-menu-divider"></div>
-        <div class="can-do-ha-menu-item danger" onclick="deleteCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Delete Rule</span>
-        </div>
-    `;
+                        <div class="can-do-ha-menu-item" onclick="runCanDoRuleImmediate(window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Run Automation Actions</span>
+                        </div>
+                        <div class="can-do-ha-menu-item" onclick="toggleCanDoRuleSections(window._activeRuleCardBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Toggle Expand / Collapse Sections</span>
+                        </div>
+                        <div class="can-do-ha-menu-divider"></div>
+                        <div class="can-do-ha-menu-item" onclick="showCanDoHaSettingsModal(window._activeRuleCardBtn); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Home Assistant Entity...</span>
+                        </div>
+                        <div class="can-do-ha-menu-divider"></div>
+                        <div class="can-do-ha-menu-item" onclick="duplicateCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Duplicate Rule</span>
+                        </div>
+                        <div class="can-do-ha-menu-item" onclick="exportSingleCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Export JSON</span>
+                        </div>
+                        <div class="can-do-ha-menu-item" onclick="copySingleCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Copy JSON</span>
+                        </div>
+                        <div class="can-do-ha-menu-divider"></div>
+                        <div class="can-do-ha-menu-item danger" onclick="deleteCanDoRuleUI(window._activeRuleCardBtn || window._activeRuleCard); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Delete Rule</span>
+                        </div>
+                    `;
 
     window._activeRuleCardBtn = btn;
     window._activeRuleCard = card;
@@ -6750,54 +6750,54 @@ function showCanDoHaSettingsModal(btn) {
     overlay.style.cssText = "position: fixed; inset: 0; z-index: 1000000; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 1rem;";
 
     overlay.innerHTML = `
-        <div class="can-do-ha-settings-modal" style="width: 100%; max-width: 460px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-radius: var(--m3-shape-lg, 16px); padding: 1.5rem; margin: 0; position: relative;" onclick="event.stopPropagation();">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
-                <div>
-                    <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.5rem;">
-                        <span>Home Assistant Integration</span>
-                    </h3>
-                    <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 3px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        "${ruleName}"
-                    </span>
-                </div>
-                <button type="button" class="system-button" style="width: 28px; height: 28px; min-width: 28px; padding: 0; font-size: 0.9rem; border-radius: 50%;" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">✕</button>
-            </div>
+                        <div class="can-do-ha-settings-modal" style="width: 100%; max-width: 460px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-radius: var(--m3-shape-lg, 16px); padding: 1.5rem; margin: 0; position: relative;" onclick="event.stopPropagation();">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+                                <div>
+                                    <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>Home Assistant Integration</span>
+                                    </h3>
+                                    <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 3px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        "${ruleName}"
+                                    </span>
+                                </div>
+                                <button type="button" class="system-button" style="width: 28px; height: 28px; min-width: 28px; padding: 0; font-size: 0.9rem; border-radius: 50%;" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">✕</button>
+                            </div>
 
-            <div style="display: flex; flex-direction: column; gap: 1.1rem;">
-                <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
-                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
-                    <div>
-                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
-                    </div>
-                </label>
+                            <div style="display: flex; flex-direction: column; gap: 1.1rem;">
+                                <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
+                                    <div>
+                                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
+                                    </div>
+                                </label>
 
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
-                        Material Design Icon (MDI):
-                    </label>
-                    <input type="text" id="can_do_modal_ha_icon" value="${currentIcon}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px;">
-                    <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
+                                <div>
+                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
+                                        Material Design Icon (MDI):
+                                    </label>
+                                    <input type="text" id="can_do_modal_ha_icon" value="${currentIcon}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
 
-                    <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
-                        <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
-                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
-                    </div>
-                </div>
+                                    <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
+                                        <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
+                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
+                                    </div>
+                                </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
-                    <button type="button" class="system-button" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">Cancel</button>
-                    <button type="button" class="primary-button" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
-                </div>
-            </div>
-        </div>
-    `;
+                                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
+                                    <button type="button" class="system-button" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">Cancel</button>
+                                    <button type="button" class="primary-button" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
 
     window._activeHaTargetCard = card;
     document.body.appendChild(overlay);
@@ -6880,26 +6880,26 @@ function renderCanDoPayloadStep(container, stepData = {}) {
     const stepIdx = container.querySelectorAll(".can-do-payload-step-item").length + 1;
 
     stepDiv.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-        <span class="can-do-step-label" style="font-weight: 700; font-size: 0.8rem; color: var(--m3-tonal-act-color);">Step <span class="step-num">${stepIdx}</span>:</span>
-        <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <button type="button" class="system-button can-do-subitem-btn can-do-step-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Step Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-step-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Step Down">▼</button>
-            <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
-                Repeat:
-                <input type="number" class="can-do-step-repeat" value="${repeatVal}" min="1" max="1000">
-                <span style="font-size: 0.75rem;">x</span>
-            </label>
-            <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;" title="Optional per-step override delay before next frame (ms). Leave blank to use action default.">
-                Delay:
-                <input type="number" class="can-do-step-delay-ms" value="${delayVal}" placeholder="def" min="0" max="60000" style="width: 52px; height: 24px; text-align: center; padding: 2px 4px; font-size: 0.8rem;">
-                <span style="font-size: 0.75rem;">ms</span>
-            </label>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'payload_step')" title="More options">⋮</button>
-        </div>
-    </div>
-    ${renderByteInputsHTML("can-do-step-byte", stepData.payload || "")}
-`;
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                        <span class="can-do-step-label" style="font-weight: 700; font-size: 0.8rem; color: var(--m3-tonal-act-color);">Step <span class="step-num">${stepIdx}</span>:</span>
+                        <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-step-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Step Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-step-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Step Down">▼</button>
+                            <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;">
+                                Repeat:
+                                <input type="number" class="can-do-step-repeat" value="${repeatVal}" min="1" max="1000">
+                                <span style="font-size: 0.75rem;">x</span>
+                            </label>
+                            <label style="font-size: 0.8rem; color: var(--m3-tonal-act-color); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin-left: 0.2rem;" title="Optional per-step override delay before next frame (ms). Leave blank to use action default.">
+                                Delay:
+                                <input type="number" class="can-do-step-delay-ms" value="${delayVal}" placeholder="def" min="0" max="60000" style="width: 52px; height: 24px; text-align: center; padding: 2px 4px; font-size: 0.8rem;">
+                                <span style="font-size: 0.75rem;">ms</span>
+                            </label>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'payload_step')" title="More options">⋮</button>
+                        </div>
+                    </div>
+                    ${renderByteInputsHTML("can-do-step-byte", stepData.payload || "")}
+                `;
     container.appendChild(stepDiv);
 }
 
@@ -7198,292 +7198,292 @@ function renderCanDoActionItem(container, data = {}) {
     });
 
     itemDiv.innerHTML = `
-    <div class="can-do-subitem-header act-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="can-do-ha-pill act-pill">
-                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-radiator"/></svg>
-                Then do
-            </span>
-            <span class="can-do-subitem-title-act" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
-                ${initialActTitle}
-            </span>
-            <span class="can-do-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-test-act" onclick="testCanDoActionUI(this)" title="Execute this action immediately">Test Step</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Action Step Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Action Step Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'action')" title="More options">⋮</button>
-        </div>
-    </div>
-    <div class="can-do-subitem-body">
-        <div class="ha-form-grid" style="margin-top: 0.4rem;">
-            <!-- Action Type -->
-            <div class="ha-form-row">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Action Type</span>
-                    <span class="ha-form-sublabel">Select what command or event to fire.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-act-type" onchange="toggleCanDoActItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
-                        <option value="preset" ${type === "preset" ? "selected" : ""}>CAN Do Catalog</option>
-                        <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
-                        <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
-                        <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
-                        <option value="mqtt" ${type === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
-                        <option value="webhook" ${type === "webhook" ? "selected" : ""}>Trigger Webhook POST</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Catalog Preset Selector -->
-            <div class="ha-form-row act-field-preset ${type === "preset" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Catalog Preset</span>
-                    <span class="ha-form-sublabel">Preconfigured vehicle commands (climate, locks, lighting, etc).</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
-                        <select class="ha-form-select can-do-act-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoActionPreset(this);" style="font-weight: 600;">
-                            ${renderActPresetOptionsHTML(selectedPresetVal)}
-                        </select>
-                        <div class="can-do-preset-action-bar">
-                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, bus, delay, payload, and popup text to edit them">Edit Details</button>
-                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentActionAsPreset(this)" title="Save current action configuration as a custom reusable entry">Save to My Catalog</button>
-                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomActPreset(this)" style="display: none;" title="Delete this custom template">Delete</button>
+                    <div class="can-do-subitem-header act-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+                            <span class="can-do-ha-pill act-pill">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-radiator"/></svg>
+                                Then do
+                            </span>
+                            <span class="can-do-subitem-title-act" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px;">
+                                ${initialActTitle}
+                            </span>
+                            <span class="can-do-subitem-summary" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.2rem;"></span>
                         </div>
-                        <div class="can-do-act-options-container" style="display: none; margin-top: 4px; padding: 6px 10px; border: 1px dashed var(--border-color); border-radius: 6px; width: 100%; box-sizing: border-box;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Climate Controls Checkboxes -->
-            <div class="ha-form-row act-field-climate ${(type === "climate_target" || hasClimateData) ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Climate Settings</span>
-                    <span class="ha-form-sublabel">Dual-zone synchronization and driver-only preferences.</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: flex-start;">
-                    <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; width: 100%;">
-                        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; cursor: pointer; user-select: none;">
-                            <input type="checkbox" class="can-do-act-climate-sync" ${isSyncOn ? "checked" : ""} ${isDrvOnly ? "disabled" : ""} onchange="updateCanDoClimateUI(this)">
-                            <span><b>Enable HVAC Sync (Dual Zone)</b></span>
-                        </label>
-                        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; cursor: pointer; user-select: none;">
-                            <input type="checkbox" class="can-do-act-climate-drv-only" ${isDrvOnly ? "checked" : ""} onchange="updateCanDoClimateUI(this)">
-                            <span><b>Driver Only Mode</b></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Driver / Synced Target Temp -->
-            <div class="ha-form-row act-field-climate ${hasClimateData ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label can-do-climate-drv-label">${(isSyncOn && !isDrvOnly) ? "Synced Cabin Temp:" : "Driver Target Temp:"}</span>
-                    <span class="ha-form-sublabel">Set desired cabin temperature.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                        <input type="number" class="ha-form-input can-do-act-target-temp" value="${initialTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCanDoClimateTempChange(this)">
-                        <span class="can-do-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Passenger Target Temp -->
-            <div class="ha-form-row act-field-climate can-do-climate-pass-row ${hasClimateData && (!isSyncOn && !isDrvOnly) ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Passenger Target Temp:</span>
-                    <span class="ha-form-sublabel">Separate temperature when sync is disabled.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                        <input type="number" class="ha-form-input can-do-act-pass-temp" value="${initialPassTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCanDoClimateTempChange(this)">
-                        <span class="can-do-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Preconditioning Mode -->
-            <div class="ha-form-row act-field-precon ${type === "precondition" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Preconditioning Mode</span>
-                    <span class="ha-form-sublabel">How vehicle temperature is maintained.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-act-precon-mode">
-                        <option value="persistent" ${(!data.precon_mode || data.precon_mode === "persistent") ? "selected" : ""}>Persistent (Maintain temp &amp; restart on car READY)</option>
-                        <option value="continuous" ${data.precon_mode === "continuous" ? "selected" : ""}>Continuous (Maintain temp while car is ON)</option>
-                        <option value="once" ${data.precon_mode === "once" ? "selected" : ""}>Once (Single preconditioning cycle)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Preconditioning Press Type -->
-            <div class="ha-form-row act-field-precon ${type === "precondition" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Press Type</span>
-                    <span class="ha-form-sublabel">Simulation duration for HVAC power sequence.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-act-precon-press">
-                        <option value="short" ${(!data.precon_press || data.precon_press === "short") ? "selected" : ""}>Short Press</option>
-                        <option value="long" ${data.precon_press === "long" ? "selected" : ""}>Long Press (hold 1s)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Dashboard Popup OSD -->
-            <div class="ha-form-row act-field-popup ${type === "popup" || type === "can_tx" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Dashboard Popup Text (OSD)</span>
-                    <span class="ha-form-sublabel">Heads-up display alert shown on WiCAN Web UI or vehicle screen.</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: flex-start;">
-                    <input type="text" class="ha-form-input can-do-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                    <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; user-select: none; margin-top: 4px;">
-                        <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted);">Insert Variable:</span>
-                        <code class="can-do-livevar-chip" title="Battery temp" onclick="insertCanDoPopupTokenUnit(this, 'battery_temp')">Temp</code>
-                        <code class="can-do-livevar-chip" title="12V battery voltage" onclick="insertCanDoPopupToken(this, '{voltage}')">Voltage</code>
-                        <code class="can-do-livevar-chip" title="High-voltage battery SOC%" onclick="insertCanDoPopupToken(this, '{soc}')">SOC%</code>
-                        <code class="can-do-livevar-chip" title="Vehicle speed" onclick="insertCanDoPopupTokenUnit(this, 'speed')">Speed</code>
-                        <code class="can-do-livevar-chip" title="Precondition status" onclick="insertCanDoPopupToken(this, '{precon_status}')">Precon</code>
-                        <code class="can-do-livevar-chip" title="Status" onclick="insertCanDoPopupToken(this, '{status}')">Status</code>
-                        <code class="can-do-livevar-chip" title="Time HH:MM" onclick="insertCanDoPopupToken(this, '{time}')">Time</code>
-                        <code class="can-do-livevar-chip" title="Date" onclick="insertCanDoPopupToken(this, '{date}')">Date</code>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CAN ID -->
-            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Response CAN ID (Hex)</span>
-                    <span class="ha-form-sublabel">Arbitration ID to transmit on vehicle CAN network.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
-                </div>
-            </div>
-
-            <!-- Target Bus -->
-            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Target CAN Bus</span>
-                    <span class="ha-form-sublabel">Select transceiver to broadcast transmission.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <select class="ha-form-select can-do-act-bus">
-                        <option value="0" ${data.bus === 0 || !data.bus ? "selected" : ""}>CAN 0 (Primary)</option>
-                        <option value="1" ${data.bus === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Inter-frame Delay -->
-            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Inter-frame Delay (ms)</span>
-                    <span class="ha-form-sublabel">Pause between sequential frame bursts.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="number" class="ha-form-input can-do-act-delay-ms" value="${data.delay_ms || 10}">
-                </div>
-            </div>
-
-            <!-- CAN Payload Sequence Box -->
-            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">CAN Sequence Steps</span>
-                    <span class="ha-form-sublabel">Multi-step frame bursts sent sequentially on execution.</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: stretch;">
-                    <div class="can-do-payload-steps-box" style="width: 100%;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--m3-tonal-act-bg); border-bottom: 1px dashed var(--m3-tonal-act-border); border-radius: 6px 6px 0 0; font-size: 0.78rem;">
-                            <span class="can-do-steps-summary-text" style="color: var(--m3-tonal-act-color); font-weight: 700;">Sequence Steps</span>
-                            <button type="button" class="system-button can-do-toggle-steps-btn" style="padding: 2px 8px; font-size: 0.7rem; height: 22px;" onclick="toggleCanDoStepsCollapse(this)" title="Collapse or expand payload steps preview">↕ Collapse</button>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-test-act" onclick="testCanDoActionUI(this)" title="Execute this action immediately">Test Step</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Action Step Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Action Step Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'action')" title="More options">⋮</button>
                         </div>
-                        <div class="can-do-payload-steps-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.6rem 0.5rem 0.3rem 0.5rem;"></div>
-                        <button type="button" class="ha-add-element-btn act subitem" onclick="addCanDoPayloadStep(this)" style="margin: 0; border-radius: 0 0 6px 6px; border-top: none;">
-                            <svg><use href="#icon-plus"/></svg>
-                            <span>Add Frame Step</span>
-                        </button>
                     </div>
-                </div>
-            </div>
+                    <div class="can-do-subitem-body">
+                        <div class="ha-form-grid" style="margin-top: 0.4rem;">
+                            <!-- Action Type -->
+                            <div class="ha-form-row">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Action Type</span>
+                                    <span class="ha-form-sublabel">Select what command or event to fire.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-act-type" onchange="toggleCanDoActItemUI(this); updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'));">
+                                        <option value="preset" ${type === "preset" ? "selected" : ""}>CAN Do Catalog</option>
+                                        <option value="can_tx" ${type === "can_tx" ? "selected" : ""}>Transmit CAN Sequence</option>
+                                        <option value="popup" ${type === "popup" ? "selected" : ""}>Dashboard Popup Only (OSD)</option>
+                                        <option value="delay" ${type === "delay" ? "selected" : ""}>Delay / Wait</option>
+                                        <option value="mqtt" ${type === "mqtt" ? "selected" : ""}>Publish MQTT Alert</option>
+                                        <option value="webhook" ${type === "webhook" ? "selected" : ""}>Trigger Webhook POST</option>
+                                    </select>
+                                </div>
+                            </div>
 
-            <!-- Wait / Delay -->
-            <div class="ha-form-row act-field-delay ${type === "delay" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label" style="display: inline-flex; align-items: center; gap: 6px;">
-                        Wait Duration
-                        <span class="ha-duration-badge can-do-delay-badge">${formatDurationDisplay(data.wait_ms || 500)}</span>
-                    </span>
-                    <span class="ha-form-sublabel">Pause execution before continuing to the next action step.</span>
-                </div>
-                <div class="ha-form-control-col" style="align-items: stretch;">
-                    <input type="hidden" class="can-do-act-wait-ms" value="${data.wait_ms || 500}">
-                    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-                        <input type="number" class="ha-form-input can-do-act-wait-helper" 
-                            style="flex: 1; min-width: 90px;" 
-                            value="${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? (data.wait_ms / 1000) : (data.wait_ms || 500)}" 
-                            min="1" 
-                            step="${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? '0.5' : '50'}"
-                            oninput="onCanDoDelayHelperInput(this)" 
-                            placeholder="500">
-                        <select class="ha-form-select can-do-act-wait-unit" style="width: 130px;" onchange="onCanDoDelayUnitChange(this)">
-                            <option value="ms" ${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? "" : "selected"}>Milliseconds (ms)</option>
-                            <option value="sec" ${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? "selected" : ""}>Seconds (s)</option>
-                        </select>
-                    </div>
-                    <div class="ha-duration-chips">
-                        <span class="ha-duration-chip ${(data.wait_ms === 100) ? 'active' : ''}" data-ms="100" onclick="setCanDoDelayPreset(this, 100)">100ms</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 250) ? 'active' : ''}" data-ms="250" onclick="setCanDoDelayPreset(this, 250)">250ms</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 500 || !data.wait_ms) ? 'active' : ''}" data-ms="500" onclick="setCanDoDelayPreset(this, 500)">500ms</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 1000) ? 'active' : ''}" data-ms="1000" onclick="setCanDoDelayPreset(this, 1000)">1s</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 2000) ? 'active' : ''}" data-ms="2000" onclick="setCanDoDelayPreset(this, 2000)">2s</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 5000) ? 'active' : ''}" data-ms="5000" onclick="setCanDoDelayPreset(this, 5000)">5s</span>
-                        <span class="ha-duration-chip ${(data.wait_ms === 10000) ? 'active' : ''}" data-ms="10000" onclick="setCanDoDelayPreset(this, 10000)">10s</span>
-                    </div>
-                </div>
-            </div>
+                            <!-- Catalog Preset Selector -->
+                            <div class="ha-form-row act-field-preset ${type === "preset" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Catalog Preset</span>
+                                    <span class="ha-form-sublabel">Preconfigured vehicle commands (climate, locks, lighting, etc).</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <div class="can-do-preset-toolbar-wrap" style="width: 100%;">
+                                        <select class="ha-form-select can-do-act-preset-picker" data-selected-preset="${selectedPresetVal}" onchange="this.setAttribute('data-selected-preset', this.value); applyCanDoActionPreset(this);" style="font-weight: 600;">
+                                            ${renderActPresetOptionsHTML(selectedPresetVal)}
+                                        </select>
+                                        <div class="can-do-preset-action-bar">
+                                            <button type="button" class="system-button can-do-edit-preset-btn" onclick="toggleCanDoItemDetails(this)" title="Show or hide underlying CAN ID, bus, delay, payload, and popup text to edit them">Edit Details</button>
+                                            <button type="button" class="system-button can-do-save-preset-btn" onclick="saveCurrentActionAsPreset(this)" title="Save current action configuration as a custom reusable entry">Save to My Catalog</button>
+                                            <button type="button" class="delete-btn can-do-del-preset-btn" onclick="deleteCustomActPreset(this)" style="display: none;" title="Delete this custom template">Delete</button>
+                                        </div>
+                                        <div class="can-do-act-options-container" style="display: none; margin-top: 4px; padding: 6px 10px; border: 1px dashed var(--border-color); border-radius: 6px; width: 100%; box-sizing: border-box;"></div>
+                                    </div>
+                                </div>
+                            </div>
 
-            <!-- MQTT Topic -->
-            <div class="ha-form-row act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">MQTT Publish Topic</span>
-                    <span class="ha-form-sublabel">Broker topic to publish event alert.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-act-mqtt-topic" value="${data.mqtt_topic || "homeassistant/sensor/wican/event"}" placeholder="homeassistant/sensor/wican/event">
-                </div>
-            </div>
+                            <!-- Climate Controls Checkboxes -->
+                            <div class="ha-form-row act-field-climate ${(type === "climate_target" || hasClimateData) ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Climate Settings</span>
+                                    <span class="ha-form-sublabel">Dual-zone synchronization and driver-only preferences.</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: flex-start;">
+                                    <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; width: 100%;">
+                                        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; cursor: pointer; user-select: none;">
+                                            <input type="checkbox" class="can-do-act-climate-sync" ${isSyncOn ? "checked" : ""} ${isDrvOnly ? "disabled" : ""} onchange="updateCanDoClimateUI(this)">
+                                            <span><b>Enable HVAC Sync (Dual Zone)</b></span>
+                                        </label>
+                                        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; cursor: pointer; user-select: none;">
+                                            <input type="checkbox" class="can-do-act-climate-drv-only" ${isDrvOnly ? "checked" : ""} onchange="updateCanDoClimateUI(this)">
+                                            <span><b>Driver Only Mode</b></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
 
-            <!-- MQTT Payload -->
-            <div class="ha-form-row act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">MQTT Publish Payload</span>
-                    <span class="ha-form-sublabel">JSON or string message published.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-act-mqtt-payload" value="${data.mqtt_payload || '{\"event\":\"triggered\"}'}" placeholder='{"event":"triggered"}'>
-                </div>
-            </div>
+                            <!-- Driver / Synced Target Temp -->
+                            <div class="ha-form-row act-field-climate ${hasClimateData ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label can-do-climate-drv-label">${(isSyncOn && !isDrvOnly) ? "Synced Cabin Temp:" : "Driver Target Temp:"}</span>
+                                    <span class="ha-form-sublabel">Set desired cabin temperature.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                                        <input type="number" class="ha-form-input can-do-act-target-temp" value="${initialTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCanDoClimateTempChange(this)">
+                                        <span class="can-do-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
+                                    </div>
+                                </div>
+                            </div>
 
-            <!-- Webhook URL -->
-            <div class="ha-form-row act-field-webhook ${type === "webhook" ? "" : "hidden"}">
-                <div class="ha-form-label-col">
-                    <span class="ha-form-label">Webhook URL</span>
-                    <span class="ha-form-sublabel">Endpoint URL receiving HTTP POST on execution.</span>
-                </div>
-                <div class="ha-form-control-col">
-                    <input type="text" class="ha-form-input can-do-act-webhook-url" value="${data.webhook_url || ''}" placeholder="http://192.168.1.100:8123/api/webhook/my_event">
-                </div>
-            </div>
-        </div>
-    </div>`;
+                            <!-- Passenger Target Temp -->
+                            <div class="ha-form-row act-field-climate can-do-climate-pass-row ${hasClimateData && (!isSyncOn && !isDrvOnly) ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Passenger Target Temp:</span>
+                                    <span class="ha-form-sublabel">Separate temperature when sync is disabled.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                                        <input type="number" class="ha-form-input can-do-act-pass-temp" value="${initialPassTemp}" step="${isImperial ? '1' : '0.5'}" min="${isImperial ? '62' : '17.0'}" max="${isImperial ? '82' : '28.0'}" style="max-width: 100px;" oninput="onCanDoClimateTempChange(this)">
+                                        <span class="can-do-target-temp-unit" style="font-weight: 700; color: var(--m3-tonal-act-color); font-size: 0.9rem;">${isImperial ? "°F" : "°C"}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preconditioning Mode -->
+                            <div class="ha-form-row act-field-precon ${type === "precondition" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Preconditioning Mode</span>
+                                    <span class="ha-form-sublabel">How vehicle temperature is maintained.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-act-precon-mode">
+                                        <option value="persistent" ${(!data.precon_mode || data.precon_mode === "persistent") ? "selected" : ""}>Persistent (Maintain temp &amp; restart on car READY)</option>
+                                        <option value="continuous" ${data.precon_mode === "continuous" ? "selected" : ""}>Continuous (Maintain temp while car is ON)</option>
+                                        <option value="once" ${data.precon_mode === "once" ? "selected" : ""}>Once (Single preconditioning cycle)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Preconditioning Press Type -->
+                            <div class="ha-form-row act-field-precon ${type === "precondition" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Press Type</span>
+                                    <span class="ha-form-sublabel">Simulation duration for HVAC power sequence.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-act-precon-press">
+                                        <option value="short" ${(!data.precon_press || data.precon_press === "short") ? "selected" : ""}>Short Press</option>
+                                        <option value="long" ${data.precon_press === "long" ? "selected" : ""}>Long Press (hold 1s)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Dashboard Popup OSD -->
+                            <div class="ha-form-row act-field-popup ${type === "popup" || type === "can_tx" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Dashboard Popup Text (OSD)</span>
+                                    <span class="ha-form-sublabel">Heads-up display alert shown on WiCAN Web UI or vehicle screen.</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: flex-start;">
+                                    <input type="text" class="ha-form-input can-do-act-popup-msg" value="${data.popup_message || data.track_popup || ""}" placeholder="e.g. Batt: {battery_temp}C ({voltage}V)" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; user-select: none; margin-top: 4px;">
+                                        <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted);">Insert Variable:</span>
+                                        <code class="can-do-livevar-chip" title="Battery temp" onclick="insertCanDoPopupTokenUnit(this, 'battery_temp')">Temp</code>
+                                        <code class="can-do-livevar-chip" title="12V battery voltage" onclick="insertCanDoPopupToken(this, '{voltage}')">Voltage</code>
+                                        <code class="can-do-livevar-chip" title="High-voltage battery SOC%" onclick="insertCanDoPopupToken(this, '{soc}')">SOC%</code>
+                                        <code class="can-do-livevar-chip" title="Vehicle speed" onclick="insertCanDoPopupTokenUnit(this, 'speed')">Speed</code>
+                                        <code class="can-do-livevar-chip" title="Precondition status" onclick="insertCanDoPopupToken(this, '{precon_status}')">Precon</code>
+                                        <code class="can-do-livevar-chip" title="Status" onclick="insertCanDoPopupToken(this, '{status}')">Status</code>
+                                        <code class="can-do-livevar-chip" title="Time HH:MM" onclick="insertCanDoPopupToken(this, '{time}')">Time</code>
+                                        <code class="can-do-livevar-chip" title="Date" onclick="insertCanDoPopupToken(this, '{date}')">Date</code>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CAN ID -->
+                            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Response CAN ID (Hex)</span>
+                                    <span class="ha-form-sublabel">Arbitration ID to transmit on vehicle CAN network.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-act-can-id" value="${data.can_id || "0x652"}" placeholder="0x652" oninput="updateCanDoRuleSummaryPill(this.closest('.can-do-rule-card'))">
+                                </div>
+                            </div>
+
+                            <!-- Target Bus -->
+                            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Target CAN Bus</span>
+                                    <span class="ha-form-sublabel">Select transceiver to broadcast transmission.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <select class="ha-form-select can-do-act-bus">
+                                        <option value="0" ${data.bus === 0 || !data.bus ? "selected" : ""}>CAN 0 (Primary)</option>
+                                        <option value="1" ${data.bus === 1 ? "selected" : ""}>CAN 1 (Secondary)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Inter-frame Delay -->
+                            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Inter-frame Delay (ms)</span>
+                                    <span class="ha-form-sublabel">Pause between sequential frame bursts.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="number" class="ha-form-input can-do-act-delay-ms" value="${data.delay_ms || 10}">
+                                </div>
+                            </div>
+
+                            <!-- CAN Payload Sequence Box -->
+                            <div class="ha-form-row act-field-can ${type === "can_tx" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">CAN Sequence Steps</span>
+                                    <span class="ha-form-sublabel">Multi-step frame bursts sent sequentially on execution.</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: stretch;">
+                                    <div class="can-do-payload-steps-box" style="width: 100%;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--m3-tonal-act-bg); border-bottom: 1px dashed var(--m3-tonal-act-border); border-radius: 6px 6px 0 0; font-size: 0.78rem;">
+                                            <span class="can-do-steps-summary-text" style="color: var(--m3-tonal-act-color); font-weight: 700;">Sequence Steps</span>
+                                            <button type="button" class="system-button can-do-toggle-steps-btn" style="padding: 2px 8px; font-size: 0.7rem; height: 22px;" onclick="toggleCanDoStepsCollapse(this)" title="Collapse or expand payload steps preview">↕ Collapse</button>
+                                        </div>
+                                        <div class="can-do-payload-steps-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 0.6rem 0.5rem 0.3rem 0.5rem;"></div>
+                                        <button type="button" class="ha-add-element-btn act subitem" onclick="addCanDoPayloadStep(this)" style="margin: 0; border-radius: 0 0 6px 6px; border-top: none;">
+                                            <svg><use href="#icon-plus"/></svg>
+                                            <span>Add Frame Step</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wait / Delay -->
+                            <div class="ha-form-row act-field-delay ${type === "delay" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label" style="display: inline-flex; align-items: center; gap: 6px;">
+                                        Wait Duration
+                                        <span class="ha-duration-badge can-do-delay-badge">${formatDurationDisplay(data.wait_ms || 500)}</span>
+                                    </span>
+                                    <span class="ha-form-sublabel">Pause execution before continuing to the next action step.</span>
+                                </div>
+                                <div class="ha-form-control-col" style="align-items: stretch;">
+                                    <input type="hidden" class="can-do-act-wait-ms" value="${data.wait_ms || 500}">
+                                    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                                        <input type="number" class="ha-form-input can-do-act-wait-helper" 
+                                            style="flex: 1; min-width: 90px;" 
+                                            value="${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? (data.wait_ms / 1000) : (data.wait_ms || 500)}" 
+                                            min="1" 
+                                            step="${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? '0.5' : '50'}"
+                                            oninput="onCanDoDelayHelperInput(this)" 
+                                            placeholder="500">
+                                        <select class="ha-form-select can-do-act-wait-unit" style="width: 130px;" onchange="onCanDoDelayUnitChange(this)">
+                                            <option value="ms" ${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? "" : "selected"}>Milliseconds (ms)</option>
+                                            <option value="sec" ${(data.wait_ms && data.wait_ms >= 1000 && data.wait_ms % 1000 === 0) ? "selected" : ""}>Seconds (s)</option>
+                                        </select>
+                                    </div>
+                                    <div class="ha-duration-chips">
+                                        <span class="ha-duration-chip ${(data.wait_ms === 100) ? 'active' : ''}" data-ms="100" onclick="setCanDoDelayPreset(this, 100)">100ms</span>
+                                        <span class="ha-duration-chip ${(data.wait_ms === 250) ? 'active' : ''}" data-ms="250" onclick="setCanDoDelayPreset(this, 250)">250ms</span>
+                                        <span class="ha-duration-chip ${(data.wait_ms === 500 || !data.wait_ms) ? 'active' : ''}" data-ms="500" onclick="setCanDoDelayPreset(this, 500)">500ms</span>
+                                        <span class="ha-duration-chip ${(data.wait_ms === 1000) ? 'active' : ''}" data-ms="1000" onclick="setCanDoDelayPreset(this, 1000)">1s</span>
+                                        <span class="ha-duration-chip ${(data.wait_ms === 2000) ? 'active' : ''}" data-ms="2000" onclick="setCanDoDelayPreset(this, 2000)">2s</span>
+                                        <span class="ha-duration-chip ${(data.wait_ms === 5000) ? 'active' : ''}" data-ms="5000" onclick="setCanDoDelayPreset(this, 5000)">5s</span>
+                                        <span class="ha-duration-chip ${(data.wait_ms === 10000) ? 'active' : ''}" data-ms="10000" onclick="setCanDoDelayPreset(this, 10000)">10s</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MQTT Topic -->
+                            <div class="ha-form-row act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">MQTT Publish Topic</span>
+                                    <span class="ha-form-sublabel">Broker topic to publish event alert.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-act-mqtt-topic" value="${data.mqtt_topic || "homeassistant/sensor/wican/event"}" placeholder="homeassistant/sensor/wican/event">
+                                </div>
+                            </div>
+
+                            <!-- MQTT Payload -->
+                            <div class="ha-form-row act-field-mqtt ${type === "mqtt" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">MQTT Publish Payload</span>
+                                    <span class="ha-form-sublabel">JSON or string message published.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-act-mqtt-payload" value="${data.mqtt_payload || '{\"event\":\"triggered\"}'}" placeholder='{"event":"triggered"}'>
+                                </div>
+                            </div>
+
+                            <!-- Webhook URL -->
+                            <div class="ha-form-row act-field-webhook ${type === "webhook" ? "" : "hidden"}">
+                                <div class="ha-form-label-col">
+                                    <span class="ha-form-label">Webhook URL</span>
+                                    <span class="ha-form-sublabel">Endpoint URL receiving HTTP POST on execution.</span>
+                                </div>
+                                <div class="ha-form-control-col">
+                                    <input type="text" class="ha-form-input can-do-act-webhook-url" value="${data.webhook_url || ''}" placeholder="http://192.168.1.100:8123/api/webhook/my_event">
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
     container.appendChild(itemDiv);
 
     // Populate payload steps
@@ -7759,31 +7759,31 @@ function renderCanDoChooseBlock(container, data = {}) {
     });
 
     groupDiv.innerHTML = `
-    <div class="can-do-subitem-header choose-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="can-do-ha-pill choose-pill">
-                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-share"/></svg>
-                Choose
-            </span>
-            <span class="can-do-subitem-title-choose" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
-                Multi-Branch Condition
-            </span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Choose Block Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Choose Block Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'choose_block')" title="More options">⋮</button>
-        </div>
-    </div>
-    <div class="can-do-subitem-body" style="padding: 0.85rem 1rem;">
-        <div class="can-do-choose-options-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
-        <button type="button" class="ha-add-element-btn opt" onclick="addCanDoOptionToChooseBlock(this)">
-            <svg><use href="#icon-plus"/></svg>
-            <span>Add Option Branch</span>
-        </button>
-    </div>
-`;
+                    <div class="can-do-subitem-header choose-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+                            <span class="can-do-ha-pill choose-pill">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-share"/></svg>
+                                Choose
+                            </span>
+                            <span class="can-do-subitem-title-choose" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
+                                Multi-Branch Condition
+                            </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Choose Block Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Choose Block Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'choose_block')" title="More options">⋮</button>
+                        </div>
+                    </div>
+                    <div class="can-do-subitem-body" style="padding: 0.85rem 1rem;">
+                        <div class="can-do-choose-options-container" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+                        <button type="button" class="ha-add-element-btn opt" onclick="addCanDoOptionToChooseBlock(this)">
+                            <svg><use href="#icon-plus"/></svg>
+                            <span>Add Option Branch</span>
+                        </button>
+                    </div>
+                `;
     container.appendChild(groupDiv);
 
     const optionsContainer = groupDiv.querySelector(".can-do-choose-options-container");
@@ -7822,34 +7822,34 @@ function renderCanDoChooseOption(container, optData = {}) {
     const optIdx = container.querySelectorAll(".can-do-choose-option-item").length + 1;
 
     optDiv.innerHTML = `
-    <div class="can-do-opt-header">
-        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-            <span class="ha-branch-badge opt" style="margin-left: 2px;">Option <span class="opt-num">${optIdx}</span></span>
-            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
-                Trigger:
-                <select class="ha-form-select can-do-opt-trig-id" style="height: 28px; min-width: 150px; padding: 2px 8px; font-size: 0.8rem; border-radius: 6px;">
-                    <option value="">Any Trigger (Default)</option>
-                    ${triggers.map(t => `<option value="${t.id}" ${selVal === t.id ? "selected" : ""}>${t.label}</option>`).join("")}
-                    ${(selVal && !triggers.some(t => t.id === selVal)) ? `<option value="${selVal}" selected>Trigger: ${selVal}</option>` : ""}
-                </select>
-            </label>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Option Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Option Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'choose_option')" title="More options">⋮</button>
-        </div>
-    </div>
-    <div class="can-do-opt-body">
-        <div class="can-do-opt-actions-box" style="margin-top: 0.4rem;">
-            <div class="can-do-opt-actions-container" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
-            <button type="button" class="ha-add-element-btn act subitem" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-opt-actions-box')?.querySelector('.can-do-opt-actions-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
-                <svg><use href="#icon-plus"/></svg>
-                <span>Add Action Step to Option</span>
-            </button>
-        </div>
-    </div>
-`;
+                    <div class="can-do-opt-header">
+                        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                            <span class="ha-branch-badge opt" style="margin-left: 2px;">Option <span class="opt-num">${optIdx}</span></span>
+                            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                Trigger:
+                                <select class="ha-form-select can-do-opt-trig-id" style="height: 28px; min-width: 150px; padding: 2px 8px; font-size: 0.8rem; border-radius: 6px;">
+                                    <option value="">Any Trigger (Default)</option>
+                                    ${triggers.map(t => `<option value="${t.id}" ${selVal === t.id ? "selected" : ""}>${t.label}</option>`).join("")}
+                                    ${(selVal && !triggers.some(t => t.id === selVal)) ? `<option value="${selVal}" selected>Trigger: ${selVal}</option>` : ""}
+                                </select>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move Option Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move Option Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'choose_option')" title="More options">⋮</button>
+                        </div>
+                    </div>
+                    <div class="can-do-opt-body">
+                        <div class="can-do-opt-actions-box" style="margin-top: 0.4rem;">
+                            <div class="can-do-opt-actions-container" style="display: flex; flex-direction: column; gap: 0.6rem;"></div>
+                            <button type="button" class="ha-add-element-btn act subitem" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-opt-actions-box')?.querySelector('.can-do-opt-actions-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
+                                <svg><use href="#icon-plus"/></svg>
+                                <span>Add Action Step to Option</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
     container.appendChild(optDiv);
 
     const optActionsContainer = optDiv.querySelector(".can-do-opt-actions-container");
@@ -7971,83 +7971,83 @@ function renderCanDoIfThenBlock(container, data = {}) {
     });
 
     groupDiv.innerHTML = `
-    <div class="can-do-subitem-header ifthen-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
-            <span class="can-do-ha-pill ifthen-pill">
-                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-help"/></svg>
-                If - Then
-            </span>
-            <span class="can-do-subitem-title-ifthen" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
-                Conditional Evaluation
-            </span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move If-Then Block Up">▲</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move If-Then Block Down">▼</button>
-            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'ifthen_block')" title="More options">⋮</button>
-        </div>
-    </div>
-    
-    <div class="can-do-subitem-body" style="padding: 0.85rem 1rem;">
-        <!-- IF: Conditions Branch Card -->
-        <div class="ha-flow-branch-card">
-            <div class="can-do-branch-header if">
-                <div style="display: flex; align-items: center; gap: 0.55rem;">
-                    <span class="ha-branch-badge if" style="margin-left: 2px;">IF</span>
-                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Conditions evaluated before executing actions</span>
-                </div>
-            </div>
-            <div class="can-do-branch-body">
-                <div class="can-do-ifthen-conditions-box">
-                    <div class="can-do-ifthen-conditions-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-                    <button type="button" class="ha-add-element-btn cond subitem" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-ifthen-conditions-box')?.querySelector('.can-do-ifthen-conditions-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
-                        <svg><use href="#icon-plus"/></svg>
-                        <span>Add Condition to IF</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+                    <div class="can-do-subitem-header ifthen-header" onclick="toggleCanDoItemBody(this, event)" style="cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="can-do-item-chevron" title="Click to collapse / expand">▼</span>
+                            <span class="can-do-ha-pill ifthen-pill">
+                                <svg style="width: 14px; height: 14px; fill: currentColor;"><use href="#icon-help"/></svg>
+                                If - Then
+                            </span>
+                            <span class="can-do-subitem-title-ifthen" style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading);">
+                                Conditional Evaluation
+                            </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation();">
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, -1)" title="Move If-Then Block Up">▲</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-move" onclick="moveCanDoItem(this, 1)" title="Move If-Then Block Down">▼</button>
+                            <button type="button" class="system-button can-do-subitem-btn can-do-btn-more" onclick="showCanDoSubitemMenu(this, event, 'ifthen_block')" title="More options">⋮</button>
+                        </div>
+                    </div>
+                    
+                    <div class="can-do-subitem-body" style="padding: 0.85rem 1rem;">
+                        <!-- IF: Conditions Branch Card -->
+                        <div class="ha-flow-branch-card">
+                            <div class="can-do-branch-header if">
+                                <div style="display: flex; align-items: center; gap: 0.55rem;">
+                                    <span class="ha-branch-badge if" style="margin-left: 2px;">IF</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Conditions evaluated before executing actions</span>
+                                </div>
+                            </div>
+                            <div class="can-do-branch-body">
+                                <div class="can-do-ifthen-conditions-box">
+                                    <div class="can-do-ifthen-conditions-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
+                                    <button type="button" class="ha-add-element-btn cond subitem" onclick="openAddAutomationElementDialog('condition', this.closest('.can-do-ifthen-conditions-box')?.querySelector('.can-do-ifthen-conditions-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-conditions-container'), this.closest('.can-do-rule-card'))">
+                                        <svg><use href="#icon-plus"/></svg>
+                                        <span>Add Condition to IF</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- THEN: Actions Branch Card -->
-        <div class="ha-flow-branch-card">
-            <div class="can-do-branch-header then">
-                <div style="display: flex; align-items: center; gap: 0.55rem;">
-                    <span class="ha-branch-badge then" style="margin-left: 2px;">THEN</span>
-                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Actions executed if all conditions above pass</span>
-                </div>
-            </div>
-            <div class="can-do-branch-body">
-                <div class="can-do-ifthen-then-box">
-                    <div class="can-do-ifthen-then-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-                    <button type="button" class="ha-add-element-btn act subitem" data-branch="then" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-ifthen-then-box')?.querySelector('.can-do-ifthen-then-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
-                        <svg><use href="#icon-plus"/></svg>
-                        <span>Add Action Step to THEN</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+                        <!-- THEN: Actions Branch Card -->
+                        <div class="ha-flow-branch-card">
+                            <div class="can-do-branch-header then">
+                                <div style="display: flex; align-items: center; gap: 0.55rem;">
+                                    <span class="ha-branch-badge then" style="margin-left: 2px;">THEN</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Actions executed if all conditions above pass</span>
+                                </div>
+                            </div>
+                            <div class="can-do-branch-body">
+                                <div class="can-do-ifthen-then-box">
+                                    <div class="can-do-ifthen-then-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
+                                    <button type="button" class="ha-add-element-btn act subitem" data-branch="then" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-ifthen-then-box')?.querySelector('.can-do-ifthen-then-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
+                                        <svg><use href="#icon-plus"/></svg>
+                                        <span>Add Action Step to THEN</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- ELSE: Actions Branch Card -->
-        <div class="ha-flow-branch-card" style="margin-bottom: 0 !important;">
-            <div class="can-do-branch-header else">
-                <div style="display: flex; align-items: center; gap: 0.55rem;">
-                    <span class="ha-branch-badge else" style="margin-left: 2px;">ELSE (Optional)</span>
-                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Actions executed if conditions fail</span>
-                </div>
-            </div>
-            <div class="can-do-branch-body">
-                <div class="can-do-ifthen-else-box">
-                    <div class="can-do-ifthen-else-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-                    <button type="button" class="ha-add-element-btn act subitem" data-branch="else" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-ifthen-else-box')?.querySelector('.can-do-ifthen-else-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
-                        <svg><use href="#icon-plus"/></svg>
-                        <span>Add Action Step to ELSE</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-`;
+                        <!-- ELSE: Actions Branch Card -->
+                        <div class="ha-flow-branch-card" style="margin-bottom: 0 !important;">
+                            <div class="can-do-branch-header else">
+                                <div style="display: flex; align-items: center; gap: 0.55rem;">
+                                    <span class="ha-branch-badge else" style="margin-left: 2px;">ELSE (Optional)</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Actions executed if conditions fail</span>
+                                </div>
+                            </div>
+                            <div class="can-do-branch-body">
+                                <div class="can-do-ifthen-else-box">
+                                    <div class="can-do-ifthen-else-container" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
+                                    <button type="button" class="ha-add-element-btn act subitem" data-branch="else" onclick="openAddAutomationElementDialog('action', this.closest('.can-do-ifthen-else-box')?.querySelector('.can-do-ifthen-else-container') || this.closest('.can-do-section-box')?.querySelector('.can-do-actions-container'), this.closest('.can-do-rule-card'))">
+                                        <svg><use href="#icon-plus"/></svg>
+                                        <span>Add Action Step to ELSE</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
 
     container.appendChild(groupDiv);
 
@@ -8217,23 +8217,23 @@ function applyCanDoActionPreset(selectElem) {
             optionsBox.style.display = "block";
             const gridClass = preset.options.length > 4 ? "grid-many" : "grid-few";
             optionsBox.innerHTML = `
-            <div style="width: 100%;">
-                <div class="can-do-options-label">
-                    <span>Target Value:</span>
-                </div>
-                <div class="can-do-options-grid ${gridClass}">
-                    ${preset.options.map((opt, i) => {
+                            <div style="width: 100%;">
+                                <div class="can-do-options-label">
+                                    <span>Target Value:</span>
+                                </div>
+                                <div class="can-do-options-grid ${gridClass}">
+                                    ${preset.options.map((opt, i) => {
                 const label = (isImperial && opt.label_imperial) ? opt.label_imperial : opt.label;
                 const isCur = (i === defaultOptIdx);
                 return `
-                        <button type="button" class="can-do-state-tile-btn can-do-opt-pill-btn ${isCur ? 'active' : ''}" 
-                            onclick="applyCanDoOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
-                            ${label}
-                        </button>
-                        `;
+                                        <button type="button" class="can-do-state-tile-btn can-do-opt-pill-btn ${isCur ? 'active' : ''}" 
+                                            onclick="applyCanDoOptionPill(this, ${catIdx}, ${pIdx}, ${i})">
+                                            ${label}
+                                        </button>
+                                        `;
             }).join("")}
-                </div>
-            </div>`;
+                                </div>
+                            </div>`;
         }
         const activeOpt = preset.options[defaultOptIdx] || preset.options[0];
         if (activeOpt && activeOpt.payload) {
@@ -8466,17 +8466,17 @@ function showAutomationsGlobalMenu(btn, event) {
     const menu = document.createElement("div");
     menu.className = "can-do-ha-menu";
     menu.innerHTML = `
-        <div class="can-do-ha-menu-item" onclick="toggleCanDoGlobalSettingsModal(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Catalog &amp; Settings...</span>
-        </div>
-        <div class="can-do-ha-menu-divider"></div>
-        <div class="can-do-ha-menu-item" onclick="exportCanDoRules(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Export All (Backup JSON)</span>
-        </div>
-        <div class="can-do-ha-menu-item" onclick="triggerCanDoRulesImport(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
-            <span>Import Automations JSON...</span>
-        </div>
-    `;
+                        <div class="can-do-ha-menu-item" onclick="toggleCanDoGlobalSettingsModal(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Catalog &amp; Settings...</span>
+                        </div>
+                        <div class="can-do-ha-menu-divider"></div>
+                        <div class="can-do-ha-menu-item" onclick="exportCanDoRules(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Export All (Backup JSON)</span>
+                        </div>
+                        <div class="can-do-ha-menu-item" onclick="triggerCanDoRulesImport(); document.querySelectorAll('.can-do-ha-menu').forEach(m => m.remove());">
+                            <span>Import Automations JSON...</span>
+                        </div>
+                    `;
 
     positionFloatingMenu(menu, btn);
 
@@ -8506,9 +8506,9 @@ function triggerCanDoRulesImport() {
 function saveCanDoCatalogUrl(url) {
     if (!url) return;
     const trimmed = url.trim();
-    const current = (localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_can_do_catalog_URL).trim();
+    const current = (localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_CAN_DO_CATALOG_URL).trim();
     if (trimmed !== current) {
-        if (trimmed === DEFAULT_can_do_catalog_URL) {
+        if (trimmed === DEFAULT_CAN_DO_CATALOG_URL) {
             localStorage.removeItem("wican_can_do_catalog_url");
         } else {
             localStorage.setItem("wican_can_do_catalog_url", trimmed);
@@ -8541,62 +8541,62 @@ function toggleCanDoGlobalSettingsModal() {
     const overlay = document.createElement("div");
     overlay.className = "can-do-global-settings-modal-overlay ha-add-element-dialog-overlay";
     overlay.innerHTML = `
-        <div class="ha-add-element-dialog" style="max-width: 520px;" onclick="event.stopPropagation();">
-            <div class="ha-dialog-header">
-                <div class="ha-dialog-header-top">
-                    <div class="ha-dialog-title-wrap">
-                        <span class="can-do-ha-pill cond-pill">Settings</span>
-                        <h3 class="ha-dialog-title">Catalog &amp; Global Settings</h3>
-                    </div>
-                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.can-do-global-settings-modal-overlay').remove();">✕</button>
-                </div>
-            </div>
-            <div class="ha-dialog-body" style="padding: 1.25rem; gap: 1.1rem; display: flex; flex-direction: column;">
-                <!-- Vehicle Make & Model Selection -->
-                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Vehicle Model / Platform:</label>
-                    <select id="can_do_vehicle_model" class="ha-form-select" onchange="changeCanDoVehicleModel(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
-                    </select>
-                    <span style="font-size: 0.74rem; color: var(--text-muted);">Select your vehicle model family to load compatible CAN presets and signals.</span>
-                </div>
+                        <div class="ha-add-element-dialog" style="max-width: 520px;" onclick="event.stopPropagation();">
+                            <div class="ha-dialog-header">
+                                <div class="ha-dialog-header-top">
+                                    <div class="ha-dialog-title-wrap">
+                                        <span class="can-do-ha-pill cond-pill">Settings</span>
+                                        <h3 class="ha-dialog-title">Catalog &amp; Global Settings</h3>
+                                    </div>
+                                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.can-do-global-settings-modal-overlay').remove();">✕</button>
+                                </div>
+                            </div>
+                            <div class="ha-dialog-body" style="padding: 1.25rem; gap: 1.1rem; display: flex; flex-direction: column;">
+                                <!-- Vehicle Make & Model Selection -->
+                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Vehicle Model / Platform:</label>
+                                    <select id="can_do_vehicle_model" class="ha-form-select" onchange="changeCanDoVehicleModel(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
+                                    </select>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted);">Select your vehicle model family to load compatible CAN presets and signals.</span>
+                                </div>
 
-                <!-- Vehicle Trim Selection -->
-                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Trim Level / Specific Variant:</label>
-                    <select id="can_do_vehicle_trim" class="ha-form-select" onchange="changeCanDoVehicleTrim(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
-                    </select>
-                    <span style="font-size: 0.74rem; color: var(--text-muted);">Trim variants enable vehicle-specific features like ventilated seats, AWD, or HUD.</span>
-                </div>
+                                <!-- Vehicle Trim Selection -->
+                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Trim Level / Specific Variant:</label>
+                                    <select id="can_do_vehicle_trim" class="ha-form-select" onchange="changeCanDoVehicleTrim(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
+                                    </select>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted);">Trim variants enable vehicle-specific features like ventilated seats, AWD, or HUD.</span>
+                                </div>
 
-                <!-- Imperial / Metric Unit System -->
-                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Measurement Units:</label>
-                    <select id="can_do_unit_system" class="ha-form-select" onchange="changeUnitSystem(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
-                        <option value="metric" ${currentUnit === "metric" ? "selected" : ""}>Metric (°C, km/h, bar, kPa)</option>
-                        <option value="imperial" ${currentUnit === "imperial" ? "selected" : ""}>Imperial (°F, mph, psi)</option>
-                    </select>
-                    <span style="font-size: 0.74rem; color: var(--text-muted);">Controls climate setpoint scales and sensor threshold units.</span>
-                </div>
+                                <!-- Imperial / Metric Unit System -->
+                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Measurement Units:</label>
+                                    <select id="can_do_unit_system" class="ha-form-select" onchange="changeUnitSystem(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
+                                        <option value="metric" ${currentUnit === "metric" ? "selected" : ""}>Metric (°C, km/h, bar, kPa)</option>
+                                        <option value="imperial" ${currentUnit === "imperial" ? "selected" : ""}>Imperial (°F, mph, psi)</option>
+                                    </select>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted);">Controls climate setpoint scales and sensor threshold units.</span>
+                                </div>
 
-                <div style="border-top: 1px dashed var(--border-color); margin: 0.2rem 0;"></div>
+                                <div style="border-top: 1px dashed var(--border-color); margin: 0.2rem 0;"></div>
 
-                <!-- Remote Catalog URL -->
-                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Remote Catalog Sync URL:</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="text" id="modal_catalog_url" value="${getCanDoCatalogUrl()}" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.85rem; color: var(--text-heading); box-sizing: border-box;">
-                        <button type="button" class="dash-outline-btn" onclick="syncCatalogFromGitHub(true)" style="padding: 8px 12px; font-size: 0.8rem; white-space: nowrap;">Sync Now</button>
-                    </div>
-                    <span style="font-size: 0.74rem; color: var(--text-muted);">GitHub RAW or local URL for remote CAN preset catalog JSON.</span>
-                </div>
+                                <!-- Remote Catalog URL -->
+                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                    <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Remote Catalog Sync URL:</label>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <input type="text" id="modal_catalog_url" value="${getCanDoCatalogUrl()}" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.85rem; color: var(--text-heading); box-sizing: border-box;">
+                                        <button type="button" class="dash-outline-btn" onclick="syncCatalogFromGitHub(true)" style="padding: 8px 12px; font-size: 0.8rem; white-space: nowrap;">Sync Now</button>
+                                    </div>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted);">GitHub RAW or local URL for remote CAN preset catalog JSON.</span>
+                                </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.5rem;">
-                    <button type="button" class="dash-outline-btn" onclick="this.closest('.can-do-global-settings-modal-overlay').remove();">Cancel</button>
-                    <button type="button" class="dash-action-btn" onclick="saveCanDoGlobalSettings(this);">Done</button>
-                </div>
-            </div>
-        </div>
-    `;
+                                <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.5rem;">
+                                    <button type="button" class="dash-outline-btn" onclick="this.closest('.can-do-global-settings-modal-overlay').remove();">Cancel</button>
+                                    <button type="button" class="dash-action-btn" onclick="saveCanDoGlobalSettings(this);">Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
     document.body.appendChild(overlay);
     overlay.onclick = () => overlay.remove();
 
@@ -9007,14 +9007,14 @@ function updateCanDoRuleSummaryPill(card) {
     const actText = actSummaries.length > 0 ? actSummaries.slice(0, 2).join(" • ") + (actSummaries.length > 2 ? ` (+${actSummaries.length - 2})` : "") : "No Action";
 
     pill.innerHTML = `
-        <span class="can-do-ha-pill trig-pill" style="font-size: 0.72rem; padding: 2px 7px;">
-            When: ${trigText}
-        </span>
-        ${condText ? `<span class="can-do-ha-pill cond-pill" style="font-size: 0.72rem; padding: 2px 7px;">And if: ${condText}</span>` : ''}
-        <span class="can-do-ha-pill act-pill" style="font-size: 0.72rem; padding: 2px 7px;">
-            Then do: ${actText}
-        </span>
-    `;
+                        <span class="can-do-ha-pill trig-pill" style="font-size: 0.72rem; padding: 2px 7px;">
+                            When: ${trigText}
+                        </span>
+                        ${condText ? `<span class="can-do-ha-pill cond-pill" style="font-size: 0.72rem; padding: 2px 7px;">And if: ${condText}</span>` : ''}
+                        <span class="can-do-ha-pill act-pill" style="font-size: 0.72rem; padding: 2px 7px;">
+                            Then do: ${actText}
+                        </span>
+                    `;
 }
 
 function updateCanDoSectionCountBadges(card) {
@@ -9042,11 +9042,11 @@ function updateCanDoSectionCountBadges(card) {
         const hasChooseBlock = card.querySelector(".can-do-actions-container > .can-do-choose-block") !== null;
         if (trigCount >= 2 && !hasChooseBlock) {
             bannerSlot.innerHTML = `
-            <div class="can-do-choose-convert-banner" style="margin-bottom: 0.6rem; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
-                <span style="font-weight: 600;"><b>${trigCount} Triggers Detected:</b> Currently running the same actions for all triggers.</span>
-                <button type="button" class="system-button" onclick="convertActionsToChooseBlock(this)" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700; background: var(--m3-tonal-choose-color); color: white; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s;" title="Automatically split and branch actions by trigger">Branch by Trigger (Choose Block)</button>
-            </div>
-        `;
+                            <div class="can-do-choose-convert-banner" style="margin-bottom: 0.6rem; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                                <span style="font-weight: 600;"><b>${trigCount} Triggers Detected:</b> Currently running the same actions for all triggers.</span>
+                                <button type="button" class="system-button" onclick="convertActionsToChooseBlock(this)" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700; background: var(--m3-tonal-choose-color); color: white; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s;" title="Automatically split and branch actions by trigger">Branch by Trigger (Choose Block)</button>
+                            </div>
+                        `;
         } else {
             bannerSlot.innerHTML = "";
         }
@@ -9590,14 +9590,14 @@ function deleteCanDoRuleUI(btn) {
 
 
 /* --- HOME ASSISTANT ANCHORED SAVE FAB CONTROLLER --- */
-window._can_doIsDirty = false;
+window._canDoIsDirty = false;
 window._suppressCanDoDirty = false;
 
 // markCanDoDirty/clearCanDoDirty defined at page init; local aliases:
 function markCanDoDirty() { window.markCanDoDirty(); }
 
 window.clearCanDoDirty = function () {
-    window._can_doIsDirty = false;
+    window._canDoIsDirty = false;
     const fab = document.getElementById("can_do_anchored_save_fab");
     if (fab) {
         fab.classList.remove("dirty");
@@ -9857,7 +9857,7 @@ function loadCanDoRulesUI() {
             addCanDoRuleUI(defRule, true);
         }
         // Always release suppress so manual edits always work
-        setTimeout(() => { window._suppressCanDoDirty = false; window._can_doIsDirty = false; }, 500);
+        setTimeout(() => { window._suppressCanDoDirty = false; window._canDoIsDirty = false; }, 500);
     });
 }
 

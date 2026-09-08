@@ -1,7 +1,7 @@
 // "CAN Do" Reactive Vehicle Automation Engine Header
 
-#ifndef CANDO_H
-#define CANDO_H
+#ifndef CAN_DO_H
+#define CAN_DO_H
 
 #include "cJSON.h"
 #include "driver/twai.h"
@@ -20,26 +20,26 @@ extern "C" {
 // --------------------------------------------------------------------------
 
 typedef enum {
-  CANDO_TRIG_CAN_MESSAGE = 0,  // Triggered by incoming CAN frame
-  CANDO_TRIG_CLOCK = 1,        // Triggered by clock time (HH:MM:SS)
-  CANDO_TRIG_INTERVAL = 2,     // Triggered by repeating timer interval
-  CANDO_TRIG_VOLTAGE = 3,      // Triggered by battery voltage threshold
-  CANDO_TRIG_MQTT_COMMAND = 4, // Triggered by incoming MQTT/HA command
+  CAN_DO_TRIG_CAN_MESSAGE = 0,  // Triggered by incoming CAN frame
+  CAN_DO_TRIG_CLOCK = 1,        // Triggered by clock time (HH:MM:SS)
+  CAN_DO_TRIG_INTERVAL = 2,     // Triggered by repeating timer interval
+  CAN_DO_TRIG_VOLTAGE = 3,      // Triggered by battery voltage threshold
+  CAN_DO_TRIG_MQTT_COMMAND = 4, // Triggered by incoming MQTT/HA command
 } can_do_trigger_source_t;
 
 typedef enum {
-  CANDO_MATCH_EXACT = 0, // Match exact payload bytes
-  CANDO_MATCH_MASK = 1,  // Match using data bitmask and expected byte values
-  CANDO_MATCH_EXPRESSION = 2, // Evaluate math expression on payload
+  CAN_DO_MATCH_EXACT = 0, // Match exact payload bytes
+  CAN_DO_MATCH_MASK = 1,  // Match using data bitmask and expected byte values
+  CAN_DO_MATCH_EXPRESSION = 2, // Evaluate math expression on payload
 } can_do_match_type_t;
 
 typedef enum {
-  CANDO_EXEC_CONTINUOUS = 0, // Fire every time trigger condition is true
-  CANDO_EXEC_ONE_SHOT = 1,   // Fire once when true; latch until explicit reset
-  CANDO_EXEC_ON_CHANGE = 2,  // Fire only when payload/evaluated value changes
-  CANDO_EXEC_POLL_VERIFY =
+  CAN_DO_EXEC_CONTINUOUS = 0, // Fire every time trigger condition is true
+  CAN_DO_EXEC_ONE_SHOT = 1,   // Fire once when true; latch until explicit reset
+  CAN_DO_EXEC_ON_CHANGE = 2,  // Fire only when payload/evaluated value changes
+  CAN_DO_EXEC_POLL_VERIFY =
       3, // Fire action and wait for confirmation status CAN message
-  CANDO_EXEC_TOGGLE = 4, // Flip-flop toggle mode
+  CAN_DO_EXEC_TOGGLE = 4, // Flip-flop toggle mode
 } can_do_exec_mode_t;
 
 typedef struct {
@@ -115,10 +115,10 @@ typedef struct {
 } can_do_trigger_t;
 
 typedef enum {
-  CANDO_ROLL_NONE = 0,
-  CANDO_ROLL_SEQ3,      // Cycles 0x0F -> 0x1F -> 0x2F
-  CANDO_ROLL_BYTE_INC,  // Cycles 0x00 -> 0xFF
-  CANDO_ROLL_NIBBLE_INC // Cycles low nibble 0x0 -> 0xF
+  CAN_DO_ROLL_NONE = 0,
+  CAN_DO_ROLL_SEQ3,      // Cycles 0x0F -> 0x1F -> 0x2F
+  CAN_DO_ROLL_BYTE_INC,  // Cycles 0x00 -> 0xFF
+  CAN_DO_ROLL_NIBBLE_INC // Cycles low nibble 0x0 -> 0xF
 } can_do_roll_mode_t;
 
 typedef struct {
@@ -134,13 +134,13 @@ typedef struct {
 } can_do_sequence_step_t;
 
 typedef enum {
-  CANDO_ACT_CAN_TX = 0,
-  CANDO_ACT_POPUP,
-  CANDO_ACT_PRECONDITION,
-  CANDO_ACT_CLIMATE_TARGET,
-  CANDO_ACT_DELAY,
-  CANDO_ACT_MQTT,
-  CANDO_ACT_WEBHOOK
+  CAN_DO_ACT_CAN_TX = 0,
+  CAN_DO_ACT_POPUP,
+  CAN_DO_ACT_PRECONDITION,
+  CAN_DO_ACT_CLIMATE_TARGET,
+  CAN_DO_ACT_DELAY,
+  CAN_DO_ACT_MQTT,
+  CAN_DO_ACT_WEBHOOK
 } can_do_action_type_t;
 
 typedef struct {
@@ -157,7 +157,7 @@ typedef struct {
                                 // occupant status
   can_do_sequence_step_t *steps;
   uint8_t step_count;
-  uint32_t delay_ms; // Duration in ms for CANDO_ACT_DELAY step
+  uint32_t delay_ms; // Duration in ms for CAN_DO_ACT_DELAY step
   char *mqtt_topic;  // Optional MQTT topic for notification alert
   char *webhook_url; // Optional Webhook URL for POST alert
 } can_do_action_t;
@@ -195,9 +195,9 @@ typedef struct {
 } can_do_rule_t;
 
 typedef enum {
-  CANDO_CAPTURE_AUTO = 0,
-  CANDO_CAPTURE_ALWAYS_PAUSED = 1,
-  CANDO_CAPTURE_DISABLED = 2
+  CAN_DO_CAPTURE_AUTO = 0,
+  CAN_DO_CAPTURE_ALWAYS_PAUSED = 1,
+  CAN_DO_CAPTURE_DISABLED = 2
 } can_do_capture_mode_t;
 
 typedef struct {
@@ -234,4 +234,4 @@ bool can_do_get_reverse_engineering_mode(void);
 }
 #endif
 
-#endif // CANDO_H
+#endif // CAN_DO_H

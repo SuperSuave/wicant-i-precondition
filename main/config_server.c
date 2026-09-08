@@ -1218,11 +1218,11 @@ static esp_err_t set_capture_mode_handler(httpd_req_t *req) {
       } else if (cJSON_IsString(mode)) {
         if (strcmp(mode->valuestring, "always_paused") == 0 ||
             strcmp(mode->valuestring, "paused") == 0) {
-          can_do_set_capture_mode(CANDO_CAPTURE_ALWAYS_PAUSED);
+          can_do_set_capture_mode(CAN_DO_CAPTURE_ALWAYS_PAUSED);
         } else if (strcmp(mode->valuestring, "disabled") == 0) {
-          can_do_set_capture_mode(CANDO_CAPTURE_DISABLED);
+          can_do_set_capture_mode(CAN_DO_CAPTURE_DISABLED);
         } else {
-          can_do_set_capture_mode(CANDO_CAPTURE_AUTO);
+          can_do_set_capture_mode(CAN_DO_CAPTURE_AUTO);
         }
       }
     }

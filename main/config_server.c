@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "cando.h"
 #include "esp_err.h"
 #include "esp_eth.h"
 #include "esp_netif.h"

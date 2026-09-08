@@ -14,7 +14,7 @@ idf_component_register(
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
     REQUIRES   "${requires}"         # optional, list the public requirements (component names)
     PRIV_REQUIRES       # optional, list the private requirements
-    EMBED_FILES "homepage.html.gz"
+    EMBED_FILES "homepage.html.gz" "cando_catalog.json.gz"
 )
 
 # Also ensure it runs during `ninja` or `make` if homepage_full.html is modified without a CMake reconfigure

@@ -16,9 +16,17 @@ def bundle_and_minify(
     min_dst_path="main/homepage.html",
     catalog_path="main/cando_catalog.json",
 ):
-    if not os.path.exists(src_dir):
-        print(f"Error: Source directory '{src_dir}' not found.")
-        sys.exit(1)
+    # Guard against legacy invocations passing a file path instead of a directory
+    if os.path.isfile(src_dir) or not os.path.isdir(src_dir):
+        # Fall back to finding ui_src relative to the file or project root
+        candidate_dir = os.path.join(os.path.dirname(src_dir), "ui_src")
+        if os.path.isdir(candidate_dir):
+            src_dir = candidate_dir
+        elif os.path.isdir("main/ui_src"):
+            src_dir = "main/ui_src"
+        else:
+            print(f"Error: Source directory '{src_dir}' not found.")
+            sys.exit(1)
 
     required_files = {
         "html": os.path.join(src_dir, "index.html"),
@@ -114,8 +122,16 @@ def bundle_and_minify(
 
 
 if __name__ == "__main__":
-    src = sys.argv[1] if len(sys.argv) > 1 else "main/ui_src"
-    full_dst = sys.argv[2] if len(sys.argv) > 2 else "main/homepage_full.html"
-    min_dst = sys.argv[3] if len(sys.argv) > 3 else "main/homepage.html"
-    catalog = sys.argv[4] if len(sys.argv) > 4 else "main/cando_catalog.json"
+    # If the first argument passed was a file (e.g. main/homepage_full.html), route src_dir to main/ui_src
+    first_arg = sys.argv[1] if len(sys.argv) > 1 else "main/ui_src"
+    if first_arg.endswith(".html"):
+        src = "main/ui_src"
+        full_dst = first_arg
+        min_dst = sys.argv[2] if len(sys.argv) > 2 else "main/homepage.html"
+    else:
+        src = first_arg
+        full_dst = sys.argv[2] if len(sys.argv) > 2 else "main/homepage_full.html"
+        min_dst = sys.argv[3] if len(sys.argv) > 3 else "main/homepage.html"
+
+    catalog = "main/cando_catalog.json"
     bundle_and_minify(src, full_dst, min_dst, catalog)

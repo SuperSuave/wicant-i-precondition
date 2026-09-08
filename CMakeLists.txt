@@ -97,6 +97,7 @@ set(WEB_OUTPUTS
     "${CMAKE_SOURCE_DIR}/main/homepage_full.html"
     "${CMAKE_SOURCE_DIR}/main/homepage.html"
     "${CMAKE_SOURCE_DIR}/main/homepage.html.gz"
+    "${CMAKE_SOURCE_DIR}/main/cando_catalog.json.gz"
 )
 
 add_custom_command(
@@ -113,7 +114,6 @@ add_custom_command(
 
 add_custom_target(bundle_web_assets DEPENDS ${WEB_OUTPUTS})
 
-# Ensure web files are compressed before compiling the main component binary
 if(TARGET __idf_main)
     add_dependencies(__idf_main bundle_web_assets)
 else()

@@ -9,7 +9,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-
 #define TAG "TIME_SYNC"
 #include "hw_config.h"
 #define TIME_CONFIG_PATH FS_MOUNT_POINT "/time_config.json"
@@ -73,6 +72,9 @@ esp_err_t time_sync_set_time(int64_t epoch_sec, const char *tz) {
     settimeofday(&tv, NULL);
   }
   if (tz && strlen(tz) > 0) {
+    if (strlen(tz) >= sizeof(g_time_config.timezone)) {
+      return ESP_ERR_INVALID_ARG;
+    }
     strncpy(g_time_config.timezone, tz, sizeof(g_time_config.timezone) - 1);
     g_time_config.timezone[sizeof(g_time_config.timezone) - 1] = '\0';
     setenv("TZ", g_time_config.timezone, 1);
@@ -130,6 +132,15 @@ esp_err_t time_sync_save_config(const time_sync_config_t *cfg) {
 esp_err_t time_sync_load_config(time_sync_config_t *cfg) {
   if (!cfg)
     return ESP_ERR_INVALID_ARG;
+
+  // FIX (Issue 2): Initialize cfg with safe defaults so missing/empty files
+  // don't leave stack garbage
+  cfg->sntp_enabled = false;
+  strncpy(cfg->sntp_server, "pool.ntp.org", sizeof(cfg->sntp_server) - 1);
+  cfg->sntp_server[sizeof(cfg->sntp_server) - 1] = '\0';
+  strncpy(cfg->timezone, "UTC0", sizeof(cfg->timezone) - 1);
+  cfg->timezone[sizeof(cfg->timezone) - 1] = '\0';
+
   FILE *f = fopen(TIME_CONFIG_PATH, "r");
   if (!f)
     return ESP_OK;
@@ -163,14 +174,24 @@ esp_err_t time_sync_load_config(time_sync_config_t *cfg) {
 
   cJSON *srv = cJSON_GetObjectItem(root, "sntp_server");
   if (srv && srv->valuestring && strlen(srv->valuestring) > 0) {
-    strncpy(cfg->sntp_server, srv->valuestring, sizeof(cfg->sntp_server) - 1);
-    cfg->sntp_server[sizeof(cfg->sntp_server) - 1] = '\0';
+    // FIX (Issue 3): Validate length against buffer bounds before copying
+    if (strlen(srv->valuestring) < sizeof(cfg->sntp_server)) {
+      strncpy(cfg->sntp_server, srv->valuestring, sizeof(cfg->sntp_server) - 1);
+      cfg->sntp_server[sizeof(cfg->sntp_server) - 1] = '\0';
+    } else {
+      ESP_LOGE(TAG, "sntp_server string too long in config");
+    }
   }
 
   cJSON *tz = cJSON_GetObjectItem(root, "timezone");
   if (tz && tz->valuestring && strlen(tz->valuestring) > 0) {
-    strncpy(cfg->timezone, tz->valuestring, sizeof(cfg->timezone) - 1);
-    cfg->timezone[sizeof(cfg->timezone) - 1] = '\0';
+    // FIX (Issue 3): Validate length against buffer bounds before copying
+    if (strlen(tz->valuestring) < sizeof(cfg->timezone)) {
+      strncpy(cfg->timezone, tz->valuestring, sizeof(cfg->timezone) - 1);
+      cfg->timezone[sizeof(cfg->timezone) - 1] = '\0';
+    } else {
+      ESP_LOGE(TAG, "timezone string too long in config");
+    }
   }
 
   cJSON_Delete(root);

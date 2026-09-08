@@ -18,237 +18,211 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-#include "freertos/event_groups.h"
+#include "autopid.h"
+#include "cJSON.h"
+#include "cando.h"
+#include "config_server.h"
+#include "debug_logs.h"
+#include "dev_status.h"
+#include "driver/twai.h"
+#include "elm327.h"
 #include "esp_log.h"
+#include "esp_system.h"
+#include "esp_timer.h"
+#include "expression_parser.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
+#include "ha_webhooks.h"
+#include "hw_config.h"
+#include "lwip/err.h"
+#include "lwip/netdb.h"
+#include "lwip/sockets.h"
+#include "mqtt.h"
+#include "obd2_standard_pids.h"
+#include "sleep_mode.h"
+#include "wc_timer.h"
+#include "wifi_network.h"
+#include <ctype.h>
+#include <errno.h>
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "driver/twai.h"
-#include "esp_timer.h"
-#include "esp_system.h" 
-#include "lwip/sockets.h"
-#include "elm327.h"
-#include "autopid.h"
-#include "expression_parser.h"
-#include "mqtt.h"
-#include "cJSON.h"
-#include "config_server.h"
-#include "autopid.h"
-#include "can.h"
-#include "persistent_settings.h"
-#include <math.h>
-#include "obd2_standard_pids.h"
-#include "wc_timer.h"
-#include <float.h>
-#include "hw_config.h"
-#include "dev_status.h"
-#include "debug_logs.h"
-#include "ha_webhooks.h"
-#include "wifi_network.h"
-#include "sleep_mode.h"
-#include "track_popup.h"
-#include "precondition.h"
-#include "comm_server.h"
-#include <time.h>
-#include <ctype.h>
 #include <strings.h>
-#include "lwip/netdb.h"
-#include "lwip/err.h"
-#include <errno.h>
+#include <time.h>
 
 #define TAG "AUTOPID"
 
-#define TEMP_BUFFER_LENGTH  32
-#define ECU_CONNECTED_BIT			        BIT0
-#define AUTOPID_POLLING_DISABLED_BIT	    BIT1
-#define AUTOPID_REQUEST_BIT			        BIT2
+#define TEMP_BUFFER_LENGTH 32
+#define ECU_CONNECTED_BIT BIT0
+#define AUTOPID_POLLING_DISABLED_BIT BIT1
+#define AUTOPID_REQUEST_BIT BIT2
 
 static char auto_pid_buf[BUFFER_SIZE];
 static QueueHandle_t autopidQueue;
-static char* device_id;
+static char *device_id;
 static EventGroupHandle_t xautopid_event_group = NULL;
-static all_pids_t* all_pids = NULL;
+static all_pids_t *all_pids = NULL;
 static response_t elm327_response;
 static autopid_value_t *autopid_values = NULL;
 static uint32_t autopid_values_count = 0;
 static SemaphoreHandle_t autopid_values_mutex = NULL;
 
-//Helper functions
-// Custom printer function to format numbers with 2 decimal places
-char* formatNumberPrecision(double num) 
-{
-    static char buf[32];
-    snprintf(buf, sizeof(buf), "%.2f", num);
-    
-    // Remove trailing zeros after decimal point
-    size_t len = strlen(buf);
-    if (strchr(buf, '.')) 
-    {
-        while (len > 0 && buf[len-1] == '0') 
-        {
-            buf[--len] = '\0';
-        }
-        if (len > 0 && buf[len-1] == '.') 
-        {
-            buf[--len] = '\0';
-        }
+// Helper functions
+//  Custom printer function to format numbers with 2 decimal places
+char *formatNumberPrecision(double num) {
+  static char buf[32];
+  snprintf(buf, sizeof(buf), "%.2f", num);
+
+  // Remove trailing zeros after decimal point
+  size_t len = strlen(buf);
+  if (strchr(buf, '.')) {
+    while (len > 0 && buf[len - 1] == '0') {
+      buf[--len] = '\0';
     }
-    return buf;
+    if (len > 0 && buf[len - 1] == '.') {
+      buf[--len] = '\0';
+    }
+  }
+  return buf;
 }
 
-static char *strdup_heap(const char *s)
-{
-    if (!s)
-        return NULL;
-    size_t n = strlen(s) + 1;
-    char *out = (char *)malloc(n);
-    if (!out)
-        return NULL;
-    memcpy(out, s, n);
-    return out;
+static char *strdup_heap(const char *s) {
+  if (!s)
+    return NULL;
+  size_t n = strlen(s) + 1;
+  char *out = (char *)malloc(n);
+  if (!out)
+    return NULL;
+  memcpy(out, s, n);
+  return out;
 }
 
-static void webhook_format_utc(char out[32])
-{
-    if (!out)
-        return;
+static void webhook_format_utc(char out[32]) {
+  if (!out)
+    return;
 
-    time_t now = time(NULL);
-    struct tm t;
-    memset(&t, 0, sizeof(t));
+  time_t now = time(NULL);
+  struct tm t;
+  memset(&t, 0, sizeof(t));
 
-    // If time isn't set, still emit something deterministic
-    if (now <= 0)
-    {
-        strlcpy(out, "1970-01-01T00:00:00Z", 32);
-        return;
-    }
+  // If time isn't set, still emit something deterministic
+  if (now <= 0) {
+    strlcpy(out, "1970-01-01T00:00:00Z", 32);
+    return;
+  }
 
-    gmtime_r(&now, &t);
-    strftime(out, 32, "%Y-%m-%dT%H:%M:%SZ", &t);
+  gmtime_r(&now, &t);
+  strftime(out, 32, "%Y-%m-%dT%H:%M:%SZ", &t);
 }
 
-static void webhook_sanitize_snippet(char *s)
-{
-    if (!s)
-        return;
-    for (size_t i = 0; s[i]; i++)
-    {
-        unsigned char c = (unsigned char)s[i];
-        if (c == '\r' || c == '\n' || c == '\t')
-        {
-            s[i] = ' ';
-        }
-        else if (c < 32 || c > 126)
-        {
-            s[i] = ' ';
-        }
+static void webhook_sanitize_snippet(char *s) {
+  if (!s)
+    return;
+  for (size_t i = 0; s[i]; i++) {
+    unsigned char c = (unsigned char)s[i];
+    if (c == '\r' || c == '\n' || c == '\t') {
+      s[i] = ' ';
+    } else if (c < 32 || c > 126) {
+      s[i] = ' ';
     }
+  }
 }
 
-static cJSON *json_object_diff_simple(const cJSON *curr_obj, const cJSON *prev_obj)
-{
-    cJSON *diff = cJSON_CreateObject();
-    if (!diff)
-        return NULL;
+static cJSON *json_object_diff_simple(const cJSON *curr_obj,
+                                      const cJSON *prev_obj) {
+  cJSON *diff = cJSON_CreateObject();
+  if (!diff)
+    return NULL;
 
-    if (!curr_obj || !cJSON_IsObject(curr_obj))
-        return diff;
-
-    const cJSON *it = NULL;
-    cJSON_ArrayForEach(it, curr_obj)
-    {
-        const char *key = it->string;
-        if (!key)
-            continue;
-
-        // Only diff simple scalar types
-        bool is_simple = cJSON_IsString(it) || cJSON_IsNumber(it) || cJSON_IsBool(it);
-        if (!is_simple)
-            continue;
-
-        bool changed = true;
-        if (prev_obj && cJSON_IsObject(prev_obj))
-        {
-            const cJSON *prev_it = cJSON_GetObjectItemCaseSensitive((cJSON *)prev_obj, key);
-            if (prev_it)
-            {
-                if (cJSON_IsString(it) && cJSON_IsString(prev_it))
-                {
-                    const char *cs = it->valuestring ? it->valuestring : "";
-                    const char *ps = prev_it->valuestring ? prev_it->valuestring : "";
-                    changed = (strcmp(cs, ps) != 0);
-                }
-                else if (cJSON_IsNumber(it) && cJSON_IsNumber(prev_it))
-                {
-                    changed = (it->valuedouble != prev_it->valuedouble);
-                }
-                else if (cJSON_IsBool(it) && cJSON_IsBool(prev_it))
-                {
-                    int cv = cJSON_IsTrue(it) ? 1 : 0;
-                    int pv = cJSON_IsTrue(prev_it) ? 1 : 0;
-                    changed = (cv != pv);
-                }
-                else
-                {
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed)
-        {
-            if (cJSON_IsString(it) && it->valuestring)
-                cJSON_AddStringToObject(diff, key, it->valuestring);
-            else if (cJSON_IsNumber(it))
-                cJSON_AddNumberToObject(diff, key, it->valuedouble);
-            else if (cJSON_IsBool(it))
-                cJSON_AddBoolToObject(diff, key, cJSON_IsTrue(it));
-        }
-    }
-
+  if (!curr_obj || !cJSON_IsObject(curr_obj))
     return diff;
-}
 
-static cJSON *autopid_build_config_object(void)
-{
-    cJSON *cfg = cJSON_CreateObject();
-    if (!cfg)
-        return NULL;
+  const cJSON *it = NULL;
+  cJSON_ArrayForEach(it, curr_obj) {
+    const char *key = it->string;
+    if (!key)
+      continue;
 
-    if (all_pids)
-    {
-        cJSON_AddNumberToObject(cfg, "cycle", (double)all_pids->cycle);
-        if (all_pids->grouping)
-            cJSON_AddStringToObject(cfg, "grouping", all_pids->grouping);
-        if (all_pids->webhook_data_mode)
-            cJSON_AddStringToObject(cfg, "webhook_data_mode", all_pids->webhook_data_mode);
-        if (all_pids->vehicle_model)
-            cJSON_AddStringToObject(cfg, "car_model", all_pids->vehicle_model);
-        cJSON_AddStringToObject(cfg, "ha_discovery", all_pids->ha_discovery_en ? "enable" : "disable");
-        if (all_pids->autopid_polling)
-            cJSON_AddStringToObject(cfg, "autopid_polling", all_pids->autopid_polling);
+    // Only diff simple scalar types
+    bool is_simple =
+        cJSON_IsString(it) || cJSON_IsNumber(it) || cJSON_IsBool(it);
+    if (!is_simple)
+      continue;
+
+    bool changed = true;
+    if (prev_obj && cJSON_IsObject(prev_obj)) {
+      const cJSON *prev_it =
+          cJSON_GetObjectItemCaseSensitive((cJSON *)prev_obj, key);
+      if (prev_it) {
+        if (cJSON_IsString(it) && cJSON_IsString(prev_it)) {
+          const char *cs = it->valuestring ? it->valuestring : "";
+          const char *ps = prev_it->valuestring ? prev_it->valuestring : "";
+          changed = (strcmp(cs, ps) != 0);
+        } else if (cJSON_IsNumber(it) && cJSON_IsNumber(prev_it)) {
+          changed = (it->valuedouble != prev_it->valuedouble);
+        } else if (cJSON_IsBool(it) && cJSON_IsBool(prev_it)) {
+          int cv = cJSON_IsTrue(it) ? 1 : 0;
+          int pv = cJSON_IsTrue(prev_it) ? 1 : 0;
+          changed = (cv != pv);
+        } else {
+          changed = true;
+        }
+      }
     }
 
-    return cfg;
+    if (changed) {
+      if (cJSON_IsString(it) && it->valuestring)
+        cJSON_AddStringToObject(diff, key, it->valuestring);
+      else if (cJSON_IsNumber(it))
+        cJSON_AddNumberToObject(diff, key, it->valuedouble);
+      else if (cJSON_IsBool(it))
+        cJSON_AddBoolToObject(diff, key, cJSON_IsTrue(it));
+    }
+  }
+
+  return diff;
 }
 
-typedef struct
-{
-    char snippet[96];
+static cJSON *autopid_build_config_object(void) {
+  cJSON *cfg = cJSON_CreateObject();
+  if (!cfg)
+    return NULL;
+
+  if (all_pids) {
+    cJSON_AddNumberToObject(cfg, "cycle", (double)all_pids->cycle);
+    if (all_pids->grouping)
+      cJSON_AddStringToObject(cfg, "grouping", all_pids->grouping);
+    if (all_pids->webhook_data_mode)
+      cJSON_AddStringToObject(cfg, "webhook_data_mode",
+                              all_pids->webhook_data_mode);
+    if (all_pids->vehicle_model)
+      cJSON_AddStringToObject(cfg, "car_model", all_pids->vehicle_model);
+    cJSON_AddStringToObject(cfg, "ha_discovery",
+                            all_pids->ha_discovery_en ? "enable" : "disable");
+    if (all_pids->autopid_polling)
+      cJSON_AddStringToObject(cfg, "autopid_polling",
+                              all_pids->autopid_polling);
+  }
+
+  return cfg;
+}
+
+typedef struct {
+  char snippet[96];
 } webhook_http_ctx_t;
 
-// static void webhook_printf_post_body(const char *url, const char *body, size_t body_len)
+// static void webhook_printf_post_body(const char *url, const char *body,
+// size_t body_len)
 // {
 //     if (!url || !body)
 //         return;
 
-//     // Print URL + full JSON payload in bounded chunks (avoids extremely long single-line prints).
-//     printf("WEBHOOK POST url=%s len=%u\n", url, (unsigned)body_len);
-//     size_t off = 0;
-//     while (off < body_len)
+//     // Print URL + full JSON payload in bounded chunks (avoids extremely long
+//     single-line prints). printf("WEBHOOK POST url=%s len=%u\n", url,
+//     (unsigned)body_len); size_t off = 0; while (off < body_len)
 //     {
 //         size_t chunk = body_len - off;
 //         if (chunk > 256)
@@ -259,552 +233,534 @@ typedef struct
 //     printf("\n");
 // }
 
-static bool webhook_parse_http_url(const char *url, char *host, size_t host_len, int *out_port, char *path, size_t path_len)
-{
-    if (!url || !host || !path || !out_port)
-        return false;
+static bool webhook_parse_http_url(const char *url, char *host, size_t host_len,
+                                   int *out_port, char *path, size_t path_len) {
+  if (!url || !host || !path || !out_port)
+    return false;
 
-    // HTTP only
-    if (strncasecmp(url, "http://", 7) != 0)
-        return false;
+  // HTTP only
+  if (strncasecmp(url, "http://", 7) != 0)
+    return false;
 
-    const char *p = url + 7;
-    // host[:port][/path]
-    const char *host_end = p;
-    while (*host_end && *host_end != '/' && *host_end != ':')
-        host_end++;
+  const char *p = url + 7;
+  // host[:port][/path]
+  const char *host_end = p;
+  while (*host_end && *host_end != '/' && *host_end != ':')
+    host_end++;
 
-    size_t hlen = (size_t)(host_end - p);
-    if (hlen == 0 || hlen >= host_len)
-        return false;
-    memcpy(host, p, hlen);
-    host[hlen] = '\0';
+  size_t hlen = (size_t)(host_end - p);
+  if (hlen == 0 || hlen >= host_len)
+    return false;
+  memcpy(host, p, hlen);
+  host[hlen] = '\0';
 
-    int port = 80;
-    const char *after_host = host_end;
-    if (*after_host == ':')
-    {
-        after_host++;
-        port = 0;
-        while (*after_host && isdigit((unsigned char)*after_host))
-        {
-            port = (port * 10) + (*after_host - '0');
-            after_host++;
-        }
-        if (port <= 0 || port > 65535)
-            return false;
+  int port = 80;
+  const char *after_host = host_end;
+  if (*after_host == ':') {
+    after_host++;
+    port = 0;
+    while (*after_host && isdigit((unsigned char)*after_host)) {
+      port = (port * 10) + (*after_host - '0');
+      after_host++;
     }
+    if (port <= 0 || port > 65535)
+      return false;
+  }
 
-    if (*after_host == '\0')
-    {
-        strlcpy(path, "/", path_len);
-    }
-    else if (*after_host == '/')
-    {
-        strlcpy(path, after_host, path_len);
-    }
-    else
-    {
-        // Unexpected character after host/port
-        return false;
-    }
+  if (*after_host == '\0') {
+    strlcpy(path, "/", path_len);
+  } else if (*after_host == '/') {
+    strlcpy(path, after_host, path_len);
+  } else {
+    // Unexpected character after host/port
+    return false;
+  }
 
-    *out_port = port;
-    return true;
+  *out_port = port;
+  return true;
 }
 
-static esp_err_t webhook_post_json(const char *url, const char *body, size_t body_len, int timeout_ms, int *out_status, char *out_snippet, size_t out_snippet_len)
-{
-    if (!url || !body)
-        return ESP_ERR_INVALID_ARG;
+static esp_err_t webhook_post_json(const char *url, const char *body,
+                                   size_t body_len, int timeout_ms,
+                                   int *out_status, char *out_snippet,
+                                   size_t out_snippet_len) {
+  if (!url || !body)
+    return ESP_ERR_INVALID_ARG;
 
-    // webhook_printf_post_body(url, body, body_len);
+  // webhook_printf_post_body(url, body, body_len);
 
-    if (out_status)
-        *out_status = -1;
-    if (out_snippet && out_snippet_len)
-        out_snippet[0] = '\0';
+  if (out_status)
+    *out_status = -1;
+  if (out_snippet && out_snippet_len)
+    out_snippet[0] = '\0';
 
-    char host[96] = {0};
-    char path[192] = {0};
-    int port = 80;
-    if (!webhook_parse_http_url(url, host, sizeof(host), &port, path, sizeof(path)))
-        return ESP_ERR_INVALID_ARG;
+  char host[96] = {0};
+  char path[192] = {0};
+  int port = 80;
+  if (!webhook_parse_http_url(url, host, sizeof(host), &port, path,
+                              sizeof(path)))
+    return ESP_ERR_INVALID_ARG;
 
-    char port_str[8];
-    snprintf(port_str, sizeof(port_str), "%d", port);
+  char port_str[8];
+  snprintf(port_str, sizeof(port_str), "%d", port);
 
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
 
-    struct addrinfo *res = NULL;
-    int gai = getaddrinfo(host, port_str, &hints, &res);
-    if (gai != 0 || !res)
-    {
-        if (out_snippet && out_snippet_len)
-        {
-            // Keep message short and always bounded (build uses -Werror=format-truncation)
-            snprintf(out_snippet, out_snippet_len, "getaddrinfo failed gai=%d", gai);
-        }
-        return ESP_FAIL;
+  struct addrinfo *res = NULL;
+  int gai = getaddrinfo(host, port_str, &hints, &res);
+  if (gai != 0 || !res) {
+    if (out_snippet && out_snippet_len) {
+      // Keep message short and always bounded (build uses
+      // -Werror=format-truncation)
+      snprintf(out_snippet, out_snippet_len, "getaddrinfo failed gai=%d", gai);
     }
+    return ESP_FAIL;
+  }
 
-    int sock = -1;
-    int last_errno = 0;
-    struct addrinfo *ai = res;
-    for (; ai; ai = ai->ai_next)
-    {
-        sock = (int)socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-        if (sock < 0)
-            continue;
-
-        struct timeval tv;
-        tv.tv_sec = timeout_ms / 1000;
-        tv.tv_usec = (timeout_ms % 1000) * 1000;
-        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-        setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-
-        if (connect(sock, ai->ai_addr, (socklen_t)ai->ai_addrlen) == 0)
-            break;
-
-        last_errno = errno;
-        close(sock);
-        sock = -1;
-    }
-    freeaddrinfo(res);
-
+  int sock = -1;
+  int last_errno = 0;
+  struct addrinfo *ai = res;
+  for (; ai; ai = ai->ai_next) {
+    sock = (int)socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
     if (sock < 0)
-    {
-        if (out_snippet && out_snippet_len)
-        {
-            // Keep message short and always bounded (build uses -Werror=format-truncation)
-            snprintf(out_snippet, out_snippet_len, "connect failed errno=%d", last_errno);
-        }
-        return ESP_FAIL;
-    }
+      continue;
 
-    // Build HTTP request
-    const char *fmt =
-        "POST %s HTTP/1.1\r\n"
-        "Host: %s\r\n"
-        "Content-Type: application/json\r\n"
-        "Connection: close\r\n"
-        "Content-Length: %u\r\n"
-        "\r\n";
+    struct timeval tv;
+    tv.tv_sec = timeout_ms / 1000;
+    tv.tv_usec = (timeout_ms % 1000) * 1000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 
-    int hdr_len = snprintf(NULL, 0, fmt, path, host, (unsigned)body_len);
-    if (hdr_len <= 0)
-    {
-        close(sock);
-        return ESP_FAIL;
-    }
+    if (connect(sock, ai->ai_addr, (socklen_t)ai->ai_addrlen) == 0)
+      break;
 
-    size_t req_len = (size_t)hdr_len + body_len;
-    char *req = (char *)malloc(req_len + 1);
-    if (!req)
-    {
-        close(sock);
-        return ESP_ERR_NO_MEM;
-    }
-
-    int w = snprintf(req, (size_t)hdr_len + 1, fmt, path, host, (unsigned)body_len);
-    if (w != hdr_len)
-    {
-        free(req);
-        close(sock);
-        return ESP_FAIL;
-    }
-    memcpy(req + hdr_len, body, body_len);
-    req[req_len] = '\0';
-
-    // Send all
-    size_t sent = 0;
-    while (sent < req_len)
-    {
-        int n = (int)send(sock, req + sent, (int)(req_len - sent), 0);
-        if (n <= 0)
-        {
-            free(req);
-            close(sock);
-            return ESP_FAIL;
-        }
-        sent += (size_t)n;
-    }
-    free(req);
-
-    // Read response (small)
-    char resp[512];
-    int r = (int)recv(sock, resp, sizeof(resp) - 1, 0);
+    last_errno = errno;
     close(sock);
-    if (r <= 0)
-        return ESP_FAIL;
-    resp[r] = '\0';
+    sock = -1;
+  }
+  freeaddrinfo(res);
 
-    // Parse status code
-    int status = -1;
-    const char *sp = strstr(resp, "HTTP/");
-    if (sp)
-    {
-        const char *code = strchr(sp, ' ');
-        if (code)
-            status = atoi(code + 1);
+  if (sock < 0) {
+    if (out_snippet && out_snippet_len) {
+      // Keep message short and always bounded (build uses
+      // -Werror=format-truncation)
+      snprintf(out_snippet, out_snippet_len, "connect failed errno=%d",
+               last_errno);
     }
-    if (out_status)
-        *out_status = status;
+    return ESP_FAIL;
+  }
 
-    // Extract a snippet after headers if possible
-    if (out_snippet && out_snippet_len > 0)
-    {
-        const char *body_start = strstr(resp, "\r\n\r\n");
-        body_start = body_start ? (body_start + 4) : resp;
-        strlcpy(out_snippet, body_start, out_snippet_len);
-        webhook_sanitize_snippet(out_snippet);
+  // Build HTTP request
+  const char *fmt = "POST %s HTTP/1.1\r\n"
+                    "Host: %s\r\n"
+                    "Content-Type: application/json\r\n"
+                    "Connection: close\r\n"
+                    "Content-Length: %u\r\n"
+                    "\r\n";
+
+  int hdr_len = snprintf(NULL, 0, fmt, path, host, (unsigned)body_len);
+  if (hdr_len <= 0) {
+    close(sock);
+    return ESP_FAIL;
+  }
+
+  size_t req_len = (size_t)hdr_len + body_len;
+  char *req = (char *)malloc(req_len + 1);
+  if (!req) {
+    close(sock);
+    return ESP_ERR_NO_MEM;
+  }
+
+  int w =
+      snprintf(req, (size_t)hdr_len + 1, fmt, path, host, (unsigned)body_len);
+  if (w != hdr_len) {
+    free(req);
+    close(sock);
+    return ESP_FAIL;
+  }
+  memcpy(req + hdr_len, body, body_len);
+  req[req_len] = '\0';
+
+  // Send all
+  size_t sent = 0;
+  while (sent < req_len) {
+    int n = (int)send(sock, req + sent, (int)(req_len - sent), 0);
+    if (n <= 0) {
+      free(req);
+      close(sock);
+      return ESP_FAIL;
     }
+    sent += (size_t)n;
+  }
+  free(req);
 
-    return ESP_OK;
+  // Read response (small)
+  char resp[512];
+  int r = (int)recv(sock, resp, sizeof(resp) - 1, 0);
+  close(sock);
+  if (r <= 0)
+    return ESP_FAIL;
+  resp[r] = '\0';
+
+  // Parse status code
+  int status = -1;
+  const char *sp = strstr(resp, "HTTP/");
+  if (sp) {
+    const char *code = strchr(sp, ' ');
+    if (code)
+      status = atoi(code + 1);
+  }
+  if (out_status)
+    *out_status = status;
+
+  // Extract a snippet after headers if possible
+  if (out_snippet && out_snippet_len > 0) {
+    const char *body_start = strstr(resp, "\r\n\r\n");
+    body_start = body_start ? (body_start + 4) : resp;
+    strlcpy(out_snippet, body_start, out_snippet_len);
+    webhook_sanitize_snippet(out_snippet);
+  }
+
+  return ESP_OK;
 }
 
 // Recursively limit decimal precision in the JSON structure
-void limitJsonDecimalPrecision(cJSON* item) 
-{
-    if (!item) return;
-    
-    // If current item is a number, modify its value
-    if (cJSON_IsNumber(item))
-    {
-        char* formatted = formatNumberPrecision(item->valuedouble);
-        item->valuedouble = atof(formatted);
-        item->valuestring = NULL;  // Force cJSON to use valuedouble
-    }
-    
-    // Process all children
-    cJSON* child = item->child;
-    while (child)
-    {
-        limitJsonDecimalPrecision(child);
-        child = child->next;
-    }
+void limitJsonDecimalPrecision(cJSON *item) {
+  if (!item)
+    return;
+
+  // If current item is a number, modify its value
+  if (cJSON_IsNumber(item)) {
+    char *formatted = formatNumberPrecision(item->valuedouble);
+    item->valuedouble = atof(formatted);
+    item->valuestring = NULL; // Force cJSON to use valuedouble
+  }
+
+  // Process all children
+  cJSON *child = item->child;
+  while (child) {
+    limitJsonDecimalPrecision(child);
+    child = child->next;
+  }
 }
 
+const std_pid_t *get_pid_from_string(const char *pid_string) {
+  char pid_hex[3];
+  uint8_t pid_value;
 
+  // Extract first 2 characters (hex PID)
+  strncpy(pid_hex, pid_string, 2);
+  pid_hex[2] = '\0';
 
-const std_pid_t* get_pid_from_string(const char* pid_string)
-{
-    char pid_hex[3];
-    uint8_t pid_value;
-    
-    // Extract first 2 characters (hex PID)
-    strncpy(pid_hex, pid_string, 2);
-    pid_hex[2] = '\0';
-    
-    // Convert hex string to integer
-    pid_value = (uint8_t)strtol(pid_hex, NULL, 16);
-    
-    // Get the base PID info
-    const std_pid_t* pid_info = get_pid(pid_value);
-    if (!pid_info)
-    {
-        return NULL;
+  // Convert hex string to integer
+  pid_value = (uint8_t)strtol(pid_hex, NULL, 16);
+
+  // Get the base PID info
+  const std_pid_t *pid_info = get_pid(pid_value);
+  if (!pid_info) {
+    return NULL;
+  }
+
+  // If there's a parameter name specified after the dash
+  if (strchr(pid_string, '-')) {
+    const char *param_name = strchr(pid_string, '-') + 1;
+
+    // For all PIDs, verify the parameter exists
+    bool param_found = false;
+    for (int i = 0; i < pid_info->num_params; i++) {
+      if (strcmp(pid_info->params[i].name, param_name) == 0) {
+        param_found = true;
+        break;
+      }
     }
-    
-    // If there's a parameter name specified after the dash
-    if (strchr(pid_string, '-'))
-    {
-        const char* param_name = strchr(pid_string, '-') + 1;
-        
-        // For all PIDs, verify the parameter exists
-        bool param_found = false;
-        for (int i = 0; i < pid_info->num_params; i++)
-        {
-            if (strcmp(pid_info->params[i].name, param_name) == 0)
-            {
-                param_found = true;
-                break;
-            }
-        }
-        if (!param_found)
-        {
-            return NULL;
-        }
+    if (!param_found) {
+      return NULL;
     }
-    
-    return pid_info;
+  }
+
+  return pid_info;
 }
 
-static esp_err_t extract_signal_value(const uint8_t* data, 
-                                        uint8_t data_length, 
-                                        const std_parameter_t* param,
-                                        float* result) 
-{
-    // Validate input parameters
-    if (!data || !param || !result) {
-        return ESP_ERR_INVALID_ARG;
-    }
+static esp_err_t extract_signal_value(const uint8_t *data, uint8_t data_length,
+                                      const std_parameter_t *param,
+                                      float *result) {
+  // Validate input parameters
+  if (!data || !param || !result) {
+    return ESP_ERR_INVALID_ARG;
+  }
 
-    // Calculate which bytes we need
-    uint8_t start_byte = param->bit_start / 8;
-    uint8_t bytes_needed = (param->bit_length + 7) / 8;
+  // Calculate which bytes we need
+  uint8_t start_byte = param->bit_start / 8;
+  uint8_t bytes_needed = (param->bit_length + 7) / 8;
 
-    // Validate data length
-    if (start_byte + bytes_needed > data_length) {
-        return ESP_ERR_INVALID_SIZE;
-    }
+  // Validate data length
+  if (start_byte + bytes_needed > data_length) {
+    return ESP_ERR_INVALID_SIZE;
+  }
 
-    // Extract raw value (Motorola format)
-    uint32_t raw_value = 0;
-    for (uint8_t i = 0; i < bytes_needed; i++) {
-        raw_value = (raw_value << 8) | data[start_byte + i];
-    }
+  // Extract raw value (Motorola format)
+  uint32_t raw_value = 0;
+  for (uint8_t i = 0; i < bytes_needed; i++) {
+    raw_value = (raw_value << 8) | data[start_byte + i];
+  }
 
-    // Apply bit mask for the signal length
-    uint32_t mask = (1ULL << param->bit_length) - 1;
-    raw_value &= mask;
+  // Apply bit mask for the signal length
+  uint32_t mask = (1ULL << param->bit_length) - 1;
+  raw_value &= mask;
 
-    // Calculate and limit physical value
-    float physical_value = (float)raw_value * param->scale + param->offset;
-    
-    if (physical_value < param->min) {
-        physical_value = param->min;
-    }
-    if (physical_value > param->max) {
-        physical_value = param->max;
-    }
+  // Calculate and limit physical value
+  float physical_value = (float)raw_value * param->scale + param->offset;
 
-    *result = physical_value;
-    return ESP_OK;
+  if (physical_value < param->min) {
+    physical_value = param->min;
+  }
+  if (physical_value > param->max) {
+    physical_value = param->max;
+  }
+
+  *result = physical_value;
+  return ESP_OK;
 }
 
-static void merge_response_frames(uint8_t* data, uint32_t length, uint8_t* merged_frame) {
-    // Initialize merged frame with first 7 bytes
-    for(int i = 0; i < 7; i++) {
-        merged_frame[i] = data[i];
+static void merge_response_frames(uint8_t *data, uint32_t length,
+                                  uint8_t *merged_frame) {
+  // Initialize merged frame with first 7 bytes
+  for (int i = 0; i < 7; i++) {
+    merged_frame[i] = data[i];
+  }
+
+  // Process subsequent frames
+  for (int frame = 7; frame < length; frame += 7) {
+    // Perform bitwise OR for each byte position
+    for (int byte = 0; byte < 7 && (frame + byte) < length; byte++) {
+      merged_frame[byte] |= data[frame + byte];
     }
-    
-    // Process subsequent frames
-    for(int frame = 7; frame < length; frame += 7) {
-        // Perform bitwise OR for each byte position
-        for(int byte = 0; byte < 7 && (frame + byte) < length; byte++) {
-            merged_frame[byte] |= data[frame + byte];
-        }
-    }
+  }
 }
 
-esp_err_t autopid_find_standard_pid(uint8_t protocol, char *available_pids, uint32_t available_pids_size) 
-{
-    twai_message_t frame;
-    response_t *response = NULL;
-    uint32_t supported_pids = 0;
-    cJSON *root = cJSON_CreateObject();
-    cJSON *pid_array = cJSON_CreateArray();
-    uint8_t current_protocol = elm327_get_current_protocol()-'0';
-    uint32_t current_txheader = elm327_get_identifier();
-    uint32_t current_rxheader = elm327_get_rx_address();
-    char restore_cmd[64];
-    static const char *supported_protocols[] = {"ATSP6\rATSH7DF\rATCRA\r",
-                                                "ATSP7\rATSH18DB33F1\rATCRA\r",
-                                                "ATSP8\rATSH7DF\rATCRA\r",
-                                                "ATSP9\rATSH18DB33F1\rATCRA\r",
-                                                };
+esp_err_t autopid_find_standard_pid(uint8_t protocol, char *available_pids,
+                                    uint32_t available_pids_size) {
+  twai_message_t frame;
+  response_t *response = NULL;
+  uint32_t supported_pids = 0;
+  cJSON *root = cJSON_CreateObject();
+  cJSON *pid_array = cJSON_CreateArray();
+  uint8_t current_protocol = elm327_get_current_protocol() - '0';
+  uint32_t current_txheader = elm327_get_identifier();
+  uint32_t current_rxheader = elm327_get_rx_address();
+  char restore_cmd[64];
+  static const char *supported_protocols[] = {
+      "ATSP6\rATSH7DF\rATCRA\r",
+      "ATSP7\rATSH18DB33F1\rATCRA\r",
+      "ATSP8\rATSH7DF\rATCRA\r",
+      "ATSP9\rATSH18DB33F1\rATCRA\r",
+  };
 
-    response = (response_t *)malloc(sizeof(response_t)); 
-    
-    if (response == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to allocate memory for response");
-        DEBUG_LOGE(TAG, "Failed to allocate memory for response");
-        return ESP_ERR_NO_MEM;
-    }
+  response = (response_t *)malloc(sizeof(response_t));
 
-    if(current_rxheader == 0)
-    {
-        snprintf(restore_cmd, sizeof(restore_cmd), "ATSP%u\rATSH%03lX\r",
-                current_protocol, 
-                current_txheader);
-    }
-    else if (current_txheader <= 0x7FF) 
-    {
-        snprintf(restore_cmd, sizeof(restore_cmd), "ATSP%u\rATSH%03lX\rATCRA%03lX\r",
-                current_protocol, 
-                current_txheader,
-                current_rxheader);
-    }
-    else
-    {
-        snprintf(restore_cmd, sizeof(restore_cmd), "ATSP%u\rATSH%08lX\rATCRA%08lX\r",
-                current_protocol,
-                current_txheader, 
-                current_rxheader);
-    }
+  if (response == NULL) {
+    ESP_LOGE(TAG, "Failed to allocate memory for response");
+    DEBUG_LOGE(TAG, "Failed to allocate memory for response");
+    return ESP_ERR_NO_MEM;
+  }
 
-    elm327_lock();
+  if (current_rxheader == 0) {
+    snprintf(restore_cmd, sizeof(restore_cmd), "ATSP%u\rATSH%03lX\r",
+             current_protocol, current_txheader);
+  } else if (current_txheader <= 0x7FF) {
+    snprintf(restore_cmd, sizeof(restore_cmd),
+             "ATSP%u\rATSH%03lX\rATCRA%03lX\r", current_protocol,
+             current_txheader, current_rxheader);
+  } else {
+    snprintf(restore_cmd, sizeof(restore_cmd),
+             "ATSP%u\rATSH%08lX\rATCRA%08lX\r", current_protocol,
+             current_txheader, current_rxheader);
+  }
 
-    if(protocol >= 6 && protocol <= 9) 
-    {
-        ESP_LOGI(TAG, "Setting protocol %d", protocol);
+  elm327_lock();
+
+  if (protocol >= 6 && protocol <= 9) {
+    ESP_LOGI(TAG, "Setting protocol %d", protocol);
     DEBUG_LOGI(TAG, "Setting protocol %d", protocol);
 
-        static const char *elm327_config = "ate0\rath1\ratl0\rats1\ratst96\r";
-        elm327_process_cmd((uint8_t*)elm327_config, strlen(elm327_config), &frame, &autopidQueue);
-        while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS);
+    static const char *elm327_config = "ate0\rath1\ratl0\rats1\ratst96\r";
+    elm327_process_cmd((uint8_t *)elm327_config, strlen(elm327_config), &frame,
+                       &autopidQueue);
+    while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS)
+      ;
 
-        const char* protocol_cmds = supported_protocols[protocol-6];
-        ESP_LOGI(TAG, "Sending protocol commands: %s", protocol_cmds);
+    const char *protocol_cmds = supported_protocols[protocol - 6];
+    ESP_LOGI(TAG, "Sending protocol commands: %s", protocol_cmds);
     DEBUG_LOGI(TAG, "Sending protocol commands: %s", protocol_cmds);
-        elm327_process_cmd((uint8_t*)protocol_cmds, strlen(protocol_cmds), &frame, &autopidQueue);
-        while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS);
-        ESP_LOGI(TAG, "Protocol %d set successfully", protocol);
+    elm327_process_cmd((uint8_t *)protocol_cmds, strlen(protocol_cmds), &frame,
+                       &autopidQueue);
+    while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS)
+      ;
+    ESP_LOGI(TAG, "Protocol %d set successfully", protocol);
     DEBUG_LOGI(TAG, "Protocol %d set successfully", protocol);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Invalid protocol number: %d", protocol);
+  } else {
+    ESP_LOGE(TAG, "Invalid protocol number: %d", protocol);
     DEBUG_LOGE(TAG, "Invalid protocol number: %d", protocol);
-        elm327_unlock();
-        free(response);
-        return ESP_FAIL;
-    }
-    
-    xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000));
+    elm327_unlock();
+    free(response);
+    return ESP_FAIL;
+  }
 
-    const char *pid_support_cmds[] = {
-        "0100\r",  // PIDs 0x01-0x20
-        "0120\r",  // PIDs 0x21-0x40
-        "0140\r",  // PIDs 0x41-0x60
-        "0160\r",  // PIDs 0x61-0x80
-        "0180\r",  // PIDs 0x81-0xA0
-        "01A0\r",  // PIDs 0xA1-0xC0
-    };
+  xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000));
 
-    ESP_LOGI(TAG, "Starting PID support command processing");
-    DEBUG_LOGI(TAG, "Starting PID support command processing");
-    for (int i = 0; i < sizeof(pid_support_cmds)/sizeof(pid_support_cmds[0]); i++) {
-        ESP_LOGI(TAG, "Processing PID support command: %s", pid_support_cmds[i]);
+  const char *pid_support_cmds[] = {
+      "0100\r", // PIDs 0x01-0x20
+      "0120\r", // PIDs 0x21-0x40
+      "0140\r", // PIDs 0x41-0x60
+      "0160\r", // PIDs 0x61-0x80
+      "0180\r", // PIDs 0x81-0xA0
+      "01A0\r", // PIDs 0xA1-0xC0
+  };
+
+  ESP_LOGI(TAG, "Starting PID support command processing");
+  DEBUG_LOGI(TAG, "Starting PID support command processing");
+  for (int i = 0; i < sizeof(pid_support_cmds) / sizeof(pid_support_cmds[0]);
+       i++) {
+    ESP_LOGI(TAG, "Processing PID support command: %s", pid_support_cmds[i]);
     DEBUG_LOGI(TAG, "Processing PID support command: %s", pid_support_cmds[i]);
-        if (elm327_process_cmd((uint8_t*)pid_support_cmds[i], strlen(pid_support_cmds[i]), &frame, &autopidQueue) != 0) {
-            ESP_LOGW(TAG, "Failed to process PID support command: %s", pid_support_cmds[i]);
-            DEBUG_LOGW(TAG, "Failed to process PID support command: %s", pid_support_cmds[i]);
-            continue;
-        }
+    if (elm327_process_cmd((uint8_t *)pid_support_cmds[i],
+                           strlen(pid_support_cmds[i]), &frame,
+                           &autopidQueue) != 0) {
+      ESP_LOGW(TAG, "Failed to process PID support command: %s",
+               pid_support_cmds[i]);
+      DEBUG_LOGW(TAG, "Failed to process PID support command: %s",
+                 pid_support_cmds[i]);
+      continue;
+    }
 
     if (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS) {
-        ESP_LOGI(TAG, "Raw response length: %lu", response->length);
-    DEBUG_LOGI(TAG, "Raw response length: %lu", response->length);
-        ESP_LOG_BUFFER_HEX(TAG, response->data, response->length);
+      ESP_LOGI(TAG, "Raw response length: %lu", response->length);
+      DEBUG_LOGI(TAG, "Raw response length: %lu", response->length);
+      ESP_LOG_BUFFER_HEX(TAG, response->data, response->length);
 
+      // Skip mode byte (0x41) and PID byte
+      if (response->length >= 7) {
+        uint8_t merged_frame[7] = {0};
+        merge_response_frames(response->data, response->length, merged_frame);
 
-        // Skip mode byte (0x41) and PID byte
-        if (response->length >= 7) {
-            uint8_t merged_frame[7] = {0};
-            merge_response_frames(response->data, response->length, merged_frame);
-            
-            // Extract bitmap from merged frame
-            supported_pids = (merged_frame[3] << 24) | 
-                            (merged_frame[4] << 16) | 
-                            (merged_frame[5] << 8) | 
-                            merged_frame[6];
-            
-            ESP_LOGI(TAG, "Merged frame bitmap: 0x%08lx", supported_pids);
-            DEBUG_LOGI(TAG, "Merged frame bitmap: 0x%08lx", supported_pids);
+        // Extract bitmap from merged frame
+        supported_pids = (merged_frame[3] << 24) | (merged_frame[4] << 16) |
+                         (merged_frame[5] << 8) | merged_frame[6];
 
-                for (int bit = 0; bit < 32; bit++) {
-                    if (supported_pids & (1 << (31 - bit))) {
-                        uint8_t pid = (i * 32) + bit + 1;
-                        const std_pid_t* pid_info = get_pid(pid);
-                        
-                        if (pid_info) {
-                            char pid_str[64];
-                            
-                            // If the PID has multiple parameters
-                            if (pid_info->num_params > 1 && pid_info->params) {
-                                ESP_LOGI(TAG, "Processing multi-parameter PID: %02X", pid);
-                                DEBUG_LOGI(TAG, "Processing multi-parameter PID: %02X", pid);
-                                // Add each parameter as a separate entry
-                                for (int p = 0; p < pid_info->num_params; p++) {
-                                    if (pid_info->params[p].name) {
-                                        snprintf(pid_str, sizeof(pid_str), "%02X-%s", 
-                                                pid, pid_info->params[p].name);
-                                        ESP_LOGI(TAG, "PID %02X parameter %d supported: %s", 
-                                                pid, p + 1, pid_str);
-                    DEBUG_LOGI(TAG, "PID %02X parameter %d supported: %s", 
-                        pid, p + 1, pid_str);
-                                        cJSON_AddItemToArray(pid_array, cJSON_CreateString(pid_str));
-                                    } else {
-                                        ESP_LOGW(TAG, "PID %02X parameter %d has NULL name", pid, p + 1);
-                                        DEBUG_LOGW(TAG, "PID %02X parameter %d has NULL name", pid, p + 1);
-                                    }
-                                }
-                            } else if (pid_info->params && pid_info->params[0].name) {
-                                // Single parameter PID
-                                snprintf(pid_str, sizeof(pid_str), "%02X-%s", 
-                                        pid, pid_info->params[0].name);
-                                ESP_LOGI(TAG, "PID %02X supported: %s", pid, pid_str);
-                                DEBUG_LOGI(TAG, "PID %02X supported: %s", pid, pid_str);
-                                cJSON_AddItemToArray(pid_array, cJSON_CreateString(pid_str));
-                            } else {
-                                ESP_LOGW(TAG, "PID %02X has invalid or NULL parameters", pid);
-                                DEBUG_LOGW(TAG, "PID %02X has invalid or NULL parameters", pid);
-                            }
-                        }                        
-                    }
+        ESP_LOGI(TAG, "Merged frame bitmap: 0x%08lx", supported_pids);
+        DEBUG_LOGI(TAG, "Merged frame bitmap: 0x%08lx", supported_pids);
+
+        for (int bit = 0; bit < 32; bit++) {
+          if (supported_pids & (1 << (31 - bit))) {
+            uint8_t pid = (i * 32) + bit + 1;
+            const std_pid_t *pid_info = get_pid(pid);
+
+            if (pid_info) {
+              char pid_str[64];
+
+              // If the PID has multiple parameters
+              if (pid_info->num_params > 1 && pid_info->params) {
+                ESP_LOGI(TAG, "Processing multi-parameter PID: %02X", pid);
+                DEBUG_LOGI(TAG, "Processing multi-parameter PID: %02X", pid);
+                // Add each parameter as a separate entry
+                for (int p = 0; p < pid_info->num_params; p++) {
+                  if (pid_info->params[p].name) {
+                    snprintf(pid_str, sizeof(pid_str), "%02X-%s", pid,
+                             pid_info->params[p].name);
+                    ESP_LOGI(TAG, "PID %02X parameter %d supported: %s", pid,
+                             p + 1, pid_str);
+                    DEBUG_LOGI(TAG, "PID %02X parameter %d supported: %s", pid,
+                               p + 1, pid_str);
+                    cJSON_AddItemToArray(pid_array,
+                                         cJSON_CreateString(pid_str));
+                  } else {
+                    ESP_LOGW(TAG, "PID %02X parameter %d has NULL name", pid,
+                             p + 1);
+                    DEBUG_LOGW(TAG, "PID %02X parameter %d has NULL name", pid,
+                               p + 1);
+                  }
                 }
-            } else {
-                ESP_LOGW(TAG, "Response length too short: %lu", response->length);
-                DEBUG_LOGW(TAG, "Response length too short: %lu", response->length);
+              } else if (pid_info->params && pid_info->params[0].name) {
+                // Single parameter PID
+                snprintf(pid_str, sizeof(pid_str), "%02X-%s", pid,
+                         pid_info->params[0].name);
+                ESP_LOGI(TAG, "PID %02X supported: %s", pid, pid_str);
+                DEBUG_LOGI(TAG, "PID %02X supported: %s", pid, pid_str);
+                cJSON_AddItemToArray(pid_array, cJSON_CreateString(pid_str));
+              } else {
+                ESP_LOGW(TAG, "PID %02X has invalid or NULL parameters", pid);
+                DEBUG_LOGW(TAG, "PID %02X has invalid or NULL parameters", pid);
+              }
             }
-        } else {
-            ESP_LOGW(TAG, "No response received for PID support command: %s", pid_support_cmds[i]);
-            DEBUG_LOGW(TAG, "No response received for PID support command: %s", pid_support_cmds[i]);
+          }
         }
-    }
-
-    ESP_LOGI(TAG, "Adding PIDs to JSON object");
-    DEBUG_LOGI(TAG, "Adding PIDs to JSON object");
-    cJSON_AddItemToObject(root, "std_pids", pid_array);
-
-    // Convert to string and cleanup
-    char *json_str = cJSON_PrintUnformatted(root);
-    if (json_str) {
-        ESP_LOGI(TAG, "JSON string created, length: %zu", strlen(json_str));
-    DEBUG_LOGI(TAG, "JSON string created, length: %zu", strlen(json_str));
-        if (strlen(json_str) < available_pids_size) {
-            strncpy(available_pids, json_str, available_pids_size - 1);
-            available_pids[available_pids_size - 1] = '\0'; // Ensure null-termination
-            free(json_str);
-            cJSON_Delete(root);
-
-            ESP_LOGI(TAG, "Restoring protocol settings");
-            DEBUG_LOGI(TAG, "Restoring protocol settings");
-            elm327_process_cmd((uint8_t*)restore_cmd, strlen(restore_cmd), &frame, &autopidQueue);
-            while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS);
-
-            free(response);
-            elm327_unlock();
-            return ESP_OK;
-        }
-        ESP_LOGW(TAG, "JSON string too long for buffer");
-    DEBUG_LOGW(TAG, "JSON string too long for buffer");
-        free(json_str);
+      } else {
+        ESP_LOGW(TAG, "Response length too short: %lu", response->length);
+        DEBUG_LOGW(TAG, "Response length too short: %lu", response->length);
+      }
     } else {
-        ESP_LOGE(TAG, "Failed to create JSON string");
-    DEBUG_LOGE(TAG, "Failed to create JSON string");
+      ESP_LOGW(TAG, "No response received for PID support command: %s",
+               pid_support_cmds[i]);
+      DEBUG_LOGW(TAG, "No response received for PID support command: %s",
+                 pid_support_cmds[i]);
     }
+  }
 
-    ESP_LOGI(TAG, "Restoring protocol settings");
-    DEBUG_LOGI(TAG, "Restoring protocol settings");
-    elm327_process_cmd((uint8_t*)restore_cmd, strlen(restore_cmd), &frame, &autopidQueue);
-    while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS);
-    
-    cJSON_Delete(root);
-    free(response);
-    elm327_unlock();
-    return ESP_FAIL;
+  ESP_LOGI(TAG, "Adding PIDs to JSON object");
+  DEBUG_LOGI(TAG, "Adding PIDs to JSON object");
+  cJSON_AddItemToObject(root, "std_pids", pid_array);
+
+  // Convert to string and cleanup
+  char *json_str = cJSON_PrintUnformatted(root);
+  if (json_str) {
+    ESP_LOGI(TAG, "JSON string created, length: %zu", strlen(json_str));
+    DEBUG_LOGI(TAG, "JSON string created, length: %zu", strlen(json_str));
+    if (strlen(json_str) < available_pids_size) {
+      strncpy(available_pids, json_str, available_pids_size - 1);
+      available_pids[available_pids_size - 1] = '\0'; // Ensure null-termination
+      free(json_str);
+      cJSON_Delete(root);
+
+      ESP_LOGI(TAG, "Restoring protocol settings");
+      DEBUG_LOGI(TAG, "Restoring protocol settings");
+      elm327_process_cmd((uint8_t *)restore_cmd, strlen(restore_cmd), &frame,
+                         &autopidQueue);
+      while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) ==
+             pdPASS)
+        ;
+
+      free(response);
+      elm327_unlock();
+      return ESP_OK;
+    }
+    ESP_LOGW(TAG, "JSON string too long for buffer");
+    DEBUG_LOGW(TAG, "JSON string too long for buffer");
+    free(json_str);
+  } else {
+    ESP_LOGE(TAG, "Failed to create JSON string");
+    DEBUG_LOGE(TAG, "Failed to create JSON string");
+  }
+
+  ESP_LOGI(TAG, "Restoring protocol settings");
+  DEBUG_LOGI(TAG, "Restoring protocol settings");
+  elm327_process_cmd((uint8_t *)restore_cmd, strlen(restore_cmd), &frame,
+                     &autopidQueue);
+  while (xQueueReceive(autopidQueue, response, pdMS_TO_TICKS(1000)) == pdPASS)
+    ;
+
+  cJSON_Delete(root);
+  free(response);
+  elm327_unlock();
+  return ESP_FAIL;
 }
 
 // static void autopid_data_write(const char *new_data)
 // {
-//     if (autopid_data.mutex != NULL && xSemaphoreTake(autopid_data.mutex, portMAX_DELAY) == pdTRUE)
+//     if (autopid_data.mutex != NULL && xSemaphoreTake(autopid_data.mutex,
+//     portMAX_DELAY) == pdTRUE)
 //     {
 //         if (autopid_data.data != NULL)
 //         {
@@ -826,8 +782,6 @@ esp_err_t autopid_find_standard_pid(uint8_t protocol, char *available_pids, uint
 //     }
 // }
 
-
-
 // char *autopid_data_read(void)
 // {
 //     char *data_copy = NULL;
@@ -845,7 +799,7 @@ esp_err_t autopid_find_standard_pid(uint8_t protocol, char *available_pids, uint
 //                 }
 //             }
 
-//             xSemaphoreGive(autopid_data.mutex); 
+//             xSemaphoreGive(autopid_data.mutex);
 //         }
 
 //         return data_copy;
@@ -856,251 +810,246 @@ esp_err_t autopid_find_standard_pid(uint8_t protocol, char *available_pids, uint
 //     }
 // }
 
-void autopid_update_values(void)
-{
-    if (!all_pids || !all_pids->mutex || !autopid_values || !autopid_values_mutex) {
-        ESP_LOGE(TAG, "Invalid pointers for updating autopid values");
-        DEBUG_LOGE(TAG, "Invalid pointers for updating autopid values");
-        return;
-    }
+void autopid_update_values(void) {
+  if (!all_pids || !all_pids->mutex || !autopid_values ||
+      !autopid_values_mutex) {
+    ESP_LOGE(TAG, "Invalid pointers for updating autopid values");
+    DEBUG_LOGE(TAG, "Invalid pointers for updating autopid values");
+    return;
+  }
 
-    // Take both mutexes to ensure thread safety
-    if (xSemaphoreTake(all_pids->mutex, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take all_pids mutex");
-        DEBUG_LOGE(TAG, "Failed to take all_pids mutex");
-        return;
-    }
+  // Take both mutexes to ensure thread safety
+  if (xSemaphoreTake(all_pids->mutex, portMAX_DELAY) != pdTRUE) {
+    ESP_LOGE(TAG, "Failed to take all_pids mutex");
+    DEBUG_LOGE(TAG, "Failed to take all_pids mutex");
+    return;
+  }
 
-    if (xSemaphoreTake(autopid_values_mutex, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take autopid_values mutex");
-        DEBUG_LOGE(TAG, "Failed to take autopid_values mutex");
-        xSemaphoreGive(all_pids->mutex);
-        return;
-    }
-
-    // Update autopid_values from all_pids
-    uint32_t value_index = 0;
-    
-    for (uint32_t i = 0; i < all_pids->pid_count && value_index < autopid_values_count; i++) {
-        pid_data2_t *curr_pid = &all_pids->pids[i];
-        
-        // Skip if PID type not enabled
-        if ((curr_pid->pid_type == PID_STD && !all_pids->pid_std_en) ||
-            (curr_pid->pid_type == PID_CUSTOM && !all_pids->pid_custom_en) ||
-            (curr_pid->pid_type == PID_SPECIFIC && !all_pids->pid_specific_en)) {
-            continue;
-        }
-
-        for (uint32_t j = 0; j < curr_pid->parameters_count && value_index < autopid_values_count; j++) {
-            parameter_t *param = &curr_pid->parameters[j];
-            
-            if (param->name && autopid_values[value_index].name) {
-                // Check if names match
-                if (strcmp(param->name, autopid_values[value_index].name) == 0) {
-                    // Update the value and sensor type
-                    autopid_values[value_index].value = param->value;
-                    autopid_values[value_index].sensor_type = param->sensor_type;
-                    ESP_LOGD(TAG, "Updated autopid_values[%lu]: %s = %.2f", 
-                            value_index, param->name, param->value);
-                    DEBUG_LOGD(TAG, "Updated autopid_values[%lu]: %s = %.2f", 
-                value_index, param->name, param->value);
-                }
-            }
-            value_index++;
-        }
-    }
-
-    xSemaphoreGive(autopid_values_mutex);
+  if (xSemaphoreTake(autopid_values_mutex, portMAX_DELAY) != pdTRUE) {
+    ESP_LOGE(TAG, "Failed to take autopid_values mutex");
+    DEBUG_LOGE(TAG, "Failed to take autopid_values mutex");
     xSemaphoreGive(all_pids->mutex);
-    
-    // ESP_LOGI(TAG, "Updated %lu autopid values from all_pids", value_index);
-    // DEBUG_LOGI(TAG, "Updated %lu autopid values from all_pids", value_index);
+    return;
+  }
+
+  // Update autopid_values from all_pids
+  uint32_t value_index = 0;
+
+  for (uint32_t i = 0;
+       i < all_pids->pid_count && value_index < autopid_values_count; i++) {
+    pid_data2_t *curr_pid = &all_pids->pids[i];
+
+    // Skip if PID type not enabled
+    if ((curr_pid->pid_type == PID_STD && !all_pids->pid_std_en) ||
+        (curr_pid->pid_type == PID_CUSTOM && !all_pids->pid_custom_en) ||
+        (curr_pid->pid_type == PID_SPECIFIC && !all_pids->pid_specific_en)) {
+      continue;
+    }
+
+    for (uint32_t j = 0;
+         j < curr_pid->parameters_count && value_index < autopid_values_count;
+         j++) {
+      parameter_t *param = &curr_pid->parameters[j];
+
+      if (param->name && autopid_values[value_index].name) {
+        // Check if names match
+        if (strcmp(param->name, autopid_values[value_index].name) == 0) {
+          // Update the value and sensor type
+          autopid_values[value_index].value = param->value;
+          autopid_values[value_index].sensor_type = param->sensor_type;
+          ESP_LOGD(TAG, "Updated autopid_values[%lu]: %s = %.2f", value_index,
+                   param->name, param->value);
+          DEBUG_LOGD(TAG, "Updated autopid_values[%lu]: %s = %.2f", value_index,
+                     param->name, param->value);
+        }
+      }
+      value_index++;
+    }
+  }
+
+  xSemaphoreGive(autopid_values_mutex);
+  xSemaphoreGive(all_pids->mutex);
+
+  // ESP_LOGI(TAG, "Updated %lu autopid values from all_pids", value_index);
+  // DEBUG_LOGI(TAG, "Updated %lu autopid values from all_pids", value_index);
 }
 
-void autopid_request_data(void)
-{
-    if (xautopid_event_group != NULL) {
-        xEventGroupSetBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
-    } else {
-        ESP_LOGE(TAG, "autopid event group not initialized");
-        DEBUG_LOGE(TAG, "autopid event group not initialized");
-    }
+void autopid_request_data(void) {
+  if (xautopid_event_group != NULL) {
+    xEventGroupSetBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
+  } else {
+    ESP_LOGE(TAG, "autopid event group not initialized");
+    DEBUG_LOGE(TAG, "autopid event group not initialized");
+  }
 }
 
+char *autopid_data_read(void) {
+  static char *json_str = NULL;
 
-char *autopid_data_read(void)
-{
-    static char *json_str = NULL;
-    
-    if (!autopid_values || !autopid_values_mutex) {
-        ESP_LOGE(TAG, "Invalid autopid_values or mutex");
-        DEBUG_LOGE(TAG, "Invalid autopid_values or mutex");
-        return NULL;
+  if (!autopid_values || !autopid_values_mutex) {
+    ESP_LOGE(TAG, "Invalid autopid_values or mutex");
+    DEBUG_LOGE(TAG, "Invalid autopid_values or mutex");
+    return NULL;
+  }
+
+  // Only set request bit and wait if polling is disabled
+  if (xEventGroupGetBits(xautopid_event_group) & AUTOPID_POLLING_DISABLED_BIT) {
+    // Set the request bit to signal autopid task
+    xEventGroupSetBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
+
+    while (xEventGroupGetBits(xautopid_event_group) & AUTOPID_REQUEST_BIT) {
+      vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to prevent busy waiting
     }
+  }
 
-    // Only set request bit and wait if polling is disabled
-    if (xEventGroupGetBits(xautopid_event_group) & AUTOPID_POLLING_DISABLED_BIT) {
-        // Set the request bit to signal autopid task
-        xEventGroupSetBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
-        
-        while (xEventGroupGetBits(xautopid_event_group) & AUTOPID_REQUEST_BIT) {
-            vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to prevent busy waiting
+  if (xSemaphoreTake(autopid_values_mutex, portMAX_DELAY) == pdTRUE) {
+    cJSON *root = cJSON_CreateObject();
+    if (root) {
+      for (uint32_t i = 0; i < autopid_values_count; i++) {
+        autopid_value_t *value = &autopid_values[i];
+        if (value->name && value->value != FLT_MAX) {
+          if (value->sensor_type == BINARY_SENSOR) {
+            cJSON_AddStringToObject(root, value->name,
+                                    value->value > 0 ? "on" : "off");
+          } else {
+            cJSON_AddNumberToObject(root, value->name, value->value);
+          }
         }
+      }
+      limitJsonDecimalPrecision(root);
+      json_str = cJSON_PrintUnformatted(root);
+      cJSON_Delete(root);
     }
-
-    if (xSemaphoreTake(autopid_values_mutex, portMAX_DELAY) == pdTRUE) {
-        cJSON *root = cJSON_CreateObject();
-        if (root) {
-            for (uint32_t i = 0; i < autopid_values_count; i++) {
-                autopid_value_t *value = &autopid_values[i];
-                if (value->name && value->value != FLT_MAX) {
-                    if (value->sensor_type == BINARY_SENSOR) {
-                        cJSON_AddStringToObject(root, value->name, value->value > 0 ? "on" : "off");
-                    } else {
-                        cJSON_AddNumberToObject(root, value->name, value->value);
-                    }
-                }
-            }
-            limitJsonDecimalPrecision(root);
-            json_str = cJSON_PrintUnformatted(root);
-            cJSON_Delete(root);
-        }
-        xSemaphoreGive(autopid_values_mutex);
-    }
-    return json_str;
+    xSemaphoreGive(autopid_values_mutex);
+  }
+  return json_str;
 }
 
 void autopid_data_publish(void) {
-    if (!all_pids || !all_pids->mutex) {
-        ESP_LOGE(TAG, "Invalid all_pids or mutex");
-        DEBUG_LOGE(TAG, "Invalid all_pids or mutex");
-        return;
-    }
+  if (!all_pids || !all_pids->mutex) {
+    ESP_LOGE(TAG, "Invalid all_pids or mutex");
+    DEBUG_LOGE(TAG, "Invalid all_pids or mutex");
+    return;
+  }
 
-    if (xSemaphoreTake(all_pids->mutex, portMAX_DELAY) == pdTRUE) {
-        cJSON *root = cJSON_CreateObject();
-        if (root) {
-            for (uint32_t i = 0; i < all_pids->pid_count; i++) {
-                pid_data2_t *curr_pid = &all_pids->pids[i];
-                for (uint32_t j = 0; j < curr_pid->parameters_count; j++) {
-                    parameter_t *param = &curr_pid->parameters[j];
-                    if (param->name && param->value != FLT_MAX) {
-                        if (param->sensor_type == BINARY_SENSOR) {
-                            cJSON_AddStringToObject(root, param->name, param->value > 0 ? "on" : "off");
-                        } else {
-                            cJSON_AddNumberToObject(root, param->name, param->value);
-                        }
-                    }
-                }
-            }
-
-            if (root->child) {
-                limitJsonDecimalPrecision(root);
-                char *json_str = cJSON_PrintUnformatted(root);
-                if (json_str) {
-                    if(all_pids->group_destination && strlen(all_pids->group_destination) > 0)
-                    {
-                        mqtt_publish(all_pids->group_destination, json_str, 0, 0, 1);
-                        ESP_LOGI(TAG, "Published to %s", all_pids->group_destination);
-                        DEBUG_LOGI(TAG, "Published to %s", all_pids->group_destination);
-                    }else{
-                        mqtt_publish(config_server_get_mqtt_rx_topic(), json_str, 0, 0, 1);
-                    }
-                    free(json_str);
-                }
+  if (xSemaphoreTake(all_pids->mutex, portMAX_DELAY) == pdTRUE) {
+    cJSON *root = cJSON_CreateObject();
+    if (root) {
+      for (uint32_t i = 0; i < all_pids->pid_count; i++) {
+        pid_data2_t *curr_pid = &all_pids->pids[i];
+        for (uint32_t j = 0; j < curr_pid->parameters_count; j++) {
+          parameter_t *param = &curr_pid->parameters[j];
+          if (param->name && param->value != FLT_MAX) {
+            if (param->sensor_type == BINARY_SENSOR) {
+              cJSON_AddStringToObject(root, param->name,
+                                      param->value > 0 ? "on" : "off");
             } else {
-                ESP_LOGW(TAG, "No valid parameters found to publish");
-                DEBUG_LOGW(TAG, "No valid parameters found to publish");
+              cJSON_AddNumberToObject(root, param->name, param->value);
             }
-
-            cJSON_Delete(root);
+          }
         }
-        xSemaphoreGive(all_pids->mutex);
-    }
-}
+      }
 
-bool autopid_get_ecu_status(void)
-{
-	EventBits_t uxBits;
-	if(xautopid_event_group != NULL)
-	{
-		uxBits = xEventGroupGetBits(xautopid_event_group);
-
-		return (uxBits & ECU_CONNECTED_BIT);
-	}
-	else return false;
-}
-
-char* autopid_get_config(void)
-{
-    static char *response_str;
-
-    // Check if all_pids and mutex are valid
-    if (!all_pids || !all_pids->mutex) {
-        ESP_LOGE(TAG, "Invalid all_pids or mutex");
-        DEBUG_LOGE(TAG, "Invalid all_pids or mutex");
-        return NULL;
-    }
-
-    // Take mutex with timeout
-    if (xSemaphoreTake(all_pids->mutex, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE(TAG, "Failed to take mutex");
-        DEBUG_LOGE(TAG, "Failed to take mutex");
-        return NULL;
-    }
-    
-    cJSON *parameters_object = cJSON_CreateObject();
-    if (!parameters_object)
-    {
-        ESP_LOGE(TAG, "Failed to create JSON object");
-        DEBUG_LOGE(TAG, "Failed to create JSON object");
-        return NULL;
-    }
-
-    // Iterate through all PIDs
-    for (int i = 0; i < all_pids->pid_count; i++)
-    {
-        // For each PID, iterate through its parameters
-        for (int j = 0; j < all_pids->pids[i].parameters_count; j++)
-        {
-            parameter_t *param = &all_pids->pids[i].parameters[j];
-            
-            if((all_pids->pids[i].pid_type == PID_STD && !all_pids->pid_std_en) ||
-            (all_pids->pids[i].pid_type == PID_CUSTOM && !all_pids->pid_custom_en) ||
-            (all_pids->pids[i].pid_type == PID_SPECIFIC && !all_pids->pid_specific_en))
-            {
-                continue;
-            }
-            // Skip if parameter name is NULL
-            if (!param || !param->name) continue;
-            
-            cJSON *parameter_details = cJSON_CreateObject();
-            if (!parameter_details)
-            {
-                ESP_LOGE(TAG, "Failed to create parameter JSON object");
-                DEBUG_LOGE(TAG, "Failed to create parameter JSON object");
-                continue;
-            }
-            
-            // Add class and unit if they exist
-            if (param->class)
-            {
-                cJSON_AddStringToObject(parameter_details, "class", param->class);
-            }
-            if (param->unit)
-            {
-                cJSON_AddStringToObject(parameter_details, "unit", param->unit);
-            }
-            
-            cJSON_AddItemToObject(parameters_object, param->name, parameter_details);
+      if (root->child) {
+        limitJsonDecimalPrecision(root);
+        char *json_str = cJSON_PrintUnformatted(root);
+        if (json_str) {
+          if (all_pids->group_destination &&
+              strlen(all_pids->group_destination) > 0) {
+            mqtt_publish(all_pids->group_destination, json_str, 0, 0, 1);
+            ESP_LOGI(TAG, "Published to %s", all_pids->group_destination);
+            DEBUG_LOGI(TAG, "Published to %s", all_pids->group_destination);
+          } else {
+            mqtt_publish(config_server_get_mqtt_rx_topic(), json_str, 0, 0, 1);
+          }
+          free(json_str);
         }
-    }
+      } else {
+        ESP_LOGW(TAG, "No valid parameters found to publish");
+        DEBUG_LOGW(TAG, "No valid parameters found to publish");
+      }
 
-    // Convert to string and send response
-    response_str = cJSON_PrintUnformatted(parameters_object);
-    cJSON_Delete(parameters_object);
+      cJSON_Delete(root);
+    }
     xSemaphoreGive(all_pids->mutex);
-    return response_str;
+  }
+}
+
+bool autopid_get_ecu_status(void) {
+  EventBits_t uxBits;
+  if (xautopid_event_group != NULL) {
+    uxBits = xEventGroupGetBits(xautopid_event_group);
+
+    return (uxBits & ECU_CONNECTED_BIT);
+  } else
+    return false;
+}
+
+char *autopid_get_config(void) {
+  static char *response_str;
+
+  // Check if all_pids and mutex are valid
+  if (!all_pids || !all_pids->mutex) {
+    ESP_LOGE(TAG, "Invalid all_pids or mutex");
+    DEBUG_LOGE(TAG, "Invalid all_pids or mutex");
+    return NULL;
+  }
+
+  // Take mutex with timeout
+  if (xSemaphoreTake(all_pids->mutex, portMAX_DELAY) != pdTRUE) {
+    ESP_LOGE(TAG, "Failed to take mutex");
+    DEBUG_LOGE(TAG, "Failed to take mutex");
+    return NULL;
+  }
+
+  cJSON *parameters_object = cJSON_CreateObject();
+  if (!parameters_object) {
+    ESP_LOGE(TAG, "Failed to create JSON object");
+    DEBUG_LOGE(TAG, "Failed to create JSON object");
+    return NULL;
+  }
+
+  // Iterate through all PIDs
+  for (int i = 0; i < all_pids->pid_count; i++) {
+    // For each PID, iterate through its parameters
+    for (int j = 0; j < all_pids->pids[i].parameters_count; j++) {
+      parameter_t *param = &all_pids->pids[i].parameters[j];
+
+      if ((all_pids->pids[i].pid_type == PID_STD && !all_pids->pid_std_en) ||
+          (all_pids->pids[i].pid_type == PID_CUSTOM &&
+           !all_pids->pid_custom_en) ||
+          (all_pids->pids[i].pid_type == PID_SPECIFIC &&
+           !all_pids->pid_specific_en)) {
+        continue;
+      }
+      // Skip if parameter name is NULL
+      if (!param || !param->name)
+        continue;
+
+      cJSON *parameter_details = cJSON_CreateObject();
+      if (!parameter_details) {
+        ESP_LOGE(TAG, "Failed to create parameter JSON object");
+        DEBUG_LOGE(TAG, "Failed to create parameter JSON object");
+        continue;
+      }
+
+      // Add class and unit if they exist
+      if (param->class) {
+        cJSON_AddStringToObject(parameter_details, "class", param->class);
+      }
+      if (param->unit) {
+        cJSON_AddStringToObject(parameter_details, "unit", param->unit);
+      }
+
+      cJSON_AddItemToObject(parameters_object, param->name, parameter_details);
+    }
+  }
+
+  // Convert to string and send response
+  response_str = cJSON_PrintUnformatted(parameters_object);
+  cJSON_Delete(parameters_object);
+  xSemaphoreGive(all_pids->mutex);
+  return response_str;
 }
 
 // void autopid_pub_discovery(void)
@@ -1114,17 +1063,19 @@ char* autopid_get_config(void)
 //         for (int j = 0; j < car.pids[i].parameter_count; j++)
 //         {
 //             // Check if the class is NULL or "none"
-//             if (car.pids[i].parameters[j].class == NULL || strcasecmp(car.pids[i].parameters[j].class, "none") == 0)
+//             if (car.pids[i].parameters[j].class == NULL ||
+//             strcasecmp(car.pids[i].parameters[j].class, "none") == 0)
 //             {
 //                 // Format discovery message without device_class
-//                 if (asprintf(&discovery_str, 
+//                 if (asprintf(&discovery_str,
 //                              "{"
 //                              "\"name\": \"%s\","
 //                              "\"state_topic\": \"%s\","
 //                              "\"unit_of_measurement\": \"%s\","
 //                              "\"value_template\": \"{{ value_json.%s }}\","
 //                              "\"unique_id\": \"%s_%s\","
-//                              "\"availability_topic\": \"wican/%s/%s/availability\","
+//                              "\"availability_topic\":
+//                              \"wican/%s/%s/availability\","
 //                              "\"payload_available\": \"online\","
 //                              "\"payload_not_available\": \"offline\""
 //                              "}",
@@ -1138,14 +1089,14 @@ char* autopid_get_config(void)
 //                              car.pids[i].parameters[j].name) == -1)
 //                 {
 //                     // Handle error
-//                     ESP_LOGE(TAG, "Error: Failed to allocate memory for discovery_str\n");
-//                     return;
+//                     ESP_LOGE(TAG, "Error: Failed to allocate memory for
+//                     discovery_str\n"); return;
 //                 }
 //             }
 //             else
 //             {
 //                 // Format discovery message with device_class
-//                 if (asprintf(&discovery_str, 
+//                 if (asprintf(&discovery_str,
 //                              "{"
 //                              "\"name\": \"%s\","
 //                              "\"state_topic\": \"%s\","
@@ -1153,7 +1104,8 @@ char* autopid_get_config(void)
 //                              "\"value_template\": \"{{ value_json.%s }}\","
 //                              "\"device_class\": \"%s\","
 //                              "\"unique_id\": \"%s_%s\","
-//                              "\"availability_topic\": \"wican/%s/%s/availability\","
+//                              "\"availability_topic\":
+//                              \"wican/%s/%s/availability\","
 //                              "\"payload_available\": \"online\","
 //                              "\"payload_not_available\": \"offline\""
 //                              "}",
@@ -1168,20 +1120,20 @@ char* autopid_get_config(void)
 //                              car.pids[i].parameters[j].name) == -1)
 //                 {
 //                     // Handle error
-//                     ESP_LOGE(TAG, "Error: Failed to allocate memory for discovery_str\n");
-//                     return;
+//                     ESP_LOGE(TAG, "Error: Failed to allocate memory for
+//                     discovery_str\n"); return;
 //                 }
 //             }
 
 //             // Format discovery topic
 //             if (asprintf(&discovery_topic, "homeassistant/%s/%s/%s/config",
-//                          car.pids[i].parameters[j].sensor_type == BINARY_SENSOR ? "binary_sensor" : "sensor",
+//                          car.pids[i].parameters[j].sensor_type ==
+//                          BINARY_SENSOR ? "binary_sensor" : "sensor",
 //                          device_id, car.pids[i].parameters[j].name) == -1)
 //             {
 //                 // Handle error
-//                 ESP_LOGE(TAG, "Error: Failed to allocate memory for discovery_topic\n");
-//                 free(discovery_str);
-//                 return;
+//                 ESP_LOGE(TAG, "Error: Failed to allocate memory for
+//                 discovery_topic\n"); free(discovery_str); return;
 //             }
 
 //             // Format availability topic
@@ -1189,8 +1141,8 @@ char* autopid_get_config(void)
 //                          device_id, car.pids[i].parameters[j].name) == -1)
 //             {
 //                 // Handle error
-//                 ESP_LOGE(TAG, "Error: Failed to allocate memory for availability_topic\n");
-//                 free(discovery_str);
+//                 ESP_LOGE(TAG, "Error: Failed to allocate memory for
+//                 availability_topic\n"); free(discovery_str);
 //                 free(discovery_topic);
 //                 return;
 //             }
@@ -1213,3201 +1165,1540 @@ char* autopid_get_config(void)
 // }
 
 void parse_elm327_response(char *buffer, response_t *response) {
-    ESP_LOGI(TAG, "Starting to parse ELM327 response. Input buffer: %s", buffer);
-    
-    int k = 0;
-    int frame_count = 0;
-    char *frame;
-    char *data_start;
-    uint32_t lowest_header = UINT32_MAX;  // Initialize to maximum value
-    uint32_t highest_header = 0;          // Track highest header
-    uint32_t first_header = 0;
-    bool all_headers_same = true;
-    uint8_t *lowest_header_data = NULL;   // Store the actual data pointer
-    uint8_t lowest_header_length = 0;
+  ESP_LOGI(TAG, "Starting to parse ELM327 response. Input buffer: %s", buffer);
 
-    frame = strtok(buffer, "\r\n");
-    ESP_LOGI(TAG, "First frame: %s", frame ? frame : "NULL");
+  int k = 0;
+  int frame_count = 0;
+  char *frame;
+  char *data_start;
+  uint32_t lowest_header = UINT32_MAX; // Initialize to maximum value
+  uint32_t highest_header = 0;         // Track highest header
+  uint32_t first_header = 0;
+  bool all_headers_same = true;
+  uint8_t *lowest_header_data = NULL; // Store the actual data pointer
+  uint8_t lowest_header_length = 0;
 
-    while (frame != NULL) {
-        ESP_LOGD(TAG, "Processing frame %d: %s", frame_count + 1, frame);
-        frame_count++;
+  frame = strtok(buffer, "\r\n");
+  ESP_LOGI(TAG, "First frame: %s", frame ? frame : "NULL");
 
-        // Remove trailing '>' if present
-        size_t len = strlen(frame);
-        if (len > 0 && frame[len - 1] == '>') {
-            frame[len - 1] = '\0';
-            ESP_LOGV(TAG, "Removed trailing '>' from frame");
-        }
+  while (frame != NULL) {
+    ESP_LOGD(TAG, "Processing frame %d: %s", frame_count + 1, frame);
+    frame_count++;
 
-        data_start = strchr(frame, ' ');
-        if (data_start != NULL) {
-            int header_length = data_start - frame;
-            char header_str[9] = {0};
-            strncpy(header_str, frame, header_length);
-            uint32_t current_header = strtoul(header_str, NULL, 16);
-            ESP_LOGD(TAG, "Frame %d header: 0x%lX (length: %d)", frame_count, current_header, header_length);
-            
-            // Track highest header
-            if (current_header > highest_header) {
-                ESP_LOGD(TAG, "New highest header found: 0x%lX (previous: 0x%lX)", current_header, highest_header);
-                highest_header = current_header;
-            }
-            
-            // Track first header and compare subsequent headers
-            if (frame_count == 1) {
-                first_header = current_header;
-                ESP_LOGD(TAG, "First header set to: 0x%lX", first_header);
-            } else if (current_header != first_header) {
-                all_headers_same = false;
-                ESP_LOGD(TAG, "Different header detected: 0x%lX != 0x%lX", current_header, first_header);
-            }
+    // Remove trailing '>' if present
+    size_t len = strlen(frame);
+    if (len > 0 && frame[len - 1] == '>') {
+      frame[len - 1] = '\0';
+      ESP_LOGV(TAG, "Removed trailing '>' from frame");
+    }
 
-            data_start++;
+    data_start = strchr(frame, ' ');
+    if (data_start != NULL) {
+      int header_length = data_start - frame;
+      char header_str[9] = {0};
+      strncpy(header_str, frame, header_length);
+      uint32_t current_header = strtoul(header_str, NULL, 16);
+      ESP_LOGD(TAG, "Frame %d header: 0x%lX (length: %d)", frame_count,
+               current_header, header_length);
 
-            // Handle different header formats
-            switch (header_length) {
-                case 2: 
-                    data_start += 9;
-                    ESP_LOGV(TAG, "2-byte header format: Adjusted data_start by 9");
-                    break;
-                case 3:
-                case 8:
-                    ESP_LOGV(TAG, "%d-byte header format: No adjustment needed", header_length);
-                    break;
-                default:
-                    ESP_LOGW(TAG, "Unexpected header length: %d, skipping frame", header_length);
-                    frame = strtok(NULL, "\r\n");
-                    continue;
-            }
+      // Track highest header
+      if (current_header > highest_header) {
+        ESP_LOGD(TAG, "New highest header found: 0x%lX (previous: 0x%lX)",
+                 current_header, highest_header);
+        highest_header = current_header;
+      }
 
-            // Store start position for copying data
-            char *current_data_start = data_start;
-            int current_length = 0;
+      // Track first header and compare subsequent headers
+      if (frame_count == 1) {
+        first_header = current_header;
+        ESP_LOGD(TAG, "First header set to: 0x%lX", first_header);
+      } else if (current_header != first_header) {
+        all_headers_same = false;
+        ESP_LOGD(TAG, "Different header detected: 0x%lX != 0x%lX",
+                 current_header, first_header);
+      }
 
-            // Count data bytes in current frame
-            char *temp_data = data_start;
-            while (*temp_data != '\0') {
-                if (*temp_data == ' ') {
-                    temp_data++;
-                    continue;
-                }
-                if (strlen(temp_data) < 2) break;
-                current_length++;
-                temp_data += 2;
-            }
+      data_start++;
 
-            // If this is the lowest header so far, store its data
-            if (current_header < lowest_header) {
-                ESP_LOGD(TAG, "New lowest header found: 0x%lX (previous: 0x%lX)", current_header, lowest_header);
-                lowest_header = current_header;
-                lowest_header_length = current_length;
-                
-                // Allocate space and copy data for lowest header frame
-                if (lowest_header_data == NULL) {
-                    lowest_header_data = (uint8_t*)malloc(current_length);
-                } else {
-                    lowest_header_data = (uint8_t*)realloc(lowest_header_data, current_length);
-                }
-                
-                // Parse and store the data bytes for this frame
-                int idx = 0;
-                while (*current_data_start != '\0') {
-                    if (*current_data_start == ' ') {
-                        current_data_start++;
-                        continue;
-                    }
-                    if (strlen(current_data_start) < 2) break;
-                    
-                    char byte_str[3] = {current_data_start[0], current_data_start[1], 0};
-                    lowest_header_data[idx++] = (unsigned char)strtol(byte_str, NULL, 16);
-                    current_data_start += 2;
-                }
-                ESP_LOGD(TAG, "Stored %d bytes from lowest header frame", idx);
-            }
-
-            // Parse data bytes into main response buffer
-            ESP_LOGV(TAG, "Starting data byte parsing at position: %s", data_start);
-            while (*data_start != '\0') {
-                if (*data_start == ' ') {
-                    data_start++;
-                    continue;
-                }
-                if (strlen(data_start) < 2) {
-                    ESP_LOGW(TAG, "Incomplete byte at end of frame: %s", data_start);
-                    break;
-                }
-                
-                char byte_str[3] = {data_start[0], data_start[1], 0};
-                response->data[k] = (unsigned char)strtol(byte_str, NULL, 16);
-                ESP_LOGV(TAG, "Parsed byte %d: 0x%02X from %s", k, response->data[k], byte_str);
-                k++;
-                data_start += 2;
-            }
-        } else {
-            ESP_LOGW(TAG, "No space delimiter found in frame: %s", frame);
-        }
+      // Handle different header formats
+      switch (header_length) {
+      case 2:
+        data_start += 9;
+        ESP_LOGV(TAG, "2-byte header format: Adjusted data_start by 9");
+        break;
+      case 3:
+      case 8:
+        ESP_LOGV(TAG, "%d-byte header format: No adjustment needed",
+                 header_length);
+        break;
+      default:
+        ESP_LOGW(TAG, "Unexpected header length: %d, skipping frame",
+                 header_length);
         frame = strtok(NULL, "\r\n");
-    }
+        continue;
+      }
 
-    response->length = k;
-    
-    // Set priority data based on frame count and header comparison
-    if (frame_count <= 2 || all_headers_same) {
-        response->priority_data = NULL;
-        response->priority_data_len = 0;
-        if (lowest_header_data != NULL) {
-            free(lowest_header_data);
+      // Store start position for copying data
+      char *current_data_start = data_start;
+      int current_length = 0;
+
+      // Count data bytes in current frame
+      char *temp_data = data_start;
+      while (*temp_data != '\0') {
+        if (*temp_data == ' ') {
+          temp_data++;
+          continue;
         }
-        ESP_LOGI(TAG, "Null priority data set - frames: %d, all headers same: %d", 
-                frame_count, all_headers_same);
+        if (strlen(temp_data) < 2)
+          break;
+        current_length++;
+        temp_data += 2;
+      }
+
+      // If this is the lowest header so far, store its data
+      if (current_header < lowest_header) {
+        ESP_LOGD(TAG, "New lowest header found: 0x%lX (previous: 0x%lX)",
+                 current_header, lowest_header);
+        lowest_header = current_header;
+        lowest_header_length = current_length;
+
+        // Allocate space and copy data for lowest header frame
+        if (lowest_header_data == NULL) {
+          lowest_header_data = (uint8_t *)malloc(current_length);
+        } else {
+          lowest_header_data =
+              (uint8_t *)realloc(lowest_header_data, current_length);
+        }
+
+        // Parse and store the data bytes for this frame
+        int idx = 0;
+        while (*current_data_start != '\0') {
+          if (*current_data_start == ' ') {
+            current_data_start++;
+            continue;
+          }
+          if (strlen(current_data_start) < 2)
+            break;
+
+          char byte_str[3] = {current_data_start[0], current_data_start[1], 0};
+          lowest_header_data[idx++] = (unsigned char)strtol(byte_str, NULL, 16);
+          current_data_start += 2;
+        }
+        ESP_LOGD(TAG, "Stored %d bytes from lowest header frame", idx);
+      }
+
+      // Parse data bytes into main response buffer
+      ESP_LOGV(TAG, "Starting data byte parsing at position: %s", data_start);
+      while (*data_start != '\0') {
+        if (*data_start == ' ') {
+          data_start++;
+          continue;
+        }
+        if (strlen(data_start) < 2) {
+          ESP_LOGW(TAG, "Incomplete byte at end of frame: %s", data_start);
+          break;
+        }
+
+        char byte_str[3] = {data_start[0], data_start[1], 0};
+        response->data[k] = (unsigned char)strtol(byte_str, NULL, 16);
+        ESP_LOGV(TAG, "Parsed byte %d: 0x%02X from %s", k, response->data[k],
+                 byte_str);
+        k++;
+        data_start += 2;
+      }
     } else {
-        response->priority_data = lowest_header_data;
-        response->priority_data_len = lowest_header_length;
-        ESP_LOGI(TAG, "Priority data set - length: %u, starting with byte: 0x%02X", 
-                response->priority_data_len, 
-                response->priority_data[0]);
+      ESP_LOGW(TAG, "No space delimiter found in frame: %s", frame);
     }
-    
-    ESP_LOGI(TAG, "Parsing complete. Headers - Lowest: 0x%lX, Highest: 0x%lX, Total frames: %d, Total bytes: %lu, Priority data length: %u",
-            lowest_header, highest_header, frame_count, response->length, response->priority_data_len);
+    frame = strtok(NULL, "\r\n");
+  }
+
+  response->length = k;
+
+  // Set priority data based on frame count and header comparison
+  if (frame_count <= 2 || all_headers_same) {
+    response->priority_data = NULL;
+    response->priority_data_len = 0;
+    if (lowest_header_data != NULL) {
+      free(lowest_header_data);
+    }
+    ESP_LOGI(TAG, "Null priority data set - frames: %d, all headers same: %d",
+             frame_count, all_headers_same);
+  } else {
+    response->priority_data = lowest_header_data;
+    response->priority_data_len = lowest_header_length;
+    ESP_LOGI(TAG, "Priority data set - length: %u, starting with byte: 0x%02X",
+             response->priority_data_len, response->priority_data[0]);
+  }
+
+  ESP_LOGI(TAG,
+           "Parsing complete. Headers - Lowest: 0x%lX, Highest: 0x%lX, Total "
+           "frames: %d, Total bytes: %lu, Priority data length: %u",
+           lowest_header, highest_header, frame_count, response->length,
+           response->priority_data_len);
 }
 
-static void append_to_buffer(char *buffer, const char *new_data) 
-{
-    if (strlen(buffer) + strlen(new_data) < BUFFER_SIZE) 
-    {
-        strcat(buffer, new_data);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Failed add data to buffer");
+static void append_to_buffer(char *buffer, const char *new_data) {
+  if (strlen(buffer) + strlen(new_data) < BUFFER_SIZE) {
+    strcat(buffer, new_data);
+  } else {
+    ESP_LOGE(TAG, "Failed add data to buffer");
     DEBUG_LOGE(TAG, "Failed add data to buffer");
-    }
+  }
 }
 
-void autopid_parser(char *str, uint32_t len, QueueHandle_t *q)
-{
-    static response_t response;
-    if (str != NULL && strlen(str) != 0)
-    {
-        ESP_LOGI(TAG, "%s", str);
+void autopid_parser(char *str, uint32_t len, QueueHandle_t *q) {
+  static response_t response;
+  if (str != NULL && strlen(str) != 0) {
+    ESP_LOGI(TAG, "%s", str);
     DEBUG_LOGI(TAG, "%s", str);
 
-        append_to_buffer(auto_pid_buf, str);
+    append_to_buffer(auto_pid_buf, str);
 
-        if (strchr(str, '>') != NULL) 
-        {
-            if(strstr(str, "NO DATA") == NULL && strstr(str, "ERROR") == NULL)
-            {
-                // Parse the accumulated buffer
-                parse_elm327_response(auto_pid_buf, &response);
-                if (xQueueSend(autopidQueue, &response, pdMS_TO_TICKS(1000)) != pdPASS)
-                {
-                    ESP_LOGE(TAG, "Failed to send to queue");
-                    DEBUG_LOGE(TAG, "Failed to send to queue");
-                }
-            }
-            else
-            {
-                sprintf((char*)response.data, "error");
-                response.length = strlen((char*)response.data);
-                ESP_LOGE(TAG, "Error response: %s", auto_pid_buf);
-                DEBUG_LOGE(TAG, "Error response: %s", auto_pid_buf);
-                if (xQueueSend(autopidQueue, &response, pdMS_TO_TICKS(1000)) != pdPASS)
-                {
-                    ESP_LOGE(TAG, "Failed to send to queue");
-                    DEBUG_LOGE(TAG, "Failed to send to queue");
-                }
-            }
-            // Clear the buffer after parsing
-            auto_pid_buf[0] = '\0';
+    if (strchr(str, '>') != NULL) {
+      if (strstr(str, "NO DATA") == NULL && strstr(str, "ERROR") == NULL) {
+        // Parse the accumulated buffer
+        parse_elm327_response(auto_pid_buf, &response);
+        if (xQueueSend(autopidQueue, &response, pdMS_TO_TICKS(1000)) !=
+            pdPASS) {
+          ESP_LOGE(TAG, "Failed to send to queue");
+          DEBUG_LOGE(TAG, "Failed to send to queue");
         }
+      } else {
+        sprintf((char *)response.data, "error");
+        response.length = strlen((char *)response.data);
+        ESP_LOGE(TAG, "Error response: %s", auto_pid_buf);
+        DEBUG_LOGE(TAG, "Error response: %s", auto_pid_buf);
+        if (xQueueSend(autopidQueue, &response, pdMS_TO_TICKS(1000)) !=
+            pdPASS) {
+          ESP_LOGE(TAG, "Failed to send to queue");
+          DEBUG_LOGE(TAG, "Failed to send to queue");
+        }
+      }
+      // Clear the buffer after parsing
+      auto_pid_buf[0] = '\0';
     }
+  }
 }
 
-static void send_commands(char *commands, uint32_t delay_ms)
-{
-    char *cmd_start = commands;
-    char *cmd_end;
-    twai_message_t tx_msg;
-    
-    while ((cmd_end = strchr(cmd_start, '\r')) != NULL) 
-    {
-        size_t cmd_len = cmd_end - cmd_start + 1; // +1 to include '\r'
-        char str_send[cmd_len + 1]; // +1 for null terminator
-        strncpy(str_send, cmd_start, cmd_len);
-        str_send[cmd_len] = '\0'; // Null-terminate the command string
-        if ((strstr(str_send, "ath0") == NULL && strstr(str_send, "ATH0") == NULL && strstr(str_send, "at h0") == NULL && strstr(str_send, "AT H0") == NULL) &&
-            (strstr(str_send, "ats0") == NULL && strstr(str_send, "ATS0") == NULL && strstr(str_send, "at s0") == NULL && strstr(str_send, "AT s0") == NULL) &&
-            (strstr(str_send, "ate1") == NULL && strstr(str_send, "ATE1") == NULL && strstr(str_send, "at e1") == NULL && strstr(str_send, "AT E1") == NULL))
-        {
-            elm327_process_cmd((uint8_t *)str_send, cmd_len, &tx_msg, &autopidQueue);
-            while ((xQueueReceive(autopidQueue, &elm327_response, pdMS_TO_TICKS(10)) == pdPASS));
-        }
-        
-        cmd_start = cmd_end + 1; // Move to the start of the next command
-        vTaskDelay(pdMS_TO_TICKS(delay_ms));
-    }
-}
+static void send_commands(char *commands, uint32_t delay_ms) {
+  char *cmd_start = commands;
+  char *cmd_end;
+  twai_message_t tx_msg;
 
+  while ((cmd_end = strchr(cmd_start, '\r')) != NULL) {
+    size_t cmd_len = cmd_end - cmd_start + 1; // +1 to include '\r'
+    char str_send[cmd_len + 1];               // +1 for null terminator
+    strncpy(str_send, cmd_start, cmd_len);
+    str_send[cmd_len] = '\0'; // Null-terminate the command string
+    if ((strstr(str_send, "ath0") == NULL && strstr(str_send, "ATH0") == NULL &&
+         strstr(str_send, "at h0") == NULL &&
+         strstr(str_send, "AT H0") == NULL) &&
+        (strstr(str_send, "ats0") == NULL && strstr(str_send, "ATS0") == NULL &&
+         strstr(str_send, "at s0") == NULL &&
+         strstr(str_send, "AT s0") == NULL) &&
+        (strstr(str_send, "ate1") == NULL && strstr(str_send, "ATE1") == NULL &&
+         strstr(str_send, "at e1") == NULL &&
+         strstr(str_send, "AT E1") == NULL)) {
+      elm327_process_cmd((uint8_t *)str_send, cmd_len, &tx_msg, &autopidQueue);
+      while ((xQueueReceive(autopidQueue, &elm327_response,
+                            pdMS_TO_TICKS(10)) == pdPASS))
+        ;
+    }
+
+    cmd_start = cmd_end + 1; // Move to the start of the next command
+    vTaskDelay(pdMS_TO_TICKS(delay_ms));
+  }
+}
 
 //////////////////
 
+static bool all_parameters_failed(all_pids_t *all_pids) {
+  if (!all_pids)
+    return true;
 
-static bool all_parameters_failed(all_pids_t* all_pids) {
-    if (!all_pids) return true;
-    
-    bool any_success = false;
-    
-    xSemaphoreTake(all_pids->mutex, portMAX_DELAY);
-    for (uint32_t i = 0; i < all_pids->pid_count; i++) {
-        pid_data2_t *curr_pid = &all_pids->pids[i];
-        for (uint32_t p = 0; p < curr_pid->parameters_count; p++) {
-            if (!curr_pid->parameters[p].failed) {
-                any_success = true;
-                break;
-            }
-        }
-        if (any_success) break;
+  bool any_success = false;
+
+  xSemaphoreTake(all_pids->mutex, portMAX_DELAY);
+  for (uint32_t i = 0; i < all_pids->pid_count; i++) {
+    pid_data2_t *curr_pid = &all_pids->pids[i];
+    for (uint32_t p = 0; p < curr_pid->parameters_count; p++) {
+      if (!curr_pid->parameters[p].failed) {
+        any_success = true;
+        break;
+      }
     }
-    xSemaphoreGive(all_pids->mutex);
-    
-    return !any_success;
+    if (any_success)
+      break;
+  }
+  xSemaphoreGive(all_pids->mutex);
+
+  return !any_success;
 }
 
 static void publish_parameter_mqtt(parameter_t *param) {
-    if (!param) return;
-    
-    char *payload = NULL;
-    
-    switch(param->destination_type) {
-        case DEST_MQTT_TOPIC:
-            // JSON format
-            cJSON *param_json = cJSON_CreateObject();
-            if (param_json) {
-                if (param->sensor_type == BINARY_SENSOR) {
-                    cJSON_AddStringToObject(param_json, param->name, param->value > 0 ? "on" : "off");
-                } else {
-                    cJSON_AddNumberToObject(param_json, param->name, param->value);
-                }
-                limitJsonDecimalPrecision(param_json);
-                payload = cJSON_PrintUnformatted(param_json);
-                cJSON_Delete(param_json);
-            }
-            break;
-            
-        case DEST_MQTT_WALLBOX:
-            // Simple value format
-            asprintf(&payload, "%.2f", param->value);
-            break;
-        default:
-            break;
-    }
+  if (!param)
+    return;
 
-    if (payload) {
-        // Publish to specified destination or default topic
-        if (param->destination && strlen(param->destination) > 0) {
-            mqtt_publish(param->destination, payload, 0, 0, 1);
-            ESP_LOGI(TAG, "Published to %s", param->destination);
-        } else {
-            mqtt_publish(config_server_get_mqtt_rx_topic(), payload, 0, 0, 1);
-        }
-        free(payload);
+  char *payload = NULL;
+
+  switch (param->destination_type) {
+  case DEST_MQTT_TOPIC:
+    // JSON format
+    cJSON *param_json = cJSON_CreateObject();
+    if (param_json) {
+      if (param->sensor_type == BINARY_SENSOR) {
+        cJSON_AddStringToObject(param_json, param->name,
+                                param->value > 0 ? "on" : "off");
+      } else {
+        cJSON_AddNumberToObject(param_json, param->name, param->value);
+      }
+      limitJsonDecimalPrecision(param_json);
+      payload = cJSON_PrintUnformatted(param_json);
+      cJSON_Delete(param_json);
     }
+    break;
+
+  case DEST_MQTT_WALLBOX:
+    // Simple value format
+    asprintf(&payload, "%.2f", param->value);
+    break;
+  default:
+    break;
+  }
+
+  if (payload) {
+    // Publish to specified destination or default topic
+    if (param->destination && strlen(param->destination) > 0) {
+      mqtt_publish(param->destination, payload, 0, 0, 1);
+      ESP_LOGI(TAG, "Published to %s", param->destination);
+    } else {
+      mqtt_publish(config_server_get_mqtt_rx_topic(), payload, 0, 0, 1);
+    }
+    free(payload);
+  }
 }
 
+static void autopid_task(void *pvParameters) {
+  static char default_init[] = "ati\rate0\rath1\ratl0\rats1\ratsp6\ratst96\r";
+  wc_timer_t ecu_check_timer;
+  wc_timer_t group_cycle_timer;
 
-static void autopid_task(void *pvParameters)
-{
-    static char default_init[] = "ati\rate0\rath1\ratl0\rats1\ratsp6\ratst96\r";
-    wc_timer_t ecu_check_timer;
-    wc_timer_t group_cycle_timer;
+  ESP_LOGI(TAG, "Autopid Task Started");
+  DEBUG_LOGI(TAG, "Autopid Task Started");
 
-    ESP_LOGI(TAG, "Autopid Task Started");
-    DEBUG_LOGI(TAG, "Autopid Task Started");
-    
-    vTaskDelay(pdMS_TO_TICKS(100));
-    send_commands(default_init, 50);
+  vTaskDelay(pdMS_TO_TICKS(100));
+  send_commands(default_init, 50);
 
-    while(config_server_mqtt_en_config() == 1 && !mqtt_connected())
-    {
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
+  while (config_server_mqtt_en_config() == 1 && !mqtt_connected()) {
+    vTaskDelay(pdMS_TO_TICKS(2000));
+  }
 
-    // if(config_server_mqtt_en_config() == 1 && all_pids->ha_discovery_en)
-    // {
-    //     autopid_pub_discovery();
-    // }
-    if (!all_pids)
-    {
-        ESP_LOGE(TAG, "all_pids is NULL");
-        return;
-    } 
+  // if(config_server_mqtt_en_config() == 1 && all_pids->ha_discovery_en)
+  // {
+  //     autopid_pub_discovery();
+  // }
+  if (!all_pids) {
+    ESP_LOGE(TAG, "all_pids is NULL");
+    return;
+  }
 
-    // xSemaphoreTake(all_pids->mutex, portMAX_DELAY);
-    // uint32_t total_params = 0;
-    
-    // for (uint32_t i = 0; i < all_pids->pid_count; i++) 
-    // {
-    //     total_params += all_pids->pids[i].parameters_count;
-    // }
+  // xSemaphoreTake(all_pids->mutex, portMAX_DELAY);
+  // uint32_t total_params = 0;
 
-    // bool *pid_failed = calloc(total_params, sizeof(bool));
-    // xSemaphoreGive(all_pids->mutex);
-    
-    if(strcmp("enable", all_pids->autopid_polling) == 0)
-    {
-        ESP_LOGI(TAG, "Autopid polling enabled");
+  // for (uint32_t i = 0; i < all_pids->pid_count; i++)
+  // {
+  //     total_params += all_pids->pids[i].parameters_count;
+  // }
+
+  // bool *pid_failed = calloc(total_params, sizeof(bool));
+  // xSemaphoreGive(all_pids->mutex);
+
+  if (strcmp("enable", all_pids->autopid_polling) == 0) {
+    ESP_LOGI(TAG, "Autopid polling enabled");
     DEBUG_LOGI(TAG, "Autopid polling enabled");
-        xEventGroupClearBits(xautopid_event_group, AUTOPID_POLLING_DISABLED_BIT);
-    }
-    else
-    {
-        ESP_LOGI(TAG, "Autopid polling disabled");
+    xEventGroupClearBits(xautopid_event_group, AUTOPID_POLLING_DISABLED_BIT);
+  } else {
+    ESP_LOGI(TAG, "Autopid polling disabled");
     DEBUG_LOGI(TAG, "Autopid polling disabled");
-        xEventGroupSetBits(xautopid_event_group, AUTOPID_POLLING_DISABLED_BIT);
-    }
-
-    ESP_LOGI(TAG, "Autopid Start loop");
-    DEBUG_LOGI(TAG, "Autopid Start loop");
-    ESP_LOGI(TAG, "Total PIDs: %lu", all_pids->pid_count);
-    DEBUG_LOGI(TAG, "Total PIDs: %lu", all_pids->pid_count);
-
-    while(1) 
-    {
-        static pid_type_t previous_pid_type = PID_MAX;
-
-        dev_status_wait_for_bits(DEV_AWAKE_BIT, portMAX_DELAY);
-
-        if (xEventGroupGetBits(xautopid_event_group) & AUTOPID_POLLING_DISABLED_BIT) 
-        {
-            xEventGroupWaitBits(xautopid_event_group, AUTOPID_REQUEST_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
-        }
-
-        elm327_lock();
-        xSemaphoreTake(all_pids->mutex, portMAX_DELAY);
-        
-        // Loop through all PIDs
-        for(uint32_t i = 0; i < all_pids->pid_count; i++) 
-        {
-            pid_data2_t *curr_pid = &all_pids->pids[i];
-            // Skip if PID type not enabled
-            if((curr_pid->pid_type == PID_STD && !all_pids->pid_std_en) ||
-            (curr_pid->pid_type == PID_CUSTOM && !all_pids->pid_custom_en) ||
-            (curr_pid->pid_type == PID_SPECIFIC && !all_pids->pid_specific_en))
-            {
-                continue;
-            }
-
-            // Loop through parameters
-            for(uint32_t p = 0; p < curr_pid->parameters_count; p++) 
-            {
-                parameter_t *param = &curr_pid->parameters[p];
-                
-                // Check parameter timer
-                if(wc_timer_is_expired(&param->timer)) 
-                {
-                    // autopid_data_write
-                    if(curr_pid->pid_type != previous_pid_type) {
-                        // Send appropriate initialization based on new PID type
-                        switch(curr_pid->pid_type) {
-                            case PID_CUSTOM:
-                                if(all_pids->custom_init && strlen(all_pids->custom_init) > 0) {
-                                    ESP_LOGI(TAG, "Sending custom init: %s, length: %d", 
-                                            all_pids->custom_init, strlen(all_pids->custom_init));
-                    DEBUG_LOGI(TAG, "Sending custom init: %s, length: %d", 
-                        all_pids->custom_init, strlen(all_pids->custom_init));
-                                    send_commands(all_pids->custom_init, 2);
-                                }
-                                break;
-                                
-                            case PID_STD:
-                                if(all_pids->standard_init && strlen(all_pids->standard_init) > 0) {
-                                    ESP_LOGI(TAG, "Sending standard init: %s, length: %d", 
-                                            all_pids->standard_init, strlen(all_pids->standard_init));
-                    DEBUG_LOGI(TAG, "Sending standard init: %s, length: %d", 
-                        all_pids->standard_init, strlen(all_pids->standard_init));
-                                    send_commands(all_pids->standard_init, 2);
-                                }
-                                break;
-                                
-                            case PID_SPECIFIC:
-                                if(all_pids->specific_init && strlen(all_pids->specific_init) > 0) {
-                                    ESP_LOGI(TAG, "Sending specific init: %s, length: %d", 
-                                            all_pids->specific_init, strlen(all_pids->specific_init));
-                    DEBUG_LOGI(TAG, "Sending specific init: %s, length: %d", 
-                        all_pids->specific_init, strlen(all_pids->specific_init));
-                                    send_commands(all_pids->specific_init, 2);
-                                }
-                                break;
-                                
-                            case PID_MAX:
-                                break;
-                        }
-
-                        previous_pid_type = curr_pid->pid_type;
-                    }
-
-                    ESP_LOGI(TAG, "Processing parameter: %s", param->name);
-                    DEBUG_LOGI(TAG, "Processing parameter: %s", param->name);
-                    // Reset timer with parameter period
-                    wc_timer_set(&param->timer, param->period);
-
-                    if(curr_pid->cmd != NULL && strlen(curr_pid->cmd) > 0) 
-                    {
-                        twai_message_t tx_msg;
-
-                        if(curr_pid->pid_type == PID_CUSTOM || curr_pid->pid_type == PID_SPECIFIC) 
-                        {
-                            if(curr_pid->init != NULL && strlen(curr_pid->init) > 0)
-                            {
-                                send_commands(curr_pid->init, 2);
-                            }
-                        }
-
-                        ESP_LOGI(TAG, "Executing command: %s", curr_pid->cmd);
-                        DEBUG_LOGI(TAG, "Executing command: %s", curr_pid->cmd);
-                        if(elm327_process_cmd((uint8_t*)curr_pid->cmd, 
-                                            strlen(curr_pid->cmd), 
-                                            &tx_msg, 
-                                            &autopidQueue) == ESP_OK)
-                        {
-                            ESP_LOGI(TAG, "Command processed successfully");
-                            DEBUG_LOGI(TAG, "Command processed successfully");
-                            
-                            if(xQueueReceive(autopidQueue, &elm327_response, pdMS_TO_TICKS(1000)) == pdPASS)
-                            {
-                                ESP_LOGI(TAG, "Response received, length: %lu", elm327_response.length);
-                                DEBUG_LOGI(TAG, "Response received, length: %lu", elm327_response.length);
-                                ESP_LOG_BUFFER_HEXDUMP(TAG, elm327_response.data, 1, ESP_LOG_INFO);
-                                if(strstr((char*)elm327_response.data, "error") == NULL)
-                                {
-                                    double result;
-
-                                    param->failed = false;
-
-                                    ESP_LOGI(TAG, "Response received, length: %lu", elm327_response.length);
-                                    xEventGroupSetBits(xautopid_event_group, ECU_CONNECTED_BIT);
-                                    // Process response based on PID type
-                                    if(curr_pid->pid_type == PID_CUSTOM || curr_pid->pid_type == PID_SPECIFIC) 
-                                    {
-                                        ESP_LOGI(TAG, "Processing custom/specific PID");
-                                        if(param->expression && 
-                                        evaluate_expression((uint8_t*)param->expression, 
-                                                            elm327_response.data, 0, &result))
-                                        {
-                                            if (param->min != FLT_MAX && result < param->min) {
-                                                ESP_LOGW(TAG, "Parameter %s value %.2f below min %.2f - ignoring", 
-                                                        param->name, result, param->min);
-                                            } else if (param->max != FLT_MAX && result > param->max) {
-                                                ESP_LOGW(TAG, "Parameter %s value %.2f above max %.2f - ignoring", 
-                                                        param->name, result, param->max);
-                                            } else {
-                                                result = round(result * 100.0) / 100.0;
-                                                ESP_LOGI(TAG, "Parameter %s result: %.2f", 
-                                                        param->name, result);
-                                                param->value = result;
-                                                publish_parameter_mqtt(param);
-                                            }
-                                        }
-                                    }
-                                    else if(curr_pid->pid_type == PID_STD) 
-                                    {
-                                        ESP_LOGI(TAG, "Processing standard PID");
-                                        if(curr_pid->pid_type == PID_STD) 
-                                        {
-                                            const std_pid_t* pid_info = get_pid_from_string(param->name);
-                                            if(pid_info)
-                                            {
-                                                ESP_LOGI(TAG, "Found PID info for: %s", param->name);
-                                                // Find matching parameter in pid_info
-                                                for(int p = 0; p < pid_info->num_params; p++)
-                                                {
-                                                    // Match parameter name after the dash
-                                                    const char* param_name = strchr(param->name, '-');
-                                                    if(param_name && strcmp(param_name + 1, pid_info->params[p].name) == 0)
-                                                    {
-                                                        esp_err_t err = ESP_FAIL;
-
-                                                        ESP_LOGI(TAG, "Processing parameter: %s", pid_info->params[p].name);
-                                                        if(elm327_response.priority_data != NULL && elm327_response.priority_data != 0)
-                                                        {
-                                                            err = extract_signal_value(
-                                                                elm327_response.priority_data,           // Your CAN response data buffer
-                                                                elm327_response.priority_data_len,         // Length of your CAN response data
-                                                                &pid_info->params[p],    // Parameter definition from pid_info
-                                                                &param->value            // Where to store the result
-                                                            );
-                                                        }
-                                                        else
-                                                        {
-                                                            err = extract_signal_value(
-                                                                elm327_response.data,           // Your CAN response data buffer
-                                                                elm327_response.length,         // Length of your CAN response data
-                                                                &pid_info->params[p],    // Parameter definition from pid_info
-                                                                &param->value            // Where to store the result
-                                                            );
-                                                        }
- 
-                                                        if (err != ESP_OK) {
-                                                            ESP_LOGE(TAG, "Failed to extract signal: %s", esp_err_to_name(err));
-                                                            break;
-                                                        }
-                                                        param->value = roundf(param->value * 100.0) / 100.0;
-                                                        ESP_LOGI(TAG, "Parameter %s result: %.2f %s", 
-                                                                        param->name, 
-                                                                        param->value, 
-                                                                        pid_info->params[p].unit);
-                                                        param->value = roundf(param->value * 100.0) / 100.0;
-                                                        publish_parameter_mqtt(param);
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {   
-                                    param->failed = true;
-                                    ESP_LOGE(TAG, "Failed to process command: %s", curr_pid->cmd);
-                                }
-                            }
-                            else
-                            {
-                                param->failed = true;
-                                ESP_LOGE(TAG, "Failed Queue Receive: curr_pid->cmd timeout");
-                            }
-                        }
-                        else 
-                        {
-                            ESP_LOGE(TAG, "Failed to process command: %s", curr_pid->cmd);
-                        }
-                    }
-                    else 
-                    {
-                        ESP_LOGE(TAG, "Failed, cmd is NULL");
-                    }
-                }
-            }
-        }
-
-        elm327_unlock();
-        xSemaphoreGive(all_pids->mutex);
-
-        autopid_update_values();
-        
-        if (xEventGroupGetBits(xautopid_event_group) & AUTOPID_POLLING_DISABLED_BIT) {
-            xEventGroupClearBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(10));
-
-        if (strcmp("enable", all_pids->grouping) == 0 && all_pids->group_destination_type == DEST_MQTT_TOPIC && wc_timer_is_expired(&group_cycle_timer))
-        {
-            wc_timer_set(&group_cycle_timer, all_pids->cycle);
-            
-            autopid_data_publish();
-        }
-
-        if (wc_timer_is_expired(&ecu_check_timer)) {
-            if (all_parameters_failed(all_pids)) {
-                xEventGroupClearBits(xautopid_event_group, ECU_CONNECTED_BIT);
-                ESP_LOGW(TAG, "All parameters failed - ECU disconnected");
-            } else {
-                xEventGroupSetBits(xautopid_event_group, ECU_CONNECTED_BIT);
-            }
-            wc_timer_set(&ecu_check_timer, 2000); // Reset timer for next check
-        }
-    }
-
-
-}
-
-
-cJSON* parse_json_file(FILE* f) {
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    char* buffer = malloc(fsize + 1);
-    fread(buffer, fsize, 1, f);
-    buffer[fsize] = 0;
-
-    cJSON* root = cJSON_Parse(buffer);
-    free(buffer);
-    
-    return root;
-}
-
-all_pids_t* load_all_pids(void){
-    int total_pids = 0;
-    int car_data_pids = 0;
-    int auto_pids = 0;
-    
-    // Count car_data.json pids
-    FILE* f = fopen(FS_MOUNT_POINT"/car_data.json", "r");
-    if (f) {
-        cJSON* root = parse_json_file(f);
-        if (root) {
-            cJSON* cars = cJSON_GetObjectItem(root, "cars");
-            cJSON* car = cJSON_GetArrayItem(cars, 0);
-            cJSON* pids = cJSON_GetObjectItem(car, "pids");
-            car_data_pids = cJSON_GetArraySize(pids);
-            cJSON_Delete(root);
-        }
-        fclose(f);
-    }
-    
-    // Count auto_pid.json pids
-    f = fopen(FS_MOUNT_POINT"/auto_pid.json", "r");
-    if (f) {
-        cJSON* root = parse_json_file(f);
-        if (root) {
-            cJSON* pids = cJSON_GetObjectItem(root, "pids");
-            cJSON* std_pids = cJSON_GetObjectItem(root, "std_pids");
-            auto_pids = cJSON_GetArraySize(pids) + cJSON_GetArraySize(std_pids);
-            cJSON_Delete(root);
-        }
-        fclose(f);
-    }
-
-    total_pids = car_data_pids + auto_pids;
-    
-    all_pids_t* all_pids = (all_pids_t*)calloc(1, sizeof(all_pids_t));
-    if (!all_pids) return NULL;
-    
-    all_pids->pids = (pid_data2_t*)calloc(total_pids, sizeof(pid_data2_t));
-    if (!all_pids->pids) {
-        free(all_pids);
-        return NULL;
-    }
-    
-    int pid_index = 0;
-    
-    // Load auto_pid.json pids
-    f = fopen(FS_MOUNT_POINT"/auto_pid.json", "r");
-    if (f) {
-        cJSON* root = parse_json_file(f);
-        if (root) {
-            cJSON* init_item = cJSON_GetObjectItem(root, "initialisation");
-            cJSON* grouping_item = cJSON_GetObjectItem(root, "grouping");
-            cJSON* autopid_polling_item = cJSON_GetObjectItem(root, "autopid_polling");
-            cJSON* webhook_data_mode_item = cJSON_GetObjectItem(root, "webhook_data_mode");
-            cJSON* car_model_item = cJSON_GetObjectItem(root, "car_model");
-            cJSON* ecu_protocol_item = cJSON_GetObjectItem(root, "ecu_protocol");
-            cJSON* ha_discovery_item = cJSON_GetObjectItem(root, "ha_discovery");
-            cJSON* cycle_item = cJSON_GetObjectItem(root, "cycle");
-            cJSON* standard_pids_item = cJSON_GetObjectItem(root, "standard_pids");
-            cJSON* specific_pids_item = cJSON_GetObjectItem(root, "car_specific");
-            cJSON* group_destination_item = cJSON_GetObjectItem(root, "destination");
-            cJSON* group_dest_type_item = cJSON_GetObjectItem(root, "group_dest_type");
-
-            if (init_item && init_item->valuestring) {
-                all_pids->custom_init = strdup(init_item->valuestring);
-                if (all_pids->custom_init) {
-                    // Replace semicolons with carriage returns
-                    for (size_t j = 0; j < strlen(all_pids->custom_init); j++) {
-                        if (all_pids->custom_init[j] == ';') {
-                            all_pids->custom_init[j] = '\r';
-                        }
-                    }
-                }
-            } else {
-                all_pids->custom_init = NULL;
-            }
-
-            all_pids->grouping = (grouping_item && grouping_item->valuestring && strlen(grouping_item->valuestring) > 1) ? strdup(grouping_item->valuestring) : strdup("disable");
-            all_pids->autopid_polling = (autopid_polling_item && autopid_polling_item->valuestring && strlen(autopid_polling_item->valuestring) > 1) ? strdup(autopid_polling_item->valuestring) : strdup("enable");
-            all_pids->webhook_data_mode = (webhook_data_mode_item && webhook_data_mode_item->valuestring && strlen(webhook_data_mode_item->valuestring) > 0) ? strdup(webhook_data_mode_item->valuestring) : strdup("full");
-            all_pids->vehicle_model = car_model_item ? strdup(car_model_item->valuestring) : NULL;
-            all_pids->std_ecu_protocol = ecu_protocol_item ? strdup(ecu_protocol_item->valuestring) : NULL;
-            all_pids->ha_discovery_en = ha_discovery_item ? (strcmp(ha_discovery_item->valuestring, "enable") == 0) : false;
-            all_pids->cycle = cycle_item ? atoi(cycle_item->valuestring) : 10000;
-            all_pids->pid_std_en = standard_pids_item ? (strcmp(standard_pids_item->valuestring, "enable") == 0) : false;
-            all_pids->pid_specific_en = specific_pids_item ? (strcmp(specific_pids_item->valuestring, "enable") == 0) : false;
-            all_pids->group_destination = group_destination_item ? strdup(group_destination_item->valuestring) : NULL;
-            all_pids->group_destination_type = group_dest_type_item && group_dest_type_item->valuestring ?
-                            (strcmp(group_dest_type_item->valuestring, "MQTT_Topic") == 0 ? DEST_MQTT_TOPIC :
-                            DEST_DEFAULT) : DEST_DEFAULT;
-            
-            // Load custom pids
-            cJSON* pids = cJSON_GetObjectItem(root, "pids");
-            if (pids) {
-                cJSON* pid;
-                cJSON_ArrayForEach(pid, pids) {
-                    pid_data2_t* curr_pid = &all_pids->pids[pid_index];
-                    
-                    cJSON* name_item = cJSON_GetObjectItem(pid, "Name");
-                    cJSON* init_item = cJSON_GetObjectItem(pid, "Init");
-                    cJSON* pid_item = cJSON_GetObjectItem(pid, "PID");
-                    cJSON* expr_item = cJSON_GetObjectItem(pid, "Expression");
-                    cJSON* period_item = cJSON_GetObjectItem(pid, "Period");
-                    cJSON* type_item = cJSON_GetObjectItem(pid, "Type");
-                    cJSON* send_to_item = cJSON_GetObjectItem(pid, "Send_to");
-                    cJSON* sensor_type_item = cJSON_GetObjectItem(pid, "sensor_type");
-                    cJSON* unit_item = cJSON_GetObjectItem(pid, "unit"); 
-                    cJSON* class_item = cJSON_GetObjectItem(pid, "class");
-                    cJSON* rxheader_item = cJSON_GetObjectItem(pid, "header");
-                    cJSON* min_value_item = cJSON_GetObjectItem(pid, "MinValue");
-                    cJSON* max_value_item = cJSON_GetObjectItem(pid, "MaxValue");
-
-                    if(cJSON_GetArraySize(pids) > 0)
-                    {
-                        all_pids->pid_custom_en = true;
-                    }
-                    
-                    curr_pid->cmd = pid_item ? (char*)malloc(strlen(pid_item->valuestring) + 2) : NULL;
-                    if (curr_pid->cmd && pid_item && strlen(pid_item->valuestring) > 1)
-                    {
-                        strcpy(curr_pid->cmd, pid_item->valuestring);
-                        strcat(curr_pid->cmd, "\r");
-                    }                    
-
-                    curr_pid->init = NULL;
-                    if (init_item && init_item->valuestring) {
-                        size_t init_len = strlen(init_item->valuestring);
-                        
-                        if (init_len > 0) {
-                            curr_pid->init = (char*)malloc(init_len + 2);
-                            if (curr_pid->init) {
-                                strncpy(curr_pid->init, init_item->valuestring, init_len);
-                                curr_pid->init[init_len] = '\0';
-                                
-                                // Replace semicolons with carriage returns
-                                for (size_t j = 0; j < init_len; j++) {
-                                    if (curr_pid->init[j] == ';') {
-                                        curr_pid->init[j] = '\r';
-                                    }
-                                }
-                            } else {
-                                ESP_LOGE(TAG, "Failed to allocate memory for init");
-                            }
-                        }
-                    }
-
-                    curr_pid->period = period_item ? atoi(period_item->valuestring) : 10000;
-                    curr_pid->rxheader = rxheader_item ? strdup(rxheader_item->valuestring) : NULL;
-                    curr_pid->pid_type = PID_CUSTOM;
-
-                    curr_pid->parameters_count = 1;
-                    curr_pid->parameters = (parameter_t*)calloc(1, sizeof(parameter_t));
-                    if (curr_pid->parameters) {
-                        curr_pid->parameters->name = name_item ? strdup(name_item->valuestring) : NULL;
-                        curr_pid->parameters->expression = expr_item ? strdup(expr_item->valuestring) : NULL;
-                        curr_pid->parameters->period = period_item ? atoi(period_item->valuestring) : 0;
-                        curr_pid->parameters->destination = send_to_item ? strdup(send_to_item->valuestring) : NULL;
-                        curr_pid->parameters->timer = 0;
-                        curr_pid->parameters->value = FLT_MAX;
-                        curr_pid->parameters->min = (min_value_item && strlen(min_value_item->valuestring) > 0) ? atof(min_value_item->valuestring) : FLT_MAX;
-                        curr_pid->parameters->max = (max_value_item && strlen(max_value_item->valuestring) > 0) ? atof(max_value_item->valuestring) : FLT_MAX;
-                        curr_pid->parameters->destination_type = type_item && type_item->valuestring ? 
-                            (strcmp(type_item->valuestring, "MQTT_Topic") == 0 ? DEST_MQTT_TOPIC :
-                            strcmp(type_item->valuestring, "MQTT_WallBox") == 0 ? DEST_MQTT_WALLBOX :
-                            DEST_DEFAULT) : DEST_DEFAULT;
-                        curr_pid->parameters->sensor_type = sensor_type_item ? 
-                            (strcmp(sensor_type_item->valuestring, "binary") == 0 ? BINARY_SENSOR : SENSOR) : SENSOR;
-                        curr_pid->parameters->unit = unit_item && unit_item->valuestring ? 
-                            strdup(unit_item->valuestring) : strdup("none");
-                        curr_pid->parameters->class = class_item && class_item->valuestring ? 
-                            strdup(class_item->valuestring) : strdup("none");
-                    }
-                    
-                    pid_index++;
-                }
-            }
-            
-            // Load standard pids
-            cJSON* std_pids = cJSON_GetObjectItem(root, "std_pids");
-            if (std_pids) {
-                cJSON* pid;
-                cJSON_ArrayForEach(pid, std_pids) {
-                    pid_data2_t* curr_pid = &all_pids->pids[pid_index];
-                    curr_pid->pid_type = PID_STD;
-
-                    char std_init_buf[64];
-                    int is_protocol_68 = 1;
-                    int is_protocol_79 = 0;
-                    const char *sh_value = "";
-
-                    curr_pid->parameters_count = 1;
-                    curr_pid->parameters = (parameter_t*)calloc(1, sizeof(parameter_t));
-                    if (curr_pid->parameters) {
-                        cJSON* name_item = cJSON_GetObjectItem(pid, "Name");
-                        cJSON* period_item = cJSON_GetObjectItem(pid, "Period");
-                        cJSON* type_item = cJSON_GetObjectItem(pid, "Type");
-                        cJSON* send_to_item = cJSON_GetObjectItem(pid, "Send_to");
-                        cJSON* sensor_type_item = cJSON_GetObjectItem(pid, "sensor_type");
-                        cJSON* rxheader_item = cJSON_GetObjectItem(pid, "ReceiveHeader");
-
-                        curr_pid->parameters->name = name_item ? strdup(name_item->valuestring) : NULL;
-                        curr_pid->parameters->period = period_item ? atoi(period_item->valuestring) : 10000;
-                        curr_pid->parameters->destination = send_to_item ? strdup(send_to_item->valuestring) : NULL;
-                        curr_pid->parameters->destination_type = type_item && type_item->valuestring ? 
-                            (strcmp(type_item->valuestring, "MQTT_Topic") == 0 ? DEST_MQTT_TOPIC :
-                            strcmp(type_item->valuestring, "MQTT_WallBox") == 0 ? DEST_MQTT_WALLBOX :
-                            DEST_DEFAULT) : DEST_DEFAULT;
-                        curr_pid->parameters->timer = 0;
-                        curr_pid->parameters->value = FLT_MAX;
-                        curr_pid->parameters->sensor_type = sensor_type_item ? 
-                            (strcmp(sensor_type_item->valuestring, "binary") == 0 ? BINARY_SENSOR : SENSOR) : SENSOR;
-                            
-                        curr_pid->rxheader = rxheader_item ? strdup(rxheader_item->valuestring) : NULL;
-
-                        if (all_pids->std_ecu_protocol)
-                        {
-                            // Check protocol type once
-                            is_protocol_68 = (strcmp(all_pids->std_ecu_protocol, "6") == 0 || 
-                                                strcmp(all_pids->std_ecu_protocol, "8") == 0);
-                            is_protocol_79 = (strcmp(all_pids->std_ecu_protocol, "7") == 0 || 
-                                                strcmp(all_pids->std_ecu_protocol, "9") == 0);
-                        }
-                        
-                        if (is_protocol_68) 
-                        {
-                            sh_value = "7DF";
-                        }
-                        else if (is_protocol_79)
-                        {
-                            sh_value = "18DB33F1";
-                        }
-
-                        if(curr_pid->rxheader != NULL && strlen(curr_pid->rxheader) > 0)
-                        {
-                            ESP_LOGI(TAG, "Setting up STD init buffer with protocol: %s, SH value: %s, RX header: %s", all_pids->std_ecu_protocol, sh_value, curr_pid->rxheader);
-                            snprintf(std_init_buf, sizeof(std_init_buf), "ATSP%s\rATSH%s\rATCRA%s\r",
-                                                        all_pids->std_ecu_protocol, sh_value, curr_pid->rxheader);
-                        }
-                        else
-                        {
-                            ESP_LOGI(TAG, "Setting up STD init buffer with protocol: %s, SH value: %s", all_pids->std_ecu_protocol, sh_value);
-                            snprintf(std_init_buf, sizeof(std_init_buf), "ATSP%s\rATSH%s\rATCRA\r",
-                                                        all_pids->std_ecu_protocol, sh_value);                        
-                        }
-                        all_pids->standard_init = strdup(std_init_buf);
-
-                        if(curr_pid->parameters->name != NULL && strlen(curr_pid->parameters->name) > 0)
-                        {
-                            const std_pid_t* pid_info = get_pid_from_string(curr_pid->parameters->name);
-                            if(pid_info)
-                            {
-                                ESP_LOGI(TAG, "PID Info for %s:", curr_pid->parameters->name);
-                                ESP_LOGI(TAG, "  Base name: %s", pid_info->base_name);
-                                ESP_LOGI(TAG, "  Num params: %d", pid_info->num_params);
-                                ESP_LOGI(TAG, "  Parameter details:");
-                                for(int i = 0; i < pid_info->num_params; i++)
-                                {
-                                    ESP_LOGI(TAG, "    [%d] Name: %s, Unit: %s", i, pid_info->params[i].name, pid_info->params[i].unit);
-                                    if(strcmp(pid_info->params[i].name, strchr(curr_pid->parameters->name, '-') + 1) == 0)
-                                    {
-                                        curr_pid->parameters->class = strdup(pid_info->params[i].class);
-                                        curr_pid->parameters->unit = strdup(pid_info->params[i].unit);
-                                        char pid_hex[3];
-                                        strncpy(pid_hex, curr_pid->parameters->name, 2);
-                                        pid_hex[2] = '\0';
-
-                                        curr_pid->cmd = malloc(8); // "01XX1\r\0" needs 8 bytes
-                                        if(curr_pid->cmd) {
-                                            sprintf(curr_pid->cmd, "01%s\r", pid_hex);
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                ESP_LOGW(TAG, "No PID info found for %s", curr_pid->parameters->name);
-                            }
-                        }
-                    }
-                    
-                    pid_index++;
-                }
-            }
-            
-            cJSON_Delete(root);
-        }
-
-        fclose(f);
-    }
-    
-    f = fopen(FS_MOUNT_POINT"/car_data.json", "r");
-    if (f) {
-        cJSON* root = parse_json_file(f);
-        if (root) {
-            cJSON* cars = cJSON_GetObjectItem(root, "cars");
-            if (cars) {
-                cJSON* car = cJSON_GetArrayItem(cars, 0);
-                if (car) {
-                    cJSON* init_item = cJSON_GetObjectItem(car, "init");
-                    if (init_item && init_item->valuestring) {
-                        all_pids->specific_init = strdup(init_item->valuestring);
-                        if (all_pids->specific_init) {
-                            for (size_t j = 0; j < strlen(all_pids->specific_init); j++) {
-                                if (all_pids->specific_init[j] == ';') {
-                                    all_pids->specific_init[j] = '\r';
-                                }
-                            }
-                        }
-                    } else {
-                        all_pids->specific_init = NULL;
-                    }
-                    
-                    cJSON* pids = cJSON_GetObjectItem(car, "pids");
-
-                    if (pids) 
-                    {
-                        cJSON* pid;
-                        
-                        cJSON_ArrayForEach(pid, pids) 
-                        {
-                            pid_data2_t* curr_pid = &all_pids->pids[pid_index];
-                            cJSON* pid_item = cJSON_GetObjectItem(pid, "pid");
-                            cJSON* init_item = cJSON_GetObjectItem(pid, "pid_init");
-
-                            curr_pid->init = NULL;
-                            if (init_item && init_item->valuestring) {
-                                size_t init_len = strlen(init_item->valuestring);
-                                
-                                if (init_len > 0) {
-                                    curr_pid->init = (char*)malloc(init_len + 2);
-                                    if (curr_pid->init) {
-                                        strncpy(curr_pid->init, init_item->valuestring, init_len);
-                                        curr_pid->init[init_len] = '\0';
-                                        
-                                        // Replace semicolons with carriage returns
-                                        for (size_t j = 0; j < init_len; j++) {
-                                            if (curr_pid->init[j] == ';') {
-                                                curr_pid->init[j] = '\r';
-                                            }
-                                        }
-                                    } else {
-                                        ESP_LOGE(TAG, "Failed to allocate memory for init");
-                                    }
-                                }
-                            }
-
-                                                        
-                            curr_pid->cmd = NULL;
-
-                            if (pid_item && pid_item->valuestring) {
-                                size_t cmd_len = strlen(pid_item->valuestring);
-
-                                if (cmd_len > 0) {
-                                    curr_pid->cmd = (char*)malloc(cmd_len + 2);
-                                    if (curr_pid->cmd) {
-                                        strncpy(curr_pid->cmd, pid_item->valuestring, cmd_len);
-                                        curr_pid->cmd[cmd_len] = '\r';
-                                        curr_pid->cmd[cmd_len + 1] = '\0';
-                                    } else {
-                                        ESP_LOGE(TAG, "Failed to allocate memory for cmd");
-                                    }
-                                }
-                            }
-
-                            curr_pid->pid_type = PID_SPECIFIC;
-                            
-                            cJSON* params = cJSON_GetObjectItem(pid, "parameters");
-                            if (params) 
-                            {
-                                int param_count = cJSON_GetArraySize(params);
-                                curr_pid->parameters_count = param_count;  // Set the count
-                                curr_pid->parameters = (parameter_t*)calloc(param_count, sizeof(parameter_t));
-                                curr_pid->parameters->period = all_pids->cycle;
-                                curr_pid->parameters->timer = 0;
-                                curr_pid->parameters->value = FLT_MAX;
-                                cJSON* param;
-                                int param_index = 0;
-                                cJSON_ArrayForEach(param, params) 
-                                {
-                                    cJSON* name_item = cJSON_GetObjectItem(param, "name");
-                                    curr_pid->parameters[param_index].name = name_item ? strdup(name_item->valuestring) : NULL;
-
-                                    cJSON* expr_item = cJSON_GetObjectItem(param, "expression");
-                                    curr_pid->parameters[param_index].expression = expr_item ? strdup(expr_item->valuestring) : NULL;
-
-                                    cJSON* unit_item = cJSON_GetObjectItem(param, "unit");
-                                    curr_pid->parameters[param_index].unit = unit_item && unit_item->valuestring ? 
-                                        strdup(unit_item->valuestring) : strdup("none");
-
-                                    cJSON* class_item = cJSON_GetObjectItem(param, "class");
-                                    curr_pid->parameters[param_index].class = class_item && class_item->valuestring ? 
-                                        strdup(class_item->valuestring) : strdup("none");
-
-                                    cJSON* sensor_type_item = cJSON_GetObjectItem(param, "sensor_type");
-                                    curr_pid->parameters[param_index].sensor_type = sensor_type_item ? 
-                                            (strcmp(sensor_type_item->valuestring, "binary") == 0 ? BINARY_SENSOR : SENSOR) : SENSOR;
-
-                                    cJSON* min_item = cJSON_GetObjectItem(param, "min");
-                                    curr_pid->parameters[param_index].min = (min_item && strlen(min_item->valuestring) > 0) ?  atof(min_item->valuestring) : FLT_MAX;
-
-                                    cJSON* max_item = cJSON_GetObjectItem(param, "max");
-                                    curr_pid->parameters[param_index].max = (max_item && strlen(max_item->valuestring) > 0) ?  atof(max_item->valuestring) : FLT_MAX;
-
-                                    cJSON* period_item = cJSON_GetObjectItem(param, "period");
-                                    curr_pid->parameters[param_index].period = period_item ? atof(period_item->valuestring) : FLT_MAX;
-
-                                    cJSON* send_to_item = cJSON_GetObjectItem(param, "send_to");
-                                    curr_pid->parameters[param_index].destination = send_to_item ? strdup(send_to_item->valuestring) : strdup("none");
-
-                                    cJSON* destination_type_item = cJSON_GetObjectItem(param, "type");      //destination_type
-                                    curr_pid->parameters[param_index].destination_type = 
-                                        destination_type_item && destination_type_item->valuestring ? 
-                                            (strcmp(destination_type_item->valuestring, "MQTT_Topic") == 0 ? DEST_MQTT_TOPIC :
-                                            strcmp(destination_type_item->valuestring, "MQTT_WallBox") == 0 ? DEST_MQTT_WALLBOX :
-                                            DEST_DEFAULT) : DEST_DEFAULT;
-
-                                    param_index++;
-                                }
-                            }
-                            pid_index++;
-                        }
-                        
-                    }
-                }
-            }
-            cJSON_Delete(root);
-        }
-        fclose(f);
-    }
-    
-    all_pids->pid_count = total_pids;
-    
-    return all_pids;
-}
-
-static void autopid_webhook_task(void *pvParameters)
-{
-    ESP_LOGI(TAG, "Autopid Webhook Task Started");
-    (void)pvParameters;
-
-    uint64_t last_post_time = 0;
-    uint64_t last_wifi_status_time = 0;
-    char *prev_autopid_snapshot = NULL;
-    char *prev_config_snapshot = NULL;
-    char *prev_status_snapshot = NULL;
-
-    vTaskDelay(pdMS_TO_TICKS(5000));
-
-    for (;;)
-    {
-        // Wait for STA connectivity (do NOT block forever on dev_status bits; wifi_network doesn't set them)
-        if (!wifi_network_is_connected())
-        {
-            uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
-            if ((now - last_wifi_status_time) >= 10)
-            {
-                last_wifi_status_time = now;
-
-                ha_webhook_config_t webhook_cfg;
-                memset(&webhook_cfg, 0, sizeof(webhook_cfg));
-                if (ha_webhooks_get_config(&webhook_cfg) == ESP_OK && webhook_cfg.enabled && webhook_cfg.url[0] != '\0')
-                {
-                    ha_webhook_config_t upd = webhook_cfg;
-                    strlcpy(upd.status, "waiting_wifi", sizeof(upd.status));
-                    webhook_format_utc(upd.last_error_time);
-                    strlcpy(upd.last_error, "STA not connected - waiting for WiFi", sizeof(upd.last_error));
-                    (void)ha_webhooks_update_cache(&upd);
-                }
-
-                ESP_LOGW(TAG, "Webhook: STA not connected yet (no route to HA)");
-            }
-
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            continue;
-        }
-
-        // Only post in AutoPID protocol mode
-        if (config_server_protocol() == AUTO_PID && wifi_network_is_connected())
-        {
-            bool send_full_data = true;
-            if (all_pids && all_pids->webhook_data_mode)
-                send_full_data = (strcmp(all_pids->webhook_data_mode, "full") == 0);
-
-            ha_webhook_config_t webhook_cfg;
-            memset(&webhook_cfg, 0, sizeof(webhook_cfg));
-            esp_err_t err = ha_webhooks_get_config(&webhook_cfg);
-
-            if (err == ESP_OK && webhook_cfg.enabled && webhook_cfg.url[0] != '\0')
-            {
-                // Enforce HTTP-only
-                if (strncasecmp(webhook_cfg.url, "http://", 7) != 0)
-                {
-                    uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
-                    uint32_t interval_sec = (webhook_cfg.interval > 0) ? (uint32_t)webhook_cfg.interval : 60;
-                    if ((now - last_post_time) >= interval_sec)
-                    {
-                        last_post_time = now;
-
-                        ha_webhook_config_t upd = webhook_cfg;
-                        upd.fail_count++;
-                        strlcpy(upd.status, "failed", sizeof(upd.status));
-                        webhook_format_utc(upd.last_error_time);
-                        strlcpy(upd.last_error, "https not supported: use http://", sizeof(upd.last_error));
-                        (void)ha_webhooks_update_cache(&upd);
-                    }
-                    vTaskDelay(pdMS_TO_TICKS(1000));
-                    continue;
-                }
-
-                uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
-                uint32_t interval_sec = (webhook_cfg.interval > 0) ? (uint32_t)webhook_cfg.interval : 60;
-
-                if ((now - last_post_time) >= interval_sec)
-                {
-                    last_post_time = now;
-
-                    char *raw_json = autopid_data_read();
-                    if (raw_json)
-                    {
-                        char *url = strdup_heap(webhook_cfg.url);
-                        if (url)
-                        {
-                            ESP_LOGI(TAG, "Webhook: posting %s payload to %s", send_full_data ? "full" : "diff", url);
-                            cJSON *root_obj = cJSON_CreateObject();
-                            cJSON *cfg_curr = autopid_build_config_object();
-                            char *status_json = config_server_get_status_json(true /* remove_sensitive_info */);
-                            cJSON *sts_curr = status_json ? cJSON_Parse(status_json) : NULL;
-                            free(status_json);
-                            if (!sts_curr)
-                                sts_curr = cJSON_CreateObject();
-
-                            // Ensure these are always present for webhook payload consumers
-                            if (sts_curr)
-                            {
-                                cJSON_DeleteItemFromObjectCaseSensitive(sts_curr, "autopid_enabled");
-                                cJSON_AddBoolToObject(sts_curr, "autopid_enabled", (config_server_protocol() == AUTO_PID));
-
-                                uint64_t uptime_sec = (uint64_t)(esp_timer_get_time() / 1000000ULL);
-                                cJSON_DeleteItemFromObjectCaseSensitive(sts_curr, "uptime_sec");
-                                cJSON_AddNumberToObject(sts_curr, "uptime_sec", (double)uptime_sec);
-                            }
-                            cJSON *auto_curr = cJSON_Parse(raw_json);
-                            if (!auto_curr)
-                                auto_curr = cJSON_CreateObject();
-
-                            if (root_obj && cfg_curr && sts_curr && auto_curr)
-                            {
-                                // CONFIG
-                                cJSON *cfg_payload = NULL;
-                                if (send_full_data)
-                                {
-                                    cfg_payload = cJSON_Duplicate(cfg_curr, true);
-                                }
-                                else
-                                {
-                                    cJSON *prev = prev_config_snapshot ? cJSON_Parse(prev_config_snapshot) : NULL;
-                                    cfg_payload = json_object_diff_simple(cfg_curr, prev);
-                                    if (prev)
-                                        cJSON_Delete(prev);
-
-                                    char *snap = cJSON_PrintUnformatted(cfg_curr);
-                                    if (snap)
-                                    {
-                                        free(prev_config_snapshot);
-                                        prev_config_snapshot = snap;
-                                    }
-                                }
-
-                                // STATUS
-                                cJSON *sts_payload = NULL;
-                                if (send_full_data)
-                                {
-                                    sts_payload = cJSON_Duplicate(sts_curr, true);
-                                }
-                                else
-                                {
-                                    cJSON *prev = prev_status_snapshot ? cJSON_Parse(prev_status_snapshot) : NULL;
-                                    sts_payload = json_object_diff_simple(sts_curr, prev);
-                                    if (prev)
-                                        cJSON_Delete(prev);
-
-                                    char *snap = cJSON_PrintUnformatted(sts_curr);
-                                    if (snap)
-                                    {
-                                        free(prev_status_snapshot);
-                                        prev_status_snapshot = snap;
-                                    }
-                                }
-
-                                // AUTOPID_DATA
-                                cJSON *auto_payload = NULL;
-                                if (send_full_data)
-                                {
-                                    auto_payload = cJSON_Duplicate(auto_curr, true);
-                                }
-                                else
-                                {
-                                    cJSON *prev = prev_autopid_snapshot ? cJSON_Parse(prev_autopid_snapshot) : NULL;
-                                    auto_payload = json_object_diff_simple(auto_curr, prev);
-                                    if (prev)
-                                        cJSON_Delete(prev);
-
-                                    char *snap = cJSON_PrintUnformatted(auto_curr);
-                                    if (snap)
-                                    {
-                                        free(prev_autopid_snapshot);
-                                        prev_autopid_snapshot = snap;
-                                    }
-                                }
-
-                                if (cfg_payload && cJSON_GetArraySize(cfg_payload) > 0)
-                                    cJSON_AddItemToObject(root_obj, "config", cfg_payload);
-                                else if (cfg_payload)
-                                    cJSON_Delete(cfg_payload);
-
-                                if (sts_payload && cJSON_GetArraySize(sts_payload) > 0)
-                                    cJSON_AddItemToObject(root_obj, "status", sts_payload);
-                                else if (sts_payload)
-                                    cJSON_Delete(sts_payload);
-
-                                if (auto_payload && cJSON_GetArraySize(auto_payload) > 0)
-                                    cJSON_AddItemToObject(root_obj, "autopid_data", auto_payload);
-                                else if (auto_payload)
-                                    cJSON_Delete(auto_payload);
-
-                                // Always include GPS block (mock for now)
-                                // cJSON *gps = cJSON_CreateObject();
-                                // if (gps)
-                                // {
-                                //     cJSON_AddNumberToObject(gps, "latitude", 37.7749);
-                                //     cJSON_AddNumberToObject(gps, "longitude", -122.4194);
-                                //     cJSON_AddNumberToObject(gps, "accuracy", 10);
-                                //     cJSON_AddNumberToObject(gps, "altitude", 25.5);
-                                //     cJSON_AddNumberToObject(gps, "speed", 15.3);
-                                //     cJSON_AddNumberToObject(gps, "heading", 180);
-                                //     cJSON_AddItemToObject(root_obj, "gps", gps);
-                                // }
-
-                                limitJsonDecimalPrecision(root_obj);
-
-                                char *body = cJSON_PrintUnformatted(root_obj);
-                                if (body)
-                                {
-                                    int status = -1;
-                                    char snippet[96] = {0};
-                                    esp_err_t post_err = webhook_post_json(url, body, strlen(body), 5000, &status, snippet, sizeof(snippet));
-                                    bool ok = (post_err == ESP_OK && status >= 200 && status < 300);
-
-                                    ha_webhook_config_t upd = webhook_cfg;
-                                    if (ok)
-                                    {
-                                        upd.success_count++;
-                                        upd.retries = 0;
-                                        strlcpy(upd.status, "ok", sizeof(upd.status));
-                                        webhook_format_utc(upd.last_post);
-                                        upd.last_error[0] = '\0';
-                                        upd.last_error_time[0] = '\0';
-                                        ESP_LOGI(TAG, "Webhook POST success, status %d", status);
-                                    }
-                                    else
-                                    {
-                                        upd.fail_count++;
-                                        upd.retries++;
-                                        strlcpy(upd.status, "failed", sizeof(upd.status));
-                                        webhook_format_utc(upd.last_error_time);
-                                        if (post_err != ESP_OK)
-                                        {
-                                            if (snippet[0])
-                                                snprintf(upd.last_error, sizeof(upd.last_error), "esp_err=%s; resp=%s", esp_err_to_name(post_err), snippet);
-                                            else
-                                                snprintf(upd.last_error, sizeof(upd.last_error), "esp_err=%s", esp_err_to_name(post_err));
-                                        }
-                                        else
-                                        {
-                                            if (snippet[0])
-                                                snprintf(upd.last_error, sizeof(upd.last_error), "http=%d; resp=%s", status, snippet);
-                                            else
-                                                snprintf(upd.last_error, sizeof(upd.last_error), "http=%d", status);
-                                        }
-                                        ESP_LOGE(TAG, "Webhook POST failed: %s (http=%d)", esp_err_to_name(post_err), status);
-                                    }
-                                    (void)ha_webhooks_update_cache(&upd);
-
-                                    free(body);
-                                }
-                            }
-
-                            if (root_obj)
-                                cJSON_Delete(root_obj);
-                            if (cfg_curr)
-                                cJSON_Delete(cfg_curr);
-                            if (sts_curr)
-                                cJSON_Delete(sts_curr);
-                            if (auto_curr)
-                                cJSON_Delete(auto_curr);
-
-                            free(url);
-                        }
-                        free(raw_json);
-                    }
-                }
-            }
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-
-void print_pids(all_pids_t* all_pids) {
-    const char* pid_type_str[] = {"Standard", "Custom", "Specific"};
-    
-    printf("Total PIDs: %lu\n", all_pids->pid_count);
-    printf("Custom Init: %s\n", all_pids->custom_init);
-    printf("Specific Init: %s\n", all_pids->specific_init);
-    
-    for (int i = 0; i < all_pids->pid_count; i++) {
-        pid_data2_t* pid = &all_pids->pids[i];
-        printf("\nPID %d:\n", i + 1);
-        printf("  Type: %s\n", pid_type_str[pid->pid_type]);
-        printf("  Command: %s\n", pid->cmd ? pid->cmd : "NULL");
-        printf("  Init: %s\n", pid->init ? pid->init : "NULL");
-        printf("  Period: %lu\n", pid->period);
-        
-        printf("  Parameter Count: %lu\n", pid->parameters_count);
-        if (pid->parameters) {
-            printf("  Parameters:\n");
-            printf("    Name: %s\n", pid->parameters->name ? pid->parameters->name : "NULL");
-            printf("    Expression: %s\n", pid->parameters->expression ? pid->parameters->expression : "NULL");
-            printf("    Unit: %s\n", pid->parameters->unit ? pid->parameters->unit : "NULL");
-            printf("    Class: %s\n", pid->parameters->class ? pid->parameters->class : "NULL");
-            printf("    Period: %lu\n", pid->parameters->period);
-            printf("     Destination: %s\n", pid->parameters->destination ? pid->parameters->destination : "NULL");
-
-        }
-        printf("-------------------\n");
-    }
-}
-
-void autopid_init(char* id)
-{
-    device_id = id;
-    // if(autopid_data.mutex == NULL)
-    // {
-    //     autopid_data.mutex = xSemaphoreCreateMutex();
-    // }
-    
-    if(xautopid_event_group == NULL)
-    {
-        xautopid_event_group = xEventGroupCreate();
-    }
-
-    // Set polling disabled bit
     xEventGroupSetBits(xautopid_event_group, AUTOPID_POLLING_DISABLED_BIT);
+  }
 
-    // Set request bit  
-    xEventGroupSetBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
+  ESP_LOGI(TAG, "Autopid Start loop");
+  DEBUG_LOGI(TAG, "Autopid Start loop");
+  ESP_LOGI(TAG, "Total PIDs: %lu", all_pids->pid_count);
+  DEBUG_LOGI(TAG, "Total PIDs: %lu", all_pids->pid_count);
 
-    ha_webhooks_init();
-    autopidQueue = xQueueCreate(QUEUE_SIZE, sizeof(response_t));
-    if (autopidQueue == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create queue");
-        return;
+  while (1) {
+    static pid_type_t previous_pid_type = PID_MAX;
+
+    dev_status_wait_for_bits(DEV_AWAKE_BIT, portMAX_DELAY);
+
+    if (xEventGroupGetBits(xautopid_event_group) &
+        AUTOPID_POLLING_DISABLED_BIT) {
+      xEventGroupWaitBits(xautopid_event_group, AUTOPID_REQUEST_BIT, pdFALSE,
+                          pdTRUE, portMAX_DELAY);
     }
 
-    all_pids = load_all_pids();
-    
-    if (all_pids)
-    {
-        all_pids->mutex = xSemaphoreCreateMutex();
-        // print_pids(all_pids); broken
-        if (!all_pids->mutex)
-        {
-            ESP_LOGE(TAG, "Failed to create all_pids mutex");
-            return;
-        }
-    }
-    else
-    {
-        ESP_LOGE(TAG, "all_pids is NULL");
-        return;
-    }
+    elm327_lock();
+    xSemaphoreTake(all_pids->mutex, portMAX_DELAY);
 
-    // autopid_load_config(config_str);
-    // // char *desired_car_model = "Toyota Camry";
-    // if(car.car_specific_en && car.selected_car_model != NULL)
-    // {
-    //     autopid_load_car_specific(car.selected_car_model);
-    // }
-    // else
-    // {
-    //     car.pid_count = 0;
-    // }
-    autopid_values_mutex = xSemaphoreCreateMutex();
+    // Loop through all PIDs
+    for (uint32_t i = 0; i < all_pids->pid_count; i++) {
+      pid_data2_t *curr_pid = &all_pids->pids[i];
+      // Skip if PID type not enabled
+      if ((curr_pid->pid_type == PID_STD && !all_pids->pid_std_en) ||
+          (curr_pid->pid_type == PID_CUSTOM && !all_pids->pid_custom_en) ||
+          (curr_pid->pid_type == PID_SPECIFIC && !all_pids->pid_specific_en)) {
+        continue;
+      }
 
-    if (!autopid_values_mutex)
-    {
-        ESP_LOGE(TAG, "Failed to create autopid_values mutex");
-        return;
-    }
-    autopid_values = malloc(sizeof(autopid_value_t) * all_pids->pid_count);
-    if (!autopid_values)
-    {
-        ESP_LOGE(TAG, "Failed to allocate memory for autopid_values");
-        return;
-    }
+      // Loop through parameters
+      for (uint32_t p = 0; p < curr_pid->parameters_count; p++) {
+        parameter_t *param = &curr_pid->parameters[p];
 
-    for (int i = 0; i < all_pids->pid_count; i++)
-    {
-        autopid_values[i].name = malloc(strlen(all_pids->pids[i].parameters->name) + 1);
-        strcpy(autopid_values[i].name, all_pids->pids[i].parameters->name);
-        autopid_values[i].value = FLT_MAX;
-        autopid_values[i].sensor_type = all_pids->pids[i].parameters->sensor_type;
-    }
-    autopid_values_count = all_pids->pid_count;
+        // Check parameter timer
+        if (wc_timer_is_expired(&param->timer)) {
+          // autopid_data_write
+          if (curr_pid->pid_type != previous_pid_type) {
+            // Send appropriate initialization based on new PID type
+            switch (curr_pid->pid_type) {
+            case PID_CUSTOM:
+              if (all_pids->custom_init && strlen(all_pids->custom_init) > 0) {
+                ESP_LOGI(TAG, "Sending custom init: %s, length: %d",
+                         all_pids->custom_init, strlen(all_pids->custom_init));
+                DEBUG_LOGI(TAG, "Sending custom init: %s, length: %d",
+                           all_pids->custom_init,
+                           strlen(all_pids->custom_init));
+                send_commands(all_pids->custom_init, 2);
+              }
+              break;
 
-    cando_load_config();
+            case PID_STD:
+              if (all_pids->standard_init &&
+                  strlen(all_pids->standard_init) > 0) {
+                ESP_LOGI(TAG, "Sending standard init: %s, length: %d",
+                         all_pids->standard_init,
+                         strlen(all_pids->standard_init));
+                DEBUG_LOGI(TAG, "Sending standard init: %s, length: %d",
+                           all_pids->standard_init,
+                           strlen(all_pids->standard_init));
+                send_commands(all_pids->standard_init, 2);
+              }
+              break;
 
-    xTaskCreate(autopid_task, "autopid_task", 5000, (void *)AF_INET, 5, NULL);
-    if(config_server_get_webhook_en())
-    {
-        xTaskCreate(autopid_webhook_task, "autopid_webhook_task", 6144, NULL, 4, NULL);
-    }
+            case PID_SPECIFIC:
+              if (all_pids->specific_init &&
+                  strlen(all_pids->specific_init) > 0) {
+                ESP_LOGI(TAG, "Sending specific init: %s, length: %d",
+                         all_pids->specific_init,
+                         strlen(all_pids->specific_init));
+                DEBUG_LOGI(TAG, "Sending specific init: %s, length: %d",
+                           all_pids->specific_init,
+                           strlen(all_pids->specific_init));
+                send_commands(all_pids->specific_init, 2);
+              }
+              break;
 
-}
-
-#define DEFAULT_CANDO_JSON "{\"enabled\":true,\"reverse_engineering_mode\":false,\"rules\":[{\"name\":\"E-GMP Battery Preconditioning\",\"enabled\":true,\"trigger\":{\"id\":\"sw_star\",\"source\":\"can_message\",\"can_id\":\"0x448\",\"bus\":0,\"exec_mode\":\"one_shot\",\"cooldown_ms\":500,\"from\":\"* * * * * 0*\",\"to\":\"* * * * * 1*\"},\"action\":{\"type\":\"precondition\",\"trigger_id\":\"sw_star\",\"precon_mode\":\"persistent\",\"precon_press\":\"short\"}}]}"
-
-static cando_rule_set_t g_cando_rules = {0};
-
-static bool cando_parse_payload_pattern(const char *str, uint8_t *data, uint8_t *mask, uint8_t *len, bool *has_filter)
-{
-    if (!str || !data || !mask || !len || !has_filter) return false;
-    memset(data, 0, 8);
-    memset(mask, 0, 8);
-    *len = 0;
-    *has_filter = false;
-
-    const char *p = str;
-    uint8_t byte_idx = 0;
-
-    while (*p && byte_idx < 8) {
-        while (*p == ' ' || *p == '\t' || *p == ',') p++;
-        if (!*p) break;
-
-        char high_ch = *p++;
-        char low_ch = (*p && *p != ' ' && *p != '\t' && *p != ',') ? *p++ : '*';
-
-        uint8_t d_val = 0;
-        uint8_t m_val = 0;
-
-        if (high_ch == '*' || high_ch == 'X' || high_ch == 'x' || high_ch == '?') {
-            m_val |= 0x00;
-        } else {
-            int h = (high_ch >= '0' && high_ch <= '9') ? (high_ch - '0') :
-                    (high_ch >= 'A' && high_ch <= 'F') ? (high_ch - 'A' + 10) :
-                    (high_ch >= 'a' && high_ch <= 'f') ? (high_ch - 'a' + 10) : -1;
-            if (h >= 0) {
-                d_val |= (uint8_t)(h << 4);
-                m_val |= 0xF0;
+            case PID_MAX:
+              break;
             }
-        }
 
-        if (low_ch == '*' || low_ch == 'X' || low_ch == 'x' || low_ch == '?') {
-            m_val |= 0x00;
-        } else {
-            int l = (low_ch >= '0' && low_ch <= '9') ? (low_ch - '0') :
-                    (low_ch >= 'A' && low_ch <= 'F') ? (low_ch - 'A' + 10) :
-                    (low_ch >= 'a' && low_ch <= 'f') ? (low_ch - 'a' + 10) : -1;
-            if (l >= 0) {
-                d_val |= (uint8_t)(l & 0x0F);
-                m_val |= 0x0F;
+            previous_pid_type = curr_pid->pid_type;
+          }
+
+          ESP_LOGI(TAG, "Processing parameter: %s", param->name);
+          DEBUG_LOGI(TAG, "Processing parameter: %s", param->name);
+          // Reset timer with parameter period
+          wc_timer_set(&param->timer, param->period);
+
+          if (curr_pid->cmd != NULL && strlen(curr_pid->cmd) > 0) {
+            twai_message_t tx_msg;
+
+            if (curr_pid->pid_type == PID_CUSTOM ||
+                curr_pid->pid_type == PID_SPECIFIC) {
+              if (curr_pid->init != NULL && strlen(curr_pid->init) > 0) {
+                send_commands(curr_pid->init, 2);
+              }
             }
-        }
 
-        data[byte_idx] = d_val;
-        mask[byte_idx] = m_val;
-        if (m_val != 0) {
-            *has_filter = true;
-        }
-        byte_idx++;
-    }
+            ESP_LOGI(TAG, "Executing command: %s", curr_pid->cmd);
+            DEBUG_LOGI(TAG, "Executing command: %s", curr_pid->cmd);
+            if (elm327_process_cmd((uint8_t *)curr_pid->cmd,
+                                   strlen(curr_pid->cmd), &tx_msg,
+                                   &autopidQueue) == ESP_OK) {
+              ESP_LOGI(TAG, "Command processed successfully");
+              DEBUG_LOGI(TAG, "Command processed successfully");
 
-    *len = byte_idx;
-    return true;
-}
+              if (xQueueReceive(autopidQueue, &elm327_response,
+                                pdMS_TO_TICKS(1000)) == pdPASS) {
+                ESP_LOGI(TAG, "Response received, length: %lu",
+                         elm327_response.length);
+                DEBUG_LOGI(TAG, "Response received, length: %lu",
+                           elm327_response.length);
+                ESP_LOG_BUFFER_HEXDUMP(TAG, elm327_response.data, 1,
+                                       ESP_LOG_INFO);
+                if (strstr((char *)elm327_response.data, "error") == NULL) {
+                  double result;
 
-bool cando_evaluate_trigger(cando_trigger_t *trig, const twai_message_t *msg, uint8_t bus)
-{
-    if (!trig) return false;
+                  param->failed = false;
 
-    if (trig->source == CANDO_TRIG_CAN_MESSAGE) {
-        if (!msg) return false;
-        if (trig->bus != bus) return false;
-        if (trig->can_id != msg->identifier) return false;
-        if (trig->is_ext != (msg->extd != 0)) return false;
-
-        /* Check From payload filter (previous frame state) */
-        if (trig->has_from && trig->has_last_payload) {
-            for (uint8_t i = 0; i < trig->from_len; i++) {
-                if (trig->from_mask[i] != 0) {
-                    if (i >= sizeof(trig->last_payload) ||
-                        (trig->last_payload[i] & trig->from_mask[i]) != (trig->from_data[i] & trig->from_mask[i])) {
-                        return false;
+                  ESP_LOGI(TAG, "Response received, length: %lu",
+                           elm327_response.length);
+                  xEventGroupSetBits(xautopid_event_group, ECU_CONNECTED_BIT);
+                  // Process response based on PID type
+                  if (curr_pid->pid_type == PID_CUSTOM ||
+                      curr_pid->pid_type == PID_SPECIFIC) {
+                    ESP_LOGI(TAG, "Processing custom/specific PID");
+                    if (param->expression &&
+                        evaluate_expression((uint8_t *)param->expression,
+                                            elm327_response.data, 0, &result)) {
+                      if (param->min != FLT_MAX && result < param->min) {
+                        ESP_LOGW(
+                            TAG,
+                            "Parameter %s value %.2f below min %.2f - ignoring",
+                            param->name, result, param->min);
+                      } else if (param->max != FLT_MAX && result > param->max) {
+                        ESP_LOGW(
+                            TAG,
+                            "Parameter %s value %.2f above max %.2f - ignoring",
+                            param->name, result, param->max);
+                      } else {
+                        result = round(result * 100.0) / 100.0;
+                        ESP_LOGI(TAG, "Parameter %s result: %.2f", param->name,
+                                 result);
+                        param->value = result;
+                        publish_parameter_mqtt(param);
+                      }
                     }
-                }
-            }
-        }
+                  } else if (curr_pid->pid_type == PID_STD) {
+                    ESP_LOGI(TAG, "Processing standard PID");
+                    if (curr_pid->pid_type == PID_STD) {
+                      const std_pid_t *pid_info =
+                          get_pid_from_string(param->name);
+                      if (pid_info) {
+                        ESP_LOGI(TAG, "Found PID info for: %s", param->name);
+                        // Find matching parameter in pid_info
+                        for (int p = 0; p < pid_info->num_params; p++) {
+                          // Match parameter name after the dash
+                          const char *param_name = strchr(param->name, '-');
+                          if (param_name &&
+                              strcmp(param_name + 1,
+                                     pid_info->params[p].name) == 0) {
+                            esp_err_t err = ESP_FAIL;
 
-        /* Check To payload filter (current frame state) */
-        if (trig->has_to) {
-            for (uint8_t i = 0; i < trig->data_len; i++) {
-                if (trig->match_mask[i] != 0) {
-                    if (i >= msg->data_length_code) return false;
-                    if ((msg->data[i] & trig->match_mask[i]) != (trig->match_data[i] & trig->match_mask[i])) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        /* Check Any Change mode (when both from and to have no active filter mask) */
-        if (trig->any_change || (!trig->has_from && !trig->has_to && trig->match_type != CANDO_MATCH_EXPRESSION)) {
-            if (trig->has_last_payload) {
-                if (memcmp(trig->last_payload, msg->data, msg->data_length_code) == 0) {
-                    return false; // No change in payload
-                }
-            }
-        }
-
-        if (trig->match_type == CANDO_MATCH_EXPRESSION) {
-            if (trig->expression) {
-                double val = 0.0;
-                if (evaluate_expression((uint8_t *)trig->expression, (uint8_t *)msg->data, (double)msg->data_length_code, &val)) {
-                    return (val != 0.0);
-                }
-            }
-            return false;
-        }
-
-        return true;
-    }
-    return false;
-}
-
-static void cando_format_popup_message(const char *template_str, char *out_buf, size_t out_len)
-{
-    if (!template_str || !out_buf || out_len == 0) return;
-
-    /* If template doesn't contain '{', copy directly */
-    if (strchr(template_str, '{') == NULL) {
-        strncpy(out_buf, template_str, out_len - 1);
-        out_buf[out_len - 1] = '\0';
-        return;
-    }
-
-    precondition_temperature_t temp = {0};
-    bool has_temp = precondition_get_battery_temperature(&temp);
-    float volt = 0.0f;
-    bool has_volt = (sleep_mode_get_voltage(&volt) == 1 || volt > 0.0f);
-    bool precon_active = precondition_is_active();
-
-    time_t now = time(NULL);
-    struct tm tm_info;
-    bool has_time = (localtime_r(&now, &tm_info) != NULL && tm_info.tm_year > 120);
-
-    const char *p = template_str;
-    size_t out_idx = 0;
-    out_buf[0] = '\0';
-
-    while (*p != '\0' && out_idx < (out_len - 1)) {
-        if (*p == '{') {
-            const char *end = strchr(p, '}');
-            if (end != NULL) {
-                size_t token_len = end - p - 1;
-                char token[32] = {0};
-                if (token_len < sizeof(token)) {
-                    strncpy(token, p + 1, token_len);
-                    token[token_len] = '\0';
-
-                    char replacement[32] = {0};
-                    bool matched = false;
-
-                    if (strcasecmp(token, "battery_temp") == 0 || strcasecmp(token, "battery_temp_c") == 0 || strcasecmp(token, "temp") == 0) {
-                        matched = true;
-                        if (has_temp) {
-                            snprintf(replacement, sizeof(replacement), "%d", (temp.min_c + temp.max_c) / 2);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "battery_temp_f") == 0 || strcasecmp(token, "temp_f") == 0) {
-                        matched = true;
-                        if (has_temp) {
-                            int f = (int)roundf(((temp.min_c + temp.max_c) / 2.0f * 9.0f / 5.0f) + 32.0f);
-                            snprintf(replacement, sizeof(replacement), "%d", f);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "battery_temp_min") == 0 || strcasecmp(token, "battery_temp_min_c") == 0 || strcasecmp(token, "temp_min") == 0) {
-                        matched = true;
-                        if (has_temp) {
-                            snprintf(replacement, sizeof(replacement), "%d", temp.min_c);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "battery_temp_max") == 0 || strcasecmp(token, "battery_temp_max_c") == 0 || strcasecmp(token, "temp_max") == 0) {
-                        matched = true;
-                        if (has_temp) {
-                            snprintf(replacement, sizeof(replacement), "%d", temp.max_c);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "battery_temp_min_f") == 0 || strcasecmp(token, "temp_min_f") == 0) {
-                        matched = true;
-                        if (has_temp) {
-                            int f = (int)roundf((temp.min_c * 9.0f / 5.0f) + 32.0f);
-                            snprintf(replacement, sizeof(replacement), "%d", f);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "battery_temp_max_f") == 0 || strcasecmp(token, "temp_max_f") == 0) {
-                        matched = true;
-                        if (has_temp) {
-                            int f = (int)roundf((temp.max_c * 9.0f / 5.0f) + 32.0f);
-                            snprintf(replacement, sizeof(replacement), "%d", f);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "voltage") == 0 || strcasecmp(token, "battery_voltage") == 0 || strcasecmp(token, "vbatt") == 0) {
-                        matched = true;
-                        if (has_volt) {
-                            snprintf(replacement, sizeof(replacement), "%.1f", volt);
-                        } else {
-                            strncpy(replacement, "--", sizeof(replacement) - 1);
-                        }
-                    } else if (strcasecmp(token, "status") == 0 || strcasecmp(token, "precon_status") == 0) {
-                        matched = true;
-                        strncpy(replacement, precon_active ? "ON" : "OFF", sizeof(replacement) - 1);
-                    } else if (strcasecmp(token, "time") == 0) {
-                        matched = true;
-                        if (has_time) {
-                            snprintf(replacement, sizeof(replacement), "%02d:%02d", tm_info.tm_hour, tm_info.tm_min);
-                        } else {
-                            strncpy(replacement, "--:--", sizeof(replacement) - 1);
-                        }
-                    }
-
-                    if (matched) {
-                        size_t r_len = strlen(replacement);
-                        if (out_idx + r_len < out_len) {
-                            strcpy(&out_buf[out_idx], replacement);
-                            out_idx += r_len;
-                        }
-                        p = end + 1;
-                        continue;
-                    }
-                }
-            }
-        }
-
-        out_buf[out_idx++] = *p++;
-    }
-
-    out_buf[out_idx] = '\0';
-}
-
-static uint8_t g_climate_driver_raw = 0;    /* 0x380 byte 3 (factor 0.5, offset 14.0) */
-static uint8_t g_climate_passenger_raw = 0; /* 0x380 byte 4 */
-static bool g_climate_has_reading = false;
-
-static void cando_execute_climate_target(float target_c, const char *zone, bool sync_on, bool driver_only)
-{
-    if (target_c < 14.0f) target_c = 14.0f;
-    if (target_c > 32.0f) target_c = 32.0f;
-
-    bool is_passenger = (zone && strcasecmp(zone, "passenger") == 0);
-
-    /* E-GMP DBC formula: Temp_C = raw * 0.5 + 14.0 => raw = (Temp_C - 14.0) * 2.0 */
-    uint8_t target_raw = (uint8_t)((int)roundf((target_c - 14.0f) * 2.0f));
-
-    /* Wait briefly if no 0x380 reading is cached yet (0x380 is sent at 10Hz by HVAC ECU) */
-    if (!g_climate_has_reading) {
-        vTaskDelay(pdMS_TO_TICKS(150));
-    }
-
-    uint8_t cur_raw = 14; /* Default fallback 21.0C: (21 - 14) * 2 = 14 */
-    if (g_climate_has_reading) {
-        uint8_t cached = is_passenger ? g_climate_passenger_raw : g_climate_driver_raw;
-        if (cached > 0 && cached <= 36) {
-            cur_raw = cached;
-        }
-    }
-
-    int delta = (int)target_raw - (int)cur_raw;
-    if (delta == 0) {
-        ESP_LOGI("CANDO", "Cabin temperature already at target (raw=%d, target_c=%.1f)", cur_raw, target_c);
-    } else {
-        uint8_t cmd_byte = 0xF0; /* F0 = Idle */
-        if (delta > 0) {
-            cmd_byte = is_passenger ? 0xD0 : 0x70; /* Pass Up (0xD0) / Driver Up (0x70) */
-        } else {
-            cmd_byte = is_passenger ? 0xE0 : 0xB0; /* Pass Dn (0xE0) / Driver Dn (0xB0) */
-        }
-
-        int steps = (delta > 0) ? delta : -delta;
-        if (steps > 28) steps = 28; /* Safety limit */
-
-        ESP_LOGI("CANDO", "Adjusting Cabin Temp: current raw=%d (%.1fC), target raw=%d (%.1fC), steps=%d (%s)",
-                 cur_raw, (cur_raw * 0.5f) + 14.0f, target_raw, target_c, steps, (delta > 0 ? "UP" : "DOWN"));
-
-        for (int i = 0; i < steps; i++) {
-            twai_message_t tx_msg = {
-                .identifier = 0x49F,
-                .extd = 0,
-                .data_length_code = 8,
-                .data = { cmd_byte, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
-            };
-            can_send(CAN_BUS_0, &tx_msg, 0);
-            vTaskDelay(pdMS_TO_TICKS(20));
-
-            /* Send release / idle frame (0xF0 in byte 0 is required by E-GMP ECU) */
-            twai_message_t idle_msg = {
-                .identifier = 0x49F,
-                .extd = 0,
-                .data_length_code = 8,
-                .data = { 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
-            };
-            can_send(CAN_BUS_0, &idle_msg, 0);
-            vTaskDelay(pdMS_TO_TICKS(60));
-        }
-    }
-
-    /* Enforce SYNC ON if configured */
-    if (sync_on) {
-        twai_message_t sync_msg = {
-            .identifier = 0x4A0,
-            .extd = 0,
-            .data_length_code = 8,
-            .data = { 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00 } /* 0x0B = Sync On */
-        };
-        can_send(CAN_BUS_0, &sync_msg, 0);
-        vTaskDelay(pdMS_TO_TICKS(20));
-
-        twai_message_t sync_idle = {
-            .identifier = 0x4A0,
-            .extd = 0,
-            .data_length_code = 8,
-            .data = { 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00 } /* 0x0F = Applied / Idle */
-        };
-        can_send(CAN_BUS_0, &sync_idle, 0);
-
-        if (driver_only) {
-            vTaskDelay(pdMS_TO_TICKS(60));
-        }
-    }
-
-    /* Enforce Driver Only ON if configured */
-    if (driver_only) {
-        twai_message_t drv_msg = {
-            .identifier = 0x41D,
-            .extd = 0,
-            .data_length_code = 8,
-            .data = { 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00 } /* 0x0D = Driver Only On */
-        };
-        can_send(CAN_BUS_0, &drv_msg, 0);
-        vTaskDelay(pdMS_TO_TICKS(20));
-
-        twai_message_t drv_idle = {
-            .identifier = 0x41D,
-            .extd = 0,
-            .data_length_code = 8,
-            .data = { 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00 } /* 0x0F = Applied / Idle */
-        };
-        can_send(CAN_BUS_0, &drv_idle, 0);
-    }
-}
-
-static void cando_execute_action(cando_action_t *act, const char *matched_trig_id)
-{
-    if (!act) return;
-
-    /* If action specifies a trigger_id filter, only run when matched */
-    if (act->trigger_id[0] != '\0' && strcmp(act->trigger_id, "any") != 0) {
-        if (!matched_trig_id || strcmp(act->trigger_id, matched_trig_id) != 0) {
-            return;
-        }
-    }
-
-    /* 1. Show dashboard track popup if configured (evaluating dynamic tokens e.g. {battery_temp}, {voltage}) */
-    if (act->popup_message && act->popup_message[0] != '\0') {
-        char formatted_msg[128] = {0};
-        cando_format_popup_message(act->popup_message, formatted_msg, sizeof(formatted_msg));
-        track_popup_show(formatted_msg);
-    }
-
-    /* 2. Battery Preconditioning Engine Action */
-    if (act->type == CANDO_ACT_PRECONDITION) {
-        precondition_action_execute(act->precon_mode, act->precon_press);
-    }
-
-    /* 3. Closed-Loop Climate Target Action */
-    if (act->type == CANDO_ACT_CLIMATE_TARGET) {
-        cando_execute_climate_target(act->target_temp_c, act->climate_zone, act->climate_sync_on, act->climate_driver_only);
-    }
-
-    /* 4. Execute sequence steps */
-    if (act->type == CANDO_ACT_CAN_TX || act->type == 0) {
-        for (uint8_t s = 0; s < act->step_count; s++) {
-            cando_sequence_step_t *step = &act->steps[s];
-            uint8_t payload[8] = {0};
-            if (step->tx_len > 0) {
-                memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
-            }
-            if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
-                if (step->roll_mode == CANDO_ROLL_SEQ3) {
-                    payload[step->roll_byte_idx] = (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
-                    step->roll_counter = (step->roll_counter + 1) % 3;
-                } else if (step->roll_mode == CANDO_ROLL_BYTE_INC) {
-                    payload[step->roll_byte_idx] = step->roll_counter++;
-                } else if (step->roll_mode == CANDO_ROLL_NIBBLE_INC) {
-                    payload[step->roll_byte_idx] = (uint8_t)((payload[step->roll_byte_idx] & 0xF0) | (step->roll_counter & 0x0F));
-                    step->roll_counter = (step->roll_counter + 1) & 0x0F;
-                }
-            }
-            twai_message_t tx_msg = {
-                .identifier = step->tx_can_id,
-                .extd = step->is_ext ? 1 : 0,
-                .data_length_code = step->tx_len
-            };
-            memcpy(tx_msg.data, payload, step->tx_len <= 8 ? step->tx_len : 8);
-            can_send((can_bus_t)step->target_bus, &tx_msg, 0);
-        }
-    }
-}
-
-static void cando_execute_rule_actions(cando_rule_t *rule, const char *matched_id, int64_t now_us)
-{
-    if (!rule) return;
-
-    if (rule->exec_mode == CANDO_EXEC_TOGGLE) {
-        /* In toggle mode, flip-flop between ON (actions) and OFF (off_actions) */
-        if (!rule->is_active_state) {
-            /* Transition: Inactive -> Active (ON) */
-            rule->is_active_state = true;
-            rule->active_since_us = now_us;
-            ESP_LOGI("CANDO", "Rule '%s' TOGGLED ON", rule->name ? rule->name : "Unnamed");
-
-            if (rule->action_count > 0 && rule->actions) {
-                for (uint8_t a = 0; a < rule->action_count; a++) {
-                    cando_execute_action(&rule->actions[a], matched_id);
-                }
-            } else {
-                cando_execute_action(&rule->action, matched_id);
-            }
-        } else {
-            /* Transition: Active -> Inactive (OFF / Cancel) */
-            rule->is_active_state = false;
-            rule->active_since_us = 0;
-            ESP_LOGI("CANDO", "Rule '%s' TOGGLED OFF / CANCELLED", rule->name ? rule->name : "Unnamed");
-
-            if (rule->off_action_count > 0 && rule->off_actions) {
-                for (uint8_t a = 0; a < rule->off_action_count; a++) {
-                    cando_execute_action(&rule->off_actions[a], matched_id);
-                }
-            } else if (rule->off_action.type != 0 || rule->off_action.popup_message || rule->off_action.step_count > 0) {
-                cando_execute_action(&rule->off_action, matched_id);
-            } else {
-                /* If no explicit OFF action configured, automatically cancel preconditioning if rule has it */
-                bool has_precon = false;
-                if (rule->action_count > 0 && rule->actions) {
-                    for (uint8_t a = 0; a < rule->action_count; a++) {
-                        if (rule->actions[a].type == CANDO_ACT_PRECONDITION) { has_precon = true; break; }
-                    }
-                } else if (rule->action.type == CANDO_ACT_PRECONDITION) {
-                    has_precon = true;
-                }
-                if (has_precon && precondition_is_active()) {
-                    precondition_action_execute("cancel", "short");
-                }
-            }
-        }
-    } else {
-        /* Standard execution mode (ON_CHANGE, ONE_SHOT, CONTINUOUS, POLL_VERIFY) */
-        if (rule->action_count > 0 && rule->actions) {
-            for (uint8_t a = 0; a < rule->action_count; a++) {
-                cando_execute_action(&rule->actions[a], matched_id);
-            }
-        } else {
-            cando_execute_action(&rule->action, matched_id);
-        }
-    }
-}
-
-bool cando_evaluate_rule(cando_rule_t *rule, const twai_message_t *msg, uint8_t bus)
-{
-    if (!rule || !rule->enabled) return false;
-    if (g_cando_rules.reverse_engineering_mode) return false;
-
-    if (rule->trigger_count > 0 && rule->triggers) {
-        for (uint8_t i = 0; i < rule->trigger_count; i++) {
-            if (cando_evaluate_trigger(&rule->triggers[i], msg, bus)) return true;
-        }
-        return false;
-    }
-    return cando_evaluate_trigger(&rule->trigger, msg, bus);
-}
-
-void cando_process_rx_frame(const twai_message_t *msg, uint8_t bus)
-{
-    if (!msg || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
-    if (cando_is_capture_active()) return;
-
-    /* Cache latest cabin temperature status from E-GMP climate broadcast (0x380: D4=Driver, D5=Pass) */
-    if (msg->identifier == 0x380 && msg->data_length_code >= 4) {
-        g_climate_driver_raw = msg->data[3];    /* D4 (byte 3) */
-        if (msg->data_length_code >= 5) {
-            g_climate_passenger_raw = msg->data[4]; /* D5 (byte 4) */
-        }
-        g_climate_has_reading = true;
-    }
-
-    int64_t now_us = esp_timer_get_time();
-
-    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
-        cando_rule_t *rule = &g_cando_rules.rules[i];
-        if (!rule->enabled) continue;
-
-        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
-
-        /* Pre-pass: update is_held and was_pressed state for all triggers matching this frame */
-        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
-            cando_trigger_t *trig = &trig_list[t_idx];
-            if (trig->source != CANDO_TRIG_CAN_MESSAGE) continue;
-            if (trig->bus != bus || trig->can_id != msg->identifier) continue;
-            if (trig->is_ext != (msg->extd != 0)) continue;
-
-            if (cando_evaluate_trigger(trig, msg, bus)) {
-                trig->is_held = true;
-                trig->was_pressed = true;
-            } else {
-                bool is_rel = false;
-                if (trig->has_from) {
-                    bool from_matches = true;
-                    for (uint8_t f = 0; f < trig->from_len; f++) {
-                        if (trig->from_mask[f] != 0) {
-                            if (f >= msg->data_length_code || (msg->data[f] & trig->from_mask[f]) != (trig->from_data[f] & trig->from_mask[f])) {
-                                from_matches = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (from_matches) is_rel = true;
-                } else if (trig->has_to) {
-                    bool still_to = true;
-                    for (uint8_t t = 0; t < trig->data_len; t++) {
-                        if (trig->match_mask[t] != 0) {
-                            if (t >= msg->data_length_code || (msg->data[t] & trig->match_mask[t]) != (trig->match_data[t] & trig->match_mask[t])) {
-                                still_to = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (!still_to) is_rel = true;
-                }
-                if (is_rel) {
-                    trig->is_held = false;
-                }
-            }
-        }
-
-        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
-            cando_trigger_t *trig = &trig_list[t_idx];
-
-            if (trig->source != CANDO_TRIG_CAN_MESSAGE) continue;
-            if (trig->bus != bus || trig->can_id != msg->identifier) continue;
-            if (trig->is_ext != (msg->extd != 0)) continue;
-
-            /* Check for explicit reset CAN ID frame to re-arm latched one-shot */
-            if (trig->reset_can_id > 0 && msg->identifier == trig->reset_can_id) {
-                trig->triggered_latched = false;
-                trig->pending_verify = false;
-                continue;
-            }
-
-            /* Check for verification confirmation CAN frame in POLL_VERIFY mode */
-            if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY && trig->pending_verify) {
-                if (trig->verify_can_id > 0 && msg->identifier == trig->verify_can_id) {
-                    bool verify_ok = true;
-                    if (trig->has_verify) {
-                        for (uint8_t v = 0; v < trig->verify_len; v++) {
-                            if (trig->verify_mask[v] != 0) {
-                                if (v >= msg->data_length_code ||
-                                    (msg->data[v] & trig->verify_mask[v]) != (trig->verify_data[v] & trig->verify_mask[v])) {
-                                    verify_ok = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (verify_ok) {
-                        trig->pending_verify = false;
-                        trig->triggered_latched = true; /* Confirmation received! Latch completed */
-                        trig->last_triggered_us = now_us;
-                    }
-                }
-            }
-
-            /* Determine whether payload actually changed from last received frame */
-            bool payload_changed = !trig->has_last_payload ||
-                                   (memcmp(trig->last_payload, msg->data, msg->data_length_code) != 0);
-
-            /* Evaluate trigger condition (checking from -> to transition) */
-            bool eval_passed = cando_evaluate_trigger(trig, msg, bus);
-
-            /* Check if incoming frame matches "release/idle" state to automatically re-arm triggers and reset hold timers */
-            if (!eval_passed) {
-                bool is_release_state = false;
-                if (trig->has_from) {
-                    bool from_matches = true;
-                    for (uint8_t f = 0; f < trig->from_len; f++) {
-                        if (trig->from_mask[f] != 0) {
-                            if (f >= msg->data_length_code || (msg->data[f] & trig->from_mask[f]) != (trig->from_data[f] & trig->from_mask[f])) {
-                                from_matches = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (from_matches) is_release_state = true;
-                } else if (trig->has_to) {
-                    bool still_to = true;
-                    for (uint8_t t = 0; t < trig->data_len; t++) {
-                        if (trig->match_mask[t] != 0) {
-                            if (t >= msg->data_length_code || (msg->data[t] & trig->match_mask[t]) != (trig->match_data[t] & trig->match_mask[t])) {
-                                still_to = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (!still_to) is_release_state = true;
-                }
-                if (is_release_state) {
-                    trig->triggered_latched = false; /* Button released: automatically re-armed! */
-                    trig->asserted_since_us = 0;      /* Reset hold timer on release */
-                    trig->hold_fired = false;
-                    trig->is_held = false;
-
-                    /* Multi-click / Double-press: count click on release edge */
-                    if (trig->click_count_target > 1 && trig->was_pressed) {
-                        trig->was_pressed = false;
-                        uint32_t window_ms = (trig->click_window_ms > 0) ? trig->click_window_ms : 450;
-                        if (trig->current_clicks > 0 && ((now_us - trig->last_click_us) <= ((int64_t)window_ms * 1000))) {
-                            trig->current_clicks++;
-                        } else {
-                            trig->current_clicks = 1;
-                        }
-                        trig->last_click_us = now_us;
-
-                        if (trig->current_clicks >= trig->click_count_target) {
-                            trig->current_clicks = 0; /* Reset accumulator */
-
-                            /* In AND combo mode, all other triggers in the rule must currently be held */
-                            if (rule->trigger_combine_all && t_count > 1) {
-                                bool others_held = true;
-                                for (uint8_t k = 0; k < t_count; k++) {
-                                    if (k == t_idx) continue;
-                                    if (!trig_list[k].is_held) {
-                                        others_held = false;
-                                        break;
-                                    }
-                                }
-                                if (!others_held) {
-                                    continue;
-                                }
+                            ESP_LOGI(TAG, "Processing parameter: %s",
+                                     pid_info->params[p].name);
+                            if (elm327_response.priority_data != NULL &&
+                                elm327_response.priority_data != 0) {
+                              err = extract_signal_value(
+                                  elm327_response
+                                      .priority_data, // Your CAN response data
+                                                      // buffer
+                                  elm327_response
+                                      .priority_data_len, // Length of your CAN
+                                                          // response data
+                                  &pid_info->params[p], // Parameter definition
+                                                        // from pid_info
+                                  &param->value // Where to store the result
+                              );
+                            } else {
+                              err = extract_signal_value(
+                                  elm327_response
+                                      .data, // Your CAN response data buffer
+                                  elm327_response.length, // Length of your CAN
+                                                          // response data
+                                  &pid_info->params[p], // Parameter definition
+                                                        // from pid_info
+                                  &param->value // Where to store the result
+                              );
                             }
 
-                            uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
-                            if (trig->last_triggered_us == 0 || ((now_us - trig->last_triggered_us) >= ((int64_t)cd_ms * 1000))) {
-                                trig->last_triggered_us = now_us;
-                                rule->exec_count++;
-                                rule->last_exec_us = now_us;
-                                ESP_LOGI("CANDO", "Multi-click (%d) trigger fired: rule '%s' (ID: %s)",
-                                         trig->click_count_target, rule->name ? rule->name : "Unnamed", trig->id);
-                                const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
-                                cando_execute_rule_actions(rule, matched_id, now_us);
+                            if (err != ESP_OK) {
+                              ESP_LOGE(TAG, "Failed to extract signal: %s",
+                                       esp_err_to_name(err));
+                              break;
                             }
-                        }
-                    }
-                }
-            }
-
-            /* Store current payload for subsequent transition checks */
-            memcpy(trig->last_payload, msg->data, msg->data_length_code);
-            trig->has_last_payload = true;
-
-            if (eval_passed) {
-                trig->is_held = true;
-                trig->was_pressed = true;
-
-                /* Multi-click triggers (target > 1) fire on release edges */
-                if (trig->click_count_target > 1) {
-                    continue;
-                }
-
-                /* Hold Duration (for_ms) Evaluation */
-                if (trig->for_ms > 0) {
-                    if (trig->asserted_since_us == 0) {
-                        trig->asserted_since_us = now_us;
-                        continue; /* Start timing hold duration */
-                    }
-                    int64_t elapsed_ms = (now_us - trig->asserted_since_us) / 1000;
-                    if (elapsed_ms < trig->for_ms) {
-                        continue; /* Threshold duration not yet reached */
-                    }
-                    if (trig->hold_fired) {
-                        continue; /* Already fired once during this continuous hold */
-                    }
-                    trig->hold_fired = true;
-                }
-
-                /* Combo Press Check: if rule requires ALL triggers simultaneously */
-                if (rule->trigger_combine_all && t_count > 1) {
-                    bool all_held = true;
-                    for (uint8_t k = 0; k < t_count; k++) {
-                        if (!trig_list[k].is_held) {
-                            all_held = false;
+                            param->value = roundf(param->value * 100.0) / 100.0;
+                            ESP_LOGI(TAG, "Parameter %s result: %.2f %s",
+                                     param->name, param->value,
+                                     pid_info->params[p].unit);
+                            param->value = roundf(param->value * 100.0) / 100.0;
+                            publish_parameter_mqtt(param);
                             break;
+                          }
                         }
+                      }
                     }
-                    if (!all_held) {
-                        continue; /* Not all triggers in combo are held yet */
-                    }
-                }
-
-                /* Enforce cooldown_ms (default 500ms for button triggers) */
-                uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
-                if (trig->last_triggered_us > 0) {
-                    if ((now_us - trig->last_triggered_us) < ((int64_t)cd_ms * 1000)) {
-                        continue;
-                    }
-                }
-
-                /* One-Shot Latching (re-armed on release or timeout) */
-                if (trig->exec_mode == CANDO_EXEC_ONE_SHOT) {
-                    if (trig->triggered_latched) {
-                        continue;
-                    }
-                    trig->triggered_latched = true;
-                }
-
-                /* Poll & Verify Latching */
-                if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY) {
-                    if (trig->triggered_latched || trig->pending_verify) {
-                        continue;
-                    }
-                    trig->pending_verify = true;
-                }
-
-                /* On-Change Edge Triggering */
-                if (trig->exec_mode == CANDO_EXEC_ON_CHANGE) {
-                    if (!payload_changed) {
-                        continue;
-                    }
-                }
-
-                trig->last_triggered_us = now_us;
-                rule->exec_count++;
-                rule->last_exec_us = now_us;
-
-                if (rule->trigger_combine_all && t_count > 1) {
-                    for (uint8_t k = 0; k < t_count; k++) {
-                        trig_list[k].last_triggered_us = now_us;
-                        if (trig_list[k].exec_mode == CANDO_EXEC_ONE_SHOT) {
-                            trig_list[k].triggered_latched = true;
-                        }
-                    }
-                }
-
-                ESP_LOGI("CANDO", "Trigger fired: rule '%s' (ID: %s) on CAN 0x%03lX",
-                         rule->name ? rule->name : "Unnamed", trig->id, (unsigned long)msg->identifier);
-
-                /* Execute Actions (supports standard, choose, and toggle flip-flop) */
-                const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
-                cando_execute_rule_actions(rule, matched_id, now_us);
-
-                if (rule->trigger_combine_all && t_count > 1) {
-                    break; /* Done evaluating triggers for this frame in combo mode */
-                }
-            }
-        }
-    }
-}
-
-void cando_process_mqtt_trigger(const char *topic, const char *payload)
-{
-    if (!topic || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
-    if (cando_is_capture_active()) return;
-
-    int64_t now_us = esp_timer_get_time();
-
-    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
-        cando_rule_t *rule = &g_cando_rules.rules[i];
-        if (!rule->enabled) continue;
-
-        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
-
-        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
-            cando_trigger_t *trig = &trig_list[t_idx];
-            if (trig->source != CANDO_TRIG_MQTT_COMMAND) continue;
-
-            /* Check topic match (if specified and not wildcard) */
-            if (trig->mqtt_topic[0] != '\0' && strcmp(trig->mqtt_topic, "#") != 0 && strcmp(trig->mqtt_topic, "*") != 0) {
-                if (strstr(topic, trig->mqtt_topic) == NULL && strcmp(topic, trig->mqtt_topic) != 0) {
-                    continue;
-                }
-            }
-
-            /* Check payload match (if specified and not wildcard) */
-            if (trig->mqtt_payload[0] != '\0' && strcmp(trig->mqtt_payload, "*") != 0) {
-                if (!payload || (strstr(payload, trig->mqtt_payload) == NULL && strcmp(payload, trig->mqtt_payload) != 0)) {
-                    continue;
-                }
-            }
-
-            /* Enforce cooldown */
-            uint32_t cd_ms = (trig->cooldown_ms > 0) ? trig->cooldown_ms : 50;
-            if (trig->last_triggered_us > 0 && (now_us - trig->last_triggered_us) < ((int64_t)cd_ms * 1000)) {
-                continue;
-            }
-
-            trig->last_triggered_us = now_us;
-            rule->exec_count++;
-            rule->last_exec_us = now_us;
-
-            ESP_LOGI("CANDO", "MQTT Trigger fired: rule '%s' (ID: %s) on topic '%s' (payload: %s)",
-                     rule->name ? rule->name : "Unnamed", trig->id, topic, payload ? payload : "");
-
-            const char *matched_id = (trig->id[0] != '\0') ? trig->id : "";
-            cando_execute_rule_actions(rule, matched_id, now_us);
-        }
-    }
-}
-
-void cando_process_timer_tick(void)
-{
-    if (g_cando_rules.reverse_engineering_mode || !g_cando_rules.rules) return;
-
-    int64_t now_us = esp_timer_get_time();
-
-    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
-        cando_rule_t *rule = &g_cando_rules.rules[i];
-        if (!rule->enabled) continue;
-
-        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
-
-        for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
-            cando_trigger_t *trig = &trig_list[t_idx];
-
-            /* Auto-expire multi-click window accumulator */
-            if (trig->current_clicks > 0) {
-                uint32_t w_ms = (trig->click_window_ms > 0) ? trig->click_window_ms : 450;
-                if ((now_us - trig->last_click_us) > ((int64_t)w_ms * 1000)) {
-                    trig->current_clicks = 0;
-                }
-            }
-
-            /* Auto re-arm latch timeout */
-            if (trig->triggered_latched && trig->timeout_reset_ms > 0) {
-                if ((now_us - trig->last_triggered_us) > ((int64_t)trig->timeout_reset_ms * 1000)) {
-                    trig->triggered_latched = false;
-                }
-            }
-
-            /* Timeout pending verification if no confirmation arrived */
-            if (trig->exec_mode == CANDO_EXEC_POLL_VERIFY && trig->pending_verify) {
-                uint32_t v_timeout = (trig->timeout_reset_ms > 0) ? trig->timeout_reset_ms : 3000;
-                if ((now_us - trig->last_triggered_us) > ((int64_t)v_timeout * 1000)) {
-                    trig->pending_verify = false;
-                }
-            }
-        }
-
-        /* Auto-revert toggle state if active and duration exceeded */
-        if (rule->exec_mode == CANDO_EXEC_TOGGLE && rule->is_active_state && rule->auto_revert_sec > 0) {
-            if (rule->active_since_us > 0 && (now_us - rule->active_since_us) >= ((int64_t)rule->auto_revert_sec * 1000000LL)) {
-                ESP_LOGI("CANDO", "Rule '%s' auto-reverting to OFF after %lu sec",
-                         rule->name ? rule->name : "Unnamed", (unsigned long)rule->auto_revert_sec);
-                cando_execute_rule_actions(rule, "auto_revert", now_us);
-            }
-        }
-    }
-}
-
-static void cando_parse_single_trigger(cJSON *r, cJSON *trig_obj, cando_trigger_t *trig)
-{
-    memset(trig, 0, sizeof(cando_trigger_t));
-    trig->source = CANDO_TRIG_CAN_MESSAGE;
-    trig->exec_mode = CANDO_EXEC_ON_CHANGE;
-    trig->cooldown_ms = 500;
-    trig->timeout_reset_ms = 2000;
-    trig->click_count_target = 1;
-    trig->click_window_ms = 450;
-
-    cJSON *cc = trig_obj ? cJSON_GetObjectItem(trig_obj, "click_count") : cJSON_GetObjectItem(r, "click_count");
-    if (!cc) cc = trig_obj ? cJSON_GetObjectItem(trig_obj, "press_count") : cJSON_GetObjectItem(r, "press_count");
-    if (cc && cJSON_IsNumber(cc) && cc->valueint >= 1) {
-        trig->click_count_target = (uint8_t)cc->valueint;
-    }
-
-    cJSON *cw = trig_obj ? cJSON_GetObjectItem(trig_obj, "click_window_ms") : cJSON_GetObjectItem(r, "click_window_ms");
-    if (cw && cJSON_IsNumber(cw) && cw->valueint > 0) {
-        trig->click_window_ms = (uint32_t)cw->valueint;
-    }
-
-    cJSON *tid = trig_obj ? cJSON_GetObjectItem(trig_obj, "id") : NULL;
-    if (tid && tid->valuestring) {
-        strncpy(trig->id, tid->valuestring, sizeof(trig->id) - 1);
-    }
-
-    cJSON *em = trig_obj ? cJSON_GetObjectItem(trig_obj, "exec_mode") : cJSON_GetObjectItem(r, "exec_mode");
-    if (em && em->valuestring) {
-        if (strcmp(em->valuestring, "one_shot") == 0) trig->exec_mode = CANDO_EXEC_ONE_SHOT;
-        else if (strcmp(em->valuestring, "on_change") == 0) trig->exec_mode = CANDO_EXEC_ON_CHANGE;
-        else if (strcmp(em->valuestring, "poll_verify") == 0) trig->exec_mode = CANDO_EXEC_POLL_VERIFY;
-        else if (strcmp(em->valuestring, "continuous") == 0) trig->exec_mode = CANDO_EXEC_CONTINUOUS;
-        else if (strcmp(em->valuestring, "toggle") == 0) trig->exec_mode = CANDO_EXEC_TOGGLE;
-    }
-
-    cJSON *f_ms = trig_obj ? cJSON_GetObjectItem(trig_obj, "for_ms") : NULL;
-    cJSON *f_sec = trig_obj ? cJSON_GetObjectItem(trig_obj, "for_sec") : NULL;
-    if (f_ms && cJSON_IsNumber(f_ms)) {
-        trig->for_ms = (uint32_t)f_ms->valueint;
-    } else if (f_sec && cJSON_IsNumber(f_sec)) {
-        trig->for_ms = (uint32_t)roundf(f_sec->valuedouble * 1000.0f);
-    }
-
-    cJSON *cd = trig_obj ? cJSON_GetObjectItem(trig_obj, "cooldown_ms") : cJSON_GetObjectItem(r, "cooldown_ms");
-    if (cd && cJSON_IsNumber(cd)) trig->cooldown_ms = (uint32_t)cd->valueint;
-
-    cJSON *t_reset = trig_obj ? cJSON_GetObjectItem(trig_obj, "timeout_reset_ms") : cJSON_GetObjectItem(r, "timeout_reset_ms");
-    if (t_reset && cJSON_IsNumber(t_reset)) trig->timeout_reset_ms = (uint32_t)t_reset->valueint;
-
-    cJSON *rcid = trig_obj ? cJSON_GetObjectItem(trig_obj, "reset_can_id") : cJSON_GetObjectItem(r, "reset_can_id");
-    if (rcid && rcid->valuestring && strlen(rcid->valuestring) > 0) {
-        trig->reset_can_id = strtoul(rcid->valuestring, NULL, 0);
-    }
-
-    cJSON *vcid = trig_obj ? cJSON_GetObjectItem(trig_obj, "verify_can_id") : cJSON_GetObjectItem(r, "verify_can_id");
-    if (vcid && vcid->valuestring && strlen(vcid->valuestring) > 0) {
-        trig->verify_can_id = strtoul(vcid->valuestring, NULL, 0);
-    }
-
-    cJSON *vp = trig_obj ? cJSON_GetObjectItem(trig_obj, "verify_payload") : cJSON_GetObjectItem(r, "verify_payload");
-    if (vp && vp->valuestring && strlen(vp->valuestring) > 0) {
-        cando_parse_payload_pattern(vp->valuestring,
-                                    trig->verify_data,
-                                    trig->verify_mask,
-                                    &trig->verify_len,
-                                    &trig->has_verify);
-    }
-
-    cJSON *cid = trig_obj ? cJSON_GetObjectItem(trig_obj, "can_id") : cJSON_GetObjectItem(r, "can_id");
-    cJSON *bus_item = trig_obj ? cJSON_GetObjectItem(trig_obj, "bus") : cJSON_GetObjectItem(r, "bus");
-    cJSON *from_p = trig_obj ? cJSON_GetObjectItem(trig_obj, "from_payload") : cJSON_GetObjectItem(r, "from_payload");
-    cJSON *to_p = trig_obj ? cJSON_GetObjectItem(trig_obj, "to_payload") : NULL;
-    if (!to_p && trig_obj) to_p = cJSON_GetObjectItem(trig_obj, "match_payload");
-    if (!to_p) to_p = cJSON_GetObjectItem(r, "match_payload");
-
-    if (cid && cid->valuestring && strlen(cid->valuestring) > 0) {
-        trig->can_id = strtoul(cid->valuestring, NULL, 0);
-        trig->is_ext = (trig->can_id > 0x7FF);
-    }
-    if (bus_item && cJSON_IsNumber(bus_item)) {
-        trig->bus = (uint8_t)bus_item->valueint;
-    }
-
-    if (from_p && from_p->valuestring && strlen(from_p->valuestring) > 0) {
-        cando_parse_payload_pattern(from_p->valuestring,
-                                    trig->from_data,
-                                    trig->from_mask,
-                                    &trig->from_len,
-                                    &trig->has_from);
-    }
-
-    if (to_p && to_p->valuestring && strlen(to_p->valuestring) > 0) {
-        trig->match_type = CANDO_MATCH_MASK;
-        cando_parse_payload_pattern(to_p->valuestring,
-                                    trig->match_data,
-                                    trig->match_mask,
-                                    &trig->data_len,
-                                    &trig->has_to);
-    }
-
-    cJSON *src = trig_obj ? cJSON_GetObjectItem(trig_obj, "source") : cJSON_GetObjectItem(r, "source");
-    if (src && src->valuestring) {
-        if (strcmp(src->valuestring, "ha_mqtt") == 0 || strcmp(src->valuestring, "mqtt_cmd") == 0 || strcmp(src->valuestring, "mqtt") == 0) {
-            trig->source = CANDO_TRIG_MQTT_COMMAND;
-        } else if (strcmp(src->valuestring, "clock") == 0) {
-            trig->source = CANDO_TRIG_CLOCK;
-        } else if (strcmp(src->valuestring, "interval") == 0) {
-            trig->source = CANDO_TRIG_INTERVAL;
-        } else if (strcmp(src->valuestring, "voltage") == 0) {
-            trig->source = CANDO_TRIG_VOLTAGE;
-        } else {
-            trig->source = CANDO_TRIG_CAN_MESSAGE;
-        }
-    }
-
-    cJSON *m_topic = trig_obj ? cJSON_GetObjectItem(trig_obj, "mqtt_topic") : cJSON_GetObjectItem(r, "mqtt_topic");
-    if (m_topic && m_topic->valuestring) {
-        strncpy(trig->mqtt_topic, m_topic->valuestring, sizeof(trig->mqtt_topic) - 1);
-    }
-
-    cJSON *m_payload = trig_obj ? cJSON_GetObjectItem(trig_obj, "mqtt_payload") : cJSON_GetObjectItem(r, "mqtt_payload");
-    if (m_payload && m_payload->valuestring) {
-        strncpy(trig->mqtt_payload, m_payload->valuestring, sizeof(trig->mqtt_payload) - 1);
-    }
-
-    if (!trig->has_from && !trig->has_to) {
-        trig->any_change = true;
-    }
-}
-
-        static void cando_parse_step_payload(const char *payload_str, cando_sequence_step_t *step)
-        {
-            if (!step) return;
-            step->roll_byte_idx = -1;
-            step->roll_mode = CANDO_ROLL_NONE;
-            step->roll_counter = 0;
-            step->tx_len = 0;
-            memset(step->tx_data, 0, sizeof(step->tx_data));
-
-            if (!payload_str || payload_str[0] == '\0') return;
-
-            char buf[128];
-            strncpy(buf, payload_str, sizeof(buf) - 1);
-            buf[sizeof(buf) - 1] = '\0';
-
-            char *token = strtok(buf, " \t\r\n");
-            uint8_t idx = 0;
-            while (token != NULL && idx < 8) {
-                if (strcasecmp(token, "SEQ3") == 0 || strcasecmp(token, "~3") == 0 || strcasecmp(token, "SQ") == 0) {
-                    step->roll_byte_idx = idx;
-                    step->roll_mode = CANDO_ROLL_SEQ3;
-                    step->roll_counter = 0;
-                    step->tx_data[idx] = 0x0F;
-                } else if (strcasecmp(token, "INC") == 0 || strcasecmp(token, "ROLL") == 0 || strcmp(token, "++") == 0) {
-                    step->roll_byte_idx = idx;
-                    step->roll_mode = CANDO_ROLL_BYTE_INC;
-                    step->roll_counter = 0;
-                    step->tx_data[idx] = 0x00;
-                } else if (strcasecmp(token, "*R") == 0 || strcasecmp(token, "R*") == 0) {
-                    step->roll_byte_idx = idx;
-                    step->roll_mode = CANDO_ROLL_NIBBLE_INC;
-                    step->roll_counter = 0;
-                    step->tx_data[idx] = 0x00;
+                  }
                 } else {
-                    unsigned int byte_val = 0;
-                    if (sscanf(token, "%2x", &byte_val) == 1) {
-                        step->tx_data[idx] = (uint8_t)byte_val;
-                    } else {
-                        step->tx_data[idx] = 0x00;
-                    }
+                  param->failed = true;
+                  ESP_LOGE(TAG, "Failed to process command: %s", curr_pid->cmd);
                 }
-                idx++;
-                token = strtok(NULL, " \t\r\n");
+              } else {
+                param->failed = true;
+                ESP_LOGE(TAG, "Failed Queue Receive: curr_pid->cmd timeout");
+              }
+            } else {
+              ESP_LOGE(TAG, "Failed to process command: %s", curr_pid->cmd);
             }
-            step->tx_len = idx;
+          } else {
+            ESP_LOGE(TAG, "Failed, cmd is NULL");
+          }
         }
-
-static void cando_parse_single_action(cJSON *r, cJSON *act_obj, cando_action_t *act)
-{
-    if (!act) return;
-    memset(act, 0, sizeof(cando_action_t));
-
-    cJSON *trig_id = act_obj ? cJSON_GetObjectItem(act_obj, "trigger_id") : cJSON_GetObjectItem(r, "trigger_id");
-    if (trig_id && trig_id->valuestring) {
-        strncpy(act->trigger_id, trig_id->valuestring, sizeof(act->trigger_id) - 1);
-    } else {
-        strcpy(act->trigger_id, "any");
+      }
     }
 
-    cJSON *act_type_obj = act_obj ? cJSON_GetObjectItem(act_obj, "type") : cJSON_GetObjectItem(r, "action_type");
-    if (act_type_obj && act_type_obj->valuestring) {
-        if (strcmp(act_type_obj->valuestring, "can_tx") == 0) {
-            act->type = CANDO_ACT_CAN_TX;
-        } else if (strcmp(act_type_obj->valuestring, "popup") == 0) {
-            act->type = CANDO_ACT_POPUP;
-        } else if (strcmp(act_type_obj->valuestring, "precondition") == 0) {
-            act->type = CANDO_ACT_PRECONDITION;
-        } else if (strcmp(act_type_obj->valuestring, "climate_target") == 0) {
-            act->type = CANDO_ACT_CLIMATE_TARGET;
-        } else if (strcmp(act_type_obj->valuestring, "delay") == 0) {
-            act->type = CANDO_ACT_DELAY;
-        } else if (strcmp(act_type_obj->valuestring, "mqtt") == 0) {
-            act->type = CANDO_ACT_MQTT;
-        } else if (strcmp(act_type_obj->valuestring, "webhook") == 0) {
-            act->type = CANDO_ACT_WEBHOOK;
-        } else {
-            act->type = CANDO_ACT_CAN_TX;
-        }
-    } else {
-        act->type = CANDO_ACT_CAN_TX;
+    elm327_unlock();
+    xSemaphoreGive(all_pids->mutex);
+
+    autopid_update_values();
+
+    if (xEventGroupGetBits(xautopid_event_group) &
+        AUTOPID_POLLING_DISABLED_BIT) {
+      xEventGroupClearBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
     }
 
-    cJSON *tt = act_obj ? cJSON_GetObjectItem(act_obj, "target_temp_c") : cJSON_GetObjectItem(r, "target_temp_c");
-    if (tt && cJSON_IsNumber(tt)) {
-        act->target_temp_c = (float)tt->valuedouble;
-    } else {
-        act->target_temp_c = 21.0f;
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    if (strcmp("enable", all_pids->grouping) == 0 &&
+        all_pids->group_destination_type == DEST_MQTT_TOPIC &&
+        wc_timer_is_expired(&group_cycle_timer)) {
+      wc_timer_set(&group_cycle_timer, all_pids->cycle);
+
+      autopid_data_publish();
     }
 
-    cJSON *cz = act_obj ? cJSON_GetObjectItem(act_obj, "climate_zone") : cJSON_GetObjectItem(r, "climate_zone");
-    if (cz && cz->valuestring) {
-        strncpy(act->climate_zone, cz->valuestring, sizeof(act->climate_zone) - 1);
-    } else {
-        strcpy(act->climate_zone, "driver");
+    if (wc_timer_is_expired(&ecu_check_timer)) {
+      if (all_parameters_failed(all_pids)) {
+        xEventGroupClearBits(xautopid_event_group, ECU_CONNECTED_BIT);
+        ESP_LOGW(TAG, "All parameters failed - ECU disconnected");
+      } else {
+        xEventGroupSetBits(xautopid_event_group, ECU_CONNECTED_BIT);
+      }
+      wc_timer_set(&ecu_check_timer, 2000); // Reset timer for next check
     }
-
-    cJSON *sync_on_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_sync_on") : cJSON_GetObjectItem(r, "climate_sync_on");
-    act->climate_sync_on = (sync_on_obj && cJSON_IsTrue(sync_on_obj));
-
-    cJSON *drv_only_obj = act_obj ? cJSON_GetObjectItem(act_obj, "climate_driver_only") : cJSON_GetObjectItem(r, "climate_driver_only");
-    act->climate_driver_only = (drv_only_obj && cJSON_IsTrue(drv_only_obj));
-
-    cJSON *pop = act_obj ? cJSON_GetObjectItem(act_obj, "popup_message") : cJSON_GetObjectItem(r, "popup_message");
-    if (!pop && act_obj) pop = cJSON_GetObjectItem(act_obj, "track_popup");
-    if (!pop) pop = cJSON_GetObjectItem(r, "track_popup");
-    if (pop && pop->valuestring && strlen(pop->valuestring) > 0) {
-        act->popup_message = strdup(pop->valuestring);
-    }
-
-    cJSON *pm = act_obj ? cJSON_GetObjectItem(act_obj, "precon_mode") : cJSON_GetObjectItem(r, "precon_mode");
-    if (pm && pm->valuestring) {
-        strncpy(act->precon_mode, pm->valuestring, sizeof(act->precon_mode) - 1);
-    }
-    cJSON *pp = act_obj ? cJSON_GetObjectItem(act_obj, "precon_press") : cJSON_GetObjectItem(r, "precon_press");
-    if (pp && pp->valuestring) {
-        strncpy(act->precon_press, pp->valuestring, sizeof(act->precon_press) - 1);
-    }
-
-    cJSON *txid = act_obj ? cJSON_GetObjectItem(act_obj, "can_id") : cJSON_GetObjectItem(r, "tx_can_id");
-    cJSON *act_bus = act_obj ? cJSON_GetObjectItem(act_obj, "bus") : NULL;
-    cJSON *act_delay = act_obj ? cJSON_GetObjectItem(act_obj, "delay_ms") : NULL;
-    cJSON *steps_arr = act_obj ? cJSON_GetObjectItem(act_obj, "steps") : NULL;
-    cJSON *txp = act_obj ? cJSON_GetObjectItem(act_obj, "payload") : cJSON_GetObjectItem(r, "tx_payload");
-
-    uint32_t can_id_val = 0;
-    bool is_ext = false;
-    uint8_t target_bus = 0;
-    uint32_t delay_val = 10;
-
-    if (txid && txid->valuestring && strlen(txid->valuestring) > 0) {
-        can_id_val = strtoul(txid->valuestring, NULL, 0);
-        is_ext = (can_id_val > 0x7FF);
-    }
-    if (act_bus && cJSON_IsNumber(act_bus)) {
-        target_bus = (uint8_t)act_bus->valueint;
-    }
-    if (act_delay && cJSON_IsNumber(act_delay)) {
-        delay_val = (uint32_t)act_delay->valueint;
-    }
-
-    uint32_t total_steps = 0;
-    if (steps_arr && cJSON_IsArray(steps_arr)) {
-        int num_items = cJSON_GetArraySize(steps_arr);
-        for (int k = 0; k < num_items; k++) {
-            cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-            cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-            int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
-            total_steps += r_cnt;
-        }
-    }
-
-    if (total_steps > 0 && total_steps <= 128) {
-        act->steps = calloc(total_steps, sizeof(cando_sequence_step_t));
-        if (act->steps) {
-            uint8_t s_idx = 0;
-            int num_items = cJSON_GetArraySize(steps_arr);
-            for (int k = 0; k < num_items && s_idx < total_steps; k++) {
-                cJSON *st = cJSON_GetArrayItem(steps_arr, k);
-                cJSON *sp = cJSON_GetObjectItem(st, "payload");
-                cJSON *rep = cJSON_GetObjectItem(st, "repeat");
-                cJSON *st_delay = cJSON_GetObjectItem(st, "delay_ms");
-                uint32_t step_delay = (st_delay && cJSON_IsNumber(st_delay) && st_delay->valueint >= 0) ? (uint32_t)st_delay->valueint : delay_val;
-                int r_cnt = (rep && cJSON_IsNumber(rep) && rep->valueint > 0) ? rep->valueint : 1;
-
-                cando_sequence_step_t parsed_step = {0};
-                cando_parse_step_payload(sp ? sp->valuestring : "", &parsed_step);
-
-                for (int r_i = 0; r_i < r_cnt && s_idx < total_steps; r_i++) {
-                    cando_sequence_step_t *step = &act->steps[s_idx++];
-                    step->tx_can_id = can_id_val;
-                    step->is_ext = is_ext;
-                    step->target_bus = target_bus;
-                    step->delay_ms = step_delay;
-                    step->tx_len = parsed_step.tx_len;
-                    step->roll_byte_idx = parsed_step.roll_byte_idx;
-                    step->roll_mode = parsed_step.roll_mode;
-                    step->roll_counter = 0;
-                    memcpy(step->tx_data, parsed_step.tx_data, parsed_step.tx_len);
-                }
-            }
-            act->step_count = s_idx;
-        }
-    } else if (txp && txp->valuestring && can_id_val > 0) {
-        act->step_count = 1;
-        act->steps = calloc(1, sizeof(cando_sequence_step_t));
-        if (act->steps) {
-            cando_sequence_step_t *step = &act->steps[0];
-            step->tx_can_id = can_id_val;
-            step->is_ext = is_ext;
-            step->target_bus = target_bus;
-            step->delay_ms = delay_val;
-            cando_parse_step_payload(txp->valuestring, step);
-        }
-    }
+  }
 }
 
-static void cando_init_default_precondition_rule(void)
-{
-    if (g_cando_rules.rule_count > 0 && g_cando_rules.rules) return;
+cJSON *parse_json_file(FILE *f) {
+  fseek(f, 0, SEEK_END);
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
 
-    g_cando_rules.rules = calloc(1, sizeof(cando_rule_t));
-    if (!g_cando_rules.rules) return;
+  char *buffer = malloc(fsize + 1);
+  fread(buffer, fsize, 1, f);
+  buffer[fsize] = 0;
 
-    cando_rule_t *rule = &g_cando_rules.rules[0];
-    rule->name = strdup("E-GMP Battery Preconditioning");
-    rule->enabled = true;
-    rule->trigger_count = 1;
-    rule->triggers = calloc(1, sizeof(cando_trigger_t));
-    if (rule->triggers) {
-        cando_trigger_t *trig = &rule->triggers[0];
-        memset(trig, 0, sizeof(cando_trigger_t));
-        strncpy(trig->id, "sw_star", sizeof(trig->id) - 1);
-        trig->source = CANDO_TRIG_CAN_MESSAGE;
-        trig->can_id = 0x448;
-        trig->bus = 0;
-        trig->exec_mode = CANDO_EXEC_ONE_SHOT;
-        trig->cooldown_ms = 500;
-        trig->timeout_reset_ms = 2000;
-        trig->has_to = true;
-        trig->data_len = 6;
-        trig->match_data[5] = 0x10;
-        trig->match_mask[5] = 0xF0;
-        trig->has_from = true;
-        trig->from_len = 6;
-        trig->from_data[5] = 0x00;
-        trig->from_mask[5] = 0xF0;
-        rule->trigger = *trig;
-    }
+  cJSON *root = cJSON_Parse(buffer);
+  free(buffer);
 
-    rule->action_count = 1;
-    rule->actions = calloc(1, sizeof(cando_action_t));
-    if (rule->actions) {
-        cando_action_t *act = &rule->actions[0];
-        memset(act, 0, sizeof(cando_action_t));
-        act->type = CANDO_ACT_PRECONDITION;
-        strncpy(act->trigger_id, "sw_star", sizeof(act->trigger_id) - 1);
-        act->popup_message = NULL;
-        strncpy(act->precon_mode, "persistent", sizeof(act->precon_mode) - 1);
-        strncpy(act->precon_press, "short", sizeof(act->precon_press) - 1);
-        rule->action = *act;
-    }
-
-    g_cando_rules.rule_count = 1;
+  return root;
 }
 
-esp_err_t cando_load_config(void)
-{
-    FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
-    if (!f) {
-        cando_init_default_precondition_rule();
-        return ESP_OK;
-    }
+all_pids_t *load_all_pids(void) {
+  int total_pids = 0;
+  int car_data_pids = 0;
+  int auto_pids = 0;
 
-    fseek(f, 0, SEEK_END);
-    long sz = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    if (sz <= 0) {
-        fclose(f);
-        cando_init_default_precondition_rule();
-        return ESP_OK;
+  // Count car_data.json pids
+  FILE *f = fopen(FS_MOUNT_POINT "/car_data.json", "r");
+  if (f) {
+    cJSON *root = parse_json_file(f);
+    if (root) {
+      cJSON *cars = cJSON_GetObjectItem(root, "cars");
+      cJSON *car = cJSON_GetArrayItem(cars, 0);
+      cJSON *pids = cJSON_GetObjectItem(car, "pids");
+      car_data_pids = cJSON_GetArraySize(pids);
+      cJSON_Delete(root);
     }
-
-    char *buf = malloc(sz + 1);
-    if (!buf) {
-        fclose(f);
-        return ESP_ERR_NO_MEM;
-    }
-    fread(buf, 1, sz, f);
-    buf[sz] = '\0';
     fclose(f);
+  }
 
-    cJSON *root = cJSON_Parse(buf);
-    free(buf);
-    if (!root) {
-        cando_init_default_precondition_rule();
-        return ESP_FAIL;
+  // Count auto_pid.json pids
+  f = fopen(FS_MOUNT_POINT "/auto_pid.json", "r");
+  if (f) {
+    cJSON *root = parse_json_file(f);
+    if (root) {
+      cJSON *pids = cJSON_GetObjectItem(root, "pids");
+      cJSON *std_pids = cJSON_GetObjectItem(root, "std_pids");
+      auto_pids = cJSON_GetArraySize(pids) + cJSON_GetArraySize(std_pids);
+      cJSON_Delete(root);
+    }
+    fclose(f);
+  }
+
+  total_pids = car_data_pids + auto_pids;
+
+  all_pids_t *all_pids = (all_pids_t *)calloc(1, sizeof(all_pids_t));
+  if (!all_pids)
+    return NULL;
+
+  all_pids->pids = (pid_data2_t *)calloc(total_pids, sizeof(pid_data2_t));
+  if (!all_pids->pids) {
+    free(all_pids);
+    return NULL;
+  }
+
+  int pid_index = 0;
+
+  // Load auto_pid.json pids
+  f = fopen(FS_MOUNT_POINT "/auto_pid.json", "r");
+  if (f) {
+    cJSON *root = parse_json_file(f);
+    if (root) {
+      cJSON *init_item = cJSON_GetObjectItem(root, "initialisation");
+      cJSON *grouping_item = cJSON_GetObjectItem(root, "grouping");
+      cJSON *autopid_polling_item =
+          cJSON_GetObjectItem(root, "autopid_polling");
+      cJSON *webhook_data_mode_item =
+          cJSON_GetObjectItem(root, "webhook_data_mode");
+      cJSON *car_model_item = cJSON_GetObjectItem(root, "car_model");
+      cJSON *ecu_protocol_item = cJSON_GetObjectItem(root, "ecu_protocol");
+      cJSON *ha_discovery_item = cJSON_GetObjectItem(root, "ha_discovery");
+      cJSON *cycle_item = cJSON_GetObjectItem(root, "cycle");
+      cJSON *standard_pids_item = cJSON_GetObjectItem(root, "standard_pids");
+      cJSON *specific_pids_item = cJSON_GetObjectItem(root, "car_specific");
+      cJSON *group_destination_item = cJSON_GetObjectItem(root, "destination");
+      cJSON *group_dest_type_item =
+          cJSON_GetObjectItem(root, "group_dest_type");
+
+      if (init_item && init_item->valuestring) {
+        all_pids->custom_init = strdup(init_item->valuestring);
+        if (all_pids->custom_init) {
+          // Replace semicolons with carriage returns
+          for (size_t j = 0; j < strlen(all_pids->custom_init); j++) {
+            if (all_pids->custom_init[j] == ';') {
+              all_pids->custom_init[j] = '\r';
+            }
+          }
+        }
+      } else {
+        all_pids->custom_init = NULL;
+      }
+
+      all_pids->grouping = (grouping_item && grouping_item->valuestring &&
+                            strlen(grouping_item->valuestring) > 1)
+                               ? strdup(grouping_item->valuestring)
+                               : strdup("disable");
+      all_pids->autopid_polling =
+          (autopid_polling_item && autopid_polling_item->valuestring &&
+           strlen(autopid_polling_item->valuestring) > 1)
+              ? strdup(autopid_polling_item->valuestring)
+              : strdup("enable");
+      all_pids->webhook_data_mode =
+          (webhook_data_mode_item && webhook_data_mode_item->valuestring &&
+           strlen(webhook_data_mode_item->valuestring) > 0)
+              ? strdup(webhook_data_mode_item->valuestring)
+              : strdup("full");
+      all_pids->vehicle_model =
+          car_model_item ? strdup(car_model_item->valuestring) : NULL;
+      all_pids->std_ecu_protocol =
+          ecu_protocol_item ? strdup(ecu_protocol_item->valuestring) : NULL;
+      all_pids->ha_discovery_en =
+          ha_discovery_item
+              ? (strcmp(ha_discovery_item->valuestring, "enable") == 0)
+              : false;
+      all_pids->cycle = cycle_item ? atoi(cycle_item->valuestring) : 10000;
+      all_pids->pid_std_en =
+          standard_pids_item
+              ? (strcmp(standard_pids_item->valuestring, "enable") == 0)
+              : false;
+      all_pids->pid_specific_en =
+          specific_pids_item
+              ? (strcmp(specific_pids_item->valuestring, "enable") == 0)
+              : false;
+      all_pids->group_destination =
+          group_destination_item ? strdup(group_destination_item->valuestring)
+                                 : NULL;
+      all_pids->group_destination_type =
+          group_dest_type_item && group_dest_type_item->valuestring
+              ? (strcmp(group_dest_type_item->valuestring, "MQTT_Topic") == 0
+                     ? DEST_MQTT_TOPIC
+                     : DEST_DEFAULT)
+              : DEST_DEFAULT;
+
+      // Load custom pids
+      cJSON *pids = cJSON_GetObjectItem(root, "pids");
+      if (pids) {
+        cJSON *pid;
+        cJSON_ArrayForEach(pid, pids) {
+          pid_data2_t *curr_pid = &all_pids->pids[pid_index];
+
+          cJSON *name_item = cJSON_GetObjectItem(pid, "Name");
+          cJSON *init_item = cJSON_GetObjectItem(pid, "Init");
+          cJSON *pid_item = cJSON_GetObjectItem(pid, "PID");
+          cJSON *expr_item = cJSON_GetObjectItem(pid, "Expression");
+          cJSON *period_item = cJSON_GetObjectItem(pid, "Period");
+          cJSON *type_item = cJSON_GetObjectItem(pid, "Type");
+          cJSON *send_to_item = cJSON_GetObjectItem(pid, "Send_to");
+          cJSON *sensor_type_item = cJSON_GetObjectItem(pid, "sensor_type");
+          cJSON *unit_item = cJSON_GetObjectItem(pid, "unit");
+          cJSON *class_item = cJSON_GetObjectItem(pid, "class");
+          cJSON *rxheader_item = cJSON_GetObjectItem(pid, "header");
+          cJSON *min_value_item = cJSON_GetObjectItem(pid, "MinValue");
+          cJSON *max_value_item = cJSON_GetObjectItem(pid, "MaxValue");
+
+          if (cJSON_GetArraySize(pids) > 0) {
+            all_pids->pid_custom_en = true;
+          }
+
+          curr_pid->cmd =
+              pid_item ? (char *)malloc(strlen(pid_item->valuestring) + 2)
+                       : NULL;
+          if (curr_pid->cmd && pid_item && strlen(pid_item->valuestring) > 1) {
+            strcpy(curr_pid->cmd, pid_item->valuestring);
+            strcat(curr_pid->cmd, "\r");
+          }
+
+          curr_pid->init = NULL;
+          if (init_item && init_item->valuestring) {
+            size_t init_len = strlen(init_item->valuestring);
+
+            if (init_len > 0) {
+              curr_pid->init = (char *)malloc(init_len + 2);
+              if (curr_pid->init) {
+                strncpy(curr_pid->init, init_item->valuestring, init_len);
+                curr_pid->init[init_len] = '\0';
+
+                // Replace semicolons with carriage returns
+                for (size_t j = 0; j < init_len; j++) {
+                  if (curr_pid->init[j] == ';') {
+                    curr_pid->init[j] = '\r';
+                  }
+                }
+              } else {
+                ESP_LOGE(TAG, "Failed to allocate memory for init");
+              }
+            }
+          }
+
+          curr_pid->period =
+              period_item ? atoi(period_item->valuestring) : 10000;
+          curr_pid->rxheader =
+              rxheader_item ? strdup(rxheader_item->valuestring) : NULL;
+          curr_pid->pid_type = PID_CUSTOM;
+
+          curr_pid->parameters_count = 1;
+          curr_pid->parameters = (parameter_t *)calloc(1, sizeof(parameter_t));
+          if (curr_pid->parameters) {
+            curr_pid->parameters->name =
+                name_item ? strdup(name_item->valuestring) : NULL;
+            curr_pid->parameters->expression =
+                expr_item ? strdup(expr_item->valuestring) : NULL;
+            curr_pid->parameters->period =
+                period_item ? atoi(period_item->valuestring) : 0;
+            curr_pid->parameters->destination =
+                send_to_item ? strdup(send_to_item->valuestring) : NULL;
+            curr_pid->parameters->timer = 0;
+            curr_pid->parameters->value = FLT_MAX;
+            curr_pid->parameters->min =
+                (min_value_item && strlen(min_value_item->valuestring) > 0)
+                    ? atof(min_value_item->valuestring)
+                    : FLT_MAX;
+            curr_pid->parameters->max =
+                (max_value_item && strlen(max_value_item->valuestring) > 0)
+                    ? atof(max_value_item->valuestring)
+                    : FLT_MAX;
+            curr_pid->parameters->destination_type =
+                type_item && type_item->valuestring
+                    ? (strcmp(type_item->valuestring, "MQTT_Topic") == 0
+                           ? DEST_MQTT_TOPIC
+                       : strcmp(type_item->valuestring, "MQTT_WallBox") == 0
+                           ? DEST_MQTT_WALLBOX
+                           : DEST_DEFAULT)
+                    : DEST_DEFAULT;
+            curr_pid->parameters->sensor_type =
+                sensor_type_item
+                    ? (strcmp(sensor_type_item->valuestring, "binary") == 0
+                           ? BINARY_SENSOR
+                           : SENSOR)
+                    : SENSOR;
+            curr_pid->parameters->unit = unit_item && unit_item->valuestring
+                                             ? strdup(unit_item->valuestring)
+                                             : strdup("none");
+            curr_pid->parameters->class = class_item && class_item->valuestring
+                                              ? strdup(class_item->valuestring)
+                                              : strdup("none");
+          }
+
+          pid_index++;
+        }
+      }
+
+      // Load standard pids
+      cJSON *std_pids = cJSON_GetObjectItem(root, "std_pids");
+      if (std_pids) {
+        cJSON *pid;
+        cJSON_ArrayForEach(pid, std_pids) {
+          pid_data2_t *curr_pid = &all_pids->pids[pid_index];
+          curr_pid->pid_type = PID_STD;
+
+          char std_init_buf[64];
+          int is_protocol_68 = 1;
+          int is_protocol_79 = 0;
+          const char *sh_value = "";
+
+          curr_pid->parameters_count = 1;
+          curr_pid->parameters = (parameter_t *)calloc(1, sizeof(parameter_t));
+          if (curr_pid->parameters) {
+            cJSON *name_item = cJSON_GetObjectItem(pid, "Name");
+            cJSON *period_item = cJSON_GetObjectItem(pid, "Period");
+            cJSON *type_item = cJSON_GetObjectItem(pid, "Type");
+            cJSON *send_to_item = cJSON_GetObjectItem(pid, "Send_to");
+            cJSON *sensor_type_item = cJSON_GetObjectItem(pid, "sensor_type");
+            cJSON *rxheader_item = cJSON_GetObjectItem(pid, "ReceiveHeader");
+
+            curr_pid->parameters->name =
+                name_item ? strdup(name_item->valuestring) : NULL;
+            curr_pid->parameters->period =
+                period_item ? atoi(period_item->valuestring) : 10000;
+            curr_pid->parameters->destination =
+                send_to_item ? strdup(send_to_item->valuestring) : NULL;
+            curr_pid->parameters->destination_type =
+                type_item && type_item->valuestring
+                    ? (strcmp(type_item->valuestring, "MQTT_Topic") == 0
+                           ? DEST_MQTT_TOPIC
+                       : strcmp(type_item->valuestring, "MQTT_WallBox") == 0
+                           ? DEST_MQTT_WALLBOX
+                           : DEST_DEFAULT)
+                    : DEST_DEFAULT;
+            curr_pid->parameters->timer = 0;
+            curr_pid->parameters->value = FLT_MAX;
+            curr_pid->parameters->sensor_type =
+                sensor_type_item
+                    ? (strcmp(sensor_type_item->valuestring, "binary") == 0
+                           ? BINARY_SENSOR
+                           : SENSOR)
+                    : SENSOR;
+
+            curr_pid->rxheader =
+                rxheader_item ? strdup(rxheader_item->valuestring) : NULL;
+
+            if (all_pids->std_ecu_protocol) {
+              // Check protocol type once
+              is_protocol_68 = (strcmp(all_pids->std_ecu_protocol, "6") == 0 ||
+                                strcmp(all_pids->std_ecu_protocol, "8") == 0);
+              is_protocol_79 = (strcmp(all_pids->std_ecu_protocol, "7") == 0 ||
+                                strcmp(all_pids->std_ecu_protocol, "9") == 0);
+            }
+
+            if (is_protocol_68) {
+              sh_value = "7DF";
+            } else if (is_protocol_79) {
+              sh_value = "18DB33F1";
+            }
+
+            if (curr_pid->rxheader != NULL && strlen(curr_pid->rxheader) > 0) {
+              ESP_LOGI(TAG,
+                       "Setting up STD init buffer with protocol: %s, SH "
+                       "value: %s, RX header: %s",
+                       all_pids->std_ecu_protocol, sh_value,
+                       curr_pid->rxheader);
+              snprintf(std_init_buf, sizeof(std_init_buf),
+                       "ATSP%s\rATSH%s\rATCRA%s\r", all_pids->std_ecu_protocol,
+                       sh_value, curr_pid->rxheader);
+            } else {
+              ESP_LOGI(
+                  TAG,
+                  "Setting up STD init buffer with protocol: %s, SH value: %s",
+                  all_pids->std_ecu_protocol, sh_value);
+              snprintf(std_init_buf, sizeof(std_init_buf),
+                       "ATSP%s\rATSH%s\rATCRA\r", all_pids->std_ecu_protocol,
+                       sh_value);
+            }
+            all_pids->standard_init = strdup(std_init_buf);
+
+            if (curr_pid->parameters->name != NULL &&
+                strlen(curr_pid->parameters->name) > 0) {
+              const std_pid_t *pid_info =
+                  get_pid_from_string(curr_pid->parameters->name);
+              if (pid_info) {
+                ESP_LOGI(TAG, "PID Info for %s:", curr_pid->parameters->name);
+                ESP_LOGI(TAG, "  Base name: %s", pid_info->base_name);
+                ESP_LOGI(TAG, "  Num params: %d", pid_info->num_params);
+                ESP_LOGI(TAG, "  Parameter details:");
+                for (int i = 0; i < pid_info->num_params; i++) {
+                  ESP_LOGI(TAG, "    [%d] Name: %s, Unit: %s", i,
+                           pid_info->params[i].name, pid_info->params[i].unit);
+                  if (strcmp(pid_info->params[i].name,
+                             strchr(curr_pid->parameters->name, '-') + 1) ==
+                      0) {
+                    curr_pid->parameters->class =
+                        strdup(pid_info->params[i].class);
+                    curr_pid->parameters->unit =
+                        strdup(pid_info->params[i].unit);
+                    char pid_hex[3];
+                    strncpy(pid_hex, curr_pid->parameters->name, 2);
+                    pid_hex[2] = '\0';
+
+                    curr_pid->cmd = malloc(8); // "01XX1\r\0" needs 8 bytes
+                    if (curr_pid->cmd) {
+                      sprintf(curr_pid->cmd, "01%s\r", pid_hex);
+                    }
+                  }
+                }
+              } else {
+                ESP_LOGW(TAG, "No PID info found for %s",
+                         curr_pid->parameters->name);
+              }
+            }
+          }
+
+          pid_index++;
+        }
+      }
+
+      cJSON_Delete(root);
     }
 
-    cJSON *rules_arr = cJSON_GetObjectItem(root, "rules");
-    if (rules_arr && cJSON_IsArray(rules_arr)) {
-        int count = cJSON_GetArraySize(rules_arr);
-        if (g_cando_rules.rules) {
-            for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
-                if (g_cando_rules.rules[i].name) free(g_cando_rules.rules[i].name);
-                if (g_cando_rules.rules[i].triggers) free(g_cando_rules.rules[i].triggers);
-                if (g_cando_rules.rules[i].actions) {
-                    for (uint8_t a = 0; a < g_cando_rules.rules[i].action_count; a++) {
-                        if (g_cando_rules.rules[i].actions[a].popup_message) free(g_cando_rules.rules[i].actions[a].popup_message);
-                        if (g_cando_rules.rules[i].actions[a].steps) free(g_cando_rules.rules[i].actions[a].steps);
+    fclose(f);
+  }
+
+  f = fopen(FS_MOUNT_POINT "/car_data.json", "r");
+  if (f) {
+    cJSON *root = parse_json_file(f);
+    if (root) {
+      cJSON *cars = cJSON_GetObjectItem(root, "cars");
+      if (cars) {
+        cJSON *car = cJSON_GetArrayItem(cars, 0);
+        if (car) {
+          cJSON *init_item = cJSON_GetObjectItem(car, "init");
+          if (init_item && init_item->valuestring) {
+            all_pids->specific_init = strdup(init_item->valuestring);
+            if (all_pids->specific_init) {
+              for (size_t j = 0; j < strlen(all_pids->specific_init); j++) {
+                if (all_pids->specific_init[j] == ';') {
+                  all_pids->specific_init[j] = '\r';
+                }
+              }
+            }
+          } else {
+            all_pids->specific_init = NULL;
+          }
+
+          cJSON *pids = cJSON_GetObjectItem(car, "pids");
+
+          if (pids) {
+            cJSON *pid;
+
+            cJSON_ArrayForEach(pid, pids) {
+              pid_data2_t *curr_pid = &all_pids->pids[pid_index];
+              cJSON *pid_item = cJSON_GetObjectItem(pid, "pid");
+              cJSON *init_item = cJSON_GetObjectItem(pid, "pid_init");
+
+              curr_pid->init = NULL;
+              if (init_item && init_item->valuestring) {
+                size_t init_len = strlen(init_item->valuestring);
+
+                if (init_len > 0) {
+                  curr_pid->init = (char *)malloc(init_len + 2);
+                  if (curr_pid->init) {
+                    strncpy(curr_pid->init, init_item->valuestring, init_len);
+                    curr_pid->init[init_len] = '\0';
+
+                    // Replace semicolons with carriage returns
+                    for (size_t j = 0; j < init_len; j++) {
+                      if (curr_pid->init[j] == ';') {
+                        curr_pid->init[j] = '\r';
+                      }
                     }
-                    free(g_cando_rules.rules[i].actions);
+                  } else {
+                    ESP_LOGE(TAG, "Failed to allocate memory for init");
+                  }
+                }
+              }
+
+              curr_pid->cmd = NULL;
+
+              if (pid_item && pid_item->valuestring) {
+                size_t cmd_len = strlen(pid_item->valuestring);
+
+                if (cmd_len > 0) {
+                  curr_pid->cmd = (char *)malloc(cmd_len + 2);
+                  if (curr_pid->cmd) {
+                    strncpy(curr_pid->cmd, pid_item->valuestring, cmd_len);
+                    curr_pid->cmd[cmd_len] = '\r';
+                    curr_pid->cmd[cmd_len + 1] = '\0';
+                  } else {
+                    ESP_LOGE(TAG, "Failed to allocate memory for cmd");
+                  }
+                }
+              }
+
+              curr_pid->pid_type = PID_SPECIFIC;
+
+              cJSON *params = cJSON_GetObjectItem(pid, "parameters");
+              if (params) {
+                int param_count = cJSON_GetArraySize(params);
+                curr_pid->parameters_count = param_count; // Set the count
+                curr_pid->parameters =
+                    (parameter_t *)calloc(param_count, sizeof(parameter_t));
+                curr_pid->parameters->period = all_pids->cycle;
+                curr_pid->parameters->timer = 0;
+                curr_pid->parameters->value = FLT_MAX;
+                cJSON *param;
+                int param_index = 0;
+                cJSON_ArrayForEach(param, params) {
+                  cJSON *name_item = cJSON_GetObjectItem(param, "name");
+                  curr_pid->parameters[param_index].name =
+                      name_item ? strdup(name_item->valuestring) : NULL;
+
+                  cJSON *expr_item = cJSON_GetObjectItem(param, "expression");
+                  curr_pid->parameters[param_index].expression =
+                      expr_item ? strdup(expr_item->valuestring) : NULL;
+
+                  cJSON *unit_item = cJSON_GetObjectItem(param, "unit");
+                  curr_pid->parameters[param_index].unit =
+                      unit_item && unit_item->valuestring
+                          ? strdup(unit_item->valuestring)
+                          : strdup("none");
+
+                  cJSON *class_item = cJSON_GetObjectItem(param, "class");
+                  curr_pid->parameters[param_index].class =
+                      class_item && class_item->valuestring
+                          ? strdup(class_item->valuestring)
+                          : strdup("none");
+
+                  cJSON *sensor_type_item =
+                      cJSON_GetObjectItem(param, "sensor_type");
+                  curr_pid->parameters[param_index].sensor_type =
+                      sensor_type_item ? (strcmp(sensor_type_item->valuestring,
+                                                 "binary") == 0
+                                              ? BINARY_SENSOR
+                                              : SENSOR)
+                                       : SENSOR;
+
+                  cJSON *min_item = cJSON_GetObjectItem(param, "min");
+                  curr_pid->parameters[param_index].min =
+                      (min_item && strlen(min_item->valuestring) > 0)
+                          ? atof(min_item->valuestring)
+                          : FLT_MAX;
+
+                  cJSON *max_item = cJSON_GetObjectItem(param, "max");
+                  curr_pid->parameters[param_index].max =
+                      (max_item && strlen(max_item->valuestring) > 0)
+                          ? atof(max_item->valuestring)
+                          : FLT_MAX;
+
+                  cJSON *period_item = cJSON_GetObjectItem(param, "period");
+                  curr_pid->parameters[param_index].period =
+                      period_item ? atof(period_item->valuestring) : FLT_MAX;
+
+                  cJSON *send_to_item = cJSON_GetObjectItem(param, "send_to");
+                  curr_pid->parameters[param_index].destination =
+                      send_to_item ? strdup(send_to_item->valuestring)
+                                   : strdup("none");
+
+                  cJSON *destination_type_item =
+                      cJSON_GetObjectItem(param, "type"); // destination_type
+                  curr_pid->parameters[param_index].destination_type =
+                      destination_type_item &&
+                              destination_type_item->valuestring
+                          ? (strcmp(destination_type_item->valuestring,
+                                    "MQTT_Topic") == 0
+                                 ? DEST_MQTT_TOPIC
+                             : strcmp(destination_type_item->valuestring,
+                                      "MQTT_WallBox") == 0
+                                 ? DEST_MQTT_WALLBOX
+                                 : DEST_DEFAULT)
+                          : DEST_DEFAULT;
+
+                  param_index++;
+                }
+              }
+              pid_index++;
+            }
+          }
+        }
+      }
+      cJSON_Delete(root);
+    }
+    fclose(f);
+  }
+
+  all_pids->pid_count = total_pids;
+
+  return all_pids;
+}
+
+static void autopid_webhook_task(void *pvParameters) {
+  ESP_LOGI(TAG, "Autopid Webhook Task Started");
+  (void)pvParameters;
+
+  uint64_t last_post_time = 0;
+  uint64_t last_wifi_status_time = 0;
+  char *prev_autopid_snapshot = NULL;
+  char *prev_config_snapshot = NULL;
+  char *prev_status_snapshot = NULL;
+
+  vTaskDelay(pdMS_TO_TICKS(5000));
+
+  for (;;) {
+    // Wait for STA connectivity (do NOT block forever on dev_status bits;
+    // wifi_network doesn't set them)
+    if (!wifi_network_is_connected()) {
+      uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
+      if ((now - last_wifi_status_time) >= 10) {
+        last_wifi_status_time = now;
+
+        ha_webhook_config_t webhook_cfg;
+        memset(&webhook_cfg, 0, sizeof(webhook_cfg));
+        if (ha_webhooks_get_config(&webhook_cfg) == ESP_OK &&
+            webhook_cfg.enabled && webhook_cfg.url[0] != '\0') {
+          ha_webhook_config_t upd = webhook_cfg;
+          strlcpy(upd.status, "waiting_wifi", sizeof(upd.status));
+          webhook_format_utc(upd.last_error_time);
+          strlcpy(upd.last_error, "STA not connected - waiting for WiFi",
+                  sizeof(upd.last_error));
+          (void)ha_webhooks_update_cache(&upd);
+        }
+
+        ESP_LOGW(TAG, "Webhook: STA not connected yet (no route to HA)");
+      }
+
+      vTaskDelay(pdMS_TO_TICKS(1000));
+      continue;
+    }
+
+    // Only post in AutoPID protocol mode
+    if (config_server_protocol() == AUTO_PID && wifi_network_is_connected()) {
+      bool send_full_data = true;
+      if (all_pids && all_pids->webhook_data_mode)
+        send_full_data = (strcmp(all_pids->webhook_data_mode, "full") == 0);
+
+      ha_webhook_config_t webhook_cfg;
+      memset(&webhook_cfg, 0, sizeof(webhook_cfg));
+      esp_err_t err = ha_webhooks_get_config(&webhook_cfg);
+
+      if (err == ESP_OK && webhook_cfg.enabled && webhook_cfg.url[0] != '\0') {
+        // Enforce HTTP-only
+        if (strncasecmp(webhook_cfg.url, "http://", 7) != 0) {
+          uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
+          uint32_t interval_sec =
+              (webhook_cfg.interval > 0) ? (uint32_t)webhook_cfg.interval : 60;
+          if ((now - last_post_time) >= interval_sec) {
+            last_post_time = now;
+
+            ha_webhook_config_t upd = webhook_cfg;
+            upd.fail_count++;
+            strlcpy(upd.status, "failed", sizeof(upd.status));
+            webhook_format_utc(upd.last_error_time);
+            strlcpy(upd.last_error, "https not supported: use http://",
+                    sizeof(upd.last_error));
+            (void)ha_webhooks_update_cache(&upd);
+          }
+          vTaskDelay(pdMS_TO_TICKS(1000));
+          continue;
+        }
+
+        uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
+        uint32_t interval_sec =
+            (webhook_cfg.interval > 0) ? (uint32_t)webhook_cfg.interval : 60;
+
+        if ((now - last_post_time) >= interval_sec) {
+          last_post_time = now;
+
+          char *raw_json = autopid_data_read();
+          if (raw_json) {
+            char *url = strdup_heap(webhook_cfg.url);
+            if (url) {
+              ESP_LOGI(TAG, "Webhook: posting %s payload to %s",
+                       send_full_data ? "full" : "diff", url);
+              cJSON *root_obj = cJSON_CreateObject();
+              cJSON *cfg_curr = autopid_build_config_object();
+              char *status_json = config_server_get_status_json(
+                  true /* remove_sensitive_info */);
+              cJSON *sts_curr = status_json ? cJSON_Parse(status_json) : NULL;
+              free(status_json);
+              if (!sts_curr)
+                sts_curr = cJSON_CreateObject();
+
+              // Ensure these are always present for webhook payload consumers
+              if (sts_curr) {
+                cJSON_DeleteItemFromObjectCaseSensitive(sts_curr,
+                                                        "autopid_enabled");
+                cJSON_AddBoolToObject(sts_curr, "autopid_enabled",
+                                      (config_server_protocol() == AUTO_PID));
+
+                uint64_t uptime_sec =
+                    (uint64_t)(esp_timer_get_time() / 1000000ULL);
+                cJSON_DeleteItemFromObjectCaseSensitive(sts_curr, "uptime_sec");
+                cJSON_AddNumberToObject(sts_curr, "uptime_sec",
+                                        (double)uptime_sec);
+              }
+              cJSON *auto_curr = cJSON_Parse(raw_json);
+              if (!auto_curr)
+                auto_curr = cJSON_CreateObject();
+
+              if (root_obj && cfg_curr && sts_curr && auto_curr) {
+                // CONFIG
+                cJSON *cfg_payload = NULL;
+                if (send_full_data) {
+                  cfg_payload = cJSON_Duplicate(cfg_curr, true);
                 } else {
-                    if (g_cando_rules.rules[i].action.popup_message) free(g_cando_rules.rules[i].action.popup_message);
-                    if (g_cando_rules.rules[i].action.steps) free(g_cando_rules.rules[i].action.steps);
+                  cJSON *prev = prev_config_snapshot
+                                    ? cJSON_Parse(prev_config_snapshot)
+                                    : NULL;
+                  cfg_payload = json_object_diff_simple(cfg_curr, prev);
+                  if (prev)
+                    cJSON_Delete(prev);
+
+                  char *snap = cJSON_PrintUnformatted(cfg_curr);
+                  if (snap) {
+                    free(prev_config_snapshot);
+                    prev_config_snapshot = snap;
+                  }
                 }
-                if (g_cando_rules.rules[i].off_actions) {
-                    for (uint8_t a = 0; a < g_cando_rules.rules[i].off_action_count; a++) {
-                        if (g_cando_rules.rules[i].off_actions[a].popup_message) free(g_cando_rules.rules[i].off_actions[a].popup_message);
-                        if (g_cando_rules.rules[i].off_actions[a].steps) free(g_cando_rules.rules[i].off_actions[a].steps);
-                    }
-                    free(g_cando_rules.rules[i].off_actions);
+
+                // STATUS
+                cJSON *sts_payload = NULL;
+                if (send_full_data) {
+                  sts_payload = cJSON_Duplicate(sts_curr, true);
                 } else {
-                    if (g_cando_rules.rules[i].off_action.popup_message) free(g_cando_rules.rules[i].off_action.popup_message);
-                    if (g_cando_rules.rules[i].off_action.steps) free(g_cando_rules.rules[i].off_action.steps);
+                  cJSON *prev = prev_status_snapshot
+                                    ? cJSON_Parse(prev_status_snapshot)
+                                    : NULL;
+                  sts_payload = json_object_diff_simple(sts_curr, prev);
+                  if (prev)
+                    cJSON_Delete(prev);
+
+                  char *snap = cJSON_PrintUnformatted(sts_curr);
+                  if (snap) {
+                    free(prev_status_snapshot);
+                    prev_status_snapshot = snap;
+                  }
                 }
-            }
-            free(g_cando_rules.rules);
-            g_cando_rules.rules = NULL;
-        }
-        g_cando_rules.rule_count = 0;
 
-        if (count > 0) {
-            g_cando_rules.rules = calloc(count, sizeof(cando_rule_t));
-            if (g_cando_rules.rules) {
-                for (int i = 0; i < count; i++) {
-                    cJSON *r = cJSON_GetArrayItem(rules_arr, i);
-                    cando_rule_t *rule = &g_cando_rules.rules[i];
-                    rule->enabled = true;
-                    cJSON *en = cJSON_GetObjectItem(r, "enabled");
-                    if (en && cJSON_IsBool(en)) {
-                        rule->enabled = cJSON_IsTrue(en);
-                    }
+                // AUTOPID_DATA
+                cJSON *auto_payload = NULL;
+                if (send_full_data) {
+                  auto_payload = cJSON_Duplicate(auto_curr, true);
+                } else {
+                  cJSON *prev = prev_autopid_snapshot
+                                    ? cJSON_Parse(prev_autopid_snapshot)
+                                    : NULL;
+                  auto_payload = json_object_diff_simple(auto_curr, prev);
+                  if (prev)
+                    cJSON_Delete(prev);
 
-                    cJSON *name = cJSON_GetObjectItem(r, "name");
-                    if (name && name->valuestring) {
-                        rule->name = strdup(name->valuestring);
-                    }
-
-                    cJSON *ha_exp = cJSON_GetObjectItem(r, "ha_expose");
-                    if (ha_exp && cJSON_IsBool(ha_exp)) {
-                        rule->ha_expose = cJSON_IsTrue(ha_exp);
-                    } else {
-                        rule->ha_expose = false;
-                        for (uint8_t t = 0; t < rule->trigger_count; t++) {
-                            if (rule->triggers[t].source == CANDO_TRIG_MQTT_COMMAND) {
-                                rule->ha_expose = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    cJSON *ha_ic = cJSON_GetObjectItem(r, "ha_icon");
-                    if (ha_ic && ha_ic->valuestring) {
-                        strncpy(rule->ha_icon, ha_ic->valuestring, sizeof(rule->ha_icon) - 1);
-                    }
-
-                    cJSON *rule_em = cJSON_GetObjectItem(r, "exec_mode");
-                    if (rule_em && rule_em->valuestring) {
-                        if (strcmp(rule_em->valuestring, "toggle") == 0) rule->exec_mode = CANDO_EXEC_TOGGLE;
-                        else if (strcmp(rule_em->valuestring, "one_shot") == 0) rule->exec_mode = CANDO_EXEC_ONE_SHOT;
-                        else if (strcmp(rule_em->valuestring, "poll_verify") == 0) rule->exec_mode = CANDO_EXEC_POLL_VERIFY;
-                        else if (strcmp(rule_em->valuestring, "continuous") == 0) rule->exec_mode = CANDO_EXEC_CONTINUOUS;
-                        else rule->exec_mode = CANDO_EXEC_ON_CHANGE;
-                    } else {
-                        rule->exec_mode = CANDO_EXEC_ON_CHANGE;
-                    }
-
-                    cJSON *rev_sec = cJSON_GetObjectItem(r, "auto_revert_sec");
-                    if (rev_sec && cJSON_IsNumber(rev_sec)) {
-                        rule->auto_revert_sec = (uint32_t)rev_sec->valueint;
-                    }
-
-                    cJSON *trig_mode = cJSON_GetObjectItem(r, "trigger_mode");
-                    if (!trig_mode) trig_mode = cJSON_GetObjectItem(r, "triggers_mode");
-                    if (!trig_mode) trig_mode = cJSON_GetObjectItem(r, "trigger_combine");
-                    if (trig_mode && trig_mode->valuestring) {
-                        if (strcmp(trig_mode->valuestring, "all") == 0 ||
-                            strcmp(trig_mode->valuestring, "and") == 0 ||
-                            strcmp(trig_mode->valuestring, "combo") == 0) {
-                            rule->trigger_combine_all = true;
-                        } else {
-                            rule->trigger_combine_all = false;
-                        }
-                    } else {
-                        rule->trigger_combine_all = false;
-                    }
-
-                    /* 1. Parse Triggers (multi or single) */
-                    cJSON *trigs_arr = cJSON_GetObjectItem(r, "triggers");
-                    if (trigs_arr && cJSON_IsArray(trigs_arr) && cJSON_GetArraySize(trigs_arr) > 0) {
-                        int num_trigs = cJSON_GetArraySize(trigs_arr);
-                        rule->triggers = calloc(num_trigs, sizeof(cando_trigger_t));
-                        if (rule->triggers) {
-                            rule->trigger_count = num_trigs;
-                            for (int t = 0; t < num_trigs; t++) {
-                                cJSON *t_item = cJSON_GetArrayItem(trigs_arr, t);
-                                cando_parse_single_trigger(r, t_item, &rule->triggers[t]);
-                            }
-                            rule->trigger = rule->triggers[0];
-                        }
-                    } else {
-                        cJSON *trig_obj = cJSON_GetObjectItem(r, "trigger");
-                        cando_parse_single_trigger(r, trig_obj, &rule->trigger);
-                    }
-
-                    /* 2. Parse Actions (multi or single) */
-                    cJSON *acts_arr = cJSON_GetObjectItem(r, "actions");
-                    if (acts_arr && cJSON_IsArray(acts_arr) && cJSON_GetArraySize(acts_arr) > 0) {
-                        int num_acts = cJSON_GetArraySize(acts_arr);
-                        rule->actions = calloc(num_acts, sizeof(cando_action_t));
-                        if (rule->actions) {
-                            rule->action_count = num_acts;
-                            for (int a = 0; a < num_acts; a++) {
-                                cJSON *a_item = cJSON_GetArrayItem(acts_arr, a);
-                                cando_parse_single_action(r, a_item, &rule->actions[a]);
-                            }
-                            rule->action = rule->actions[0];
-                        }
-                    } else {
-                        cJSON *act_obj = cJSON_GetObjectItem(r, "action");
-                        cando_parse_single_action(r, act_obj, &rule->action);
-                    }
-
-                    /* 3. Parse OFF Actions (for toggle mode) */
-                    cJSON *off_acts_arr = cJSON_GetObjectItem(r, "off_actions");
-                    if (off_acts_arr && cJSON_IsArray(off_acts_arr) && cJSON_GetArraySize(off_acts_arr) > 0) {
-                        int num_off = cJSON_GetArraySize(off_acts_arr);
-                        rule->off_actions = calloc(num_off, sizeof(cando_action_t));
-                        if (rule->off_actions) {
-                            rule->off_action_count = num_off;
-                            for (int a = 0; a < num_off; a++) {
-                                cJSON *off_item = cJSON_GetArrayItem(off_acts_arr, a);
-                                cando_parse_single_action(r, off_item, &rule->off_actions[a]);
-                            }
-                            rule->off_action = rule->off_actions[0];
-                        }
-                    } else {
-                        cJSON *off_act_obj = cJSON_GetObjectItem(r, "off_action");
-                        if (off_act_obj) {
-                            cando_parse_single_action(r, off_act_obj, &rule->off_action);
-                        }
-                    }
-
-                    g_cando_rules.rule_count++;
+                  char *snap = cJSON_PrintUnformatted(auto_curr);
+                  if (snap) {
+                    free(prev_autopid_snapshot);
+                    prev_autopid_snapshot = snap;
+                  }
                 }
-            }
-        } else {
-            cando_init_default_precondition_rule();
-        }
-    } else {
-        cando_init_default_precondition_rule();
-    }
-    cJSON_Delete(root);
-    cando_publish_ha_discovery();
-    return ESP_OK;
-}
 
-esp_err_t cando_save_config(const char *json_str)
-{
-    if (!json_str) return ESP_ERR_INVALID_ARG;
-    FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "w");
-    if (!f) return ESP_FAIL;
-    fputs(json_str, f);
-    fclose(f);
-    cando_load_config();
-    cando_publish_ha_discovery();
-    return ESP_OK;
-}
+                if (cfg_payload && cJSON_GetArraySize(cfg_payload) > 0)
+                  cJSON_AddItemToObject(root_obj, "config", cfg_payload);
+                else if (cfg_payload)
+                  cJSON_Delete(cfg_payload);
 
-char *cando_get_config(void)
-{
-    FILE *f = fopen(FS_MOUNT_POINT "/cando.json", "r");
-    if (!f) {
-        return strdup(DEFAULT_CANDO_JSON);
-    }
-    fseek(f, 0, SEEK_END);
-    long sz = ftell(f);
-    fseek(f, 0, SEEK_SET);
+                if (sts_payload && cJSON_GetArraySize(sts_payload) > 0)
+                  cJSON_AddItemToObject(root_obj, "status", sts_payload);
+                else if (sts_payload)
+                  cJSON_Delete(sts_payload);
 
-    if (sz <= 0) {
-        fclose(f);
-        return strdup(DEFAULT_CANDO_JSON);
-    }
+                if (auto_payload && cJSON_GetArraySize(auto_payload) > 0)
+                  cJSON_AddItemToObject(root_obj, "autopid_data", auto_payload);
+                else if (auto_payload)
+                  cJSON_Delete(auto_payload);
 
-    char *buf = malloc(sz + 1);
-    if (!buf) {
-        fclose(f);
-        return strdup(DEFAULT_CANDO_JSON);
-    }
-    size_t n = fread(buf, 1, sz, f);
-    fclose(f);
-    buf[n] = '\0';
-    return buf;
-}
+                // Always include GPS block (mock for now)
+                // cJSON *gps = cJSON_CreateObject();
+                // if (gps)
+                // {
+                //     cJSON_AddNumberToObject(gps, "latitude", 37.7749);
+                //     cJSON_AddNumberToObject(gps, "longitude", -122.4194);
+                //     cJSON_AddNumberToObject(gps, "accuracy", 10);
+                //     cJSON_AddNumberToObject(gps, "altitude", 25.5);
+                //     cJSON_AddNumberToObject(gps, "speed", 15.3);
+                //     cJSON_AddNumberToObject(gps, "heading", 180);
+                //     cJSON_AddItemToObject(root_obj, "gps", gps);
+                // }
 
-bool cando_test_single_action_json(const char *json_str)
-{
-    if (!json_str || strlen(json_str) == 0) return false;
+                limitJsonDecimalPrecision(root_obj);
 
-    cJSON *root = cJSON_Parse(json_str);
-    if (!root) return false;
+                char *body = cJSON_PrintUnformatted(root_obj);
+                if (body) {
+                  int status = -1;
+                  char snippet[96] = {0};
+                  esp_err_t post_err =
+                      webhook_post_json(url, body, strlen(body), 5000, &status,
+                                        snippet, sizeof(snippet));
+                  bool ok =
+                      (post_err == ESP_OK && status >= 200 && status < 300);
 
-    cando_action_t act;
-    memset(&act, 0, sizeof(cando_action_t));
-    cando_parse_single_action(root, root, &act);
+                  ha_webhook_config_t upd = webhook_cfg;
+                  if (ok) {
+                    upd.success_count++;
+                    upd.retries = 0;
+                    strlcpy(upd.status, "ok", sizeof(upd.status));
+                    webhook_format_utc(upd.last_post);
+                    upd.last_error[0] = '\0';
+                    upd.last_error_time[0] = '\0';
+                    ESP_LOGI(TAG, "Webhook POST success, status %d", status);
+                  } else {
+                    upd.fail_count++;
+                    upd.retries++;
+                    strlcpy(upd.status, "failed", sizeof(upd.status));
+                    webhook_format_utc(upd.last_error_time);
+                    if (post_err != ESP_OK) {
+                      if (snippet[0])
+                        snprintf(upd.last_error, sizeof(upd.last_error),
+                                 "esp_err=%s; resp=%s",
+                                 esp_err_to_name(post_err), snippet);
+                      else
+                        snprintf(upd.last_error, sizeof(upd.last_error),
+                                 "esp_err=%s", esp_err_to_name(post_err));
+                    } else {
+                      if (snippet[0])
+                        snprintf(upd.last_error, sizeof(upd.last_error),
+                                 "http=%d; resp=%s", status, snippet);
+                      else
+                        snprintf(upd.last_error, sizeof(upd.last_error),
+                                 "http=%d", status);
+                    }
+                    ESP_LOGE(TAG, "Webhook POST failed: %s (http=%d)",
+                             esp_err_to_name(post_err), status);
+                  }
+                  (void)ha_webhooks_update_cache(&upd);
 
-    /* 1. Show dashboard track popup if configured (evaluating dynamic tokens e.g. {battery_temp}, {voltage}) */
-    if (act.popup_message && act.popup_message[0] != '\0') {
-        char formatted_msg[128] = {0};
-        cando_format_popup_message(act.popup_message, formatted_msg, sizeof(formatted_msg));
-        track_popup_show(formatted_msg);
-    }
-
-    /* 2. Battery Preconditioning Engine Action */
-    if (act.type == CANDO_ACT_PRECONDITION) {
-        precondition_action_execute(act.precon_mode, act.precon_press);
-    }
-
-    /* 3. Closed-Loop Climate Target Action */
-    if (act.type == CANDO_ACT_CLIMATE_TARGET) {
-        cando_execute_climate_target(act.target_temp_c, act.climate_zone, act.climate_sync_on, act.climate_driver_only);
-    }
-
-    /* 4. Execute sequence steps */
-    if (act.type == CANDO_ACT_CAN_TX || act.type == 0) {
-        for (uint8_t s = 0; s < act.step_count; s++) {
-            cando_sequence_step_t *step = &act.steps[s];
-            uint8_t payload[8] = {0};
-            if (step->tx_len > 0) {
-                memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
-            }
-            if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
-                if (step->roll_mode == CANDO_ROLL_SEQ3) {
-                    payload[step->roll_byte_idx] = (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
-                    step->roll_counter = (step->roll_counter + 1) % 3;
-                } else if (step->roll_mode == CANDO_ROLL_BYTE_INC) {
-                    payload[step->roll_byte_idx] = step->roll_counter++;
-                } else if (step->roll_mode == CANDO_ROLL_NIBBLE_INC) {
-                    payload[step->roll_byte_idx] = (uint8_t)((payload[step->roll_byte_idx] & 0xF0) | (step->roll_counter & 0x0F));
-                    step->roll_counter = (step->roll_counter + 1) & 0x0F;
+                  free(body);
                 }
+              }
+
+              if (root_obj)
+                cJSON_Delete(root_obj);
+              if (cfg_curr)
+                cJSON_Delete(cfg_curr);
+              if (sts_curr)
+                cJSON_Delete(sts_curr);
+              if (auto_curr)
+                cJSON_Delete(auto_curr);
+
+              free(url);
             }
-            twai_message_t tx_msg = {
-                .identifier = step->tx_can_id,
-                .extd = step->is_ext ? 1 : 0,
-                .data_length_code = step->tx_len
-            };
-            memcpy(tx_msg.data, payload, step->tx_len <= 8 ? step->tx_len : 8);
-            can_send((can_bus_t)step->target_bus, &tx_msg, 0);
-            if (step->delay_ms > 0 && s < (act.step_count - 1)) {
-                vTaskDelay(pdMS_TO_TICKS(step->delay_ms));
-            }
+            free(raw_json);
+          }
         }
+      }
     }
 
-    if (act.steps) {
-        free(act.steps);
-    }
-    if (act.popup_message) {
-        free(act.popup_message);
-    }
-
-    cJSON_Delete(root);
-    return true;
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
 }
 
-void cando_get_stats_json(cJSON *root)
-{
-    if (!root) return;
-    cJSON *cando_stats = cJSON_CreateArray();
-    int64_t now_us = esp_timer_get_time();
-    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
-        cJSON *st = cJSON_CreateObject();
-        cJSON_AddNumberToObject(st, "index", i);
-        cJSON_AddStringToObject(st, "name", g_cando_rules.rules[i].name ? g_cando_rules.rules[i].name : "");
-        cJSON_AddNumberToObject(st, "count", g_cando_rules.rules[i].exec_count);
-        cJSON_AddBoolToObject(st, "is_active", g_cando_rules.rules[i].is_active_state);
-        int64_t age_ms = (g_cando_rules.rules[i].last_exec_us > 0) ? (now_us - g_cando_rules.rules[i].last_exec_us) / 1000 : -1;
-        cJSON_AddNumberToObject(st, "age_ms", age_ms);
-        cJSON_AddItemToArray(cando_stats, st);
+void print_pids(all_pids_t *all_pids) {
+  const char *pid_type_str[] = {"Standard", "Custom", "Specific"};
+
+  printf("Total PIDs: %lu\n", all_pids->pid_count);
+  printf("Custom Init: %s\n", all_pids->custom_init);
+  printf("Specific Init: %s\n", all_pids->specific_init);
+
+  for (int i = 0; i < all_pids->pid_count; i++) {
+    pid_data2_t *pid = &all_pids->pids[i];
+    printf("\nPID %d:\n", i + 1);
+    printf("  Type: %s\n", pid_type_str[pid->pid_type]);
+    printf("  Command: %s\n", pid->cmd ? pid->cmd : "NULL");
+    printf("  Init: %s\n", pid->init ? pid->init : "NULL");
+    printf("  Period: %lu\n", pid->period);
+
+    printf("  Parameter Count: %lu\n", pid->parameters_count);
+    if (pid->parameters) {
+      printf("  Parameters:\n");
+      printf("    Name: %s\n",
+             pid->parameters->name ? pid->parameters->name : "NULL");
+      printf("    Expression: %s\n", pid->parameters->expression
+                                         ? pid->parameters->expression
+                                         : "NULL");
+      printf("    Unit: %s\n",
+             pid->parameters->unit ? pid->parameters->unit : "NULL");
+      printf("    Class: %s\n",
+             pid->parameters->class ? pid->parameters->class : "NULL");
+      printf("    Period: %lu\n", pid->parameters->period);
+      printf("     Destination: %s\n", pid->parameters->destination
+                                           ? pid->parameters->destination
+                                           : "NULL");
     }
-    cJSON_AddItemToObject(root, "cando_stats", cando_stats);
-    cJSON_AddNumberToObject(root, "capture_mode", (int)g_cando_rules.capture_mode);
-    cJSON_AddBoolToObject(root, "capture_active", cando_is_capture_active());
+    printf("-------------------\n");
+  }
 }
 
-void cando_set_capture_mode(cando_capture_mode_t mode)
-{
-    g_cando_rules.capture_mode = mode;
-    g_cando_rules.reverse_engineering_mode = (mode == CANDO_CAPTURE_ALWAYS_PAUSED);
-}
+void autopid_init(char *id) {
+  device_id = id;
+  // if(autopid_data.mutex == NULL)
+  // {
+  //     autopid_data.mutex = xSemaphoreCreateMutex();
+  // }
 
-cando_capture_mode_t cando_get_capture_mode(void)
-{
-    return g_cando_rules.capture_mode;
-}
+  if (xautopid_event_group == NULL) {
+    xautopid_event_group = xEventGroupCreate();
+  }
 
-bool cando_is_capture_active(void)
-{
-    if (g_cando_rules.capture_mode == CANDO_CAPTURE_ALWAYS_PAUSED || g_cando_rules.reverse_engineering_mode) {
-        return true;
+  // Set polling disabled bit
+  xEventGroupSetBits(xautopid_event_group, AUTOPID_POLLING_DISABLED_BIT);
+
+  // Set request bit
+  xEventGroupSetBits(xautopid_event_group, AUTOPID_REQUEST_BIT);
+
+  ha_webhooks_init();
+  autopidQueue = xQueueCreate(QUEUE_SIZE, sizeof(response_t));
+  if (autopidQueue == NULL) {
+    ESP_LOGE(TAG, "Failed to create queue");
+    return;
+  }
+
+  // Hook up CAN Do engine initialization
+  cando_init(id);
+
+  all_pids = load_all_pids();
+
+  if (all_pids) {
+    all_pids->mutex = xSemaphoreCreateMutex();
+    // print_pids(all_pids); broken
+    if (!all_pids->mutex) {
+      ESP_LOGE(TAG, "Failed to create all_pids mutex");
+      return;
     }
-    if (g_cando_rules.capture_mode == CANDO_CAPTURE_DISABLED) {
-        return false;
-    }
-    /* Auto mode: Only pause if protocol is SAVVYCAN (GVRET) and TCP socket is actively connected */
-    int8_t proto = config_server_protocol();
-    if (proto == SAVVYCAN && tcp_port_open()) {
-        return true;
-    }
-    return false;
+  } else {
+    ESP_LOGE(TAG, "all_pids is NULL");
+    return;
+  }
+
+  // autopid_load_config(config_str);
+  // // char *desired_car_model = "Toyota Camry";
+  // if(car.car_specific_en && car.selected_car_model != NULL)
+  // {
+  //     autopid_load_car_specific(car.selected_car_model);
+  // }
+  // else
+  // {
+  //     car.pid_count = 0;
+  // }
+  autopid_values_mutex = xSemaphoreCreateMutex();
+
+  if (!autopid_values_mutex) {
+    ESP_LOGE(TAG, "Failed to create autopid_values mutex");
+    return;
+  }
+  autopid_values = malloc(sizeof(autopid_value_t) * all_pids->pid_count);
+  if (!autopid_values) {
+    ESP_LOGE(TAG, "Failed to allocate memory for autopid_values");
+    return;
+  }
+
+  for (int i = 0; i < all_pids->pid_count; i++) {
+    autopid_values[i].name =
+        malloc(strlen(all_pids->pids[i].parameters->name) + 1);
+    strcpy(autopid_values[i].name, all_pids->pids[i].parameters->name);
+    autopid_values[i].value = FLT_MAX;
+    autopid_values[i].sensor_type = all_pids->pids[i].parameters->sensor_type;
+  }
+  autopid_values_count = all_pids->pid_count;
+
+  xTaskCreate(autopid_task, "autopid_task", 5000, (void *)AF_INET, 5, NULL);
+  if (config_server_get_webhook_en()) {
+    xTaskCreate(autopid_webhook_task, "autopid_webhook_task", 6144, NULL, 4,
+                NULL);
+  }
 }
-
-void cando_set_reverse_engineering_mode(bool enable)
-{
-    cando_set_capture_mode(enable ? CANDO_CAPTURE_ALWAYS_PAUSED : CANDO_CAPTURE_AUTO);
-}
-
-bool cando_get_reverse_engineering_mode(void)
-{
-    return cando_is_capture_active();
-}
-
-static void sanitize_ha_identifier(const char *in, char *out, size_t max_len)
-{
-    if (!in || !out || max_len == 0) return;
-    size_t j = 0;
-    for (size_t i = 0; in[i] != '\0' && j < max_len - 1; i++) {
-        char c = in[i];
-        if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
-            out[j++] = c;
-        } else if (c >= 'A' && c <= 'Z') {
-            out[j++] = c + ('a' - 'A');
-        } else if (c == ' ' || c == '_' || c == '-' || c == '.') {
-            if (j > 0 && out[j - 1] != '_') {
-                out[j++] = '_';
-            }
-        }
-    }
-    while (j > 0 && out[j - 1] == '_') j--;
-    out[j] = '\0';
-    if (j == 0) {
-        strncpy(out, "cando_action", max_len - 1);
-        out[max_len - 1] = '\0';
-    }
-}
-
-void cando_publish_ha_discovery(void)
-{
-    if (!mqtt_connected() || !g_cando_rules.rules || g_cando_rules.rule_count == 0) return;
-
-    char dev_id[32] = {0};
-    if (device_id && strlen(device_id) > 0) {
-        strncpy(dev_id, device_id, sizeof(dev_id) - 1);
-    } else {
-        hw_config_get_device_id(dev_id);
-    }
-    if (strlen(dev_id) == 0) strcpy(dev_id, "default");
-
-    for (uint32_t i = 0; i < g_cando_rules.rule_count; i++) {
-        cando_rule_t *rule = &g_cando_rules.rules[i];
-        if (!rule->enabled || !rule->name) continue;
-
-        bool should_expose = rule->ha_expose;
-        const char *trigger_payload = rule->name;
-
-        /* If not explicitly set, auto-expose if any trigger is HA/MQTT */
-        uint8_t t_count = (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-        cando_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers) ? rule->triggers : &rule->trigger;
-        for (uint8_t t = 0; t < t_count; t++) {
-            if (trig_list[t].source == CANDO_TRIG_MQTT_COMMAND) {
-                should_expose = true;
-                if (trig_list[t].mqtt_payload[0] != '\0') {
-                    trigger_payload = trig_list[t].mqtt_payload;
-                }
-                break;
-            }
-        }
-
-        if (!should_expose) continue;
-
-        char sanitized_name[64];
-        sanitize_ha_identifier(rule->name, sanitized_name, sizeof(sanitized_name));
-
-        char disc_topic[192];
-        snprintf(disc_topic, sizeof(disc_topic), "homeassistant/button/wican_%s/cando_%s/config", dev_id, sanitized_name);
-
-        char cmd_topic[128];
-        snprintf(cmd_topic, sizeof(cmd_topic), "wican/%s/cando/trigger", dev_id);
-
-        char uniq_id[160];
-        snprintf(uniq_id, sizeof(uniq_id), "wican_%s_cando_%s", dev_id, sanitized_name);
-
-        const char *icon = (rule->ha_icon[0] != '\0') ? rule->ha_icon : "mdi:car-cog";
-
-        cJSON *root = cJSON_CreateObject();
-        if (!root) continue;
-
-        cJSON_AddStringToObject(root, "name", rule->name);
-        cJSON_AddStringToObject(root, "unique_id", uniq_id);
-        cJSON_AddStringToObject(root, "command_topic", cmd_topic);
-        cJSON_AddStringToObject(root, "payload_press", trigger_payload);
-        cJSON_AddStringToObject(root, "icon", icon);
-
-        cJSON *dev = cJSON_CreateObject();
-        if (dev) {
-            cJSON *ids = cJSON_CreateArray();
-            char dev_identifier[64];
-            snprintf(dev_identifier, sizeof(dev_identifier), "wican_%s", dev_id);
-            cJSON_AddItemToArray(ids, cJSON_CreateString(dev_identifier));
-            cJSON_AddItemToObject(dev, "identifiers", ids);
-
-            char dev_name[64];
-            snprintf(dev_name, sizeof(dev_name), "WiCAN %s", dev_id);
-            cJSON_AddStringToObject(dev, "name", dev_name);
-            cJSON_AddStringToObject(dev, "model", "WiCAN Vehicle Bridge");
-            cJSON_AddStringToObject(dev, "manufacturer", "MeatPi");
-            cJSON_AddItemToObject(root, "device", dev);
-        }
-
-        char *json_str = cJSON_PrintUnformatted(root);
-        if (json_str) {
-            mqtt_publish(disc_topic, json_str, strlen(json_str), 1, 1);
-            ESP_LOGI("CANDO", "Published HA Button discovery for '%s' to %s", rule->name, disc_topic);
-            free(json_str);
-        }
-        cJSON_Delete(root);
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-}
-
-void cando_unpublish_ha_rule(const char *rule_name)
-{
-    if (!rule_name || !mqtt_connected()) return;
-
-    char dev_id[32] = {0};
-    if (device_id && strlen(device_id) > 0) {
-        strncpy(dev_id, device_id, sizeof(dev_id) - 1);
-    } else {
-        hw_config_get_device_id(dev_id);
-    }
-    if (strlen(dev_id) == 0) strcpy(dev_id, "default");
-
-    char sanitized_name[64];
-    sanitize_ha_identifier(rule_name, sanitized_name, sizeof(sanitized_name));
-
-    char disc_topic[192];
-    snprintf(disc_topic, sizeof(disc_topic), "homeassistant/button/wican_%s/cando_%s/config", dev_id, sanitized_name);
-
-    /* Empty payload with retain=1 removes the entity in Home Assistant */
-    mqtt_publish(disc_topic, "", 0, 1, 1);
-    ESP_LOGI("CANDO", "Unpublished HA Button discovery for '%s' (%s)", rule_name, disc_topic);
-}
-

@@ -39,7 +39,6 @@
 #include <sys/unistd.h>
 #include <time.h>
 
-
 #include "cJSON.h"
 #include "config_server.h"
 #include "dev_status.h"
@@ -47,7 +46,6 @@
 #include "time_sync.h"
 #include <stdio.h>
 #include <stdlib.h>
-
 
 #include "esp_eth.h"
 #include "esp_netif.h"
@@ -59,7 +57,6 @@
 #include <esp_wifi.h>
 #include <nvs_flash.h>
 #include <sys/param.h>
-
 
 #include "autopid.h"
 #include "ble.h"
@@ -73,12 +70,11 @@
 #include "ha_webhooks.h"
 #include "hw_config.h"
 #include "precondition.h"
-#include "track_popup.h"
 #include "sleep_mode.h"
+#include "track_popup.h"
 #include "types.h"
 #include "wc_mdns.h"
 #include "wifi_network.h"
-
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WS_CONNECTED_BIT BIT1
@@ -97,34 +93,141 @@ static char *mqtt_canflt_file = NULL;
 
 static char *device_id;
 static const char logo[] = {
-    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"920\" height=\"920\" viewBox=\"0 0 243.417 243.417\">"
-    "<desc>Logo artwork: jumper clamps and a blue badge with pink circle.</desc>"
+    "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"920\" height=\"920\" "
+    "viewBox=\"0 0 243.417 243.417\">"
+    "<desc>Logo artwork: jumper clamps and a blue badge with pink "
+    "circle.</desc>"
     "<g transform=\"translate(31.75 -42.333)\">"
     "<g style=\"fill:#e04700;fill-opacity:1\">"
-    "<path d=\"m177.27 159.234 1.324-3.97m-1.254 9.637 1.29 3.98m-13.265 4.421 13.266-4.42 2.609-.872 1.548.018c5.048.054 20.72.204 20.941-.018.53-.529.265-3.175 0-3.968-.264-.794-.7-1.323-1.323-1.323s-1.323 1.323-1.323 1.323-.699-1.323-1.323-1.323c-.623 0-1.323 1.323-1.323 1.323s-.699-1.323-1.322-1.323-1.323 1.323-1.323 1.323-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323-1.323 1.323-1.323 1.323l-1.323-1.323v-2.646s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323 1.323-1.323 1.323-1.323.699 1.323 1.323 1.323c.623 0 1.323-1.323 1.323-1.323s.699 1.323 1.322 1.323 1.323-1.323 1.323-1.323.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.794 1.852 1.323 1.323c.53-.53.568-4.804 0-5.292-.298-.256-22.49 0-22.49 0l-15.874-5.292-1.323 3.97 15.875 5.29s-.53.762-.53 1.985.53 1.985.53 1.985l-2.577.859-13.298 4.432z\" style=\"fill:#e04700;fill-opacity:1;stroke:#000;stroke-width:.274352;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(-244.999 -199.644)scale(1.82247)\"/>"
+    "<path d=\"m177.27 159.234 1.324-3.97m-1.254 9.637 1.29 3.98m-13.265 4.421 "
+    "13.266-4.42 2.609-.872 1.548.018c5.048.054 20.72.204 "
+    "20.941-.018.53-.529.265-3.175 "
+    "0-3.968-.264-.794-.7-1.323-1.323-1.323s-1.323 1.323-1.323 "
+    "1.323-.699-1.323-1.323-1.323c-.623 0-1.323 1.323-1.323 "
+    "1.323s-.699-1.323-1.322-1.323-1.323 1.323-1.323 "
+    "1.323-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323-1.323 1.323-1.323 "
+    "1.323l-1.323-1.323v-2.646s.7 1.323 1.323 1.323c.624 0 1.323-1.323 "
+    "1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 "
+    "1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323 "
+    "1.323-1.323 1.323-1.323.699 1.323 1.323 1.323c.623 0 1.323-1.323 "
+    "1.323-1.323s.699 1.323 1.322 1.323 1.323-1.323 1.323-1.323.7 1.323 1.323 "
+    "1.323c.624 0 1.323-1.323 1.323-1.323s.794 1.852 1.323 "
+    "1.323c.53-.53.568-4.804 0-5.292-.298-.256-22.49 0-22.49 "
+    "0l-15.874-5.292-1.323 3.97 15.875 5.29s-.53.762-.53 1.985.53 1.985.53 "
+    "1.985l-2.577.859-13.298 4.432z\" "
+    "style=\"fill:#e04700;fill-opacity:1;stroke:#000;stroke-width:.274352;"
+    "stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-"
+    "opacity:1\" transform=\"translate(-244.999 -199.644)scale(1.82247)\"/>"
     "</g>"
-    "<path d=\"M117.228 215.413c-1.984 2.553-8.026 4.187-14.04 6.837l2.41 7.233c9.325-3.618 16.691-5.312 19.568-10.1 3.64-6.06 3.692-15.23-2.646-19.845-5.72-4.165-15.875-3.968-15.875-3.968v7.937s5.653.33 9.26 1.323c4.76 1.312 4.083 7.033 1.323 10.583z\" style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"rotate(180 79.78 169.222)\"/>"
-    "<path d=\"m105.598 229.483-24.236 8.079-2.352-7.255 24.177-8.057z\" style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\" transform=\"rotate(180 79.78 169.222)\"/>"
-    "<path d=\"m81.489 247.89-2.411 7.232 24.11 8.138 2.41-7.256z\" style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"rotate(180 79.78 169.222)\"/>"
+    "<path d=\"M117.228 215.413c-1.984 2.553-8.026 4.187-14.04 6.837l2.41 "
+    "7.233c9.325-3.618 16.691-5.312 19.568-10.1 3.64-6.06 "
+    "3.692-15.23-2.646-19.845-5.72-4.165-15.875-3.968-15.875-3.968v7.937s5.653."
+    "33 9.26 1.323c4.76 1.312 4.083 7.033 1.323 10.583z\" "
+    "style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.25;stroke-"
+    "linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:"
+    "1\" transform=\"rotate(180 79.78 169.222)\"/>"
+    "<path d=\"m105.598 229.483-24.236 8.079-2.352-7.255 24.177-8.057z\" "
+    "style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.264583px;"
+    "stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\" "
+    "transform=\"rotate(180 79.78 169.222)\"/>"
+    "<path d=\"m81.489 247.89-2.411 7.232 24.11 8.138 2.41-7.256z\" "
+    "style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.265;stroke-"
+    "linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:"
+    "1\" transform=\"rotate(180 79.78 169.222)\"/>"
     "<g style=\"fill:#e04700;fill-opacity:1\">"
-    "<path d=\"m177.27 159.234 1.324-3.97m-1.254 9.637 1.29 3.98m-13.265 4.421 13.266-4.42 2.609-.872 1.548.018c5.048.054 20.72.204 20.941-.018.53-.529.265-3.175 0-3.968-.264-.794-.7-1.323-1.323-1.323s-1.323 1.323-1.323 1.323-.699-1.323-1.323-1.323c-.623 0-1.323 1.323-1.323 1.323s-.699-1.323-1.322-1.323-1.323 1.323-1.323 1.323-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323-1.323 1.323-1.323 1.323l-1.323-1.323v-2.646s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323 1.323-1.323 1.323-1.323.699 1.323 1.323 1.323c.623 0 1.323-1.323 1.323-1.323s.699 1.323 1.322 1.323 1.323-1.323 1.323-1.323.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.794 1.852 1.323 1.323c.53-.53.568-4.804 0-5.292-.298-.256-22.49 0-22.49 0l-15.874-5.292-1.323 3.97 15.875 5.29s-.53.762-.53 1.985.53 1.985.53 1.985l-2.577.859-13.298 4.432z\" style=\"fill:#e04700;fill-opacity:1;stroke:#000;stroke-width:.274352;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(424.915 529.05)scale(-1.82247)\"/>"
+    "<path d=\"m177.27 159.234 1.324-3.97m-1.254 9.637 1.29 3.98m-13.265 4.421 "
+    "13.266-4.42 2.609-.872 1.548.018c5.048.054 20.72.204 "
+    "20.941-.018.53-.529.265-3.175 "
+    "0-3.968-.264-.794-.7-1.323-1.323-1.323s-1.323 1.323-1.323 "
+    "1.323-.699-1.323-1.323-1.323c-.623 0-1.323 1.323-1.323 "
+    "1.323s-.699-1.323-1.322-1.323-1.323 1.323-1.323 "
+    "1.323-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323-1.323 1.323-1.323 "
+    "1.323l-1.323-1.323v-2.646s.7 1.323 1.323 1.323c.624 0 1.323-1.323 "
+    "1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 "
+    "1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323 "
+    "1.323-1.323 1.323-1.323.699 1.323 1.323 1.323c.623 0 1.323-1.323 "
+    "1.323-1.323s.699 1.323 1.322 1.323 1.323-1.323 1.323-1.323.7 1.323 1.323 "
+    "1.323c.624 0 1.323-1.323 1.323-1.323s.794 1.852 1.323 "
+    "1.323c.53-.53.568-4.804 0-5.292-.298-.256-22.49 0-22.49 "
+    "0l-15.874-5.292-1.323 3.97 15.875 5.29s-.53.762-.53 1.985.53 1.985.53 "
+    "1.985l-2.577.859-13.298 4.432z\" "
+    "style=\"fill:#e04700;fill-opacity:1;stroke:#000;stroke-width:.274352;"
+    "stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-"
+    "opacity:1\" transform=\"translate(424.915 529.05)scale(-1.82247)\"/>"
     "</g>"
-    "<path d=\"M117.228 215.413c-1.984 2.553-8.026 4.187-14.04 6.837l2.41 7.233c9.325-3.618 16.691-5.312 19.568-10.1 3.64-6.06 3.692-15.23-2.646-19.845-5.72-4.165-15.875-3.968-15.875-3.968v7.937s5.653.33 9.26 1.323c4.76 1.312 4.083 7.033 1.323 10.583z\" style=\"fill:#0e0e0e;fill-opacity:1;stroke:#000;stroke-width:.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(20.355 -9.038)\"/>"
-    "<path d=\"m105.598 229.483-24.236 8.079-2.352-7.255 24.177-8.057z\" style=\"fill:#0e0e0e;fill-opacity:1;stroke:#000;stroke-width:.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\" transform=\"translate(20.355 -9.038)\"/>"
-    "<path d=\"m81.489 247.89-2.411 7.232 24.11 8.138 2.41-7.256z\" style=\"fill:#0e0e0e;fill-opacity:1;stroke:#000;stroke-width:.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(20.355 -9.038)\"/>"
+    "<path d=\"M117.228 215.413c-1.984 2.553-8.026 4.187-14.04 6.837l2.41 "
+    "7.233c9.325-3.618 16.691-5.312 19.568-10.1 3.64-6.06 "
+    "3.692-15.23-2.646-19.845-5.72-4.165-15.875-3.968-15.875-3.968v7.937s5.653."
+    "33 9.26 1.323c4.76 1.312 4.083 7.033 1.323 10.583z\" "
+    "style=\"fill:#0e0e0e;fill-opacity:1;stroke:#000;stroke-width:.25;stroke-"
+    "linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:"
+    "1\" transform=\"translate(20.355 -9.038)\"/>"
+    "<path d=\"m105.598 229.483-24.236 8.079-2.352-7.255 24.177-8.057z\" "
+    "style=\"fill:#0e0e0e;fill-opacity:1;stroke:#000;stroke-width:.264583px;"
+    "stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\" "
+    "transform=\"translate(20.355 -9.038)\"/>"
+    "<path d=\"m81.489 247.89-2.411 7.232 24.11 8.138 2.41-7.256z\" "
+    "style=\"fill:#0e0e0e;fill-opacity:1;stroke:#000;stroke-width:.265;stroke-"
+    "linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:"
+    "1\" transform=\"translate(20.355 -9.038)\"/>"
     "<g style=\"fill:#e04700;fill-opacity:1\">"
-    "<path d=\"m177.27 159.234 1.324-3.97m-1.254 9.637 1.29 3.98m-13.265 4.421 13.266-4.42 2.609-.872 1.548.018c5.048.054 20.72.204 20.941-.018.53-.529.265-3.175 0-3.968-.264-.794-.7-1.323-1.323-1.323s-1.323 1.323-1.323 1.323-.699-1.323-1.323-1.323c-.623 0-1.323 1.323-1.323 1.323s-.699-1.323-1.322-1.323-1.323 1.323-1.323 1.323-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 1.323s-.7-1.323-1.323-1.323-1.323 1.323-1.323 1.323l-1.323-1.323v-2.646s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323 1.323-1.323 1.323-1.323.699 1.323 1.323 1.323c.623 0 1.323-1.323 1.323-1.323s.699 1.323 1.322 1.323 1.323-1.323 1.323-1.323.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.794 1.852 1.323 1.323c.53-.53.568-4.804 0-5.292-.298-.256-22.49 0-22.49 0l-15.874-5.292-1.323 3.97 15.875 5.29s-.53.762-.53 1.985.53 1.985.53 1.985l-2.577.859-13.298 4.432z\" style=\"fill:#e04700;fill-opacity:1;stroke:#000;stroke-width:.274352;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(4.039 -174.227)scale(1.82247)\"/>"
+    "<path d=\"m177.27 159.234 1.324-3.97m-1.254 9.637 1.29 3.98m-13.265 4.421 "
+    "13.266-4.42 2.609-.872 1.548.018c5.048.054 20.72.204 "
+    "20.941-.018.53-.529.265-3.175 "
+    "0-3.968-.264-.794-.7-1.323-1.323-1.323s-1.323 1.323-1.323 "
+    "1.323-.699-1.323-1.323-1.323c-.623 0-1.323 1.323-1.323 "
+    "1.323s-.699-1.323-1.322-1.323-1.323 1.323-1.323 "
+    "1.323-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323c-.624 0-1.323 1.323-1.323 "
+    "1.323s-.7-1.323-1.323-1.323-1.323 1.323-1.323 "
+    "1.323l-1.323-1.323v-2.646s.7 1.323 1.323 1.323c.624 0 1.323-1.323 "
+    "1.323-1.323s.7 1.323 1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 "
+    "1.323 1.323c.624 0 1.323-1.323 1.323-1.323s.7 1.323 1.323 1.323 "
+    "1.323-1.323 1.323-1.323.699 1.323 1.323 1.323c.623 0 1.323-1.323 "
+    "1.323-1.323s.699 1.323 1.322 1.323 1.323-1.323 1.323-1.323.7 1.323 1.323 "
+    "1.323c.624 0 1.323-1.323 1.323-1.323s.794 1.852 1.323 "
+    "1.323c.53-.53.568-4.804 0-5.292-.298-.256-22.49 0-22.49 "
+    "0l-15.874-5.292-1.323 3.97 15.875 5.29s-.53.762-.53 1.985.53 1.985.53 "
+    "1.985l-2.577.859-13.298 4.432z\" "
+    "style=\"fill:#e04700;fill-opacity:1;stroke:#000;stroke-width:.274352;"
+    "stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-"
+    "opacity:1\" transform=\"translate(4.039 -174.227)scale(1.82247)\"/>"
     "</g>"
-    "<path d=\"M74.083 111.125s.355-3.328 2.646-5.292L74.32 98.6c-9.325 3.619-8.173 12.525-8.173 12.525V127h7.937z\" style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(228.682 35.778)\"/>"
-    "<path d=\"m74.318 98.6 24.236-8.078 2.352 7.255-24.177 8.056z\" style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\" transform=\"translate(228.682 35.778)\"/>"
-    "<path d=\"m98.428 80.194 2.411-7.233-24.11-8.138-2.41 7.257Z\" style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1\" transform=\"translate(228.682 35.778)\"/>"
-    "<path d=\"M52.917 127H127v74.083H52.917z\" style=\"fill:#282681;fill-opacity:1;stroke:#000;stroke-width:.705556;stroke-linecap:round;stroke-dasharray:.746707,.186677;stroke-opacity:1\"/>"
-    "<circle cx=\"89.958\" cy=\"164.042\" r=\"15.875\" style=\"fill:#de51d9;fill-opacity:1;stroke:#000;stroke-width:.705556;stroke-linecap:round;stroke-dasharray:.746707,.186677;stroke-opacity:1\"/>"
-    "<path d=\"M316.247 411.497H569V664.25H316.247z\" style=\"fill:none;fill-opacity:1;stroke:#000;stroke-width:5;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1\"/>"
-    "<circle cx=\"89.958\" cy=\"164.042\" r=\"119.536\" style=\"fill:none;fill-opacity:1;stroke:#000;stroke-width:4.34413;stroke-linecap:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1\"/>"
+    "<path d=\"M74.083 111.125s.355-3.328 2.646-5.292L74.32 98.6c-9.325 "
+    "3.619-8.173 12.525-8.173 12.525V127h7.937z\" "
+    "style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.25;stroke-"
+    "linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:"
+    "1\" transform=\"translate(228.682 35.778)\"/>"
+    "<path d=\"m74.318 98.6 24.236-8.078 2.352 7.255-24.177 8.056z\" "
+    "style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.264583px;"
+    "stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\" "
+    "transform=\"translate(228.682 35.778)\"/>"
+    "<path d=\"m98.428 80.194 2.411-7.233-24.11-8.138-2.41 7.257Z\" "
+    "style=\"fill:#e00000;fill-opacity:1;stroke:#000;stroke-width:.265;stroke-"
+    "linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:"
+    "1\" transform=\"translate(228.682 35.778)\"/>"
+    "<path d=\"M52.917 127H127v74.083H52.917z\" "
+    "style=\"fill:#282681;fill-opacity:1;stroke:#000;stroke-width:.705556;"
+    "stroke-linecap:round;stroke-dasharray:.746707,.186677;stroke-opacity:1\"/>"
+    "<circle cx=\"89.958\" cy=\"164.042\" r=\"15.875\" "
+    "style=\"fill:#de51d9;fill-opacity:1;stroke:#000;stroke-width:.705556;"
+    "stroke-linecap:round;stroke-dasharray:.746707,.186677;stroke-opacity:1\"/>"
+    "<path d=\"M316.247 411.497H569V664.25H316.247z\" "
+    "style=\"fill:none;fill-opacity:1;stroke:#000;stroke-width:5;stroke-"
+    "linecap:round;stroke-dasharray:none;stroke-opacity:1\"/>"
+    "<circle cx=\"89.958\" cy=\"164.042\" r=\"119.536\" "
+    "style=\"fill:none;fill-opacity:1;stroke:#000;stroke-width:4.34413;stroke-"
+    "linecap:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:"
+    "1\"/>"
     "</g>"
-    "</svg>"
-};
+    "</svg>"};
 
 extern const unsigned char
     homepage_start[] asm("_binary_homepage_html_gz_start");
@@ -396,7 +499,8 @@ int32_t config_server_get_port(void) {
 static esp_err_t index_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/html");
   httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
-  httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+  httpd_resp_set_hdr(req, "Cache-Control",
+                     "no-cache, no-store, must-revalidate");
   httpd_resp_set_hdr(req, "Pragma", "no-cache");
   httpd_resp_set_hdr(req, "Expires", "0");
 
@@ -427,12 +531,6 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
     return ESP_ERR_NO_MEM;
   }
 
-  // FIX: httpd_req_recv() behaves like TCP recv() — it may return fewer bytes
-  // than requested in a single call. The original code called it once and then
-  // wrote buf_size bytes regardless, producing a corrupt / truncated JSON and
-  // causing config_server_load_cfg() to silently keep stale values.
-  // Loop until all content_len bytes have been received, matching the pattern
-  // used correctly in store_auto_data_handler().
   size_t cur_len = 0;
   while (cur_len < buf_size) {
     int received = httpd_req_recv(req, buf + cur_len, buf_size - cur_len);
@@ -440,8 +538,8 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
       if (received == HTTPD_SOCK_ERR_TIMEOUT) {
         continue; // transient timeout — keep waiting
       }
-      ESP_LOGE(TAG, "store_config: recv error %d after %d/%d bytes",
-               received, cur_len, buf_size);
+      ESP_LOGE(TAG, "store_config: recv error %d after %d/%d bytes", received,
+               cur_len, buf_size);
       free(buf);
       httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                           "Failed to receive config data");
@@ -451,8 +549,32 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   }
   buf[buf_size] = '\0';
 
-  const char *final_path = FS_MOUNT_POINT "/config.json";
+  // Save previous configuration state before attempting load/validation
+  device_config_t *prev_cfg = malloc(sizeof(device_config_t));
+  if (!prev_cfg) {
+    ESP_LOGE(TAG, "store_config: failed to allocate memory for prev_cfg");
+    free(buf);
+    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                        "Memory allocation failed");
+    return ESP_ERR_NO_MEM;
+  }
+  *prev_cfg = device_config;
 
+  // Test load the config to validate it before writing to disk or keeping
+  // partial state
+  if (!config_server_load_cfg(buf)) {
+    // Validation failed: restore previous device_config state and reject
+    device_config = *prev_cfg;
+    free(prev_cfg);
+    free(buf);
+    httpd_resp_send_err(
+        req, HTTPD_400_BAD_REQUEST,
+        "Config validation failed - check field lengths or required fields");
+    return ESP_FAIL;
+  }
+
+  // Validation succeeded. Now persist to storage.
+  const char *final_path = FS_MOUNT_POINT "/config.json";
   FILE *f = fopen(final_path, "w");
   bool save_success = false;
   if (f) {
@@ -464,48 +586,25 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
     fclose(f);
   }
 
-  free(buf);
-
   if (!save_success) {
+    device_config = *prev_cfg;
+    free(prev_cfg);
+    free(buf);
     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                         "Failed to write config file");
     return ESP_FAIL;
   }
 
-  // Save previous structural parameters before reloading cfg into RAM.
-  // Allocate on heap to avoid exhausting httpd task stack (device_config_t is ~1.7KB).
-  device_config_t *prev_cfg = malloc(sizeof(device_config_t));
-  if (!prev_cfg) {
-    ESP_LOGE(TAG, "store_config: failed to allocate memory for prev_cfg");
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Memory allocation failed");
-    return ESP_ERR_NO_MEM;
-  }
-  *prev_cfg = device_config;
+  free(device_config_file);
+  device_config_file = buf;
 
-  // Read newly saved config into RAM buffer
-  FILE *rf = fopen(final_path, "r");
-  if (rf) {
-    fseek(rf, 0, SEEK_END);
-    long sz = ftell(rf);
-    fseek(rf, 0, SEEK_SET);
-    if (sz > 0) {
-      free(device_config_file);
-      device_config_file = malloc(sz + 1);
-      if (device_config_file) {
-        fread(device_config_file, 1, sz, rf);
-        device_config_file[sz] = '\0';
-        if (!config_server_load_cfg(device_config_file)) {
-          fclose(rf);
-          free(prev_cfg);
-          httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                              "Config validation failed - check field lengths");
-          return ESP_FAIL;
-        }
-      }
-    }
-    fclose(rf);
-  }
-
+  // Check if sleep parameters changed (to avoid unnecessary re-initialization
+  // and resource leaks)
+  bool sleep_changed =
+      (strcmp(prev_cfg->sleep_status, device_config.sleep_status) != 0) ||
+      (strcmp(prev_cfg->sleep_volt, device_config.sleep_volt) != 0) ||
+      (strcmp(prev_cfg->wakeup_volt, device_config.wakeup_volt) != 0) ||
+      (strcmp(prev_cfg->sleep_time, device_config.sleep_time) != 0);
 
   bool requires_reboot =
       (strcmp(prev_cfg->wifi_mode, device_config.wifi_mode) != 0) ||
@@ -537,19 +636,19 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   if (requires_reboot) {
     const char *resp_str = "Configuration saved! Rebooting...";
     httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
-    // FIX: give the HTTP stack ~200 ms to flush the response before the
-    // device resets; without this the TCP connection is RST mid-close and
-    // the browser shows ERR_CONNECTION_RESET instead of the success text.
     vTaskDelay(pdMS_TO_TICKS(200));
     xTimerStart(xrestartTimer, 0);
   } else {
-    // Hot-reload dynamic subsystems
-    if (config_server_get_sleep_config() == 1) {
-      float sleep_voltage = 13.1f;
-      config_server_get_sleep_volt(&sleep_voltage);
-      sleep_mode_init(1, sleep_voltage);
-    } else {
-      sleep_mode_init(0, 13.1f);
+    // Hot-reload dynamic subsystems only if sleep configuration actually
+    // changed
+    if (sleep_changed) {
+      if (config_server_get_sleep_config() == 1) {
+        float sleep_voltage = 13.1f;
+        config_server_get_sleep_volt(&sleep_voltage);
+        sleep_mode_init(1, sleep_voltage);
+      } else {
+        sleep_mode_init(0, 13.1f);
+      }
     }
 
     const char *resp_str = "Configuration updated successfully!";
@@ -559,55 +658,48 @@ static esp_err_t store_config_handler(httpd_req_t *req) {
   return ESP_OK;
 }
 
-static esp_err_t track_popup_handler(httpd_req_t *req)
-{
-    if (req->content_len == 0U)
-    {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
-                            "Track popup text cannot be empty");
-        return ESP_FAIL;
-    }
+static esp_err_t track_popup_handler(httpd_req_t *req) {
+  if (req->content_len == 0U) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+                        "Track popup text cannot be empty");
+    return ESP_FAIL;
+  }
 
-    if (req->content_len > TRACK_POPUP_MAX_TEXT_UTF8_BYTES)
-    {
-        httpd_resp_send_err(req, HTTPD_413_CONTENT_TOO_LARGE,
-                            "Track popup text is too long");
-        return ESP_FAIL;
-    }
+  if (req->content_len > TRACK_POPUP_MAX_TEXT_UTF8_BYTES) {
+    httpd_resp_send_err(req, HTTPD_413_CONTENT_TOO_LARGE,
+                        "Track popup text is too long");
+    return ESP_FAIL;
+  }
 
-    char text[TRACK_POPUP_MAX_TEXT_UTF8_BYTES + 1U];
-    size_t received = 0U;
-    while (received < req->content_len)
-    {
-        int chunk_size = httpd_req_recv(req, text + received,
-                                        req->content_len - received);
-        if (chunk_size <= 0)
-        {
-            httpd_resp_send_err(req, HTTPD_408_REQ_TIMEOUT,
-                                "Failed to receive track popup text");
-            return ESP_FAIL;
-        }
-        received += (size_t)chunk_size;
+  char text[TRACK_POPUP_MAX_TEXT_UTF8_BYTES + 1U];
+  size_t received = 0U;
+  while (received < req->content_len) {
+    int chunk_size =
+        httpd_req_recv(req, text + received, req->content_len - received);
+    if (chunk_size <= 0) {
+      httpd_resp_send_err(req, HTTPD_408_REQ_TIMEOUT,
+                          "Failed to receive track popup text");
+      return ESP_FAIL;
     }
+    received += (size_t)chunk_size;
+  }
 
-    // track_popup_show accepts a NUL-terminated string, so reject embedded NUL
-    // bytes so we don't only show part of the requested string
-    if (memchr(text, '\0', received) != NULL)
-    {
-        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
-                            "Track popup text contains a NUL byte");
-        return ESP_FAIL;
-    }
-    text[received] = '\0';
+  // track_popup_show accepts a NUL-terminated string, so reject embedded NUL
+  // bytes so we don't only show part of the requested string
+  if (memchr(text, '\0', received) != NULL) {
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+                        "Track popup text contains a NUL byte");
+    return ESP_FAIL;
+  }
+  text[received] = '\0';
 
-    if (!track_popup_show(text))
-    {
-        httpd_resp_set_status(req, "503 Service Unavailable");
-        return httpd_resp_send(req, "Track popup is busy or text is too long",
-                               HTTPD_RESP_USE_STRLEN);
-    }
+  if (!track_popup_show(text)) {
+    httpd_resp_set_status(req, "503 Service Unavailable");
+    return httpd_resp_send(req, "Track popup is busy or text is too long",
+                           HTTPD_RESP_USE_STRLEN);
+  }
 
-    return httpd_resp_send(req, "Track popup queued", HTTPD_RESP_USE_STRLEN);
+  return httpd_resp_send(req, "Track popup queued", HTTPD_RESP_USE_STRLEN);
 }
 
 static esp_err_t store_canflt_handler(httpd_req_t *req) {
@@ -2137,12 +2229,10 @@ static const httpd_uri_t store_auto_data_uri = {
     /* Let's pass response string in user
      * context to demonstrate it's usage */
     .user_ctx = NULL};
-static const httpd_uri_t track_popup = {
-    .uri       = "/track_popup",
-    .method    = HTTP_POST,
-    .handler   = track_popup_handler,
-    .user_ctx  = NULL
-};
+static const httpd_uri_t track_popup = {.uri = "/track_popup",
+                                        .method = HTTP_POST,
+                                        .handler = track_popup_handler,
+                                        .user_ctx = NULL};
 static const httpd_uri_t upload_car_data = {
     .uri =
         "/upload/car_data.json", // Match all URIs of type /upload/path/to/file
@@ -2859,11 +2949,12 @@ static bool config_server_load_cfg(char *cfg) {
   return true;
 
 config_error:
-  ESP_LOGE(TAG, "config_server_load_cfg: validation failed — field too long or missing");
+  ESP_LOGE(
+      TAG,
+      "config_server_load_cfg: validation failed — field too long or missing");
   cJSON_Delete(root);
   return false;
 }
-
 
 void config_server_wifi_connected(bool flag) {
   if (flag) {
@@ -2938,7 +3029,7 @@ static httpd_handle_t config_server_init(void) {
       ESP_LOGI(TAG, "Config file does not exist, load default");
       f = fopen(FS_MOUNT_POINT "/config.json", "w");
       //			fwrite(device_config_default , 1 ,
-      //sizeof(device_config_default) , f );
+      // sizeof(device_config_default) , f );
       fprintf(f, device_config_default, (char *)device_id, (char *)device_id,
               (char *)device_id);
       fclose(f);

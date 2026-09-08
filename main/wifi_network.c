@@ -112,6 +112,9 @@ static void wifi_network_event_handler(void *arg, esp_event_base_t event_base,
 
       config_server_set_sta_ip(sta_ip);
       s_retry_num = 0;
+      // FIX: Reset fallback index back to preferred network (0) upon successful
+      // connection
+      s_current_net_idx = 0;
 
       ESP_LOGI(WIFI_TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
       if (ap_auto_disable) {
@@ -222,16 +225,28 @@ static void wifi_conn_task(void *pvParameters) {
         s_retry_num = 0;
       }
 
+      // FIX: Atomically copy/snapshot the network entry to avoid race
+      // conditions with concurrent hot-reloads from configuration saves.
+      sta_network_entry_t net_snapshot;
+      memset(&net_snapshot, 0, sizeof(net_snapshot));
+
       const sta_network_entry_t *net =
           config_server_get_sta_network(s_current_net_idx);
-      if (net && strlen(net->ssid) > 0) {
+      if (net) {
+        strncpy(net_snapshot.ssid, net->ssid, sizeof(net_snapshot.ssid) - 1);
+        strncpy(net_snapshot.pass, net->pass, sizeof(net_snapshot.pass) - 1);
+        strncpy(net_snapshot.security, net->security,
+                sizeof(net_snapshot.security) - 1);
+      }
+
+      if (strlen(net_snapshot.ssid) > 0) {
         wifi_config_t wifi_cfg;
         memset(&wifi_cfg, 0, sizeof(wifi_cfg));
-        strncpy((char *)wifi_cfg.sta.ssid, net->ssid,
+        strncpy((char *)wifi_cfg.sta.ssid, net_snapshot.ssid,
                 sizeof(wifi_cfg.sta.ssid) - 1);
-        strncpy((char *)wifi_cfg.sta.password, net->pass,
+        strncpy((char *)wifi_cfg.sta.password, net_snapshot.pass,
                 sizeof(wifi_cfg.sta.password) - 1);
-        if (strcasecmp(net->security, "wpa3") == 0) {
+        if (strcasecmp(net_snapshot.security, "wpa3") == 0) {
           wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA3_PSK;
         } else {
           wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
@@ -244,18 +259,27 @@ static void wifi_conn_task(void *pvParameters) {
         wifi_cfg.sta.pmf_cfg.required = false;
         esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg);
         ESP_LOGI(WIFI_TAG, "Trying Wi-Fi Network [%d/%d]: '%s'...",
-                 s_current_net_idx + 1, net_count, net->ssid);
+                 s_current_net_idx + 1, net_count, net_snapshot.ssid);
       }
     } else {
       wifi_config_t wifi_cfg;
       memset(&wifi_cfg, 0, sizeof(wifi_cfg));
+
+      sta_network_entry_t net_snapshot;
+      memset(&net_snapshot, 0, sizeof(net_snapshot));
+
       const sta_network_entry_t *net = config_server_get_sta_network(0);
       if (net && strlen(net->ssid) > 0) {
-        strncpy((char *)wifi_cfg.sta.ssid, net->ssid,
+        strncpy(net_snapshot.ssid, net->ssid, sizeof(net_snapshot.ssid) - 1);
+        strncpy(net_snapshot.pass, net->pass, sizeof(net_snapshot.pass) - 1);
+        strncpy(net_snapshot.security, net->security,
+                sizeof(net_snapshot.security) - 1);
+
+        strncpy((char *)wifi_cfg.sta.ssid, net_snapshot.ssid,
                 sizeof(wifi_cfg.sta.ssid) - 1);
-        strncpy((char *)wifi_cfg.sta.password, net->pass,
+        strncpy((char *)wifi_cfg.sta.password, net_snapshot.pass,
                 sizeof(wifi_cfg.sta.password) - 1);
-        if (strcasecmp(net->security, "wpa3") == 0) {
+        if (strcasecmp(net_snapshot.security, "wpa3") == 0) {
           wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA3_PSK;
         } else {
           wifi_cfg.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;

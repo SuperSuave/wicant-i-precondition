@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1024">
+    <title>WiCAN</title>
+    <script>
+        (function () {
+            try {
+                const t = localStorage.getItem("wican_theme");
+                if (t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) || (t === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                } else if (t === "light") {
+                    document.documentElement.setAttribute("data-theme", "light");
+                }
+            } catch (e) { }
+        })();
+    </script>
+
+    <!-- BUILD_CSS -->
+
+</head>
+
+<body onload="Load();">
+
+    <!-- BUILD_ICONS -->
+
+    <div id="notification" class="notification-container"></div>
+
+    <div class="sidebar">
+        <embed src="/logo.svg" class="logo" />
+        <button class="tablinks" onclick="openTab(event, 'dashboard_tab')" id="defaultOpen">
+            <svg class="icon">
+                <use href="#icon-dashboard" />
+            </svg> <b>Dashboard</b>
+        </button>
+        <button class="tablinks" onclick="openTab(event, 'automate')">
+            <svg class="icon">
+                <use href="#icon-egmp-cando" />
+            </svg> <b>CAN Do</b>
+        </button>
+        <button class="tablinks" onclick="openTab(event, 'autopid_tab')">
+            <svg class="icon">
+                <use href="#icon-telemetry" />
+            </svg> <b>OBD &amp; Telemetry</b>
+        </button>
+        <button class="tablinks" onclick="openTab(event, 'monitor')">
+            <svg class="icon">
+                <use href="#icon-sniffer" />
+            </svg> <b>CAN Sniffer</b>
+        </button>
+        <button class="tablinks" onclick="openTab(event, 'connectivity_tab')">
+            <svg class="icon">
+                <use href="#icon-network" />
+            </svg> <b>Connectivity</b>
+        </button>
+        <button class="tablinks" onclick="openTab(event, 'can_hardware_tab')">
+            <svg class="icon">
+                <use href="#icon-hardware" />
+            </svg> <b>CAN &amp; Hardware</b>
+        </button>
+        <button class="tablinks" onclick="openTab(event, 'system_tab')">
+            <svg class="icon">
+                <use href="#icon-settings" />
+            </svg> <b>System &amp; Power</b>
+        </button>
+
+        <div style="padding: 1rem 1.2rem; margin-top: auto; border-top: 1px solid var(--border-color);">
+            <label for="theme_select"
+                style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px; text-transform: uppercase;">Theme:</label>
+            <select id="theme_select" onchange="setAppTheme(this.value);"
+                style="padding: 5px 8px; font-size: 0.8rem; border-radius: 6px;">
+                <option value="system">System Auto</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- 1. LIVE DASHBOARD TAB -->
+        <div id="dashboard_tab" class="tabcontent">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
+                <div>
+                    <div class="section-title" style="margin: 0; border-bottom: none; padding-bottom: 0;">Live Dashboard
+                    </div>
+                    <div class="dash-meta-text" style="margin-top: 2px;">Real-time vehicle telemetry, power, and
+                        connectivity overview</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                    <span id="dash_profile_pill" class="dash-status"> All Gen5W</span>
+                    <span id="dash_time_pill" class="dash-status" style="margin-right: 8px;"> --:--:--</span>
+                    <button type="button" id="dash_edit_btn" onclick="toggleDashboardEditMode()"
+                        class="dash-outline-btn" style="padding: 4px 12px; font-size: 0.8rem; height: auto;"
+                        title="Customize widgets">
+                        <svg class="icon">
+                            <use href="#icon-edit" />
+                        </svg> Customize
+                    </button>
+                    <button type="button"
+                        onclick="checkStatus(); showNotification('Refreshing dashboard telemetry...', 'blue', 1500);"
+                        class="dash-action-btn" style="padding: 4px 12px; font-size: 0.8rem; height: auto;">
+                        <svg class="icon">
+                            <use href="#icon-refresh" />
+                        </svg> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Edit Toolbar -->
+            <div id="dash_edit_toolbar" class="settings-card"
+                style="display: none; align-items: center; justify-content: space-between; padding: 10px 16px; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.6rem;">
+                <div
+                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); display: flex; align-items: center; gap: 8px;">
+                    <svg class="icon">
+                        <use href="#icon-edit" />
+                    </svg> <span>Customize Dashboard</span>
+                    <span
+                        style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; margin-left: 8px;">Drag,
+                        reorder, or remove widgets</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" onclick="resetDashboardWidgets()" class="dash-outline-btn"
+                        style="padding: 4px 12px; font-size: 0.8rem;">
+                        <svg class="icon">
+                            <use href="#icon-refresh" />
+                        </svg> Reset Layout
+                    </button>
+                    <button type="button" onclick="toggleDashboardEditMode()" class="dash-action-btn"
+                        style="padding: 4px 16px; font-size: 0.8rem;">
+                        Done Editing
+                    </button>
+                </div>
+            </div>
+
+            <div id="dash_grid_container" class="dash-grid"></div>
+        </div>
+
+        <!-- 2. CAN DO AUTOMATIONS TAB -->
+        <div id="automate" class="tabcontent">
+            <div class="section-title cando-header-title">
+                <svg class="cando-header-icon">
+                    <use href="#icon-egmp-cando" />
+                </svg>
+                <span>CAN Do Automations</span>
+            </div>
+            <div style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; background: var(--md-sys-color-surface-container-low); padding: 0.75rem 1.1rem; border-radius: var(--m3-shape-lg); border: 1px solid var(--border-color);">
+                <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; flex-grow: 1; max-width: 480px;">
+                    <div style="position: relative; width: 100%; display: flex; align-items: center;">
+                        <svg style="position: absolute; left: 12px; width: 16px; height: 16px; fill: var(--text-muted); pointer-events: none;"><use href="#icon-sniffer"/></svg>
+                        <input type="text" id="cando_search_input" placeholder="Search automations by name, trigger, or action..."
+                            oninput="filterCandoRules(this.value)"
+                            style="width: 100%; padding: 8px 12px 8px 36px; border-radius: var(--m3-shape-full); border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); outline: none; box-sizing: border-box;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="dash-action-btn" onclick="addCandoRuleUI({}, false, true)" style="padding: 6px 16px; font-size: 0.85rem; font-weight: 600;">
+                        <svg class="icon" style="width: 16px; height: 16px;"><use href="#icon-plus"/></svg> Add Automation
+                    </button>
+
+                    <button type="button" class="system-button cando-btn-more" onclick="showAutomationsGlobalMenu(this, event)" style="width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;" title="More options and global settings">
+                        ⋮
+                    </button>
+                </div>
+            </div>
+            <div id="cando_rules_container"></div>
+
+            
+        </div>
+
+        <!-- 3. OBD & TELEMETRY TAB -->
+        <div id="autopid_tab" class="tabcontent">
+            <div class="section-title">Home Assistant &amp; Webhooks</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <span class="settings-title">Enable WebHook</span>
+                        <span class="settings-desc">Send telemetry data to Home Assistant API.</span>
+                    </div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="webhook_en" onchange="enableAutoStoreButton();submit_enable();">
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">WebHook URL</span></div>
+                    <div class="settings-control"><input type="text" id="webhook_url"
+                            placeholder="http://homeassistant.local:8123/..."
+                            oninput="enableAutoStoreButton();submit_enable();"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Post Interval (s)</span></div>
+                    <div class="settings-control"><input type="number" id="webhook_interval" placeholder="60" min="1"
+                            max="86400" oninput="enableAutoStoreButton();submit_enable();"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Data Payload Mode</span></div>
+                    <div class="settings-control">
+                        <select id="webhook_data_mode" onchange="enableAutoStoreButton();submit_enable();">
+                            <option value="full">Full Data</option>
+                            <option value="changed">Changed Values Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="background: var(--md-sys-color-surface-container); border: 1px dashed var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                <div style="display: flex; gap: 16px; font-weight: 600;">
+                    <span id="webhook_stat_success" style="color: #10b981;">OK: 0</span>
+                    <span id="webhook_stat_fail" style="color: #ef4444;">Fail: 0</span>
+                    <span id="webhook_stat_status" style="color: var(--text-muted);">Status: -</span>
+                </div>
+                <button type="button" id="webhook_error_details_btn" onclick="toggleWebhookErrorDetails();"
+                    class="dash-outline-btn" style="padding: 4px 12px; font-size: 0.75rem;" disabled>View Last
+                    Error</button>
+            </div>
+            <div id="webhook_error_details" class="console-window"
+                style="display:none; height: auto; min-height: 60px; margin-bottom: 1.5rem;"></div>
+
+            <div class="section-title">User Destinations &amp; Grouping</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Enable Grouping</span></div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="grouping"
+                                onchange="toggleDestinationAndCycle(); toggleSendToFields(); enableAutoStoreButton();submit_enable();">
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Destination Type</span></div>
+                    <div class="settings-control">
+                        <select id="group_dest_type" onchange="enableAutoStoreButton();submit_enable();">
+                            <option value="Default">Default</option>
+                            <option value="MQTT_Topic">MQTT Topic</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Destination Address</span></div>
+                    <div class="settings-control"><input type="text" id="destination" disabled
+                            oninput="enableAutoStoreButton();submit_enable();"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Cycle Time (ms)</span></div>
+                    <div class="settings-control"><input type="number" id="group_cycle" value="5000" disabled
+                            oninput="enableAutoStoreButton();submit_enable();"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Enable Polling</span></div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="autopid_polling"
+                                onchange="enableAutoStoreButton();submit_enable();" checked>
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="automate_table">
+                <div class="pid-entries"></div>
+            </div>
+            <div class="button-group" style="margin-top: 1rem; display: flex; gap: 12px;">
+                <button onclick="addRowAutoTable()" class="dash-outline-btn"><svg class="icon">
+                        <use href="#icon-plus" />
+                    </svg> New Custom PID</button>
+                <button id="custom_pid_store" onclick="storeAutoTableData()" class="dash-action-btn store" disabled>Save
+                    Configuration</button>
+            </div>
+        </div>
+
+        <!-- 4. CAN SNIFFER TAB -->
+        <div id="monitor" class="tabcontent">
+            <div class="section-title">CAN Monitor &amp; Sniffer</div>
+            <div class="settings-card"
+                style="padding: 16px; margin-bottom: 1rem; display: flex; gap: 12px; align-items: flex-end;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Bitrate</label>
+                    <select id="mon_datarate" style="margin-top: 4px;">
+                        <option value="250K">250K</option>
+                        <option value="500K" selected>500K</option>
+                        <option value="1000K">1Mbit</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Filter (Hex)</label>
+                    <input type="text" id="mon_filter" value="00000000" style="margin-top: 4px;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Mask (Hex)</label>
+                    <input type="text" id="mon_mask" value="FFFFFFFF" style="margin-top: 4px;">
+                </div>
+                <button type="button" id="mon_button" onclick="mon_control()" class="dash-action-btn"
+                    style="height: 45px; padding: 0 24px;">Start Monitor</button>
+            </div>
+
+            <div class="console-window" id="console_output">
+                <div style="color: #6b7280; font-style: italic;">Waiting for CAN connection...</div>
+            </div>
+        </div>
+
+        <!-- 5. CONNECTIVITY TAB -->
+        <div id="connectivity_tab" class="tabcontent">
+            <div class="section-title">Wi-Fi Access Point (AP)</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Wireless Mode</span></div>
+                    <div class="settings-control">
+                        <select id="wifi_mode">
+                            <option value="AP">Access Point Only</option>
+                            <option value="APStation">AP + Station</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">AP Channel</span></div>
+                    <div class="settings-control">
+                        <select id="ap_ch_value">
+                            <option value="6">6</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">AP Password</span></div>
+                    <div class="settings-control"><input type="text" id="ap_pass_value" value="Testpass"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <span class="settings-title">Auto-Disable AP</span>
+                        <span class="settings-desc">Turn off AP mode when connected to a Station network.</span>
+                    </div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="ap_auto_disable" onchange="submit_enable();">
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                <div class="section-title" style="margin: 0; border: none;">Saved Station Networks</div>
+                <button type="button" class="dash-outline-btn" id="btn_add_wifi_net" onclick="addStaNetworkRow()"><svg
+                        class="icon">
+                        <use href="#icon-plus" />
+                    </svg> Add Network</button>
+            </div>
+            <div id="sta_networks_container"
+                style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem;"></div>
+
+            <div class="section-title">MQTT Broker</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Enable MQTT</span></div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="mqtt_en" onchange="submit_enable();">
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Bluetooth Low Energy (BLE)</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Enable BLE</span></div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="ble_status" onchange="submit_enable();">
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">BLE Passkey</span></div>
+                    <div class="settings-control"><input type="number" id="ble_pass_value" value="000000" min="0"
+                            max="999999"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. CAN & HARDWARE TAB -->
+        <div id="can_hardware_tab" class="tabcontent">
+            <div class="section-title">CAN Bus 0 &amp; Ports</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">CAN Bitrate</span></div>
+                    <div class="settings-control">
+                        <select id="can_datarate">
+                            <option value="250K">250K</option>
+                            <option value="500K" selected>500K</option>
+                            <option value="1000K">1000K</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">CAN Mode</span></div>
+                    <div class="settings-control">
+                        <select id="can_mode">
+                            <option value="normal" selected>Normal</option>
+                            <option value="silent">Silent</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Port Type</span></div>
+                    <div class="settings-control">
+                        <select id="port_type">
+                            <option value="tcp">TCP</option>
+                            <option value="udp">UDP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Network Port</span></div>
+                    <div class="settings-control"><input type="number" id="tcp_port_value" value="3333"></div>
+                </div>
+            </div>
+
+            <div class="section-title">MQTT CAN Hardware Filter</div>
+            <div style="overflow-x:auto;">
+                <table id="can_flt_table">
+                    <thead>
+                        <tr>
+                            <th>CAN ID</th>
+                            <th>Name</th>
+                            <th>PID</th>
+                            <th>Start Bit</th>
+                            <th>Length</th>
+                            <th>Expression</th>
+                            <th>Cycle ms</th>
+                            <th><button type="button" id="store_canflt_button" onclick="storeCANFLT()"
+                                    class="dash-action-btn" style="padding: 4px 12px; font-size: 0.75rem;">Save</button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" id="canId"></td>
+                            <td><input type="text" id="name"></td>
+                            <td><input type="number" id="pid"></td>
+                            <td><input type="number" id="startBit"></td>
+                            <td><input type="number" id="bitLength"></td>
+                            <td><input type="text" id="expression"></td>
+                            <td><input type="number" id="cycle"></td>
+                            <td><button type="button" onclick="addCANFLTRow()" class="dash-outline-btn"
+                                    style="padding: 4px; width: 100%; font-size: 0.75rem;"><svg class="icon">
+                                        <use href="#icon-plus" />
+                                    </svg></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 7. SYSTEM & POWER TAB -->
+        <div id="system_tab" class="tabcontent">
+            <div class="section-title">Power Saving &amp; Sleep Thresholds</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <span class="settings-title">Sleep Mode</span>
+                        <span class="settings-desc">Allow WiCAN to enter deep sleep to prevent battery drain.</span>
+                    </div>
+                    <div class="settings-control">
+                        <label class="ha-switch">
+                            <input type="checkbox" id="sleep_status" onchange="submit_enable();">
+                            <span class="ha-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <span class="settings-title">Sleep Voltage Threshold</span>
+                        <span class="settings-desc">Enter sleep if voltage drops below <span id="sleep_volt_value"
+                                style="font-weight: bold;">13.2</span>V.</span>
+                    </div>
+                    <div class="settings-control" style="width: 250px;">
+                        <input type="range" id="sleep_volt" value="13.2" min="12.0" max="15.0" step="0.1"
+                            oninput="document.getElementById('sleep_volt_value').textContent = this.value; submit_enable();">
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <span class="settings-title">Sleep Delay Timer</span>
+                        <span class="settings-desc">Wait <span id="sleep_time_value" style="font-weight: bold;">2</span>
+                            minutes after threshold is met.</span>
+                    </div>
+                    <div class="settings-control" style="width: 250px;">
+                        <input type="range" id="sleep_time" value="2" min="1" max="30" step="1"
+                            oninput="document.getElementById('sleep_time_value').textContent = this.value; submit_enable();">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Configuration Backup &amp; Restore</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Download Configuration</span></div>
+                    <div class="settings-control"><input type="button" onclick="downloadCfg()" value="Download"
+                            class="dash-outline-btn" /></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Upload Configuration</span></div>
+                    <div class="settings-control">
+                        <input type="button" onclick="document.getElementById('fileInput').click()" value="Upload"
+                            class="dash-outline-btn" />
+                        <input type="file" id="fileInput" accept=".json" onchange="uploadCfg()"
+                            style="display: none;" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">System Actions</div>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Reboot WiCAN</span></div>
+                    <div class="settings-control"><input type="button" onclick="reboot()" value="Reboot"
+                            class="dash-outline-btn" /></div>
+                </div>
+            </div>
+        </div>
+
+        <input id="submit_button" type="button" onclick="postConfig()" value="Submit Changes" class="dash-action-btn"
+            disabled style="margin-top: 1rem;" />
+    </div>
+
+    <!-- BUILD_JS -->
+
+    <!-- Home Assistant Style Floating Anchored Save FAB -->
+            <button type="button" id="cando_anchored_save_fab" class="ha-save-fab" onclick="saveAllCandoAutomations(this)" title="Save changes">
+                <svg class="icon" style="width: 20px; height: 20px; fill: currentColor;"><use href="#icon-save"/></svg>
+                <span class="cando-save-text">Save Changes</span>
+            </button>
+</body>
+
+</html>

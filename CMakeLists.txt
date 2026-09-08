@@ -72,3 +72,50 @@ set(PROJECT_PREF "wican-fw")
 # Form the project binary name
 set(PRJ_BIN "${PROJECT_PREF}_${HW_PREF}_${GIT_SHA}")
 project("${PRJ_BIN}")
+
+# ==============================================================================
+# Web Assets Packaging & Minification Pipeline
+# ==============================================================================
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+set(WEB_SRC_DIR "${CMAKE_SOURCE_DIR}/main/ui_src")
+set(MINIFY_SCRIPT "${CMAKE_SOURCE_DIR}/tools/minify_html.py")
+set(CATALOG_FILE "${CMAKE_SOURCE_DIR}/main/cando_catalog.json")
+
+set(WEB_DEPENDS
+    "${WEB_SRC_DIR}/index.html"
+    "${WEB_SRC_DIR}/styles.css"
+    "${WEB_SRC_DIR}/icons.svg"
+    "${WEB_SRC_DIR}/app.js"
+    "${MINIFY_SCRIPT}"
+)
+if(EXISTS "${CATALOG_FILE}")
+    list(APPEND WEB_DEPENDS "${CATALOG_FILE}")
+endif()
+
+set(WEB_OUTPUTS
+    "${CMAKE_SOURCE_DIR}/main/homepage_full.html"
+    "${CMAKE_SOURCE_DIR}/main/homepage.html"
+    "${CMAKE_SOURCE_DIR}/main/homepage.html.gz"
+)
+
+add_custom_command(
+    OUTPUT ${WEB_OUTPUTS}
+    COMMAND Python3::Interpreter "${MINIFY_SCRIPT}"
+        "${WEB_SRC_DIR}"
+        "${CMAKE_SOURCE_DIR}/main/homepage_full.html"
+        "${CMAKE_SOURCE_DIR}/main/homepage.html"
+        "${CATALOG_FILE}"
+    DEPENDS ${WEB_DEPENDS}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Bundling, minifying, and compressing WiCAN web assets"
+)
+
+add_custom_target(bundle_web_assets DEPENDS ${WEB_OUTPUTS})
+
+# Ensure web files are compressed before compiling the main component binary
+if(TARGET __idf_main)
+    add_dependencies(__idf_main bundle_web_assets)
+else()
+    add_dependencies(${PRJ_BIN}.elf bundle_web_assets)
+endif()

@@ -259,6 +259,7 @@ typedef struct {
     bool climate_driver_only;/* Optional: Enforce Driver Only Mode (0x41D) */
     cando_sequence_step_t *steps;
     uint8_t step_count;
+    uint32_t delay_ms;      /* <-- ADD THIS: Duration in ms for CANDO_ACT_DELAY */
     char *mqtt_topic;       /* Optional MQTT topic for notification alert */
     char *webhook_url;      /* Optional Webhook URL for POST alert */
 } cando_action_t;

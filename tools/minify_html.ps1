@@ -1,19 +1,47 @@
 param(
-    [string]$SrcPath = "main/homepage_full.html",
-    [string]$DstPath = "main/homepage.html"
+    [string]$SrcDir = "main/ui_src",
+    [string]$FullDstPath = "main/homepage_full.html",
+    [string]$MinDstPath = "main/homepage.html"
 )
 
-if (-not (Test-Path $SrcPath)) {
-    Write-Error "Source file $SrcPath not found."
+if (-not (Test-Path $SrcDir)) {
+    Write-Error "Source directory $SrcDir not found."
     exit 1
 }
 
-$content = [System.IO.File]::ReadAllText((Resolve-Path $SrcPath), [System.Text.Encoding]::UTF8)
+$indexPath  = Join-Path $SrcDir "index.html"
+$stylesPath = Join-Path $SrcDir "styles.css"
+$iconsPath  = Join-Path $SrcDir "icons.svg"
+$appJsPath  = Join-Path $SrcDir "app.js"
 
-# 1. Remove HTML comments
-$content = [System.Text.RegularExpressions.Regex]::Replace($content, "<!--(?!\[if)[\s\S]*?-->", "")
+foreach ($p in @($indexPath, $stylesPath, $iconsPath, $appJsPath)) {
+    if (-not (Test-Path $p)) {
+        Write-Error "Required file $p not found."
+        exit 1
+    }
+}
 
-# 2. Minify embedded <style> blocks
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
+# 1. Assemble separate files into full HTML
+$htmlContent = [System.IO.File]::ReadAllText((Resolve-Path $indexPath), [System.Text.Encoding]::UTF8)
+$cssContent  = [System.IO.File]::ReadAllText((Resolve-Path $stylesPath), [System.Text.Encoding]::UTF8)
+$svgContent  = [System.IO.File]::ReadAllText((Resolve-Path $iconsPath), [System.Text.Encoding]::UTF8)
+$jsContent   = [System.IO.File]::ReadAllText((Resolve-Path $appJsPath), [System.Text.Encoding]::UTF8)
+
+$fullContent = $htmlContent
+$fullContent = $fullContent.Replace("<!-- BUILD_CSS -->", "<style>`n$cssContent`n</style>")
+$fullContent = $fullContent.Replace("<!-- BUILD_ICONS -->", "<svg xmlns=""http://www.w3.org/2000/svg"" style=""display: none;"">`n$svgContent`n</svg>")
+$fullContent = $fullContent.Replace("<!-- BUILD_JS -->", "<script>`n$jsContent`n</script>")
+
+# Write the unminified bundle for inspection/debugging
+$fullDstResolved = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $FullDstPath))
+[System.IO.File]::WriteAllText($fullDstResolved, $fullContent, $utf8NoBom)
+
+# 2. Remove HTML comments
+$content = [System.Text.RegularExpressions.Regex]::Replace($fullContent, "<!--(?!\[if)[\s\S]*?-->", "")
+
+# 3. Minify embedded <style> blocks
 $styleEvaluator = [System.Text.RegularExpressions.MatchEvaluator]{
     param($match)
     $css = $match.Groups[1].Value
@@ -24,7 +52,7 @@ $styleEvaluator = [System.Text.RegularExpressions.MatchEvaluator]{
 }
 $content = [System.Text.RegularExpressions.Regex]::Replace($content, "<style[^>]*>([\s\S]*?)</style>", $styleEvaluator)
 
-# 3. Minify embedded <script> blocks
+# 4. Minify embedded <script> blocks
 $scriptEvaluator = [System.Text.RegularExpressions.MatchEvaluator]{
     param($match)
     $js = $match.Groups[1].Value
@@ -41,7 +69,7 @@ $scriptEvaluator = [System.Text.RegularExpressions.MatchEvaluator]{
 }
 $content = [System.Text.RegularExpressions.Regex]::Replace($content, "<script[^>]*>([\s\S]*?)</script>", $scriptEvaluator)
 
-# 4. Collapse blank lines and trim
+# 5. Collapse blank lines and trim markup
 $allLines = $content -split "\r?\n"
 $finalLines = [System.Collections.Generic.List[string]]::new()
 foreach ($l in $allLines) {
@@ -52,22 +80,22 @@ foreach ($l in $allLines) {
 }
 $minified = $finalLines -join "`n"
 
-$dstResolved = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $DstPath))
-[System.IO.File]::WriteAllText($dstResolved, $minified, (New-Object System.Text.UTF8Encoding($false)))
+$minDstResolved = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $MinDstPath))
+[System.IO.File]::WriteAllText($minDstResolved, $minified, $utf8NoBom)
 
-# 5. Gzip compress
-$gzPath = if ($dstResolved.EndsWith(".gz")) { $dstResolved } else { $dstResolved + ".gz" }
-$rawBytes = [System.IO.File]::ReadAllBytes($dstResolved)
+# 6. Gzip compress
+$gzPath = if ($minDstResolved.EndsWith(".gz")) { $minDstResolved } else { $minDstResolved + ".gz" }
+$rawBytes = [System.IO.File]::ReadAllBytes($minDstResolved)
 $outFileStream = [System.IO.File]::Create($gzPath)
 $gzipStream = New-Object System.IO.Compression.GZipStream($outFileStream, [System.IO.Compression.CompressionLevel]::Optimal)
 $gzipStream.Write($rawBytes, 0, $rawBytes.Length)
 $gzipStream.Close()
 $outFileStream.Close()
 
-$origSz = (Get-Item (Resolve-Path $SrcPath)).Length
-$minSz = (Get-Item $dstResolved).Length
+$origSz = (Get-Item $fullDstResolved).Length
+$minSz = (Get-Item $minDstResolved).Length
 $gzSz = (Get-Item $gzPath).Length
 $saved = $origSz - $gzSz
 $pct = [Math]::Round(($saved / $origSz) * 100, 1)
 
-Write-Host "Minified & Gzipped $SrcPath -> $gzPath : $origSz B -> $gzSz B (Saved $saved B / $([Math]::Round($saved/1024, 1)) KB, -$pct%)" -ForegroundColor Green
+Write-Host "Bundled & Gzipped $SrcDir -> $gzPath : $origSz B -> $gzSz B (Saved $saved B / $([Math]::Round($saved/1024, 1)) KB, -$pct%)" -ForegroundColor Green

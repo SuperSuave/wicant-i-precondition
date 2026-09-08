@@ -1147,7 +1147,7 @@
       "precon_mode": "persistent",
       "precon_press": "short",
       "popup_message": "",
-      "category": "⚡ Battery Preconditioning",
+      "category": "Battery Preconditioning",
       "roles": [
         "action"
       ],
@@ -1162,7 +1162,7 @@
       "precon_mode": "continuous",
       "precon_press": "short",
       "popup_message": "",
-      "category": "⚡ Battery Preconditioning",
+      "category": "Battery Preconditioning",
       "roles": [
         "action"
       ],
@@ -1177,7 +1177,7 @@
       "precon_mode": "once",
       "precon_press": "short",
       "popup_message": "",
-      "category": "⚡ Battery Preconditioning",
+      "category": "Battery Preconditioning",
       "roles": [
         "action"
       ],
@@ -1192,7 +1192,7 @@
       "precon_mode": "cancel",
       "precon_press": "short",
       "popup_message": "",
-      "category": "⚡ Battery Preconditioning",
+      "category": "Battery Preconditioning",
       "roles": [
         "action"
       ],
@@ -1206,7 +1206,7 @@
       "type": "popup",
       "popup_message": "Batt: {battery_temp}C ({voltage}V)",
       "popup_message_imperial": "Batt: {battery_temp_f}F ({voltage}V)",
-      "category": "💬 Cluster OSD Popups",
+      "category": "Cluster OSD Popups",
       "roles": [
         "action"
       ],
@@ -1220,7 +1220,7 @@
       "type": "popup",
       "popup_message": "Batt: {temp_min}C to {temp_max}C",
       "popup_message_imperial": "Batt: {temp_min}F to {temp_max}F",
-      "category": "💬 Cluster OSD Popups",
+      "category": "Cluster OSD Popups",
       "roles": [
         "action"
       ],
@@ -1234,7 +1234,7 @@
       "type": "popup",
       "popup_message": "Precon: {status} ({battery_temp}C)",
       "popup_message_imperial": "Precon: {status} ({battery_temp_f}F)",
-      "category": "💬 Cluster OSD Popups",
+      "category": "Cluster OSD Popups",
       "roles": [
         "action"
       ],
@@ -1247,7 +1247,7 @@
       ],
       "type": "popup",
       "popup_message": "CHARGE PORT OPEN",
-      "category": "💬 Cluster OSD Popups",
+      "category": "Cluster OSD Popups",
       "roles": [
         "action"
       ],
@@ -1260,7 +1260,7 @@
       ],
       "type": "popup",
       "popup_message": "SPORT MODE ACTIVE",
-      "category": "💬 Cluster OSD Popups",
+      "category": "Cluster OSD Popups",
       "roles": [
         "action"
       ],
@@ -1319,7 +1319,7 @@
           "repeat": 3
         }
       ],
-      "category": "🔌 EV Charging Limits",
+      "category": "EV Charging Limits",
       "roles": [
         "action"
       ],
@@ -1378,7 +1378,7 @@
           "repeat": 3
         }
       ],
-      "category": "🔌 EV Charging Limits",
+      "category": "EV Charging Limits",
       "roles": [
         "action"
       ],
@@ -1437,7 +1437,7 @@
           "repeat": 3
         }
       ],
-      "category": "🔌 EV Charging Limits",
+      "category": "EV Charging Limits",
       "roles": [
         "action"
       ],
@@ -1487,7 +1487,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1537,7 +1537,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1587,7 +1587,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1637,7 +1637,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1687,7 +1687,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1737,7 +1737,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1764,7 +1764,7 @@
           "repeat": 3
         }
       ],
-      "category": "💺 Seats & Steering Wheel Comfort",
+      "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
       ],
@@ -1808,7 +1808,7 @@
           "repeat": 30
         }
       ],
-      "category": "❄️ Cabin Climate Control",
+      "category": "Cabin Climate Control",
       "roles": [
         "action"
       ],
@@ -1837,7 +1837,7 @@
           "repeat": 30
         }
       ],
-      "category": "❄️ Cabin Climate Control",
+      "category": "Cabin Climate Control",
       "roles": [
         "action"
       ],
@@ -1858,7 +1858,7 @@
       "climate_driver_only": false,
       "popup_message": "Climate: 21°C",
       "popup_message_imperial": "Climate: 70°F",
-      "category": "❄️ Cabin Climate Control",
+      "category": "Cabin Climate Control",
       "roles": [
         "action"
       ],
@@ -1897,7 +1897,7 @@
           "repeat": 3
         }
       ],
-      "category": "❄️ Cabin Climate Control",
+      "category": "Cabin Climate Control",
       "roles": [
         "action"
       ],
@@ -1936,7 +1936,7 @@
           "repeat": 3
         }
       ],
-      "category": "❄️ Cabin Climate Control",
+      "category": "Cabin Climate Control",
       "roles": [
         "action"
       ],
@@ -1986,7 +1986,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators & Features",
+      "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2013,7 +2013,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators & Features",
+      "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2035,7 +2035,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators & Features",
+      "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2061,7 +2061,7 @@
           "repeat": 3
         }
       ],
-      "category": "🚗 Vehicle Actuators & Features",
+      "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
       ],
@@ -2074,7 +2074,7 @@
       ],
       "type": "webhook",
       "webhook_url": "http://homeassistant.local:8123/api/webhook/wican_event",
-      "category": "🌐 Home Assistant & Cloud",
+      "category": "Home Assistant & Cloud",
       "roles": [
         "action"
       ],
@@ -2088,7 +2088,7 @@
       "type": "mqtt",
       "mqtt_topic": "wican/event/alert",
       "mqtt_payload": "{\"event\": \"triggered\", \"status\": \"active\"}",
-      "category": "🌐 Home Assistant & Cloud",
+      "category": "Home Assistant & Cloud",
       "roles": [
         "action"
       ],
@@ -2106,43 +2106,43 @@
       "popup_message": "Ambient Light: {option}",
       "options": [
         {
-          "label": "🔵 Electric Blue (#0055FF)",
+          "label": "Electric Blue",
           "payload": "00 54 F1 0F 00 00 00 00",
           "popup": "Ambient: Electric Blue"
         },
         {
-          "label": "🌊 Cyan / Aqua Wave (#00D9F5)",
+          "label": "Cyan / Aqua Wave",
           "payload": "00 64 53 0F 00 00 00 00",
           "popup": "Ambient: Cyan / Aqua"
         },
         {
-          "label": "🟣 Deep Purple / Violet (#8000FF)",
+          "label": "Deep Purple / Violet",
           "payload": "80 00 F0 0F 00 00 00 00",
           "popup": "Ambient: Violet",
           "default": true
         },
         {
-          "label": "🌸 Magenta / Neon Pink (#FF00F1)",
+          "label": "Magenta / Neon Pink",
           "payload": "FF 00 10 0F 00 00 00 00",
           "popup": "Ambient: Magenta"
         },
         {
-          "label": "🔴 Crimson Red (#FE2200)",
+          "label": "Crimson Red",
           "payload": "FE 88 00 00 00 00 00 00",
           "popup": "Ambient: Crimson Red"
         },
         {
-          "label": "🟠 Warm Sunset / Amber (#FF9477)",
+          "label": "Warm Sunset / Amber",
           "payload": "FF 50 72 07 00 00 00 00",
           "popup": "Ambient: Sunset Orange"
         },
         {
-          "label": "🟢 Lime / Mint Glow (#F7FFB6)",
+          "label": "Lime / Mint Glow",
           "payload": "F7 FC 63 0B 00 00 00 00",
           "popup": "Ambient: Mint / Lime"
         },
         {
-          "label": "🟡 Warm White / Champagne (#FEEDA5)",
+          "label": "Warm White / Champagne",
           "payload": "FE B4 53 0A 00 00 00 00",
           "popup": "Ambient: Champagne"
         }
@@ -2157,14 +2157,14 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient & Interior Lighting",
+      "category": "Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
       "id": "act_interior_ambient_mood_lighting__64_color_palette_"
     },
     {
-      "name": "Ambient Light: Crimson Red (#FE2200)",
+      "name": "Ambient Light: Crimson Red",
       "tags": [
         "all_egmp"
       ],
@@ -2183,14 +2183,14 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient & Interior Lighting",
+      "category": "Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
       "id": "act_ambient_light__crimson_red___fe2200_"
     },
     {
-      "name": "Ambient Light: Electric Blue (#0055FF)",
+      "name": "Ambient Light: Electric Blue",
       "tags": [
         "all_egmp"
       ],
@@ -2209,14 +2209,14 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient & Interior Lighting",
+      "category": "Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
       "id": "act_ambient_light__electric_blue___0055ff_"
     },
     {
-      "name": "Ambient Light: Cyan / Aqua Wave (#00D9F5)",
+      "name": "Ambient Light: Cyan / Aqua Wave",
       "tags": [
         "all_egmp"
       ],
@@ -2235,14 +2235,14 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient & Interior Lighting",
+      "category": "Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
       "id": "act_ambient_light__cyan___aqua_wave___00d9f5_"
     },
     {
-      "name": "Ambient Light: Deep Purple / Violet (#8000FF)",
+      "name": "Ambient Light: Deep Purple / Violet",
       "tags": [
         "all_egmp"
       ],
@@ -2261,7 +2261,7 @@
           "repeat": 3
         }
       ],
-      "category": "💡 Ambient & Interior Lighting",
+      "category": "Ambient & Interior Lighting",
       "roles": [
         "action"
       ],
@@ -2269,215 +2269,215 @@
     },
     {
       "id": "cond_speed_zero",
-      "name": "🛑 Vehicle Stopped / Parked (Speed == 0)",
+      "name": "Vehicle Stopped / Parked (Speed == 0)",
       "tags": [
         "all_egmp"
       ],
       "type": "speed_zero",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_gear_park",
-      "name": "🅿️ Gear in PARK (P)",
+      "name": "Gear in PARK (P)",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x2C0",
       "match_payload": "* * 00 * * * * *",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_doors_closed",
-      "name": "🚪 All Doors & Trunk Closed",
+      "name": "All Doors & Trunk Closed",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x540",
       "match_payload": "00 00 00 00 * * * *",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_driver_seat_heat",
-      "name": "💺 Driver Seat Heat is Active",
+      "name": "Driver Seat Heat is Active",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x496",
       "match_payload": "!12 * * * * * * *",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_pass_seat_heat",
-      "name": "💺 Passenger Seat Heat is Active",
+      "name": "Passenger Seat Heat is Active",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x475",
       "match_payload": "!12 * * * * * * *",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_climate_off",
-      "name": "❄️ Climate / HVAC is OFF",
+      "name": "Climate / HVAC is OFF",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x476",
       "match_payload": "* 00 * * * * * *",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_charging",
-      "name": "🔌 Vehicle Plugged In / EV Charging",
+      "name": "Vehicle Plugged In / EV Charging",
       "tags": [
         "all_egmp"
       ],
       "type": "can_state",
       "can_id": "0x594",
       "match_payload": "* * 01 * * * * *",
-      "category": "🚗 Vehicle State & Safety",
+      "category": "Vehicle State & Safety",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_temp_freezing",
-      "name": "❄️ Outdoor Temp <= 0°C (32°F Freezing)",
+      "name": "Outdoor Temp <= 0°C (32°F Freezing)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
       "expression": "[B3] <= 40",
       "can_id": "0x226",
-      "category": "🌡️ Environment & Weather",
+      "category": "Environment & Weather",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_temp_cold",
-      "name": "🌡️ Outdoor Temp < 15°C (59°F Cold)",
+      "name": "Outdoor Temp < 15°C (59°F Cold)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
       "expression": "[B3] < 55",
       "can_id": "0x226",
-      "category": "🌡️ Environment & Weather",
+      "category": "Environment & Weather",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_temp_warm",
-      "name": "☀️ Outdoor Temp > 25°C (77°F Warm)",
+      "name": "Outdoor Temp > 25°C (77°F Warm)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
       "expression": "[B3] > 65",
       "can_id": "0x226",
-      "category": "🌡️ Environment & Weather",
+      "category": "Environment & Weather",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_hv_soc_ok",
-      "name": "🔋 HV Battery SOC > 20% (Safe for Precon)",
+      "name": "HV Battery SOC > 20% (Safe for Precon)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
       "expression": "[B7] >= 40",
       "can_id": "0x2FC",
-      "category": "🔋 Battery & Power",
+      "category": "Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_hv_soc_high",
-      "name": "🔋 HV Battery SOC > 50%",
+      "name": "HV Battery SOC > 50%",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
       "expression": "[B7] >= 100",
       "can_id": "0x2FC",
-      "category": "🔋 Battery & Power",
+      "category": "Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_hv_soc_low",
-      "name": "⚠️ HV Battery SOC < 20% (Low Battery)",
+      "name": "HV Battery SOC < 20% (Low Battery)",
       "tags": [
         "all_egmp"
       ],
       "type": "param_range",
       "expression": "[B7] < 40",
       "can_id": "0x2FC",
-      "category": "🔋 Battery & Power",
+      "category": "Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_aux_12v_healthy",
-      "name": "⚡ 12V Aux Battery Healthy (> 12.4V)",
+      "name": "12V Aux Battery Healthy (> 12.4V)",
       "tags": [
         "all_egmp"
       ],
       "type": "voltage",
       "voltage_val": "12.4",
       "voltage_dir": "above",
-      "category": "🔋 Battery & Power",
+      "category": "Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_aux_12v_low",
-      "name": "⚠️ 12V Aux Battery Low (< 12.0V)",
+      "name": "12V Aux Battery Low (< 12.0V)",
       "tags": [
         "all_egmp"
       ],
       "type": "voltage",
       "voltage_val": "12.0",
       "voltage_dir": "below",
-      "category": "🔋 Battery & Power",
+      "category": "Battery & Power",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_weekdays",
-      "name": "📅 Weekdays Only (Monday – Friday)",
+      "name": "Weekdays Only (Monday – Friday)",
       "tags": [
         "all_egmp"
       ],
@@ -2489,14 +2489,14 @@
         "thu",
         "fri"
       ],
-      "category": "🕒 Schedule & Calendar",
+      "category": "Schedule & Calendar",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_weekends",
-      "name": "🏖️ Weekends Only (Saturday – Sunday)",
+      "name": "Weekends Only (Saturday – Sunday)",
       "tags": [
         "all_egmp"
       ],
@@ -2505,35 +2505,35 @@
         "sat",
         "sun"
       ],
-      "category": "🕒 Schedule & Calendar",
+      "category": "Schedule & Calendar",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_daytime",
-      "name": "☀️ Daytime Hours (07:00 – 19:00)",
+      "name": "Daytime Hours (07:00 – 19:00)",
       "tags": [
         "all_egmp"
       ],
       "type": "time_window",
       "start_time": "07:00",
       "end_time": "19:00",
-      "category": "🕒 Schedule & Calendar",
+      "category": "Schedule & Calendar",
       "roles": [
         "condition"
       ]
     },
     {
       "id": "cond_nighttime",
-      "name": "🌙 Nighttime / Overnight (19:00 – 07:00)",
+      "name": "Nighttime / Overnight (19:00 – 07:00)",
       "tags": [
         "all_egmp"
       ],
       "type": "time_window",
       "start_time": "19:00",
       "end_time": "07:00",
-      "category": "🕒 Schedule & Calendar",
+      "category": "Schedule & Calendar",
       "roles": [
         "condition"
       ]

@@ -9,7 +9,7 @@ execute_process(
 )
 
 idf_component_register(
-    SRCS "hw_config.c" "wc_timer.c" "autopid.c" "ftp.c" "" "${srcs}"        # list the source files of this component
+    SRCS "hw_config.c" "wc_timer.c" "autopid.c" "ftp.c" "cando.c" "${srcs}"        # list the source files of this component
     INCLUDE_DIRS "."    # optional, add here public include directories
     PRIV_INCLUDE_DIRS   # optional, add here private include directories
     REQUIRES   "${requires}"         # optional, list the public requirements (component names)
@@ -26,4 +26,3 @@ add_custom_command(
 )
 add_custom_target(minify_html_target DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/homepage.html.gz)
 add_dependencies(${COMPONENT_LIB} minify_html_target)
-

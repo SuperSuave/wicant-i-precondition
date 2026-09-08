@@ -20,6 +20,7 @@
 
 #include "ble.h"
 #include "can.h"
+#include "cando.h"
 #include "comm_server.h"
 #include "config_server.h"
 #include "driver/gpio.h"

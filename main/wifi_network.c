@@ -48,6 +48,7 @@ static esp_netif_t *ap_netif;
 static esp_netif_t *sta_netif;
 static TaskHandle_t xwifi_handle = NULL;
 static int s_retry_num = 0;
+static uint8_t s_current_net_idx = 0;
 static EventGroupHandle_t s_wifi_event_group = NULL;
 static const TickType_t connect_delay[] = {1000, 1000, 1000, 1000, 1000, 1000};
 static int8_t ap_auto_disable = 0;
@@ -207,8 +208,6 @@ bool wifi_network_is_connected(void) {
   } else
     return 0;
 }
-
-static uint8_t s_current_net_idx = 0;
 
 static void wifi_conn_task(void *pvParameters) {
   while (1) {

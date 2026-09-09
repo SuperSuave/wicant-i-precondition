@@ -18,10 +18,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef __COMM_SERVER_H__
 #define __COMM_SERVER_H__
-int8_t tcp_server_init(uint32_t port, QueueHandle_t *xTXp_Queue, QueueHandle_t *xRXp_Queue, uint8_t connected_led, uint8_t udp_en);
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/semphr.h>
+#include <freertos/task.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/queue.h>
+
+
+int8_t tcp_server_init(uint32_t port, QueueHandle_t *xTXp_Queue,
+                       QueueHandle_t *xRXp_Queue, uint8_t connected_led,
+                       uint8_t udp_en);
 int8_t tcp_port_open(void);
 
 void tcp_server_suspend(void);

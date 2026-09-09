@@ -41,9 +41,11 @@
 
 
 #define TAG __func__
+
 #define KEEPALIVE_IDLE 5
 #define KEEPALIVE_INTERVAL 5
 #define KEEPALIVE_COUNT 3
+
 #define PORT_CLOSED_BIT BIT0
 #define PORT_OPEN_BIT BIT1
 
@@ -89,6 +91,7 @@ wait_skt_rx:
       // the socket: the server task takes it as the ack that nobody is
       // blocked in recv() and the fd can be closed/replaced safely.
       xEventGroupSetBits(xSocketEventGroup, PORT_CLOSED_BIT);
+
       goto wait_skt_rx;
     } else {
       rx_buffer.dev_channel = DEV_WIFI;
@@ -291,13 +294,16 @@ static void tcp_server_task(void *pvParameters) {
       goto CLEAN_UP;
     }
   }
+
   while (1) {
 
     if (!udp_enable) {
       ESP_LOGI(TAG, "Socket listening");
       int new_sock =
           accept(listen_sock, (struct sockaddr *)&source_addr, &addr_len);
-      if (new_sock < 0) {
+      if (new_sock < 0)
+
+      {
         ESP_LOGE(TAG, "Unable to accept connection: errno %d", errno);
         continue;
       }
@@ -380,6 +386,7 @@ static void tcp_server_task(void *pvParameters) {
       xEventGroupClearBits(xSocketEventGroup, PORT_CLOSED_BIT);
       xEventGroupSetBits(xSocketEventGroup, PORT_OPEN_BIT);
       gpio_set_level(conn_led, LED_ON);
+
     } else {
       ESP_LOGI(TAG, "UDP socket ready");
       xEventGroupClearBits(xSocketEventGroup, PORT_CLOSED_BIT);

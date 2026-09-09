@@ -551,40 +551,48 @@ function addCarParameter(rowData = {}) {
 function loadautoPIDCarData() {
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
-        if (this.responseText !== "NONE") {
-            const obj = JSON.parse(this.responseText);
-            const carModels = [];
-            if (obj && Array.isArray(obj.cars)) {
-                obj.cars.forEach(car => {
-                    if (car.car_model) {
-                        carModels.push(car.car_model);
-                    }
-                    if (car.pids) {
-                        const specInit = document.getElementById("specific_init");
-                        if (specInit) specInit.value = car.init;
-                        car.pids.forEach(pid => {
-                            if (pid.parameters) {
-                                pid.parameters.forEach(param => {
-                                    addCarParameter({
-                                        name: param.name,
-                                        expression: param.expression,
-                                        unit: param.unit,
-                                        class: param.class,
-                                        period: param.period,
-                                        type: param.type,
-                                        min: param.min,
-                                        max: param.max,
-                                        send_to: param.send_to,
-                                        pid: pid.pid,
-                                        pid_init: pid.pid_init
+        if (this.responseText && this.responseText !== "NONE" && !this.responseText.startsWith("Memory") && this.status === 200) {
+            try {
+                const obj = JSON.parse(this.responseText);
+                const carModels = [];
+                if (obj && Array.isArray(obj.cars)) {
+                    obj.cars.forEach(car => {
+                        if (car.car_model) {
+                            carModels.push(car.car_model);
+                        }
+                        if (car.pids) {
+                            const specInit = document.getElementById("specific_init");
+                            if (specInit) specInit.value = car.init;
+                            car.pids.forEach(pid => {
+                                if (pid.parameters) {
+                                    pid.parameters.forEach(param => {
+                                        addCarParameter({
+                                            name: param.name,
+                                            expression: param.expression,
+                                            unit: param.unit,
+                                            class: param.class,
+                                            period: param.period,
+                                            type: param.type,
+                                            min: param.min,
+                                            max: param.max,
+                                            send_to: param.send_to,
+                                            pid: pid.pid,
+                                            pid_init: pid.pid_init
+                                        });
                                     });
-                                });
-                            }
-                        });
-                    }
-                });
+                                }
+                            });
+                        }
+                    });
+                }
+                loadCarModels({ "supported": carModels });
+            } catch (e) {
+                console.warn("Failed to parse auto PID car data response:", e);
+                toggleCarModel();
+                toggleDestinationAndCycle();
+                toggleSendToFields();
+                toggleStandardPIDOptions();
             }
-            loadCarModels({ "supported": carModels });
         } else {
             toggleCarModel();
             toggleDestinationAndCycle();

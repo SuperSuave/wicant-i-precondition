@@ -3040,42 +3040,27 @@
 
     <script>
 /* === js/network.js === */
-(function () {
-    function resolveSafeUrl(url) {
-        if (typeof url !== 'string') return url;
-        if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') || url.startsWith('data:')) {
-            return url;
-        }
-        const clean = url.startsWith('/') ? url : ('/' + url);
-        if (window.location.protocol === 'blob:' || window.location.protocol === 'file:' || !window.location.host) {
-            const base = (window.location.origin && window.location.origin !== 'null' && window.location.origin.startsWith('http'))
-                ? window.location.origin
-                : 'https://wican.local';
-            return base + clean;
-        }
-        return clean;
+// --- NETWORK & URL HELPERS ---
+
+function resolveSafeUrl(url) {
+    if (typeof url !== 'string') return url;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') || url.startsWith('data:')) {
+        return url;
     }
-
-    const origXhrOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-        const safe = resolveSafeUrl(url);
-        return origXhrOpen.call(this, method, safe, ...rest);
-    };
-
-    const origFetch = window.fetch;
-    window.fetch = function (input, init) {
-        if (typeof input === 'string') {
-            input = resolveSafeUrl(input);
-        }
-        return origFetch.call(this, input, init);
-    };
-})();
+    return url.startsWith('/') ? url : ('/' + url);
+}
 
 /* === js/ui.js === */
 // --- GENERAL UI, TABS, THEMES & NOTIFICATIONS ---
 
 function escapeHtml(str) {
-    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function showNotification(message, color = "blue", duration = 4000) {
@@ -3261,15 +3246,25 @@ function closeSidebarDrawer() {
     if (backdrop) backdrop.classList.remove("active");
 }
 
+let _rtfNarrow = null;
+try {
+    if (typeof Intl !== "undefined" && Intl.RelativeTimeFormat) {
+        _rtfNarrow = new Intl.RelativeTimeFormat('en', { style: 'narrow', numeric: 'always' });
+    }
+} catch (e) { }
+
 function formatAge(ageMs) {
+    if (ageMs === undefined || ageMs === null || isNaN(ageMs)) return "0s";
     const seconds = Math.max(0, Math.round(ageMs / 1000));
     if (seconds < 60) return `${seconds}s`;
 
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {
+        return _rtfNarrow ? _rtfNarrow.format(-minutes, 'minute').replace(' ago', '').replace(' ', '') : `${minutes}m`;
+    }
 
     const hours = Math.floor(minutes / 60);
-    return `${hours}h`;
+    return _rtfNarrow ? _rtfNarrow.format(-hours, 'hour').replace(' ago', '').replace(' ', '') : `${hours}h`;
 }
 
 function initActiveTab() {
@@ -5033,10 +5028,6 @@ async function storeAutoTableData() {
 window._dashEditMode = false;
 window._lastStatusObj = null;
 window._canDoStateCache = {};
-
-function escapeHtml(str) {
-    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 
 const DASH_WIDGET_CATALOG = {
     batt_12v: {
@@ -8004,27 +7995,6 @@ document.addEventListener("keyup", function (e) {
     }
 }, true);
 
-function initCanDoMutationObserver() {
-    const container = document.getElementById("can_do_rules_container");
-    if (!container || window._can_doObserverAttached) return;
-    window._can_doObserverAttached = true;
-    const observer = new MutationObserver(function (mutations) {
-        if (window._suppressCanDoDirty) return;
-        for (let m of mutations) {
-            if (m.addedNodes.length > 0 || m.removedNodes.length > 0) {
-                if (typeof markCanDoDirty === "function") markCanDoDirty();
-                break;
-            }
-        }
-    });
-    observer.observe(container, { childList: true, subtree: true });
-}
-
-if (document.getElementById("can_do_rules_container")) {
-    initCanDoMutationObserver();
-}
-document.addEventListener("DOMContentLoaded", initCanDoMutationObserver);
-
 document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
         closeCanDoSettingsMenu();
@@ -8239,11 +8209,12 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
         });
     }
 
-    // Create Overlay Element
-    const overlay = document.createElement("div");
-    overlay.className = "ha-add-element-dialog-overlay";
+    // Create Native <dialog> Element
+    const dialog = document.createElement("dialog");
+    dialog.className = "ha-add-element-dialog-overlay ha-native-dialog";
+    dialog.style.cssText = "border: none; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh;";
 
-    overlay.innerHTML = `
+    dialog.innerHTML = `
                         <div class="ha-add-element-dialog" onclick="event.stopPropagation();">
                             <div class="ha-dialog-header">
                                 <div class="ha-dialog-header-top">
@@ -8251,7 +8222,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                                         <span class="can-do-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
                                         <h3 class="ha-dialog-title">${typeConfig.title}</h3>
                                     </div>
-                                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.ha-add-element-dialog-overlay').remove();" title="Close dialog">✕</button>
+                                    <button type="button" class="ha-dialog-close-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }" title="Close dialog">✕</button>
                                 </div>
                                 <div class="ha-dialog-search-wrap">
                                     <svg class="ha-dialog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -8266,7 +8237,11 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                         </div>
                     `;
 
-    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+    if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+    }
+    const overlay = dialog;
 
     const searchInput = overlay.querySelector(".ha-dialog-search-input");
     const dialogBody = overlay.querySelector("#ha_dialog_body");
@@ -8522,6 +8497,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     }
 
     function handleTargetSelection(item, stateOpt) {
+        if (typeof overlay.close === "function") overlay.close();
         overlay.remove();
         item.onSelect(stateOpt);
         const newElem = targetContainer ? targetContainer.lastElementChild : null;
@@ -8540,16 +8516,13 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     searchInput.oninput = () => renderPicker();
 
     overlay.onclick = (e) => {
-        if (e.target === overlay) overlay.remove();
-    };
-
-    const escHandler = (e) => {
-        if (e.key === "Escape") {
+        if (e.target === overlay) {
+            if (typeof overlay.close === "function") overlay.close();
             overlay.remove();
-            document.removeEventListener("keydown", escHandler);
         }
     };
-    document.addEventListener("keydown", escHandler);
+
+    overlay.onclose = () => overlay.remove();
 
     renderPicker();
     setTimeout(() => searchInput.focus(), 60);

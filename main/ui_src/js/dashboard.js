@@ -4,10 +4,6 @@ window._dashEditMode = false;
 window._lastStatusObj = null;
 window._canDoStateCache = {};
 
-function escapeHtml(str) {
-    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
 const DASH_WIDGET_CATALOG = {
     batt_12v: {
         id: "batt_12v", name: "12V Auxiliary Battery", icon: "", category: "Power",

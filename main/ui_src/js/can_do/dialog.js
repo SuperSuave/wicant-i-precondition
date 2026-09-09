@@ -205,11 +205,12 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
         });
     }
 
-    // Create Overlay Element
-    const overlay = document.createElement("div");
-    overlay.className = "ha-add-element-dialog-overlay";
+    // Create Native <dialog> Element
+    const dialog = document.createElement("dialog");
+    dialog.className = "ha-add-element-dialog-overlay ha-native-dialog";
+    dialog.style.cssText = "border: none; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh;";
 
-    overlay.innerHTML = `
+    dialog.innerHTML = `
                         <div class="ha-add-element-dialog" onclick="event.stopPropagation();">
                             <div class="ha-dialog-header">
                                 <div class="ha-dialog-header-top">
@@ -217,7 +218,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                                         <span class="can-do-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
                                         <h3 class="ha-dialog-title">${typeConfig.title}</h3>
                                     </div>
-                                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.ha-add-element-dialog-overlay').remove();" title="Close dialog">✕</button>
+                                    <button type="button" class="ha-dialog-close-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }" title="Close dialog">✕</button>
                                 </div>
                                 <div class="ha-dialog-search-wrap">
                                     <svg class="ha-dialog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -232,7 +233,11 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                         </div>
                     `;
 
-    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+    if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+    }
+    const overlay = dialog;
 
     const searchInput = overlay.querySelector(".ha-dialog-search-input");
     const dialogBody = overlay.querySelector("#ha_dialog_body");
@@ -488,6 +493,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     }
 
     function handleTargetSelection(item, stateOpt) {
+        if (typeof overlay.close === "function") overlay.close();
         overlay.remove();
         item.onSelect(stateOpt);
         const newElem = targetContainer ? targetContainer.lastElementChild : null;
@@ -506,16 +512,13 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     searchInput.oninput = () => renderPicker();
 
     overlay.onclick = (e) => {
-        if (e.target === overlay) overlay.remove();
-    };
-
-    const escHandler = (e) => {
-        if (e.key === "Escape") {
+        if (e.target === overlay) {
+            if (typeof overlay.close === "function") overlay.close();
             overlay.remove();
-            document.removeEventListener("keydown", escHandler);
         }
     };
-    document.addEventListener("keydown", escHandler);
+
+    overlay.onclose = () => overlay.remove();
 
     renderPicker();
     setTimeout(() => searchInput.focus(), 60);

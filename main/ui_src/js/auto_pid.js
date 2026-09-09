@@ -61,27 +61,24 @@ function toggleStandardPIDOptions() {
     const availablePidsSelect = document.getElementById("available_pids");
     const scanPidButton = document.getElementById("scan_pids_button");
 
+    if (!standardPidsSelect) return;
     const isEnabled = standardPidsSelect.value === "enable";
-    ecuProtocolSelect.disabled = !isEnabled;
-    availablePidsSelect.disabled = !isEnabled;
-    scanPidButton.disabled = !isEnabled;
+    if (ecuProtocolSelect) ecuProtocolSelect.disabled = !isEnabled;
+    if (availablePidsSelect) availablePidsSelect.disabled = !isEnabled;
+    if (scanPidButton) scanPidButton.disabled = !isEnabled;
 }
 
 function toggleDestinationAndCycle() {
-    const grouping = document.getElementById("grouping").value;
+    const groupingEl = document.getElementById("grouping");
+    if (!groupingEl) return;
+    const grouping = groupingEl.value;
     const destinationField = document.getElementById("destination");
     const cycleField = document.getElementById("group_cycle");
     const groupDestTypeFeild = document.getElementById("group_dest_type");
 
-    if (grouping === "enable") {
-        destinationField.disabled = false;
-        cycleField.disabled = false;
-        groupDestTypeFeild.disabled = false;
-    } else {
-        destinationField.disabled = true;
-        cycleField.disabled = true;
-        groupDestTypeFeild.disabled = true;
-    }
+    if (destinationField) destinationField.disabled = (grouping !== "enable");
+    if (cycleField) cycleField.disabled = (grouping !== "enable");
+    if (groupDestTypeFeild) groupDestTypeFeild.disabled = (grouping !== "enable");
 }
 
 function toggleDiscovery() {

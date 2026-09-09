@@ -86,6 +86,9 @@ let CAN_DO_CATALOG = {
 
 async function loadCanDoCatalog() {
     const applyCatalog = (data, source, info) => {
+        if (!data || typeof data !== "object") {
+            data = CAN_DO_DEFAULT_FALLBACK_CATALOG;
+        }
         // Preserve custom imported/user presets if present in localStorage
         const customSaved = localStorage.getItem("wican_custom_imported_catalog");
         if (customSaved) {
@@ -94,20 +97,27 @@ async function loadCanDoCatalog() {
             } catch (e) { }
         }
         CAN_DO_CATALOG = data;
-        localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
+        try {
+            localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
+        } catch (e) { }
         updateCatalogStatusUI(source, info);
-        populateVehicleDropdowns(data.vehicles);
+        populateVehicleDropdowns(data.vehicles || CAN_DO_DEFAULT_FALLBACK_CATALOG.vehicles);
         if (typeof refreshAllCanDoPresetDropdowns === "function") {
             refreshAllCanDoPresetDropdowns();
         }
     };
+
+    // Initial default fallback
+    if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.vehicles) || CAN_DO_CATALOG.vehicles.length === 0) {
+        CAN_DO_CATALOG = CAN_DO_DEFAULT_FALLBACK_CATALOG;
+    }
 
     // 1. Instant check from browser cache
     try {
         const cached = localStorage.getItem("wican_can_do_catalog");
         if (cached) {
             const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
+            if (parsed && Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
                 applyCatalog(parsed, "cached");
             }
         }
@@ -127,9 +137,16 @@ async function loadCanDoCatalog() {
                     applyCatalog(data, "device", data.catalog_version);
                 }
             }
+        } else {
+            if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.vehicles) || CAN_DO_CATALOG.vehicles.length === 0) {
+                applyCatalog(CAN_DO_DEFAULT_FALLBACK_CATALOG, "fallback");
+            }
         }
     } catch (err) {
         console.warn("Failed to load /can_do_catalog.json from device:", err);
+        if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.vehicles) || CAN_DO_CATALOG.vehicles.length === 0) {
+            applyCatalog(CAN_DO_DEFAULT_FALLBACK_CATALOG, "fallback");
+        }
     }
 
     // 3. Optional: Background check upstream GitHub when internet is present
@@ -649,4 +666,3 @@ function importCanDoCatalogFile(inputElem) {
     reader.readAsText(file);
 }
 /* CAN_DO_CATALOG_END */
-

@@ -520,6 +520,22 @@
                 </div>
             </div>
 
+            <div class="section-title">Firmware &amp; OTA Update</div>
+            <div class="settings-card">
+                <form id="ota_form" method="POST" action="/update" enctype="multipart/form-data">
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <span class="settings-title">OTA Firmware File</span>
+                            <span class="settings-desc">Select compiled .bin firmware file to flash over-the-air.</span>
+                        </div>
+                        <div class="settings-control" style="display: flex; gap: 8px; align-items: center;">
+                            <input type="file" id="ota_file" name="update" accept=".bin" style="font-size: 0.8rem; color: var(--text-heading);" />
+                            <input type="button" id="ota_submit_button" onclick="otaClick()" value="Update Firmware" class="dash-action-btn" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <div class="section-title">System Actions</div>
             <div class="settings-card">
                 <div class="settings-row">

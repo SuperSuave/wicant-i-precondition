@@ -19,12 +19,18 @@ const DASH_WIDGET_CATALOG = {
                     <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem;"><span>Low (12.0V)</span><span>Normal (12.6V)</span><span>Charging</span></div></div>`;
         },
         update: function (obj) {
-            const el = document.getElementById("dash_batt_voltage_val"), bad = document.getElementById("dash_batt_status_badge");
-            if (!obj || !obj.batt_voltage) return;
-            if (el) el.textContent = obj.batt_voltage;
+            const el = document.getElementById("dash_batt_voltage_val"), bad = document.getElementById("dash_batt_status_badge"), gauge = document.getElementById("dash_batt_gauge");
+            if (!obj || obj.batt_voltage === undefined || obj.batt_voltage === null) return;
+            if (el) el.textContent = obj.batt_voltage + " V";
             const v = parseFloat(obj.batt_voltage);
-            if (!isNaN(v) && bad) {
-                bad.innerHTML = (v >= 13.5) ? '<span class="status-dot blue"></span> Charging' : (v >= 12.4) ? '<span class="status-dot green"></span> Healthy' : '<span class="status-dot red"></span> Low';
+            if (!isNaN(v)) {
+                if (bad) {
+                    bad.innerHTML = (v >= 13.5) ? '<span class="status-dot blue"></span> Charging' : (v >= 12.4) ? '<span class="status-dot green"></span> Healthy' : '<span class="status-dot red"></span> Low';
+                }
+                if (gauge) {
+                    const pct = Math.min(100, Math.max(0, ((v - 11.0) / 4.0) * 100));
+                    gauge.style.width = pct + "%";
+                }
             }
         }
     },
@@ -39,11 +45,27 @@ const DASH_WIDGET_CATALOG = {
         },
         update: function (obj) {
             const hvBadgeEl = document.getElementById("dash_hv_state_badge");
-            if (hvBadgeEl && obj && obj.battery_temp_valid) {
+            const tempValEl = document.getElementById("dash_hv_temp_val");
+            const socValEl = document.getElementById("dash_hv_soc_val");
+            const subtextEl = document.getElementById("dash_hv_subtext");
+            if (!obj) return;
+
+            if (hvBadgeEl && obj.battery_temp_valid) {
                 const avgC = ((parseFloat(obj.battery_temp_min_c) + parseFloat(obj.battery_temp_max_c)) / 2);
-                if (avgC >= 21) { hvBadgeEl.innerHTML = '<span class="status-dot green"></span> Optimal'; }
-                else if (avgC >= 15) { hvBadgeEl.innerHTML = '<span class="status-dot blue"></span> Moderate'; }
-                else { hvBadgeEl.innerHTML = '<span class="status-dot yellow"></span> Cold'; }
+                if (!isNaN(avgC)) {
+                    if (avgC >= 21) { hvBadgeEl.innerHTML = '<span class="status-dot green"></span> Optimal'; }
+                    else if (avgC >= 15) { hvBadgeEl.innerHTML = '<span class="status-dot blue"></span> Moderate'; }
+                    else { hvBadgeEl.innerHTML = '<span class="status-dot yellow"></span> Cold'; }
+                }
+            }
+            if (tempValEl && obj.battery_temp_valid && obj.battery_temp_min_c !== undefined && obj.battery_temp_max_c !== undefined) {
+                tempValEl.textContent = `${obj.battery_temp_min_c}°C - ${obj.battery_temp_max_c}°C`;
+            }
+            if (socValEl && obj.battery_soc_valid && obj.battery_soc_pct !== undefined) {
+                socValEl.textContent = `${obj.battery_soc_pct}%`;
+            }
+            if (subtextEl && (obj.battery_soc_valid || obj.battery_temp_valid)) {
+                subtextEl.textContent = "Live CAN bus telemetry";
             }
         }
     },
@@ -428,14 +450,16 @@ function checkStatus() {
 
                 setInner("port_type_status", (obj.port_type === "tcp") ? "TCP" : "UDP");
 
+                const fmtAge = (ms) => (typeof formatAge === "function" ? formatAge(ms) : `${ms || 0} ms`);
+
                 if (obj.battery_soc_valid) {
-                    setText("battery_soc_status", `${obj.battery_soc_pct}%; (${formatAge(obj.battery_soc_age_ms)} ago)`);
+                    setText("battery_soc_status", `${obj.battery_soc_pct}%; (${fmtAge(obj.battery_soc_age_ms)} ago)`);
                 } else {
                     setText("battery_soc_status", "Waiting for CAN data");
                 }
 
                 if (obj.battery_temp_valid) {
-                    setText("battery_temp_status", `Min: ${obj.battery_temp_min_c} °C; Max: ${obj.battery_temp_max_c} °C; (${formatAge(obj.battery_temp_age_ms)} ago)`);
+                    setText("battery_temp_status", `Min: ${obj.battery_temp_min_c} °C; Max: ${obj.battery_temp_max_c} °C; (${fmtAge(obj.battery_temp_age_ms)} ago)`);
                 } else {
                     setText("battery_temp_status", "Waiting for CAN data");
                 }

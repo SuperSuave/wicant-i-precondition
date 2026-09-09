@@ -162,6 +162,12 @@ function importCanDoRules(inputElem) {
     reader.readAsText(file);
 }
 
+function saveAllCanDoAutomations(elem) {
+    if (typeof saveCanDoRulesUI === "function") {
+        saveCanDoRulesUI(elem);
+    }
+}
+
 function saveCanDoRulesUI(sourceElem) {
     const rules = [];
     const cards = document.querySelectorAll("#can_do_rules_container .can-do-rule-card");

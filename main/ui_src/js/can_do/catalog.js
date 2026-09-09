@@ -86,6 +86,9 @@ let CAN_DO_CATALOG = {
 
 async function loadCanDoCatalog() {
     const applyCatalog = (data, source, info) => {
+        if (!data || typeof data !== "object") {
+            data = CAN_DO_DEFAULT_FALLBACK_CATALOG;
+        }
         // Preserve custom imported/user presets if present in localStorage
         const customSaved = localStorage.getItem("wican_custom_imported_catalog");
         if (customSaved) {
@@ -94,20 +97,27 @@ async function loadCanDoCatalog() {
             } catch (e) { }
         }
         CAN_DO_CATALOG = data;
-        localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
+        try {
+            localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
+        } catch (e) { }
         updateCatalogStatusUI(source, info);
-        populateVehicleDropdowns(data.vehicles);
+        populateVehicleDropdowns(data.vehicles || CAN_DO_DEFAULT_FALLBACK_CATALOG.vehicles);
         if (typeof refreshAllCanDoPresetDropdowns === "function") {
             refreshAllCanDoPresetDropdowns();
         }
     };
+
+    // Initial default fallback
+    if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.vehicles) || CAN_DO_CATALOG.vehicles.length === 0) {
+        CAN_DO_CATALOG = CAN_DO_DEFAULT_FALLBACK_CATALOG;
+    }
 
     // 1. Instant check from browser cache
     try {
         const cached = localStorage.getItem("wican_can_do_catalog");
         if (cached) {
             const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
+            if (parsed && Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
                 applyCatalog(parsed, "cached");
             }
         }
@@ -127,9 +137,16 @@ async function loadCanDoCatalog() {
                     applyCatalog(data, "device", data.catalog_version);
                 }
             }
+        } else {
+            if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.vehicles) || CAN_DO_CATALOG.vehicles.length === 0) {
+                applyCatalog(CAN_DO_DEFAULT_FALLBACK_CATALOG, "fallback");
+            }
         }
     } catch (err) {
         console.warn("Failed to load /can_do_catalog.json from device:", err);
+        if (!CAN_DO_CATALOG || !Array.isArray(CAN_DO_CATALOG.vehicles) || CAN_DO_CATALOG.vehicles.length === 0) {
+            applyCatalog(CAN_DO_DEFAULT_FALLBACK_CATALOG, "fallback");
+        }
     }
 
     // 3. Optional: Background check upstream GitHub when internet is present
@@ -551,16 +568,159 @@ function getCommandTaxonomy(cmd) {
     return { domain: "system_automation", subdomain: "network_integrations" };
 }
 
-const DEFAULT_CAN_DO_CATALOG_URL = "https://raw.githubusercontent.com/supersuave/wicant-i-precondition/main/main/can_do_catalog.json";
+const DEFAULT_CAN_DO_CATALOG_URL = "https://raw.githubusercontent.com/SuperSuave/wicant-i-precondition/look-revamp/main/can_do_catalog.json";
 
 function getCanDoCatalogUrl() {
     let url = localStorage.getItem("wican_can_do_catalog_url") || DEFAULT_CAN_DO_CATALOG_URL;
     url = url.trim();
-    // Convert github.com/.../blob/... to raw.githubusercontent.com/... if user pasted regular GitHub URL
-    if (url.includes("github.com") && url.includes("/blob/")) {
-        url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
+    // Convert github.com URL formats to raw.githubusercontent.com
+    if (url.includes("github.com")) {
+        url = url.replace("github.com", "raw.githubusercontent.com")
+                 .replace("/blob/", "/")
+                 .replace("/raw/", "/");
     }
     return url;
+}
+
+function getFilteredTriggerPresets() {
+    const builtIn = [];
+    const custom = (typeof getCustomTrigPresets === "function") ? getCustomTrigPresets() : [];
+    if (!CAN_DO_CATALOG) return { builtIn, custom };
+
+    const selectedProfile = (typeof getSelectedVehicleProfile === "function") ? getSelectedVehicleProfile() : "all_egmp";
+
+    if (Array.isArray(CAN_DO_CATALOG.commands)) {
+        CAN_DO_CATALOG.commands.forEach(cmd => {
+            const roles = cmd.roles || [];
+            const isTrig = roles.length === 0 || roles.includes("trigger");
+            if (!isTrig) return;
+
+            const targetModels = cmd.supported_models || cmd.vehicle_models || [];
+            if (
+                targetModels.length === 0 ||
+                targetModels.includes("all") ||
+                targetModels.includes("all_egmp") ||
+                targetModels.includes(selectedProfile)
+            ) {
+                builtIn.push(cmd);
+            }
+        });
+    } else if (Array.isArray(CAN_DO_CATALOG.trigger_presets)) {
+        CAN_DO_CATALOG.trigger_presets.forEach(preset => {
+            const targetModels = preset.supported_models || preset.vehicle_models || [];
+            if (
+                targetModels.length === 0 ||
+                targetModels.includes("all") ||
+                targetModels.includes("all_egmp") ||
+                targetModels.includes(selectedProfile)
+            ) {
+                builtIn.push(preset);
+            }
+        });
+    }
+    return { builtIn, custom };
+}
+
+function getFilteredConditionPresets() {
+    const catsMap = new Map();
+    const customConds = (typeof getCustomCondPresets === "function") ? getCustomCondPresets() : [];
+    const selectedProfile = (typeof getSelectedVehicleProfile === "function") ? getSelectedVehicleProfile() : "all_egmp";
+
+    if (CAN_DO_CATALOG && Array.isArray(CAN_DO_CATALOG.commands)) {
+        CAN_DO_CATALOG.commands.forEach(cmd => {
+            const roles = cmd.roles || [];
+            const isCond = roles.length === 0 || roles.includes("condition");
+            if (!isCond) return;
+
+            const targetModels = cmd.supported_models || cmd.vehicle_models || [];
+            if (
+                targetModels.length > 0 &&
+                !targetModels.includes("all") &&
+                !targetModels.includes("all_egmp") &&
+                !targetModels.includes(selectedProfile)
+            ) {
+                return;
+            }
+
+            const catName = cmd.category || "General";
+            if (!catsMap.has(catName)) {
+                catsMap.set(catName, { category: catName, presets: [] });
+            }
+            catsMap.get(catName).presets.push(cmd);
+        });
+    } else if (CAN_DO_CATALOG && Array.isArray(CAN_DO_CATALOG.condition_presets)) {
+        CAN_DO_CATALOG.condition_presets.forEach(cat => {
+            const validPresets = (cat.presets || []).filter(preset => {
+                const targetModels = preset.supported_models || preset.vehicle_models || [];
+                return (
+                    targetModels.length === 0 ||
+                    targetModels.includes("all") ||
+                    targetModels.includes("all_egmp") ||
+                    targetModels.includes(selectedProfile)
+                );
+            });
+            if (validPresets.length > 0) {
+                catsMap.set(cat.category, { category: cat.category, presets: validPresets });
+            }
+        });
+    }
+
+    const categories = Array.from(catsMap.values());
+    if (customConds.length > 0) {
+        categories.unshift({ category: "⭐ My Saved Conditions", presets: customConds });
+    }
+    return categories;
+}
+
+function getFilteredActionPresets() {
+    const catsMap = new Map();
+    const customActs = (typeof getCustomActPresets === "function") ? getCustomActPresets() : [];
+    const selectedProfile = (typeof getSelectedVehicleProfile === "function") ? getSelectedVehicleProfile() : "all_egmp";
+
+    if (CAN_DO_CATALOG && Array.isArray(CAN_DO_CATALOG.commands)) {
+        CAN_DO_CATALOG.commands.forEach(cmd => {
+            const roles = cmd.roles || [];
+            const isAct = roles.length === 0 || roles.includes("action");
+            if (!isAct) return;
+
+            const targetModels = cmd.supported_models || cmd.vehicle_models || [];
+            if (
+                targetModels.length > 0 &&
+                !targetModels.includes("all") &&
+                !targetModels.includes("all_egmp") &&
+                !targetModels.includes(selectedProfile)
+            ) {
+                return;
+            }
+
+            const catName = cmd.category || "General";
+            if (!catsMap.has(catName)) {
+                catsMap.set(catName, { category: catName, presets: [] });
+            }
+            catsMap.get(catName).presets.push(cmd);
+        });
+    } else if (CAN_DO_CATALOG && Array.isArray(CAN_DO_CATALOG.action_presets)) {
+        CAN_DO_CATALOG.action_presets.forEach(cat => {
+            const validPresets = (cat.presets || []).filter(preset => {
+                const targetModels = preset.supported_models || preset.vehicle_models || [];
+                return (
+                    targetModels.length === 0 ||
+                    targetModels.includes("all") ||
+                    targetModels.includes("all_egmp") ||
+                    targetModels.includes(selectedProfile)
+                );
+            });
+            if (validPresets.length > 0) {
+                catsMap.set(cat.category, { category: cat.category, presets: validPresets });
+            }
+        });
+    }
+
+    const categories = Array.from(catsMap.values());
+    if (customActs.length > 0) {
+        categories.unshift({ category: "⭐ My Saved Actions", presets: customActs });
+    }
+    return categories;
 }
 
 function configureCatalogUrl() {

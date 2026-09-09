@@ -61,27 +61,24 @@ function toggleStandardPIDOptions() {
     const availablePidsSelect = document.getElementById("available_pids");
     const scanPidButton = document.getElementById("scan_pids_button");
 
+    if (!standardPidsSelect) return;
     const isEnabled = standardPidsSelect.value === "enable";
-    ecuProtocolSelect.disabled = !isEnabled;
-    availablePidsSelect.disabled = !isEnabled;
-    scanPidButton.disabled = !isEnabled;
+    if (ecuProtocolSelect) ecuProtocolSelect.disabled = !isEnabled;
+    if (availablePidsSelect) availablePidsSelect.disabled = !isEnabled;
+    if (scanPidButton) scanPidButton.disabled = !isEnabled;
 }
 
 function toggleDestinationAndCycle() {
-    const grouping = document.getElementById("grouping").value;
+    const groupingEl = document.getElementById("grouping");
+    if (!groupingEl) return;
+    const grouping = groupingEl.value;
     const destinationField = document.getElementById("destination");
     const cycleField = document.getElementById("group_cycle");
     const groupDestTypeFeild = document.getElementById("group_dest_type");
 
-    if (grouping === "enable") {
-        destinationField.disabled = false;
-        cycleField.disabled = false;
-        groupDestTypeFeild.disabled = false;
-    } else {
-        destinationField.disabled = true;
-        cycleField.disabled = true;
-        groupDestTypeFeild.disabled = true;
-    }
+    if (destinationField) destinationField.disabled = (grouping !== "enable");
+    if (cycleField) cycleField.disabled = (grouping !== "enable");
+    if (groupDestTypeFeild) groupDestTypeFeild.disabled = (grouping !== "enable");
 }
 
 function toggleDiscovery() {
@@ -554,40 +551,48 @@ function addCarParameter(rowData = {}) {
 function loadautoPIDCarData() {
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
-        if (this.responseText !== "NONE") {
-            const obj = JSON.parse(this.responseText);
-            const carModels = [];
-            if (obj && Array.isArray(obj.cars)) {
-                obj.cars.forEach(car => {
-                    if (car.car_model) {
-                        carModels.push(car.car_model);
-                    }
-                    if (car.pids) {
-                        const specInit = document.getElementById("specific_init");
-                        if (specInit) specInit.value = car.init;
-                        car.pids.forEach(pid => {
-                            if (pid.parameters) {
-                                pid.parameters.forEach(param => {
-                                    addCarParameter({
-                                        name: param.name,
-                                        expression: param.expression,
-                                        unit: param.unit,
-                                        class: param.class,
-                                        period: param.period,
-                                        type: param.type,
-                                        min: param.min,
-                                        max: param.max,
-                                        send_to: param.send_to,
-                                        pid: pid.pid,
-                                        pid_init: pid.pid_init
+        if (this.responseText && this.responseText !== "NONE" && !this.responseText.startsWith("Memory") && this.status === 200) {
+            try {
+                const obj = JSON.parse(this.responseText);
+                const carModels = [];
+                if (obj && Array.isArray(obj.cars)) {
+                    obj.cars.forEach(car => {
+                        if (car.car_model) {
+                            carModels.push(car.car_model);
+                        }
+                        if (car.pids) {
+                            const specInit = document.getElementById("specific_init");
+                            if (specInit) specInit.value = car.init;
+                            car.pids.forEach(pid => {
+                                if (pid.parameters) {
+                                    pid.parameters.forEach(param => {
+                                        addCarParameter({
+                                            name: param.name,
+                                            expression: param.expression,
+                                            unit: param.unit,
+                                            class: param.class,
+                                            period: param.period,
+                                            type: param.type,
+                                            min: param.min,
+                                            max: param.max,
+                                            send_to: param.send_to,
+                                            pid: pid.pid,
+                                            pid_init: pid.pid_init
+                                        });
                                     });
-                                });
-                            }
-                        });
-                    }
-                });
+                                }
+                            });
+                        }
+                    });
+                }
+                loadCarModels({ "supported": carModels });
+            } catch (e) {
+                console.warn("Failed to parse auto PID car data response:", e);
+                toggleCarModel();
+                toggleDestinationAndCycle();
+                toggleSendToFields();
+                toggleStandardPIDOptions();
             }
-            loadCarModels({ "supported": carModels });
         } else {
             toggleCarModel();
             toggleDestinationAndCycle();

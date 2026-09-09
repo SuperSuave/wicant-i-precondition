@@ -1,4 +1,13 @@
 /* CAN_DO_CATALOG_START - Dynamic GitHub & SPIFFS Catalog Loader */
+
+const CAN_DO_DEFAULT_FALLBACK_CATALOG = {
+    catalog_version: "0.0.0",
+    vehicles: [
+        { id: "all_egmp", name: "All Gen5W Models (Universal)", family: "all_egmp", make: "Universal" }
+    ],
+    commands: []
+};
+
 const CAN_DO_DOMAIN_TAXONOMY = {
     exterior_visibility: {
         id: "exterior_visibility",
@@ -67,14 +76,6 @@ const CAN_DO_DOMAIN_TAXONOMY = {
             logic_flow: { id: "logic_flow", name: "Logic & Flow Control", desc: "If-Then-Else conditional branching, Choose blocks, AND/OR/NOT groups" }
         }
     }
-};
-
-const CAN_DO_DEFAULT_FALLBACK_CATALOG = {
-    catalog_version: "0.0.0",
-    vehicles: [
-        { id: "all_egmp", name: "All Gen5W Models (Universal)", family: "all_egmp", make: "Universal" }
-    ],
-    commands: []
 };
 
 let CAN_DO_CATALOG = {

@@ -340,8 +340,8 @@ function updateCanDoStateWidgets() {
                         activeOption = itemDef.options.find(opt => {
                             const pattern = opt.match_payload || opt.payload;
                             if (!pattern) return false;
-                            const tokens = parseCanDoPattern(pattern);
-                            return matchCanDoPayload(payloadHex, tokens);
+                            const tokens = (typeof parseCanDoPattern === "function") ? parseCanDoPattern(pattern) : [];
+                            return (typeof matchCanDoPayload === "function") ? matchCanDoPayload(payloadHex, tokens) : false;
                         });
                     }
 
@@ -351,8 +351,8 @@ function updateCanDoStateWidgets() {
                             badgeEl.className = isStale ? "dash-badge badge-yellow can-do-state-badge" : "dash-badge badge-green can-do-state-badge";
                         }
                     } else if (itemDef.match_payload) {
-                        const tokens = parseCanDoPattern(itemDef.match_payload);
-                        const isMatch = matchCanDoPayload(payloadHex, tokens);
+                        const tokens = (typeof parseCanDoPattern === "function") ? parseCanDoPattern(itemDef.match_payload) : [];
+                        const isMatch = (typeof matchCanDoPayload === "function") ? matchCanDoPayload(payloadHex, tokens) : false;
                         if (badgeEl) {
                             badgeEl.textContent = isMatch ? (isStale ? "Active (Idle)" : "Active") : "Inactive";
                             badgeEl.className = isMatch ? (isStale ? "dash-badge badge-yellow can-do-state-badge" : "dash-badge badge-green can-do-state-badge") : "dash-badge badge-gray can-do-state-badge";
@@ -381,83 +381,100 @@ function checkStatus() {
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function () {
             try {
-                var obj = JSON.parse(this.responseText);
-                if (obj.wifi_mode == "APStation") {
-                    if (document.getElementById("wifi_mode_current")) document.getElementById("wifi_mode_current").innerHTML = "AP+Station";
-                } else if (obj.wifi_mode == "AP") {
-                    if (document.getElementById("wifi_mode_current")) document.getElementById("wifi_mode_current").innerHTML = "AP";
+                const obj = JSON.parse(this.responseText);
+
+                const setInner = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = val;
+                };
+
+                const setText = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val;
+                };
+
+                if (obj.wifi_mode === "APStation") {
+                    setInner("wifi_mode_current", "AP+Station");
+                } else if (obj.wifi_mode === "AP") {
+                    setInner("wifi_mode_current", "AP");
                 }
-                if (document.getElementById("sta_status")) document.getElementById("sta_status").innerHTML = obj.sta_status || "Connected";
-                if (document.getElementById("ap_channel_status")) document.getElementById("ap_channel_status").innerHTML = obj.ap_ch || "6";
-                if (document.getElementById("sta_ip")) document.getElementById("sta_ip").innerHTML = obj.sta_ip || "-";
-                if (document.getElementById("mdns")) document.getElementById("mdns").innerHTML = obj.mdns || "-";
-                if (document.getElementById("can_bitrate_status")) document.getElementById("can_bitrate_status").innerHTML = obj.can_datarate || "500K";
-                if (obj.can_mode == "normal" && document.getElementById("can_mode_status")) {
-                    document.getElementById("can_mode_status").innerHTML = "Normal";
-                } else if (obj.can_mode == "silent" && document.getElementById("can_mode_status")) {
-                    document.getElementById("can_mode_status").innerHTML = "Silent";
+
+                setInner("sta_status", obj.sta_status || "Connected");
+                setInner("ap_channel_status", obj.ap_ch || "6");
+                setInner("sta_ip", obj.sta_ip || "-");
+                setInner("mdns", obj.mdns || "-");
+                setInner("can_bitrate_status", obj.can_datarate || "500K");
+
+                if (obj.can_mode === "normal") {
+                    setInner("can_mode_status", "Normal");
+                } else if (obj.can_mode === "silent") {
+                    setInner("can_mode_status", "Silent");
                 }
+
                 if (obj.can_bus_count && obj.can_bus_count > 1) {
                     document.querySelectorAll(".can1_row").forEach(row => row.style.display = "");
-                    if (obj.can1_datarate && document.getElementById("can1_datarate")) {
-                        document.getElementById("can1_datarate").value = obj.can1_datarate;
-                    }
-                    if (obj.can1_mode && document.getElementById("can1_mode")) {
-                        document.getElementById("can1_mode").value = obj.can1_mode;
-                    }
-                    if (obj.can1_en && document.getElementById("can1_en")) {
-                        document.getElementById("can1_en").value = obj.can1_en;
-                    }
-                    if (obj.can_fwd_mode && document.getElementById("can_fwd_mode")) {
-                        document.getElementById("can_fwd_mode").value = obj.can_fwd_mode;
-                    }
+                    const can1Rate = document.getElementById("can1_datarate");
+                    if (obj.can1_datarate && can1Rate) can1Rate.value = obj.can1_datarate;
+
+                    const can1Mode = document.getElementById("can1_mode");
+                    if (obj.can1_mode && can1Mode) can1Mode.value = obj.can1_mode;
+
+                    const can1En = document.getElementById("can1_en");
+                    if (obj.can1_en && can1En) can1En.value = obj.can1_en;
+
+                    const canFwd = document.getElementById("can_fwd_mode");
+                    if (obj.can_fwd_mode && canFwd) canFwd.value = obj.can_fwd_mode;
                 }
-                if (document.getElementById("port_type_status")) {
-                    document.getElementById("port_type_status").innerHTML = (obj.port_type == "tcp") ? "TCP" : "UDP";
+
+                setInner("port_type_status", (obj.port_type === "tcp") ? "TCP" : "UDP");
+
+                if (obj.battery_soc_valid) {
+                    setText("battery_soc_status", `${obj.battery_soc_pct}%; (${formatAge(obj.battery_soc_age_ms)} ago)`);
+                } else {
+                    setText("battery_soc_status", "Waiting for CAN data");
                 }
-                if (document.getElementById("battery_soc_status")) {
-                    if (obj.battery_soc_valid) {
-                        document.getElementById("battery_soc_status").textContent = `${obj.battery_soc_pct}%; (${formatAge(obj.battery_soc_age_ms)} ago)`;
-                    } else {
-                        document.getElementById("battery_soc_status").textContent = "Waiting for CAN data";
-                    }
+
+                if (obj.battery_temp_valid) {
+                    setText("battery_temp_status", `Min: ${obj.battery_temp_min_c} °C; Max: ${obj.battery_temp_max_c} °C; (${formatAge(obj.battery_temp_age_ms)} ago)`);
+                } else {
+                    setText("battery_temp_status", "Waiting for CAN data");
                 }
-                if (document.getElementById("battery_temp_status")) {
-                    if (obj.battery_temp_valid) {
-                        document.getElementById("battery_temp_status").textContent = `Min: ${obj.battery_temp_min_c} °C; Max: ${obj.battery_temp_max_c} °C; (${formatAge(obj.battery_temp_age_ms)} ago)`;
-                    } else {
-                        document.getElementById("battery_temp_status").textContent = "Waiting for CAN data";
-                    }
+
+                setText("precondition_requested_status", obj.precondition_requested ? "Yes" : "No");
+                setText("precondition_active_status", obj.precondition_starting ? "Starting" : (obj.precondition_active ? "Yes" : "No"));
+
+                const preconBtn = document.getElementById("precon_activate_button");
+                if (preconBtn) {
+                    preconBtn.value = obj.precondition_requested ? "Stop Preconditioning" : "Activate";
                 }
-                if (document.getElementById("precondition_requested_status")) {
-                    document.getElementById("precondition_requested_status").textContent = obj.precondition_requested ? "Yes" : "No";
-                }
-                if (document.getElementById("precondition_active_status")) {
-                    document.getElementById("precondition_active_status").textContent = obj.precondition_starting ? "Starting" : (obj.precondition_active ? "Yes" : "No");
-                }
-                if (document.getElementById("precon_activate_button")) {
-                    document.getElementById("precon_activate_button").value = obj.precondition_requested ? "Stop Preconditioning" : "Activate";
-                }
-                if (document.getElementById("port_status")) document.getElementById("port_status").innerHTML = obj.port || "3333";
-                if (document.getElementById("fw_version")) document.getElementById("fw_version").innerHTML = obj.fw_version || "-";
-                if (document.getElementById("hw_version")) document.getElementById("hw_version").innerHTML = obj.hw_version || "-";
-                if (document.getElementById("git_version")) document.getElementById("git_version").innerHTML = obj.git_version || "-";
-                if (document.getElementById("protocol") && obj.protocol) document.getElementById("protocol").value = obj.protocol;
-                if (document.getElementById("batt_voltage")) document.getElementById("batt_voltage").innerHTML = obj.batt_voltage || "--.-";
+
+                setInner("port_status", obj.port || "3333");
+                setInner("fw_version", obj.fw_version || "-");
+                setInner("hw_version", obj.hw_version || "-");
+                setInner("git_version", obj.git_version || "-");
+
+                const protoEl = document.getElementById("protocol");
+                if (protoEl && obj.protocol) protoEl.value = obj.protocol;
+
+                setInner("batt_voltage", obj.batt_voltage || "--.-");
+
                 if (obj.can_do_stats && Array.isArray(obj.can_do_stats) && typeof updateCanDoActivityStats === "function") {
                     updateCanDoActivityStats(obj.can_do_stats);
                 }
+
                 if ("capture_active" in obj) {
                     const badge = document.getElementById("can_do_capture_active_badge");
                     if (badge) {
                         badge.style.display = obj.capture_active ? "inline-block" : "none";
                     }
                 }
+
                 updateDashboardCards(obj);
             } catch (err) {
                 console.warn("Status parse error:", err);
             }
         };
+
         xhttp.onerror = function () {
             if (window.location.protocol === 'blob:' || window.location.protocol === 'file:') {
                 updateDashboardCards({
@@ -471,6 +488,7 @@ function checkStatus() {
                 });
             }
         };
+
         xhttp.open("GET", "/check_status");
         xhttp.send();
     } catch (e) {
@@ -866,6 +884,9 @@ function initDashboardWidgets() {
     renderDashboardGrid();
 }
 document.addEventListener("DOMContentLoaded", initDashboardWidgets);
+
+// Heartbeat for polling status and state updates
+setInterval(checkStatus, 1000);
 
 setInterval(() => {
     const dashTab = document.getElementById("dashboard_tab");

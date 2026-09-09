@@ -43,14 +43,16 @@ const pidEntryStyles = `
 })();
 
 function toggleCarModel() {
-    const carSpecific = document.getElementById("car_specific").value;
+    const carSpecificEl = document.getElementById("car_specific");
     const carModelSelect = document.getElementById("car_model");
-    if (carSpecific === "disable") {
-        carModelSelect.disabled = true;
-    } else {
-        carModelSelect.disabled = false;
+    if (!carSpecificEl || !carModelSelect) return;
+
+    const carSpecific = carSpecificEl.value;
+    carModelSelect.disabled = (carSpecific === "disable");
+
+    if (typeof toggleDiscovery === "function") {
+        toggleDiscovery();
     }
-    toggleDiscovery();
 }
 
 function toggleStandardPIDOptions() {

@@ -1,7 +1,5 @@
 {
   "catalog_version": "3.1.0",
-  "infotainment_platform": "Gen5W (Standard-class Navigation 12.3\" Dual Display)",
-  "supported_model_years": "2022-2024 E-GMP",
   "vehicles": [
     {
       "id": "all_egmp",
@@ -327,9 +325,6 @@
     {
       "id": "sw_star",
       "name": "Star (⭐) Button",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -342,9 +337,6 @@
     {
       "id": "sw_mode",
       "name": "Mode Button",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -357,9 +349,6 @@
     {
       "id": "sw_speak",
       "name": "Voice / Speak Button",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -372,9 +361,6 @@
     {
       "id": "sw_call",
       "name": "Call / Phone Button",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -387,9 +373,6 @@
     {
       "id": "sw_vol_in",
       "name": "Volume Press / Mute",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -402,9 +385,6 @@
     {
       "id": "sw_vol_up",
       "name": "Volume Up",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -417,9 +397,6 @@
     {
       "id": "sw_vol_down",
       "name": "Volume Down",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -432,9 +409,6 @@
     {
       "id": "sw_skip_up",
       "name": "Seek / Skip Up",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -447,9 +421,6 @@
     {
       "id": "sw_skip_down",
       "name": "Seek / Skip Down",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -462,9 +433,42 @@
     {
       "id": "sw_ok",
       "name": "OK Button",
-      "tags": [
-        "all_egmp"
-      ],
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * 0*",
+      "to_payload": "* * * * * * 1*",
+      "roles": [
+        "trigger"
+      ]
+    },
+    {
+      "id": "sw_menu_down",
+      "name": "Menu Down Button",
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * *0",
+      "to_payload": "* * * * * * *1",
+      "roles": [
+        "trigger"
+      ]
+    },
+    {
+      "id": "sw_menu_up",
+      "name": "Menu Up Button",
+      "category": "Steering Wheel",
+      "can_id": "0x448",
+      "bus": 0,
+      "from_payload": "* * * * * * 0*",
+      "to_payload": "* * * * * * 4*",
+      "roles": [
+        "trigger"
+      ]
+    },
+    {
+      "id": "sw_menu_press",
+      "name": "Menu OK / Press Button",
       "category": "Steering Wheel",
       "can_id": "0x448",
       "bus": 0,
@@ -477,9 +481,6 @@
     {
       "id": "avn_star",
       "name": "AVN Dash Star (⭐) Button",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x652",
       "bus": 0,
@@ -508,9 +509,6 @@
     {
       "id": "camera_btn",
       "name": "360° Surround View Camera Button",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "camera_360",
       "category": "Dashboard / Center Console",
       "can_id": "0x476",
@@ -524,9 +522,6 @@
     {
       "id": "cluster_brightness",
       "name": "Cluster Brightness (+ / -)",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Dashboard / Center Console",
       "can_id": "0x474",
       "bus": 0,
@@ -550,9 +545,6 @@
     {
       "id": "heated_wheel_btn",
       "name": "Heated Steering Wheel Button",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_wheel",
       "category": "Comfort & Climate",
       "can_id": "0x418",
@@ -566,9 +558,6 @@
     {
       "id": "driver_seat_heat",
       "name": "Driver Seat Heating Active",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_seats",
       "category": "Comfort & Climate",
       "can_id": "0x496",
@@ -582,9 +571,6 @@
     {
       "id": "pass_seat_heat",
       "name": "Passenger Seat Heating Active",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_seats",
       "category": "Comfort & Climate",
       "can_id": "0x475",
@@ -598,9 +584,6 @@
     {
       "id": "climate_sync_toggle",
       "name": "Climate SYNC Button Toggle",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Comfort & Climate",
       "can_id": "0x4A0",
       "bus": 0,
@@ -613,9 +596,6 @@
     {
       "id": "climate_driver_only",
       "name": "Driver Only / Heat Mode Toggle",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Comfort & Climate",
       "can_id": "0x41D",
       "bus": 0,
@@ -628,9 +608,6 @@
     {
       "id": "climate_rear_defog",
       "name": "Rear Defogger & Mirrors Active",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Comfort & Climate",
       "can_id": "0x541",
       "bus": 0,
@@ -643,9 +620,6 @@
     {
       "id": "climate_temp_status",
       "name": "Target Temperature Change",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Comfort & Climate",
       "can_id": "0x380",
       "bus": 0,
@@ -656,11 +630,44 @@
       ]
     },
     {
+      "id": "climate_fan_active",
+      "name": "HVAC Fan Started",
+      "category": "Comfort & Climate",
+      "can_id": "0x31B",
+      "bus": 0,
+      "from_payload": "* * * 0*",
+      "to_payload": "* * * 2*",
+      "roles": [
+        "trigger"
+      ]
+    },
+    {
+      "id": "climate_recirc_on",
+      "name": "Cabin Recirculation Toggled",
+      "category": "Comfort & Climate",
+      "can_id": "0x31B",
+      "bus": 0,
+      "from_payload": "* * * * 0*",
+      "to_payload": "* * * * 4*",
+      "roles": [
+        "trigger"
+      ]
+    },
+    {
+      "id": "ambient_color_trig",
+      "name": "Ambient Lighting Color Changed",
+      "category": "Ambient & Interior Lighting",
+      "can_id": "0x4AD",
+      "bus": 0,
+      "from_payload": "* * * * 00 00 00 00",
+      "to_payload": "!00 !02 !08 !20 00 00 00 00",
+      "roles": [
+        "trigger"
+      ]
+    },
+    {
       "id": "car_ready_state",
       "name": "Car READY State Transition",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x038",
       "bus": 0,
@@ -673,9 +680,6 @@
     {
       "id": "driver_door",
       "name": "Driver Door",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x521",
       "bus": 0,
@@ -702,9 +706,6 @@
     {
       "id": "pass_door",
       "name": "Passenger Door",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x521",
       "bus": 0,
@@ -731,9 +732,6 @@
     {
       "id": "trunk",
       "name": "Trunk / Tailgate",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x414",
       "bus": 0,
@@ -760,9 +758,6 @@
     {
       "id": "charge_port",
       "name": "Charge Port Door",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x3AA",
       "bus": 0,
@@ -789,9 +784,6 @@
     {
       "id": "hood",
       "name": "Hood / Front Trunk",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -818,9 +810,6 @@
     {
       "id": "sunroof",
       "name": "Sunroof",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "sunroof",
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
@@ -848,9 +837,6 @@
     {
       "id": "hazard_lights",
       "name": "Hazard Warning Lights",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -860,14 +846,14 @@
       ],
       "options": [
         {
-          "label": "Turned ON / Active",
+          "label": "Turned ON",
           "from_payload": "* * * * 0*",
           "to_payload": "* * * * 2*",
           "match_payload": "* * * * 2* * * *",
           "default": true
         },
         {
-          "label": "Turned OFF / Inactive",
+          "label": "Turned OFF",
           "from_payload": "* * * * 2*",
           "to_payload": "* * * * 0*",
           "match_payload": "* * * * 0* * * *"
@@ -877,9 +863,6 @@
     {
       "id": "wipers",
       "name": "Windshield Wipers",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x541",
       "bus": 0,
@@ -889,14 +872,14 @@
       ],
       "options": [
         {
-          "label": "Turned ON / Active",
+          "label": "Turned ON",
           "from_payload": "* * * 0*",
           "to_payload": "* * * 1*",
           "match_payload": "* * * 1* * * * *",
           "default": true
         },
         {
-          "label": "Turned OFF / Inactive",
+          "label": "Turned OFF",
           "from_payload": "* * * 1*",
           "to_payload": "* * * 0*",
           "match_payload": "* * * 0* * * * *"
@@ -906,9 +889,6 @@
     {
       "id": "brake_pedal",
       "name": "Brake Pedal",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x412",
       "bus": 0,
@@ -918,14 +898,14 @@
       ],
       "options": [
         {
-          "label": "Pressed / Down",
+          "label": "Pressed",
           "from_payload": "* * * * * * 00",
           "to_payload": "* * * * * * 04",
           "match_payload": "* * * * * * 04 *",
           "default": true
         },
         {
-          "label": "Released / Up",
+          "label": "Released",
           "from_payload": "* * * * * * 04",
           "to_payload": "* * * * * * 00",
           "match_payload": "* * * * * * 00 *"
@@ -935,9 +915,6 @@
     {
       "id": "power_state",
       "name": "Vehicle Ignition / Power State",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x435",
       "bus": 0,
@@ -964,9 +941,6 @@
     {
       "id": "doors_lock_state",
       "name": "Door Locks",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x411",
       "bus": 0,
@@ -993,9 +967,6 @@
     {
       "id": "driver_seatbelt",
       "name": "Driver Seatbelt",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x411",
       "bus": 0,
@@ -1005,14 +976,14 @@
       ],
       "options": [
         {
-          "label": "Buckled / Fastened",
+          "label": "Buckled",
           "from_payload": "* * * * * 0*",
           "to_payload": "* * * * * 4*",
           "match_payload": "* * * * * 04 * *",
           "default": true
         },
         {
-          "label": "Unbuckled / Released",
+          "label": "Unbuckled",
           "from_payload": "* * * * * 4*",
           "to_payload": "* * * * * 0*",
           "match_payload": "* * * * * 00 * *"
@@ -1022,9 +993,6 @@
     {
       "id": "pass_seatbelt",
       "name": "Passenger Seatbelt",
-      "tags": [
-        "all_egmp"
-      ],
       "category": "Vehicle State & Safety",
       "can_id": "0x411",
       "bus": 0,
@@ -1034,14 +1002,14 @@
       ],
       "options": [
         {
-          "label": "Buckled / Fastened",
+          "label": "Buckled",
           "from_payload": "* * * * 0*",
           "to_payload": "* * * * 1*",
           "match_payload": "* * * * 01 * * *",
           "default": true
         },
         {
-          "label": "Unbuckled / Released",
+          "label": "Unbuckled",
           "from_payload": "* * * * 1*",
           "to_payload": "* * * * 0*",
           "match_payload": "* * * * 00 * * *"
@@ -1049,228 +1017,105 @@
       ]
     },
     {
-      "id": "sw_menu_down",
-      "name": "Menu Down Button",
-      "tags": [
-        "all_egmp"
-      ],
-      "category": "Steering Wheel",
-      "can_id": "0x448",
-      "bus": 0,
-      "from_payload": "* * * * * * *0",
-      "to_payload": "* * * * * * *1",
-      "roles": [
-        "trigger"
-      ]
-    },
-    {
-      "id": "sw_menu_up",
-      "name": "Menu Up Button",
-      "tags": [
-        "all_egmp"
-      ],
-      "category": "Steering Wheel",
-      "can_id": "0x448",
-      "bus": 0,
-      "from_payload": "* * * * * * 0*",
-      "to_payload": "* * * * * * 4*",
-      "roles": [
-        "trigger"
-      ]
-    },
-    {
-      "id": "sw_menu_press",
-      "name": "Menu OK / Press Button",
-      "tags": [
-        "all_egmp"
-      ],
-      "category": "Steering Wheel",
-      "can_id": "0x448",
-      "bus": 0,
-      "from_payload": "* * * * * * 0*",
-      "to_payload": "* * * * * * 1*",
-      "roles": [
-        "trigger"
-      ]
-    },
-    {
-      "id": "climate_fan_active",
-      "name": "HVAC Fan Started",
-      "tags": [
-        "all_egmp"
-      ],
-      "category": "Comfort & Climate",
-      "can_id": "0x31B",
-      "bus": 0,
-      "from_payload": "* * * 0*",
-      "to_payload": "* * * 2*",
-      "roles": [
-        "trigger"
-      ]
-    },
-    {
-      "id": "climate_recirc_on",
-      "name": "Cabin Recirculation Toggled",
-      "tags": [
-        "all_egmp"
-      ],
-      "category": "Comfort & Climate",
-      "can_id": "0x31B",
-      "bus": 0,
-      "from_payload": "* * * * 0*",
-      "to_payload": "* * * * 4*",
-      "roles": [
-        "trigger"
-      ]
-    },
-    {
-      "id": "ambient_color_trig",
-      "name": "Ambient Lighting Color Changed",
-      "tags": [
-        "all_egmp"
-      ],
-      "category": "Comfort & Climate",
-      "can_id": "0x4AD",
-      "bus": 0,
-      "from_payload": "* * * * 00 00 00 00",
-      "to_payload": "!00 !02 !08 !20 00 00 00 00",
-      "roles": [
-        "trigger"
-      ]
-    },
-    {
+      "id": "act_persistent_preconditioning",
       "name": "Persistent Preconditioning (21°C / 70°F)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "precondition",
       "precon_mode": "persistent",
       "precon_press": "short",
-      "popup_message": "",
       "category": "Battery Preconditioning",
       "roles": [
         "action"
-      ],
-      "id": "act_persistent_preconditioning__21_c___70_f_"
+      ]
     },
     {
+      "id": "act_continuous_preconditioning",
       "name": "Continuous Preconditioning (High Demand)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "precondition",
       "precon_mode": "continuous",
       "precon_press": "short",
-      "popup_message": "",
       "category": "Battery Preconditioning",
       "roles": [
         "action"
-      ],
-      "id": "act_continuous_preconditioning__high_demand_"
+      ]
     },
     {
+      "id": "act_single_cycle_preconditioning",
       "name": "Single Cycle Preconditioning (Once)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "precondition",
       "precon_mode": "once",
       "precon_press": "short",
-      "popup_message": "",
       "category": "Battery Preconditioning",
       "roles": [
         "action"
-      ],
-      "id": "act_single_cycle_preconditioning__once_"
+      ]
     },
     {
+      "id": "act_cancel_preconditioning",
       "name": "Cancel / Turn Off Preconditioning",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "precondition",
       "precon_mode": "cancel",
       "precon_press": "short",
-      "popup_message": "",
       "category": "Battery Preconditioning",
       "roles": [
         "action"
-      ],
-      "id": "act_cancel_preconditioning"
+      ]
     },
     {
+      "id": "act_live_batt_temp_voltage",
       "name": "Live Batt Temp & Voltage",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "popup",
       "popup_message": "Batt: {battery_temp}C ({voltage}V)",
       "popup_message_imperial": "Batt: {battery_temp_f}F ({voltage}V)",
       "category": "Cluster OSD Popups",
       "roles": [
         "action"
-      ],
-      "id": "act_live_batt_temp___voltage"
+      ]
     },
     {
+      "id": "act_min_max_batt_temp_range",
       "name": "Min / Max Batt Temp Range",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "popup",
       "popup_message": "Batt: {temp_min}C to {temp_max}C",
       "popup_message_imperial": "Batt: {temp_min}F to {temp_max}F",
       "category": "Cluster OSD Popups",
       "roles": [
         "action"
-      ],
-      "id": "act_min___max_batt_temp_range"
+      ]
     },
     {
+      "id": "act_preconditioning_status_temp",
       "name": "Preconditioning Status & Temp",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "popup",
       "popup_message": "Precon: {status} ({battery_temp}C)",
       "popup_message_imperial": "Precon: {status} ({battery_temp_f}F)",
       "category": "Cluster OSD Popups",
       "roles": [
         "action"
-      ],
-      "id": "act_preconditioning_status___temp"
+      ]
     },
     {
+      "id": "act_charge_port_opened_toast",
       "name": "Charge Port Opened Toast",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "popup",
       "popup_message": "CHARGE PORT OPEN",
       "category": "Cluster OSD Popups",
       "roles": [
         "action"
-      ],
-      "id": "act_charge_port_opened_toast"
+      ]
     },
     {
+      "id": "act_sport_mode_active_toast",
       "name": "Sport Mode Active Toast",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "popup",
       "popup_message": "SPORT MODE ACTIVE",
       "category": "Cluster OSD Popups",
       "roles": [
         "action"
-      ],
-      "id": "act_sport_mode_active_toast"
+      ]
     },
     {
+      "id": "act_ac_dc_max_charge_limit",
       "name": "AC & DC Max Charge Limit (Both)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x4C5",
       "bus": 0,
@@ -1322,14 +1167,11 @@
       "category": "EV Charging Limits",
       "roles": [
         "action"
-      ],
-      "id": "act_ac___dc_max_charge_limit__both_"
+      ]
     },
     {
+      "id": "act_ac_level_2_charge_limit",
       "name": "AC Level 2 Charge Limit",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x4C5",
       "bus": 0,
@@ -1381,14 +1223,11 @@
       "category": "EV Charging Limits",
       "roles": [
         "action"
-      ],
-      "id": "act_ac_level_2_charge_limit"
+      ]
     },
     {
+      "id": "act_dc_fast_charge_limit",
       "name": "DC Fast Charge Limit",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x4C5",
       "bus": 0,
@@ -1440,14 +1279,11 @@
       "category": "EV Charging Limits",
       "roles": [
         "action"
-      ],
-      "id": "act_dc_fast_charge_limit"
+      ]
     },
     {
+      "id": "act_driver_seat_heating_level",
       "name": "Driver Seat Heating Level",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_seats",
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -1490,14 +1326,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_driver_seat_heating_level"
+      ]
     },
     {
+      "id": "act_passenger_seat_heating_level",
       "name": "Passenger Seat Heating Level",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_seats",
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -1540,14 +1373,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_passenger_seat_heating_level"
+      ]
     },
     {
+      "id": "act_both_seats_heating_level",
       "name": "Both Seats Heating Level",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_seats",
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -1590,14 +1420,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_both_seats_heating_level"
+      ]
     },
     {
+      "id": "act_driver_seat_ventilation_level",
       "name": "Driver Seat Ventilation Level",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "ventilated_seats",
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -1640,14 +1467,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_driver_seat_ventilation_level"
+      ]
     },
     {
+      "id": "act_passenger_seat_ventilation_level",
       "name": "Passenger Seat Ventilation Level",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "ventilated_seats",
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -1690,14 +1514,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_passenger_seat_ventilation_level"
+      ]
     },
     {
+      "id": "act_both_seats_ventilation_level",
       "name": "Both Seats Ventilation Level",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "ventilated_seats",
       "type": "can_tx",
       "can_id": "0x4A2",
@@ -1740,14 +1561,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_both_seats_ventilation_level"
+      ]
     },
     {
+      "id": "act_heated_steering_wheel_toggle",
       "name": "Heated Steering Wheel Toggle",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "heated_wheel",
       "type": "can_tx",
       "can_id": "0x418",
@@ -1767,14 +1585,11 @@
       "category": "Seats & Steering Wheel Comfort",
       "roles": [
         "action"
-      ],
-      "id": "act_heated_steering_wheel_toggle"
+      ]
     },
     {
+      "id": "act_remote_climate_start",
       "name": "Remote Climate Start (+ Seats & Wheel)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x4A2",
       "bus": 0,
@@ -1811,14 +1626,11 @@
       "category": "Cabin Climate Control",
       "roles": [
         "action"
-      ],
-      "id": "act_remote_climate_start____seats___wheel_"
+      ]
     },
     {
+      "id": "act_deep_sleep_network_wake_pulse",
       "name": "Deep Sleep Network Wake Pulse",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x604",
       "bus": 0,
@@ -1840,14 +1652,11 @@
       "category": "Cabin Climate Control",
       "roles": [
         "action"
-      ],
-      "id": "act_deep_sleep_network_wake_pulse"
+      ]
     },
     {
+      "id": "act_set_target_cabin_temp",
       "name": "Set Target Cabin Temp",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "climate_target",
       "climate_zone": "driver",
       "target_temp_c": 21.0,
@@ -1861,14 +1670,11 @@
       "category": "Cabin Climate Control",
       "roles": [
         "action"
-      ],
-      "id": "act_set_target_cabin_temp"
+      ]
     },
     {
+      "id": "act_sync_mode_toggle",
       "name": "SYNC Mode Toggle",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x4A0",
       "bus": 0,
@@ -1900,14 +1706,11 @@
       "category": "Cabin Climate Control",
       "roles": [
         "action"
-      ],
-      "id": "act_sync_mode_toggle"
+      ]
     },
     {
+      "id": "act_driver_only_mode",
       "name": "Driver Only Mode",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x41D",
       "bus": 0,
@@ -1939,10 +1742,10 @@
       "category": "Cabin Climate Control",
       "roles": [
         "action"
-      ],
-      "id": "act_driver_only_mode"
+      ]
     },
     {
+      "id": "act_active_sound_design_profile",
       "name": "Active Sound Design (ASD) Profile",
       "tags": [
         "kia_ev6"
@@ -1989,14 +1792,11 @@
       "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
-      ],
-      "id": "act_active_sound_design__asd__profile"
+      ]
     },
     {
+      "id": "act_360_surround_view_camera",
       "name": "360° Surround View Camera",
-      "tags": [
-        "all_egmp"
-      ],
       "requires_feature": "camera_360",
       "type": "can_tx",
       "can_id": "0x476",
@@ -2016,14 +1816,11 @@
       "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
-      ],
-      "id": "act_360__surround_view_camera"
+      ]
     },
     {
+      "id": "act_keepalive_wakeup_ping",
       "name": "Keepalive / Wakeup Ping",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x7DF",
       "bus": 0,
@@ -2038,19 +1835,15 @@
       "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
-      ],
-      "id": "act_keepalive___wakeup_ping"
+      ]
     },
     {
+      "id": "act_multi_frame_burst_sequence",
       "name": "Multi-Frame Burst Sequence (x3)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_tx",
       "can_id": "0x652",
       "bus": 0,
       "delay_ms": 20,
-      "popup_message": "",
       "steps": [
         {
           "payload": "00 00 01 00 00 00 00 00",
@@ -2064,41 +1857,32 @@
       "category": "Vehicle Actuators & Features",
       "roles": [
         "action"
-      ],
-      "id": "act_multi_frame_burst_sequence__x3_"
+      ]
     },
     {
+      "id": "act_home_assistant_webhook_event",
       "name": "Home Assistant Webhook Event",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "webhook",
       "webhook_url": "http://homeassistant.local:8123/api/webhook/wican_event",
       "category": "Home Assistant & Cloud",
       "roles": [
         "action"
-      ],
-      "id": "act_home_assistant_webhook_event"
+      ]
     },
     {
+      "id": "act_mqtt_json_event_alert",
       "name": "MQTT JSON Event Alert",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "mqtt",
       "mqtt_topic": "wican/event/alert",
       "mqtt_payload": "{\"event\": \"triggered\", \"status\": \"active\"}",
       "category": "Home Assistant & Cloud",
       "roles": [
         "action"
-      ],
-      "id": "act_mqtt_json_event_alert"
+      ]
     },
     {
-      "name": "Interior Ambient Mood Lighting (64-Color Palette)",
-      "tags": [
-        "all_egmp"
-      ],
+      "id": "act_interior_ambient_mood_lighting",
+      "name": "Interior Ambient Mood Lighting",
       "type": "can_tx",
       "can_id": "0x4AD",
       "bus": 0,
@@ -2160,119 +1944,11 @@
       "category": "Ambient & Interior Lighting",
       "roles": [
         "action"
-      ],
-      "id": "act_interior_ambient_mood_lighting__64_color_palette_"
-    },
-    {
-      "name": "Ambient Light: Crimson Red",
-      "tags": [
-        "all_egmp"
-      ],
-      "type": "can_tx",
-      "can_id": "0x4AD",
-      "bus": 0,
-      "delay_ms": 20,
-      "popup_message": "Ambient: Crimson Red",
-      "steps": [
-        {
-          "payload": "FE 88 00 00 00 00 00 00",
-          "repeat": 3
-        },
-        {
-          "payload": "00 02 08 20 00 00 00 00",
-          "repeat": 3
-        }
-      ],
-      "category": "Ambient & Interior Lighting",
-      "roles": [
-        "action"
-      ],
-      "id": "act_ambient_light__crimson_red___fe2200_"
-    },
-    {
-      "name": "Ambient Light: Electric Blue",
-      "tags": [
-        "all_egmp"
-      ],
-      "type": "can_tx",
-      "can_id": "0x4AD",
-      "bus": 0,
-      "delay_ms": 20,
-      "popup_message": "Ambient: Electric Blue",
-      "steps": [
-        {
-          "payload": "00 54 F1 0F 00 00 00 00",
-          "repeat": 3
-        },
-        {
-          "payload": "00 02 08 20 00 00 00 00",
-          "repeat": 3
-        }
-      ],
-      "category": "Ambient & Interior Lighting",
-      "roles": [
-        "action"
-      ],
-      "id": "act_ambient_light__electric_blue___0055ff_"
-    },
-    {
-      "name": "Ambient Light: Cyan / Aqua Wave",
-      "tags": [
-        "all_egmp"
-      ],
-      "type": "can_tx",
-      "can_id": "0x4AD",
-      "bus": 0,
-      "delay_ms": 20,
-      "popup_message": "Ambient: Aqua Wave",
-      "steps": [
-        {
-          "payload": "00 64 53 0F 00 00 00 00",
-          "repeat": 3
-        },
-        {
-          "payload": "00 02 08 20 00 00 00 00",
-          "repeat": 3
-        }
-      ],
-      "category": "Ambient & Interior Lighting",
-      "roles": [
-        "action"
-      ],
-      "id": "act_ambient_light__cyan___aqua_wave___00d9f5_"
-    },
-    {
-      "name": "Ambient Light: Deep Purple / Violet",
-      "tags": [
-        "all_egmp"
-      ],
-      "type": "can_tx",
-      "can_id": "0x4AD",
-      "bus": 0,
-      "delay_ms": 20,
-      "popup_message": "Ambient: Deep Purple",
-      "steps": [
-        {
-          "payload": "80 00 F0 0F 00 00 00 00",
-          "repeat": 3
-        },
-        {
-          "payload": "00 02 08 20 00 00 00 00",
-          "repeat": 3
-        }
-      ],
-      "category": "Ambient & Interior Lighting",
-      "roles": [
-        "action"
-      ],
-      "id": "act_ambient_light__deep_purple___violet___8000ff_"
+      ]
     },
     {
       "id": "cond_speed_zero",
       "name": "Vehicle Stopped / Parked (Speed == 0)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "speed_zero",
       "category": "Vehicle State & Safety",
       "roles": [
@@ -2282,9 +1958,6 @@
     {
       "id": "cond_gear_park",
       "name": "Gear in PARK (P)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_state",
       "can_id": "0x2C0",
       "match_payload": "* * 00 * * * * *",
@@ -2296,9 +1969,6 @@
     {
       "id": "cond_doors_closed",
       "name": "All Doors & Trunk Closed",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_state",
       "can_id": "0x540",
       "match_payload": "00 00 00 00 * * * *",
@@ -2310,9 +1980,6 @@
     {
       "id": "cond_driver_seat_heat",
       "name": "Driver Seat Heat is Active",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_state",
       "can_id": "0x496",
       "match_payload": "!12 * * * * * * *",
@@ -2324,9 +1991,6 @@
     {
       "id": "cond_pass_seat_heat",
       "name": "Passenger Seat Heat is Active",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_state",
       "can_id": "0x475",
       "match_payload": "!12 * * * * * * *",
@@ -2338,9 +2002,6 @@
     {
       "id": "cond_climate_off",
       "name": "Climate / HVAC is OFF",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_state",
       "can_id": "0x476",
       "match_payload": "* 00 * * * * * *",
@@ -2352,9 +2013,6 @@
     {
       "id": "cond_charging",
       "name": "Vehicle Plugged In / EV Charging",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "can_state",
       "can_id": "0x594",
       "match_payload": "* * 01 * * * * *",
@@ -2366,9 +2024,6 @@
     {
       "id": "cond_temp_freezing",
       "name": "Outdoor Temp <= 0°C (32°F Freezing)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "param_range",
       "expression": "[B3] <= 40",
       "can_id": "0x226",
@@ -2380,9 +2035,6 @@
     {
       "id": "cond_temp_cold",
       "name": "Outdoor Temp < 15°C (59°F Cold)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "param_range",
       "expression": "[B3] < 55",
       "can_id": "0x226",
@@ -2394,9 +2046,6 @@
     {
       "id": "cond_temp_warm",
       "name": "Outdoor Temp > 25°C (77°F Warm)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "param_range",
       "expression": "[B3] > 65",
       "can_id": "0x226",
@@ -2408,9 +2057,6 @@
     {
       "id": "cond_hv_soc_ok",
       "name": "HV Battery SOC > 20% (Safe for Precon)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "param_range",
       "expression": "[B7] >= 40",
       "can_id": "0x2FC",
@@ -2422,9 +2068,6 @@
     {
       "id": "cond_hv_soc_high",
       "name": "HV Battery SOC > 50%",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "param_range",
       "expression": "[B7] >= 100",
       "can_id": "0x2FC",
@@ -2436,9 +2079,6 @@
     {
       "id": "cond_hv_soc_low",
       "name": "HV Battery SOC < 20% (Low Battery)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "param_range",
       "expression": "[B7] < 40",
       "can_id": "0x2FC",
@@ -2450,9 +2090,6 @@
     {
       "id": "cond_aux_12v_healthy",
       "name": "12V Aux Battery Healthy (> 12.4V)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "voltage",
       "voltage_val": "12.4",
       "voltage_dir": "above",
@@ -2464,9 +2101,6 @@
     {
       "id": "cond_aux_12v_low",
       "name": "12V Aux Battery Low (< 12.0V)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "voltage",
       "voltage_val": "12.0",
       "voltage_dir": "below",
@@ -2478,9 +2112,6 @@
     {
       "id": "cond_weekdays",
       "name": "Weekdays Only (Monday – Friday)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "day_of_week",
       "days": [
         "mon",
@@ -2497,9 +2128,6 @@
     {
       "id": "cond_weekends",
       "name": "Weekends Only (Saturday – Sunday)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "day_of_week",
       "days": [
         "sat",
@@ -2513,9 +2141,6 @@
     {
       "id": "cond_daytime",
       "name": "Daytime Hours (07:00 – 19:00)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "time_window",
       "start_time": "07:00",
       "end_time": "19:00",
@@ -2527,9 +2152,6 @@
     {
       "id": "cond_nighttime",
       "name": "Nighttime / Overnight (19:00 – 07:00)",
-      "tags": [
-        "all_egmp"
-      ],
       "type": "time_window",
       "start_time": "19:00",
       "end_time": "07:00",

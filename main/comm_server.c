@@ -423,13 +423,10 @@ static void tcp_server_task(void *pvParameters) {
         if (source_addr.ss_family == PF_INET) {
           inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, addr_str,
                       sizeof(addr_str) - 1);
-        }
-#if CONFIG_LWIP_IPV6
-        else if (source_addr.ss_family == PF_INET6) {
+        } else if (source_addr.ss_family == PF_INET6) {
           inet6_ntoa_r(((struct sockaddr_in6 *)&source_addr)->sin6_addr,
                        addr_str, sizeof(addr_str) - 1);
         }
-#endif
 
         rx_buffer[len] =
             0; // Null-terminate whatever we received and treat like a string...

@@ -44,7 +44,6 @@ CONFIG_LWIP_TCP_SND_BUF_DEFAULT=20480
 CONFIG_LWIP_TCP_WND_DEFAULT=20480
 CONFIG_LWIP_TCP_RECVMBOX_SIZE=64
 CONFIG_LWIP_HOOK_IP6_INPUT_NONE=y
-CONFIG_LWIP_IPV6=n
 # SO_RCVBUF so comm_server can clamp the GVRET socket's receive buffer: with
 # the full 20 KB window a SavvyCAN playback flood queues ~1500 frames on the
 # device; drained at the CAN TX pace that exceeds SavvyCAN's ~10 s no-response

@@ -1043,27 +1043,6 @@ document.addEventListener("keyup", function (e) {
     }
 }, true);
 
-function initCanDoMutationObserver() {
-    const container = document.getElementById("can_do_rules_container");
-    if (!container || window._can_doObserverAttached) return;
-    window._can_doObserverAttached = true;
-    const observer = new MutationObserver(function (mutations) {
-        if (window._suppressCanDoDirty) return;
-        for (let m of mutations) {
-            if (m.addedNodes.length > 0 || m.removedNodes.length > 0) {
-                if (typeof markCanDoDirty === "function") markCanDoDirty();
-                break;
-            }
-        }
-    });
-    observer.observe(container, { childList: true, subtree: true });
-}
-
-if (document.getElementById("can_do_rules_container")) {
-    initCanDoMutationObserver();
-}
-document.addEventListener("DOMContentLoaded", initCanDoMutationObserver);
-
 document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
         closeCanDoSettingsMenu();

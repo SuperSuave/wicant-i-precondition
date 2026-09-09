@@ -576,8 +576,8 @@ function getCanDoCatalogUrl() {
     // Convert github.com URL formats to raw.githubusercontent.com
     if (url.includes("github.com")) {
         url = url.replace("github.com", "raw.githubusercontent.com")
-                 .replace("/blob/", "/")
-                 .replace("/raw/", "/");
+            .replace("/blob/", "/")
+            .replace("/raw/", "/");
     }
     return url;
 }

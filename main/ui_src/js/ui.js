@@ -1,7 +1,13 @@
 // --- GENERAL UI, TABS, THEMES & NOTIFICATIONS ---
 
 function escapeHtml(str) {
-    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function showNotification(message, color = "blue", duration = 4000) {
@@ -187,15 +193,25 @@ function closeSidebarDrawer() {
     if (backdrop) backdrop.classList.remove("active");
 }
 
+let _rtfNarrow = null;
+try {
+    if (typeof Intl !== "undefined" && Intl.RelativeTimeFormat) {
+        _rtfNarrow = new Intl.RelativeTimeFormat('en', { style: 'narrow', numeric: 'always' });
+    }
+} catch (e) { }
+
 function formatAge(ageMs) {
+    if (ageMs === undefined || ageMs === null || isNaN(ageMs)) return "0s";
     const seconds = Math.max(0, Math.round(ageMs / 1000));
     if (seconds < 60) return `${seconds}s`;
 
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {
+        return _rtfNarrow ? _rtfNarrow.format(-minutes, 'minute').replace(' ago', '').replace(' ', '') : `${minutes}m`;
+    }
 
     const hours = Math.floor(minutes / 60);
-    return `${hours}h`;
+    return _rtfNarrow ? _rtfNarrow.format(-hours, 'hour').replace(' ago', '').replace(' ', '') : `${hours}h`;
 }
 
 function initActiveTab() {

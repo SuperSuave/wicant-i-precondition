@@ -2326,7 +2326,6 @@ static const httpd_uri_t can_states_uri = {.uri = "/api/can_states",
 static bool config_server_load_cfg(char *cfg) {
   cJSON *root, *key = 0;
   root = cJSON_Parse(cfg);
-  struct stat st;
 
   key = cJSON_GetObjectItem(root, "wifi_mode");
   if (key == 0) {

@@ -60,7 +60,6 @@ typedef struct {
   bool has_to;           // true if To payload filter is active
   bool any_change;       // true if any payload change triggers
   bool has_last_payload; // true once first frame has been tracked
-  char *expression;      // Optional trigger math expression string
 
   // Hold Duration & Continuous Assertion
   uint32_t for_ms;           // Must remain continuously active before firing
@@ -70,17 +69,6 @@ typedef struct {
   // MQTT / Home Assistant Command Fields
   char mqtt_topic[64];
   char mqtt_payload[64];
-
-  // Clock & Calendar Fields
-  uint8_t hour;          // 0-23
-  uint8_t minute;        // 0-59
-  uint8_t second;        // 0-59
-  uint8_t days_of_week;  // Bitmask: Bit 0=Sun, 1=Mon, ..., 6=Sat
-  uint32_t interval_sec; // Period for interval timers
-
-  // Battery Voltage Fields
-  float voltage_threshold;
-  bool voltage_above; // true if trigger when > threshold, false if < threshold
 
   // Verification & Polling Confirmation
   uint32_t verify_can_id; // Expected status CAN ID after action
@@ -108,7 +96,6 @@ typedef struct {
   // Execution state tracking
   bool triggered_latched;    // Latched state flag for one-shot mode
   uint8_t last_payload[8];   // Previous payload for ON_CHANGE mode
-  float last_eval_val;       // Previous evaluated expression result
   uint32_t cooldown_ms;      // Minimum time (ms) between triggers
   int64_t last_triggered_us; // Timestamp of last execution
 
@@ -158,8 +145,6 @@ typedef struct {
   can_do_sequence_step_t *steps;
   uint8_t step_count;
   uint32_t delay_ms; // Duration in ms for CAN_DO_ACT_DELAY step
-  char *mqtt_topic;  // Optional MQTT topic for notification alert
-  char *webhook_url; // Optional Webhook URL for POST alert
 } can_do_action_t;
 
 typedef struct {
@@ -178,19 +163,16 @@ typedef struct {
 
   bool trigger_combine_all;   // false = ANY trigger (OR), true = ALL triggers
                               // (AND)
-  can_do_trigger_t *triggers; // Multiple trigger definitions
+  can_do_trigger_t *triggers; // Array of trigger definitions
   uint8_t trigger_count;
-  can_do_trigger_t trigger; // Primary trigger
 
   // Primary / ON Actions
-  can_do_action_t *actions; // Multiple action blocks
+  can_do_action_t *actions; // Array of action definitions
   uint8_t action_count;
-  can_do_action_t action; // Primary action
 
   // OFF / Cancel Actions
-  can_do_action_t *off_actions;
+  can_do_action_t *off_actions; // Array of OFF action definitions
   uint8_t off_action_count;
-  can_do_action_t off_action;
 
 } can_do_rule_t;
 

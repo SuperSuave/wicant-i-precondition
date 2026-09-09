@@ -10,6 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +20,6 @@
 
 #include "can.h"
 #include "config_server.h"
-#include "expression_parser.h"
 #include "hw_config.h"
 #include "mqtt.h"
 #include "persistent_settings.h"
@@ -50,6 +50,7 @@ static bool g_passenger_seatbelt_buckled =
 
 // Forward declarations
 static void can_do_init_default_precondition_rule(void);
+static void can_do_free_rules(void);
 
 void can_do_init(const char *device_id_str) {
   if (device_id_str && strlen(device_id_str) > 0) {
@@ -65,6 +66,16 @@ void can_do_init(const char *device_id_str) {
   can_do_load_config();
   ESP_LOGI(TAG, "CAN Do Engine initialized (%lu rules loaded)",
            (unsigned long)g_can_do_rules.rule_count);
+}
+
+static inline int parse_hex_nibble(char c) {
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  if (c >= 'A' && c <= 'F')
+    return c - 'A' + 10;
+  if (c >= 'a' && c <= 'f')
+    return c - 'a' + 10;
+  return -1;
 }
 
 static bool can_do_parse_payload_pattern(const char *str, uint8_t *data,
@@ -92,30 +103,16 @@ static bool can_do_parse_payload_pattern(const char *str, uint8_t *data,
     uint8_t d_val = 0;
     uint8_t m_val = 0;
 
-    if (high_ch == '*' || high_ch == 'X' || high_ch == 'x' || high_ch == '?') {
-      m_val |= 0x00;
-    } else {
-      int h = (high_ch >= '0' && high_ch <= '9')   ? (high_ch - '0')
-              : (high_ch >= 'A' && high_ch <= 'F') ? (high_ch - 'A' + 10)
-              : (high_ch >= 'a' && high_ch <= 'f') ? (high_ch - 'a' + 10)
-                                                   : -1;
-      if (h >= 0) {
-        d_val |= (uint8_t)(h << 4);
-        m_val |= 0xF0;
-      }
+    int h = parse_hex_nibble(high_ch);
+    if (h >= 0) {
+      d_val |= (uint8_t)(h << 4);
+      m_val |= 0xF0;
     }
 
-    if (low_ch == '*' || low_ch == 'X' || low_ch == 'x' || low_ch == '?') {
-      m_val |= 0x00;
-    } else {
-      int l = (low_ch >= '0' && low_ch <= '9')   ? (low_ch - '0')
-              : (low_ch >= 'A' && low_ch <= 'F') ? (low_ch - 'A' + 10)
-              : (low_ch >= 'a' && low_ch <= 'f') ? (low_ch - 'a' + 10)
-                                                 : -1;
-      if (l >= 0) {
-        d_val |= (uint8_t)(l & 0x0F);
-        m_val |= 0x0F;
-      }
+    int l = parse_hex_nibble(low_ch);
+    if (l >= 0) {
+      d_val |= (uint8_t)(l & 0x0F);
+      m_val |= 0x0F;
     }
 
     data[byte_idx] = d_val;
@@ -170,25 +167,12 @@ static bool can_do_evaluate_trigger(can_do_trigger_t *trig,
       }
     }
 
-    if (trig->any_change || (!trig->has_from && !trig->has_to &&
-                             trig->match_type != CAN_DO_MATCH_EXPRESSION)) {
+    if (trig->any_change || (!trig->has_from && !trig->has_to)) {
       if (trig->has_last_payload) {
         if (memcmp(trig->last_payload, msg->data, msg->data_length_code) == 0) {
           return false;
         }
       }
-    }
-
-    if (trig->match_type == CAN_DO_MATCH_EXPRESSION) {
-      if (trig->expression) {
-        double val = 0.0;
-        if (evaluate_expression((uint8_t *)trig->expression,
-                                (uint8_t *)msg->data,
-                                (double)msg->data_length_code, &val)) {
-          return (val != 0.0);
-        }
-      }
-      return false;
     }
 
     return true;
@@ -296,8 +280,6 @@ static void can_do_format_popup_message(const char *template_str, char *out_buf,
 static void can_do_execute_climate_target(float target_c, const char *zone,
                                           bool sync_on, bool driver_only,
                                           bool passenger_aware) {
-  // Passenger seatbelt occupant awareness check: if enabled and passenger seat
-  // is empty, force driver-only mode
   if (passenger_aware && !g_passenger_seatbelt_buckled) {
     driver_only = true;
   }
@@ -466,12 +448,10 @@ static void can_do_execute_rule_actions(can_do_rule_t *rule,
       ESP_LOGI(TAG, "Rule '%s' TOGGLED ON",
                rule->name ? rule->name : "Unnamed");
 
-      if (rule->action_count > 0 && rule->actions) {
+      if (rule->actions && rule->action_count > 0) {
         for (uint8_t a = 0; a < rule->action_count; a++) {
           can_do_execute_action(&rule->actions[a], matched_id);
         }
-      } else {
-        can_do_execute_action(&rule->action, matched_id);
       }
     } else {
       rule->is_active_state = false;
@@ -479,24 +459,19 @@ static void can_do_execute_rule_actions(can_do_rule_t *rule,
       ESP_LOGI(TAG, "Rule '%s' TOGGLED OFF / CANCELLED",
                rule->name ? rule->name : "Unnamed");
 
-      if (rule->off_action_count > 0 && rule->off_actions) {
+      if (rule->off_actions && rule->off_action_count > 0) {
         for (uint8_t a = 0; a < rule->off_action_count; a++) {
           can_do_execute_action(&rule->off_actions[a], matched_id);
         }
-      } else if (rule->off_action.type != 0 || rule->off_action.popup_message ||
-                 rule->off_action.step_count > 0) {
-        can_do_execute_action(&rule->off_action, matched_id);
       } else {
         bool has_precon = false;
-        if (rule->action_count > 0 && rule->actions) {
+        if (rule->actions && rule->action_count > 0) {
           for (uint8_t a = 0; a < rule->action_count; a++) {
             if (rule->actions[a].type == CAN_DO_ACT_PRECONDITION) {
               has_precon = true;
               break;
             }
           }
-        } else if (rule->action.type == CAN_DO_ACT_PRECONDITION) {
-          has_precon = true;
         }
         if (has_precon && precondition_is_active()) {
           precondition_action_execute("cancel", "short");
@@ -504,12 +479,10 @@ static void can_do_execute_rule_actions(can_do_rule_t *rule,
       }
     }
   } else {
-    if (rule->action_count > 0 && rule->actions) {
+    if (rule->actions && rule->action_count > 0) {
       for (uint8_t a = 0; a < rule->action_count; a++) {
         can_do_execute_action(&rule->actions[a], matched_id);
       }
-    } else {
-      can_do_execute_action(&rule->action, matched_id);
     }
   }
 }
@@ -518,17 +491,16 @@ bool can_do_evaluate_rule(can_do_rule_t *rule, const twai_message_t *msg,
                           uint8_t bus) {
   if (!rule || !rule->enabled)
     return false;
-  if (g_can_do_rules.reverse_engineering_mode)
+  if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_ALWAYS_PAUSED)
     return false;
 
-  if (rule->trigger_count > 0 && rule->triggers) {
+  if (rule->triggers && rule->trigger_count > 0) {
     for (uint8_t i = 0; i < rule->trigger_count; i++) {
       if (can_do_evaluate_trigger(&rule->triggers[i], msg, bus))
         return true;
     }
-    return false;
   }
-  return can_do_evaluate_trigger(&rule->trigger, msg, bus);
+  return false;
 }
 
 void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
@@ -571,11 +543,10 @@ void can_do_process_rx_frame(const twai_message_t *msg, uint8_t bus) {
     if (!rule->enabled)
       continue;
 
-    uint8_t t_count =
-        (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-    can_do_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers)
-                                      ? rule->triggers
-                                      : &rule->trigger;
+    uint8_t t_count = rule->trigger_count;
+    can_do_trigger_t *trig_list = rule->triggers;
+    if (!trig_list || t_count == 0)
+      continue;
 
     for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
       can_do_trigger_t *trig = &trig_list[t_idx];
@@ -859,11 +830,10 @@ void can_do_process_mqtt_trigger(const char *topic, const char *payload) {
     if (!rule->enabled)
       continue;
 
-    uint8_t t_count =
-        (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-    can_do_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers)
-                                      ? rule->triggers
-                                      : &rule->trigger;
+    uint8_t t_count = rule->trigger_count;
+    can_do_trigger_t *trig_list = rule->triggers;
+    if (!trig_list || t_count == 0)
+      continue;
 
     for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
       can_do_trigger_t *trig = &trig_list[t_idx];
@@ -903,7 +873,7 @@ void can_do_process_mqtt_trigger(const char *topic, const char *payload) {
 }
 
 void can_do_process_timer_tick(void) {
-  if (g_can_do_rules.reverse_engineering_mode)
+  if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_ALWAYS_PAUSED)
     return;
 
   if (g_can_do_rules.mutex &&
@@ -924,11 +894,10 @@ void can_do_process_timer_tick(void) {
     if (!rule->enabled)
       continue;
 
-    uint8_t t_count =
-        (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-    can_do_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers)
-                                      ? rule->triggers
-                                      : &rule->trigger;
+    uint8_t t_count = rule->trigger_count;
+    can_do_trigger_t *trig_list = rule->triggers;
+    if (!trig_list || t_count == 0)
+      continue;
 
     for (uint8_t t_idx = 0; t_idx < t_count; t_idx++) {
       can_do_trigger_t *trig = &trig_list[t_idx];
@@ -1087,12 +1056,6 @@ static void can_do_parse_single_trigger(cJSON *r, cJSON *trig_obj,
         strcmp(src->valuestring, "mqtt_cmd") == 0 ||
         strcmp(src->valuestring, "mqtt") == 0) {
       trig->source = CAN_DO_TRIG_MQTT_COMMAND;
-    } else if (strcmp(src->valuestring, "clock") == 0) {
-      trig->source = CAN_DO_TRIG_CLOCK;
-    } else if (strcmp(src->valuestring, "interval") == 0) {
-      trig->source = CAN_DO_TRIG_INTERVAL;
-    } else if (strcmp(src->valuestring, "voltage") == 0) {
-      trig->source = CAN_DO_TRIG_VOLTAGE;
     } else {
       trig->source = CAN_DO_TRIG_CAN_MESSAGE;
     }
@@ -1192,10 +1155,6 @@ static void can_do_parse_single_action(cJSON *r, cJSON *act_obj,
       act->type = CAN_DO_ACT_CLIMATE_TARGET;
     else if (strcmp(act_type_obj->valuestring, "delay") == 0)
       act->type = CAN_DO_ACT_DELAY;
-    else if (strcmp(act_type_obj->valuestring, "mqtt") == 0)
-      act->type = CAN_DO_ACT_MQTT;
-    else if (strcmp(act_type_obj->valuestring, "webhook") == 0)
-      act->type = CAN_DO_ACT_WEBHOOK;
     else
       act->type = CAN_DO_ACT_CAN_TX;
   } else {
@@ -1360,7 +1319,6 @@ static void can_do_init_default_precondition_rule(void) {
   rule->triggers = calloc(1, sizeof(can_do_trigger_t));
   if (rule->triggers) {
     can_do_trigger_t *trig = &rule->triggers[0];
-    memset(trig, 0, sizeof(can_do_trigger_t));
     strncpy(trig->id, "sw_star", sizeof(trig->id) - 1);
     trig->source = CAN_DO_TRIG_CAN_MESSAGE;
     trig->can_id = 0x448;
@@ -1376,23 +1334,54 @@ static void can_do_init_default_precondition_rule(void) {
     trig->from_len = 6;
     trig->from_data[5] = 0x00;
     trig->from_mask[5] = 0xF0;
-    rule->trigger = *trig;
   }
 
   rule->action_count = 1;
   rule->actions = calloc(1, sizeof(can_do_action_t));
   if (rule->actions) {
     can_do_action_t *act = &rule->actions[0];
-    memset(act, 0, sizeof(can_do_action_t));
     act->type = CAN_DO_ACT_PRECONDITION;
     strncpy(act->trigger_id, "sw_star", sizeof(act->trigger_id) - 1);
     act->popup_message = NULL;
     strncpy(act->precon_mode, "persistent", sizeof(act->precon_mode) - 1);
     strncpy(act->precon_press, "short", sizeof(act->precon_press) - 1);
-    rule->action = *act;
   }
 
   g_can_do_rules.rule_count = 1;
+}
+
+static void can_do_free_rules(void) {
+  if (!g_can_do_rules.rules)
+    return;
+
+  for (uint32_t i = 0; i < g_can_do_rules.rule_count; i++) {
+    can_do_rule_t *rule = &g_can_do_rules.rules[i];
+    if (rule->name)
+      free(rule->name);
+    if (rule->triggers)
+      free(rule->triggers);
+    if (rule->actions) {
+      for (uint8_t a = 0; a < rule->action_count; a++) {
+        if (rule->actions[a].popup_message)
+          free(rule->actions[a].popup_message);
+        if (rule->actions[a].steps)
+          free(rule->actions[a].steps);
+      }
+      free(rule->actions);
+    }
+    if (rule->off_actions) {
+      for (uint8_t a = 0; a < rule->off_action_count; a++) {
+        if (rule->off_actions[a].popup_message)
+          free(rule->off_actions[a].popup_message);
+        if (rule->off_actions[a].steps)
+          free(rule->off_actions[a].steps);
+      }
+      free(rule->off_actions);
+    }
+  }
+  free(g_can_do_rules.rules);
+  g_can_do_rules.rules = NULL;
+  g_can_do_rules.rule_count = 0;
 }
 
 esp_err_t can_do_load_config(void) {
@@ -1444,46 +1433,7 @@ esp_err_t can_do_load_config(void) {
   cJSON *rules_arr = cJSON_GetObjectItem(root, "rules");
   if (rules_arr && cJSON_IsArray(rules_arr)) {
     int count = cJSON_GetArraySize(rules_arr);
-    if (g_can_do_rules.rules) {
-      for (uint32_t i = 0; i < g_can_do_rules.rule_count; i++) {
-        if (g_can_do_rules.rules[i].name)
-          free(g_can_do_rules.rules[i].name);
-        if (g_can_do_rules.rules[i].triggers)
-          free(g_can_do_rules.rules[i].triggers);
-        if (g_can_do_rules.rules[i].actions) {
-          for (uint8_t a = 0; a < g_can_do_rules.rules[i].action_count; a++) {
-            if (g_can_do_rules.rules[i].actions[a].popup_message)
-              free(g_can_do_rules.rules[i].actions[a].popup_message);
-            if (g_can_do_rules.rules[i].actions[a].steps)
-              free(g_can_do_rules.rules[i].actions[a].steps);
-          }
-          free(g_can_do_rules.rules[i].actions);
-        } else {
-          if (g_can_do_rules.rules[i].action.popup_message)
-            free(g_can_do_rules.rules[i].action.popup_message);
-          if (g_can_do_rules.rules[i].action.steps)
-            free(g_can_do_rules.rules[i].action.steps);
-        }
-        if (g_can_do_rules.rules[i].off_actions) {
-          for (uint8_t a = 0; a < g_can_do_rules.rules[i].off_action_count;
-               a++) {
-            if (g_can_do_rules.rules[i].off_actions[a].popup_message)
-              free(g_can_do_rules.rules[i].off_actions[a].popup_message);
-            if (g_can_do_rules.rules[i].off_actions[a].steps)
-              free(g_can_do_rules.rules[i].off_actions[a].steps);
-          }
-          free(g_can_do_rules.rules[i].off_actions);
-        } else {
-          if (g_can_do_rules.rules[i].off_action.popup_message)
-            free(g_can_do_rules.rules[i].off_action.popup_message);
-          if (g_can_do_rules.rules[i].off_action.steps)
-            free(g_can_do_rules.rules[i].off_action.steps);
-        }
-      }
-      free(g_can_do_rules.rules);
-      g_can_do_rules.rules = NULL;
-    }
-    g_can_do_rules.rule_count = 0;
+    can_do_free_rules();
 
     if (count > 0) {
       g_can_do_rules.rules = calloc(count, sizeof(can_do_rule_t));
@@ -1552,11 +1502,14 @@ esp_err_t can_do_load_config(void) {
                 cJSON *t_item = cJSON_GetArrayItem(trigs_arr, t);
                 can_do_parse_single_trigger(r, t_item, &rule->triggers[t]);
               }
-              rule->trigger = rule->triggers[0];
             }
           } else {
             cJSON *trig_obj = cJSON_GetObjectItem(r, "trigger");
-            can_do_parse_single_trigger(r, trig_obj, &rule->trigger);
+            rule->triggers = calloc(1, sizeof(can_do_trigger_t));
+            if (rule->triggers) {
+              rule->trigger_count = 1;
+              can_do_parse_single_trigger(r, trig_obj, &rule->triggers[0]);
+            }
           }
 
           cJSON *acts_arr = cJSON_GetObjectItem(r, "actions");
@@ -1570,11 +1523,14 @@ esp_err_t can_do_load_config(void) {
                 cJSON *a_item = cJSON_GetArrayItem(acts_arr, a);
                 can_do_parse_single_action(r, a_item, &rule->actions[a]);
               }
-              rule->action = rule->actions[0];
             }
           } else {
             cJSON *act_obj = cJSON_GetObjectItem(r, "action");
-            can_do_parse_single_action(r, act_obj, &rule->action);
+            rule->actions = calloc(1, sizeof(can_do_action_t));
+            if (rule->actions) {
+              rule->action_count = 1;
+              can_do_parse_single_action(r, act_obj, &rule->actions[0]);
+            }
           }
 
           cJSON *off_acts_arr = cJSON_GetObjectItem(r, "off_actions");
@@ -1588,12 +1544,17 @@ esp_err_t can_do_load_config(void) {
                 cJSON *off_item = cJSON_GetArrayItem(off_acts_arr, a);
                 can_do_parse_single_action(r, off_item, &rule->off_actions[a]);
               }
-              rule->off_action = rule->off_actions[0];
             }
           } else {
             cJSON *off_act_obj = cJSON_GetObjectItem(r, "off_action");
-            if (off_act_obj)
-              can_do_parse_single_action(r, off_act_obj, &rule->off_action);
+            if (off_act_obj) {
+              rule->off_actions = calloc(1, sizeof(can_do_action_t));
+              if (rule->off_actions) {
+                rule->off_action_count = 1;
+                can_do_parse_single_action(r, off_act_obj,
+                                           &rule->off_actions[0]);
+              }
+            }
           }
 
           g_can_do_rules.rule_count++;
@@ -1679,57 +1640,7 @@ bool can_do_test_single_action_json(const char *json_str) {
   memset(&act, 0, sizeof(can_do_action_t));
   can_do_parse_single_action(root, root, &act);
 
-  if (act.popup_message && act.popup_message[0] != '\0') {
-    char formatted_msg[128] = {0};
-    can_do_format_popup_message(act.popup_message, formatted_msg,
-                                sizeof(formatted_msg));
-    track_popup_show(formatted_msg);
-  }
-
-  if (act.type == CAN_DO_ACT_PRECONDITION) {
-    precondition_action_execute(act.precon_mode, act.precon_press);
-  }
-
-  if (act.type == CAN_DO_ACT_CLIMATE_TARGET) {
-    can_do_execute_climate_target(act.target_temp_c, act.climate_zone,
-                                  act.climate_sync_on, act.climate_driver_only,
-                                  act.climate_passenger_aware);
-  }
-
-  if (act.type == CAN_DO_ACT_DELAY) {
-    uint32_t ms = (act.delay_ms > 0) ? act.delay_ms : 500;
-    vTaskDelay(pdMS_TO_TICKS(ms));
-  } else if (act.type == CAN_DO_ACT_CAN_TX || act.type == 0) {
-    for (uint8_t s = 0; s < act.step_count; s++) {
-      can_do_sequence_step_t *step = &act.steps[s];
-      uint8_t payload[8] = {0};
-      if (step->tx_len > 0) {
-        memcpy(payload, step->tx_data, step->tx_len <= 8 ? step->tx_len : 8);
-      }
-      if (step->roll_byte_idx >= 0 && step->roll_byte_idx < step->tx_len) {
-        if (step->roll_mode == CAN_DO_ROLL_SEQ3) {
-          payload[step->roll_byte_idx] =
-              (uint8_t)(((step->roll_counter % 3) << 4) | 0x0F);
-          step->roll_counter = (step->roll_counter + 1) % 3;
-        } else if (step->roll_mode == CAN_DO_ROLL_BYTE_INC) {
-          payload[step->roll_byte_idx] = step->roll_counter++;
-        } else if (step->roll_mode == CAN_DO_ROLL_NIBBLE_INC) {
-          payload[step->roll_byte_idx] =
-              (uint8_t)((payload[step->roll_byte_idx] & 0xF0) |
-                        (step->roll_counter & 0x0F));
-          step->roll_counter = (step->roll_counter + 1) & 0x0F;
-        }
-      }
-      twai_message_t tx_msg = {.identifier = step->tx_can_id,
-                               .extd = step->is_ext ? 1 : 0,
-                               .data_length_code = step->tx_len};
-      memcpy(tx_msg.data, payload, step->tx_len <= 8 ? step->tx_len : 8);
-      can_send((can_bus_t)step->target_bus, &tx_msg, 0);
-      if (step->delay_ms > 0 && s < (act.step_count - 1)) {
-        vTaskDelay(pdMS_TO_TICKS(step->delay_ms));
-      }
-    }
-  }
+  can_do_execute_action(&act, "test_action");
 
   if (act.steps)
     free(act.steps);
@@ -1787,8 +1698,7 @@ can_do_capture_mode_t can_do_get_capture_mode(void) {
 }
 
 bool can_do_is_capture_active(void) {
-  if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_ALWAYS_PAUSED ||
-      g_can_do_rules.reverse_engineering_mode) {
+  if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_ALWAYS_PAUSED) {
     return true;
   }
   if (g_can_do_rules.capture_mode == CAN_DO_CAPTURE_DISABLED) {
@@ -1862,11 +1772,11 @@ void can_do_publish_ha_discovery(void) {
     bool should_expose = rule->ha_expose;
     const char *trigger_payload = rule->name;
 
-    uint8_t t_count =
-        (rule->trigger_count > 0 && rule->triggers) ? rule->trigger_count : 1;
-    can_do_trigger_t *trig_list = (rule->trigger_count > 0 && rule->triggers)
-                                      ? rule->triggers
-                                      : &rule->trigger;
+    uint8_t t_count = rule->trigger_count;
+    can_do_trigger_t *trig_list = rule->triggers;
+    if (!trig_list || t_count == 0)
+      continue;
+
     for (uint8_t t = 0; t < t_count; t++) {
       if (trig_list[t].source == CAN_DO_TRIG_MQTT_COMMAND) {
         should_expose = true;

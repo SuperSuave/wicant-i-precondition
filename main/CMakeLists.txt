@@ -18,5 +18,5 @@ idf_component_register(
     SRCS ${srcs}
     INCLUDE_DIRS "."
     REQUIRES ${requires}
-    EMBED_FILES "homepage.html.gz" "can_do_catalog.json.gz"
+    EMBED_FILES "homepage.html.gz"
 )

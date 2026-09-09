@@ -41,11 +41,9 @@
 
 
 #define TAG __func__
-
 #define KEEPALIVE_IDLE 5
 #define KEEPALIVE_INTERVAL 5
 #define KEEPALIVE_COUNT 3
-
 #define PORT_CLOSED_BIT BIT0
 #define PORT_OPEN_BIT BIT1
 
@@ -293,7 +291,6 @@ static void tcp_server_task(void *pvParameters) {
       goto CLEAN_UP;
     }
   }
-
   while (1) {
 
     if (!udp_enable) {

@@ -1857,15 +1857,6 @@ static esp_err_t upload_post_handler(httpd_req_t *req) {
   /* Close file upon upload completion */
   ESP_LOGI(TAG, "File reception complete: %lu", total_size);
 
-  if ((received = httpd_req_recv(req, buf, SCRATCH_BUFSIZE)) <= 0) {
-    ESP_LOGE(TAG, "File reception failed!");
-    esp_ota_abort(update_handle);
-    /* Respond with 500 Internal Server Error */
-    httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
-                        "Failed to receive file");
-    return ESP_FAIL;
-  }
-
   err = esp_ota_end(update_handle);
   if (err != ESP_OK) {
     if (err == ESP_ERR_OTA_VALIDATE_FAILED) {

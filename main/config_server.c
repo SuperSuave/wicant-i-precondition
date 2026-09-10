@@ -2320,14 +2320,14 @@ static bool config_server_load_cfg(char *cfg) {
   struct stat st;
 
   key = cJSON_GetObjectItem(root, "wifi_mode");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   strcpy(device_config.wifi_mode, key->valuestring);
   ESP_LOGI(TAG, "device_config.wifi_mode: %s", device_config.wifi_mode);
 
   key = cJSON_GetObjectItem(root, "ap_ch");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   strcpy(device_config.ap_ch, key->valuestring);
@@ -2346,24 +2346,24 @@ static bool config_server_load_cfg(char *cfg) {
         cJSON *s_pass = cJSON_GetObjectItem(net_item, "pass");
         cJSON *s_sec = cJSON_GetObjectItem(net_item, "security");
         if (s_ssid && s_ssid->valuestring && strlen(s_ssid->valuestring) > 0) {
-          strncpy(
+          strlcpy(
               device_config.sta_networks[device_config.sta_network_count].ssid,
               s_ssid->valuestring,
-              sizeof(device_config.sta_networks[0].ssid) - 1);
+              sizeof(device_config.sta_networks[0].ssid));
           if (s_pass && s_pass->valuestring) {
-            strncpy(device_config.sta_networks[device_config.sta_network_count]
+            strlcpy(device_config.sta_networks[device_config.sta_network_count]
                         .pass,
                     s_pass->valuestring,
-                    sizeof(device_config.sta_networks[0].pass) - 1);
+                    sizeof(device_config.sta_networks[0].pass));
           } else {
             device_config.sta_networks[device_config.sta_network_count]
                 .pass[0] = '\0';
           }
           if (s_sec && s_sec->valuestring) {
-            strncpy(device_config.sta_networks[device_config.sta_network_count]
+            strlcpy(device_config.sta_networks[device_config.sta_network_count]
                         .security,
                     s_sec->valuestring,
-                    sizeof(device_config.sta_networks[0].security) - 1);
+                    sizeof(device_config.sta_networks[0].security));
           } else {
             strcpy(device_config.sta_networks[device_config.sta_network_count]
                        .security,
@@ -2423,35 +2423,35 @@ static bool config_server_load_cfg(char *cfg) {
   }
 
   key = cJSON_GetObjectItem(root, "can_datarate");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   strcpy(device_config.can_datarate, key->valuestring);
   ESP_LOGI(TAG, "device_config.can_datarate: %s", device_config.can_datarate);
 
   key = cJSON_GetObjectItem(root, "can_mode");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   strcpy(device_config.can_mode, key->valuestring);
   ESP_LOGI(TAG, "device_config.can_mode: %s", device_config.can_mode);
 
   key = cJSON_GetObjectItem(root, "port_type");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   strcpy(device_config.port_type, key->valuestring);
   ESP_LOGI(TAG, "device_config.port_type: %s", device_config.port_type);
 
   key = cJSON_GetObjectItem(root, "port");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   strcpy(device_config.port, key->valuestring);
   ESP_LOGI(TAG, "device_config.port: %s", device_config.port);
 
   key = cJSON_GetObjectItem(root, "ap_pass");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   if (strlen(key->valuestring) < 8 || strlen(key->valuestring) > 64) {
@@ -2474,7 +2474,7 @@ static bool config_server_load_cfg(char *cfg) {
   ESP_LOGE(TAG, "device_config.protocol: %s", device_config.protocol);
 
   key = cJSON_GetObjectItem(root, "ble_pass");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
   if (strlen(key->valuestring) < 4 || strlen(key->valuestring) > 16) {
@@ -2484,7 +2484,7 @@ static bool config_server_load_cfg(char *cfg) {
   ESP_LOGE(TAG, "device_config.ble_pass: %s", device_config.ble_pass);
 
   key = cJSON_GetObjectItem(root, "sleep_status");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
 
@@ -2492,7 +2492,7 @@ static bool config_server_load_cfg(char *cfg) {
   ESP_LOGE(TAG, "device_config.sleep_status: %s", device_config.sleep_status);
 
   key = cJSON_GetObjectItem(root, "ble_status");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
 
@@ -2500,7 +2500,7 @@ static bool config_server_load_cfg(char *cfg) {
   ESP_LOGE(TAG, "device_config.ble_status: %s", device_config.ble_status);
 
   key = cJSON_GetObjectItem(root, "sleep_volt");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     goto config_error;
   }
 
@@ -2509,8 +2509,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert))) {
     goto config_error;
   }
 
@@ -2520,8 +2520,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_ssid");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_ssid))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_ssid))) {
     goto config_error;
   }
 
@@ -2532,8 +2532,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_pass");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_pass))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_pass))) {
     goto config_error;
   }
 
@@ -2544,8 +2544,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_volt");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_volt))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_volt))) {
     goto config_error;
   }
 
@@ -2556,8 +2556,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_protocol");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_protocol))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_protocol))) {
     goto config_error;
   }
 
@@ -2568,8 +2568,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_url");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_url))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_url))) {
     goto config_error;
   }
 
@@ -2580,8 +2580,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_port");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_port))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_port))) {
     goto config_error;
   }
 
@@ -2592,8 +2592,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_topic");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_topic))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_topic))) {
     goto config_error;
   }
 
@@ -2604,8 +2604,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_mqtt_user");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_mqtt_user))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_mqtt_user))) {
     goto config_error;
   }
 
@@ -2616,8 +2616,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_mqtt_pass");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_mqtt_pass))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_mqtt_pass))) {
     goto config_error;
   }
 
@@ -2628,8 +2628,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "batt_alert_time");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.batt_alert_time))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.batt_alert_time))) {
     goto config_error;
   }
 
@@ -2640,7 +2640,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_en");
-  if (key == 0 || (strlen(key->valuestring) > sizeof(device_config.mqtt_en))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_en))) {
     goto config_error;
   }
 
@@ -2650,7 +2651,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_url");
-  if (key == 0 || (strlen(key->valuestring) > sizeof(device_config.mqtt_url))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_url))) {
     goto config_error;
   }
 
@@ -2660,8 +2662,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_port");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_port))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_port))) {
     goto config_error;
   }
 
@@ -2671,8 +2673,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_user");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_user))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_user))) {
     goto config_error;
   }
 
@@ -2682,8 +2684,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_pass");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_pass))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_pass))) {
     goto config_error;
   }
 
@@ -2693,8 +2695,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_elm327_log");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_elm327_log))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_elm327_log))) {
     goto config_error;
   }
 
@@ -2743,8 +2745,8 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_tx_topic");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_tx_topic))) {
+  if (key == 0 || !key->valuestring ||
+      (strlen(key->valuestring) >= sizeof(device_config.mqtt_tx_topic))) {
     goto config_error;
   }
   if (strlen(key->valuestring) == 0) {
@@ -2783,9 +2785,9 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_rx_topic");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_rx_topic)) ||
-      strlen(key->valuestring) == 0) {
+  if (key == 0 || !key->valuestring ||
+      strlen(key->valuestring) == 0 ||
+      strlen(key->valuestring) >= sizeof(device_config.mqtt_rx_topic)) {
     goto config_error;
   }
   strcpy(device_config.mqtt_rx_topic, key->valuestring);
@@ -2795,9 +2797,9 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "mqtt_status_topic");
-  if (key == 0 ||
-      (strlen(key->valuestring) > sizeof(device_config.mqtt_status_topic)) ||
-      strlen(key->valuestring) == 0) {
+  if (key == 0 || !key->valuestring ||
+      strlen(key->valuestring) == 0 ||
+      strlen(key->valuestring) >= sizeof(device_config.mqtt_status_topic)) {
     goto config_error;
   }
   strcpy(device_config.mqtt_status_topic, key->valuestring);
@@ -2808,7 +2810,7 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "wakeup_volt");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     strcpy(device_config.wakeup_volt, "13.5");
   } else {
     strcpy(device_config.wakeup_volt, key->valuestring);
@@ -2819,16 +2821,15 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "sleep_time");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     strcpy(device_config.sleep_time, "2");
   } else {
-    uint32_t sleep_time = atoi(device_config.sleep_time);
-
-    if (sleep_time > 30 && sleep_time < 1) {
+    uint32_t sleep_time = atoi(key->valuestring);
+    if (sleep_time < 1 || sleep_time > 30) {
       strcpy(device_config.sleep_time, "2");
+    } else {
+      strcpy(device_config.sleep_time, key->valuestring);
     }
-
-    strcpy(device_config.sleep_time, key->valuestring);
   }
 
   ESP_LOGE(TAG, "device_config.sleep_time: %s", device_config.sleep_time);
@@ -2885,7 +2886,7 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "sta_security");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     strcpy(device_config.sta_security, "wpa3");
   } else {
     strcpy(device_config.sta_security, key->valuestring);
@@ -2896,7 +2897,7 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "ap_auto_disable");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     strcpy(device_config.ap_auto_disable, "disable");
   } else {
     strcpy(device_config.ap_auto_disable, key->valuestring);
@@ -2908,16 +2909,15 @@ static bool config_server_load_cfg(char *cfg) {
 
   //*****
   key = cJSON_GetObjectItem(root, "keep_alive");
-  if (key == 0) {
+  if (key == 0 || !key->valuestring) {
     strcpy(device_config.keep_alive, "30");
   } else {
-    uint32_t keep_alive = atoi(device_config.keep_alive);
-
-    if (keep_alive > 120 && keep_alive < 1) {
+    uint32_t keep_alive = atoi(key->valuestring);
+    if (keep_alive < 1 || keep_alive > 120) {
       strcpy(device_config.keep_alive, "30");
+    } else {
+      strcpy(device_config.keep_alive, key->valuestring);
     }
-
-    strcpy(device_config.keep_alive, key->valuestring);
   }
 
   ESP_LOGE(TAG, "device_config.keep_alive: %s", device_config.keep_alive);

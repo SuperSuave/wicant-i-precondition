@@ -155,7 +155,6 @@ function postConfig(btn) {
     const getVal = (id, fallback = "") => document.getElementById(id)?.value || fallback;
 
     obj["wifi_mode"] = getVal("wifi_mode");
-    obj["webhook_en"] = getVal("webhook_en");
     obj["ap_ch"] = getVal("ap_ch_value");
 
     if (typeof updateLegacyStaFields === "function") updateLegacyStaFields();
@@ -176,8 +175,6 @@ function postConfig(btn) {
     obj["ap_pass"] = getVal("ap_pass_value", "@meatpi#");
     obj["protocol"] = getVal("protocol", "savvycan");
     obj["ble_pass"] = getVal("ble_pass_value", "123456");
-    obj["ble_status"] = getVal("ble_status");
-    obj["sleep_status"] = getVal("sleep_status");
     obj["sleep_volt"] = getVal("sleep_volt");
     obj["sleep_time"] = getVal("sleep_time");
     obj["batt_alert"] = getVal("batt_alert");
@@ -194,7 +191,6 @@ function postConfig(btn) {
     obj["batt_alert_time"] = getVal("batt_alert_time");
     obj["batt_mqtt_user"] = getVal("batt_mqtt_user");
     obj["batt_mqtt_pass"] = getVal("batt_mqtt_pass");
-    obj["mqtt_en"] = getVal("mqtt_en");
 
     let raw_mqtt_url = getVal("mqtt_url").replace(/^mqtt:\/\//, "");
     obj["mqtt_url"] = mqtt_txt.concat(raw_mqtt_url);
@@ -203,7 +199,6 @@ function postConfig(btn) {
     obj["mqtt_pass"] = getVal("mqtt_pass");
     obj["keep_alive"] = getVal("keep_alive");
     obj["mqtt_tx_topic"] = getVal("mqtt_tx_topic");
-    obj["ap_auto_disable"] = getVal("ap_auto_disable");
     obj["mqtt_tx_en"] = document.getElementById("mqtt_tx_en_checkbox")?.checked ? "enable" : "disable";
     obj["mqtt_rx_topic"] = getVal("mqtt_rx_topic");
     obj["mqtt_rx_en"] = document.getElementById("mqtt_rx_en_checkbox")?.checked ? "enable" : "disable";

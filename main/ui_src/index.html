@@ -314,7 +314,7 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">Wireless Mode</span></div>
                     <div class="settings-control">
-                        <select id="wifi_mode">
+                        <select id="wifi_mode" onchange="submit_enable();">
                             <option value="AP">Access Point Only</option>
                             <option value="APStation">AP + Station</option>
                         </select>
@@ -323,14 +323,16 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">AP Channel</span></div>
                     <div class="settings-control">
-                        <select id="ap_ch_value">
-                            <option value="6">6</option>
+                        <select id="ap_ch_value" onchange="submit_enable();">
+                            <option value="1">1</option>
+                            <option value="6" selected>6</option>
+                            <option value="11">11</option>
                         </select>
                     </div>
                 </div>
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">AP Password</span></div>
-                    <div class="settings-control"><input type="text" id="ap_pass_value" value="Testpass"></div>
+                    <div class="settings-control"><input type="text" id="ap_pass_value" value="Testpass" oninput="submit_enable();"></div>
                 </div>
                 <div class="settings-row">
                     <div class="settings-label">
@@ -367,6 +369,70 @@
                         </label>
                     </div>
                 </div>
+                <div id="mqtt_en_div">
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">MQTT Server URL</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_url" placeholder="192.168.1.100" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Port</span></div>
+                        <div class="settings-control"><input type="number" id="mqtt_port" value="1883" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Username</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_user" placeholder="Optional" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Password</span></div>
+                        <div class="settings-control"><input type="password" id="mqtt_pass" placeholder="Optional" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Keep Alive (s)</span></div>
+                        <div class="settings-control"><input type="number" id="keep_alive" value="60" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Enable Transmit (TX) Topic</span></div>
+                        <div class="settings-control">
+                            <label class="ha-switch">
+                                <input type="checkbox" id="mqtt_tx_en_checkbox" onchange="txCheckBoxChanged(); submit_enable();">
+                                <span class="ha-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">TX Topic</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_tx_topic" placeholder="wican/can/tx" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Enable Receive (RX) Topic</span></div>
+                        <div class="settings-control">
+                            <label class="ha-switch">
+                                <input type="checkbox" id="mqtt_rx_en_checkbox" onchange="rxCheckBoxChanged(); submit_enable();">
+                                <span class="ha-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">RX Topic</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_rx_topic" placeholder="wican/can/rx" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Status Topic</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_status_topic" placeholder="wican/status" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <span class="settings-title">ELM327 Log</span>
+                            <span class="settings-desc" style="cursor: pointer; text-decoration: underline;" onclick="alert_elm327();">What is this?</span>
+                        </div>
+                        <div class="settings-control">
+                            <select id="mqtt_elm327_log" onchange="submit_enable();">
+                                <option value="disable">Disable</option>
+                                <option value="enable">Enable</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="section-title">Bluetooth Low Energy (BLE)</div>
@@ -383,7 +449,7 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">BLE Passkey</span></div>
                     <div class="settings-control"><input type="number" id="ble_pass_value" value="000000" min="0"
-                            max="999999"></div>
+                            max="999999" oninput="submit_enable();"></div>
                 </div>
             </div>
         </div>

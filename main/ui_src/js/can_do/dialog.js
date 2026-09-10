@@ -528,95 +528,120 @@ function showCanDoHaSettingsModal(btn) {
     const card = btn ? btn.closest(".can-do-rule-card") : null;
     if (!card) return;
 
-    document.querySelectorAll(".can-do-ha-settings-modal-overlay").forEach(el => el.remove());
+    document.querySelectorAll(".can-do-ha-settings-modal-overlay, dialog.ha-native-dialog").forEach(el => {
+        if (el.querySelector("#can_do_modal_ha_expose")) el.remove();
+    });
 
     const ruleName = card.querySelector(".can-do-name")?.value || "CAN Do Automation";
     const currentExpose = card.dataset.haExpose !== undefined ? (card.dataset.haExpose === "true") : true;
     const currentIcon = card.dataset.haIcon || "mdi:car-defrost-rear";
 
-    const overlay = document.createElement("div");
-    overlay.className = "can-do-ha-settings-modal-overlay";
-    overlay.style.cssText = "position: fixed; inset: 0; z-index: 1000000; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 1rem;";
+    const dialog = document.createElement("dialog");
+    dialog.className = "ha-add-element-dialog-overlay ha-native-dialog";
+    dialog.style.cssText = "border: none; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh;";
 
-    overlay.innerHTML = `
-                        <div class="can-do-ha-settings-modal" style="width: 100%; max-width: 460px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-radius: var(--m3-shape-lg, 16px); padding: 1.5rem; margin: 0; position: relative;" onclick="event.stopPropagation();">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.5rem;">
-                                        <span>Home Assistant Integration</span>
-                                    </h3>
-                                    <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 3px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        "${ruleName}"
-                                    </span>
-                                </div>
-                                <button type="button" class="system-button" style="width: 28px; height: 28px; min-width: 28px; padding: 0; font-size: 0.9rem; border-radius: 50%;" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">✕</button>
-                            </div>
+    dialog.innerHTML = `
+        <div class="ha-add-element-dialog" style="max-width: 480px;" onclick="event.stopPropagation();">
+            <div class="ha-dialog-header">
+                <div class="ha-dialog-header-top">
+                    <div class="ha-dialog-title-wrap">
+                        <span class="can-do-ha-pill act-pill">Home Assistant</span>
+                        <h3 class="ha-dialog-title">Home Assistant Integration</h3>
+                    </div>
+                    <button type="button" class="ha-dialog-close-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }" title="Close dialog">✕</button>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    "${escapeHtml(ruleName)}"
+                </div>
+            </div>
+            <div class="ha-dialog-body" style="padding: 1.25rem; gap: 1.1rem; display: flex; flex-direction: column;">
+                <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
+                    <div>
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
+                    </div>
+                </label>
 
-                            <div style="display: flex; flex-direction: column; gap: 1.1rem;">
-                                <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
-                                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
-                                    <div>
-                                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
-                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
-                                    </div>
-                                </label>
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
+                        Material Design Icon (MDI):
+                    </label>
+                    <input type="text" id="can_do_modal_ha_icon" value="${escapeHtml(currentIcon)}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-heading);">
+                    <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
 
-                                <div>
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
-                                        Material Design Icon (MDI):
-                                    </label>
-                                    <input type="text" id="can_do_modal_ha_icon" value="${currentIcon}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px;">
-                                    <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
+                    <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
+                        <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
+                    </div>
+                </div>
 
-                                    <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
-                                        <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
-                                    </div>
-                                </div>
-
-                                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
-                                    <button type="button" class="system-button" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">Cancel</button>
-                                    <button type="button" class="primary-button" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
+                    <button type="button" class="dash-outline-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }">Cancel</button>
+                    <button type="button" class="dash-action-btn" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
+                </div>
+            </div>
+        </div>
+    `;
 
     window._activeHaTargetCard = card;
-    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+    if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+    }
 
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.remove();
-    });
+    dialog.onclick = (e) => {
+        if (e.target === dialog) {
+            if (typeof dialog.close === "function") dialog.close();
+            dialog.remove();
+        }
+    };
+    dialog.onclose = () => dialog.remove();
 }
 
 function saveCanDoHaSettingsModal(btn, card) {
     if (!card) {
         card = window._activeHaTargetCard;
     }
-    const modal = btn ? btn.closest(".can-do-ha-settings-modal-overlay") : document.querySelector(".can-do-ha-settings-modal-overlay");
-    if (!card || !modal) return;
+    const dialog = btn ? btn.closest("dialog") : document.querySelector("dialog");
+    if (!card || !dialog) return;
 
-    const exposeCb = modal.querySelector("#can_do_modal_ha_expose");
-    const iconInput = modal.querySelector("#can_do_modal_ha_icon");
+    const exposeCb = dialog.querySelector("#can_do_modal_ha_expose");
+    const iconInput = dialog.querySelector("#can_do_modal_ha_icon");
 
     card.dataset.haExpose = (exposeCb && exposeCb.checked) ? "true" : "false";
     card.dataset.haIcon = (iconInput && iconInput.value.trim()) ? iconInput.value.trim() : "mdi:car-defrost-rear";
 
-    modal.remove();
+    if (typeof dialog.close === "function") dialog.close();
+    dialog.remove();
     autoSaveCanDoRules("Updated Home Assistant settings for " + (card.querySelector(".can-do-name")?.value || "rule"), "blue");
+}
+
+function getExposedCatalogCategories() {
+    try {
+        const saved = localStorage.getItem("wican_ha_exposed_catalog_cats");
+        if (saved) return JSON.parse(saved);
+    } catch (e) { }
+    return { doors: true, locks: true, battery: true, climate: true, seats: false, dynamics: false };
+}
+
+function saveExposedCatalogCategories(cats) {
+    try {
+        localStorage.setItem("wican_ha_exposed_catalog_cats", JSON.stringify(cats));
+    } catch (e) { }
 }
 
 function toggleCanDoGlobalSettingsModal() {
     document.querySelectorAll(".can-do-global-settings-modal-overlay").forEach(el => el.remove());
 
     const currentUnit = getUnitSystem();
+    const exposedCats = getExposedCatalogCategories();
 
     const overlay = document.createElement("div");
     overlay.className = "can-do-global-settings-modal-overlay ha-add-element-dialog-overlay";
@@ -648,8 +673,43 @@ function toggleCanDoGlobalSettingsModal() {
                                     <span style="font-size: 0.74rem; color: var(--text-muted);">Trim variants enable vehicle-specific features like ventilated seats, AWD, or HUD.</span>
                                 </div>
 
+                                <!-- Home Assistant Catalog Entity Exposure -->
+                                <div style="border-top: 1px dashed var(--border-color); padding-top: 0.8rem; margin-top: 0.2rem;">
+                                    <label style="font-weight: 600; font-size: 0.88rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem;">
+                                        <span>Home Assistant Vehicle State Exposure</span>
+                                    </label>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted); display: block; margin-bottom: 0.6rem;">Select which catalog vehicle signal categories are automatically exposed as Home Assistant sensors:</span>
+
+                                    <div id="ha_cat_exposure_grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; font-size: 0.82rem; color: var(--text-heading);">
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_doors" ${exposedCats.doors ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Door &amp; Hatch States</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_locks" ${exposedCats.locks ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Door Lock Status</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_battery" ${exposedCats.battery ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Battery SOC &amp; Charging</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_climate" ${exposedCats.climate ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Climate &amp; Temps</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;" id="lbl_ha_cat_seats">
+                                            <input type="checkbox" id="ha_cat_seats" ${exposedCats.seats ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Seat &amp; Wheel Comfort</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_dynamics" ${exposedCats.dynamics ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Gears &amp; Speed</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <!-- Imperial / Metric Unit System -->
-                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.4rem;">
                                     <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Measurement Units:</label>
                                     <select id="can_do_unit_system" class="ha-form-select" onchange="changeUnitSystem(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
                                         <option value="metric" ${currentUnit === "metric" ? "selected" : ""}>Metric (°C, km/h, bar, kPa)</option>
@@ -683,8 +743,46 @@ function toggleCanDoGlobalSettingsModal() {
     // Populate vehicle make/model/trim dropdowns from catalog
     try {
         populateVehicleDropdowns(getCatalogVehicles());
+        updateVehicleFeatureGatingUI();
     } catch (e) {
         console.error("Error populating vehicle dropdowns:", e);
+    }
+}
+
+function updateVehicleFeatureGatingUI() {
+    try {
+        const modelSel = document.getElementById("can_do_vehicle_model");
+        const trimSel = document.getElementById("can_do_vehicle_trim");
+        if (!modelSel || !trimSel) return;
+
+        const selectedTrimId = trimSel.value || modelSel.value;
+        const vehicles = (typeof getCatalogVehicles === "function") ? getCatalogVehicles() : [];
+        const activeVehicle = vehicles.find(v => v.id === selectedTrimId || v.family === selectedTrimId) || vehicles[0];
+
+        if (activeVehicle && activeVehicle.features) {
+            const seatsCb = document.getElementById("ha_cat_seats");
+            const seatsLbl = document.getElementById("lbl_ha_cat_seats");
+            const hasSeatsFeature = activeVehicle.features.includes("heated_seats") || activeVehicle.features.includes("ventilated_seats") || activeVehicle.features.includes("heated_wheel");
+
+            if (seatsCb) {
+                if (!hasSeatsFeature) {
+                    seatsCb.checked = false;
+                    seatsCb.disabled = true;
+                    if (seatsLbl) {
+                        seatsLbl.style.opacity = "0.5";
+                        seatsLbl.title = "Not supported by selected vehicle trim";
+                    }
+                } else {
+                    seatsCb.disabled = false;
+                    if (seatsLbl) {
+                        seatsLbl.style.opacity = "1.0";
+                        seatsLbl.title = "";
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Failed to gate HA feature categories by vehicle:", err);
     }
 }
 
@@ -694,8 +792,21 @@ function saveCanDoGlobalSettings(btn) {
         if (urlInput) {
             saveCanDoCatalogUrl(urlInput.value);
         }
+
+        const overlay = btn ? btn.closest(".can-do-global-settings-modal-overlay") : document.querySelector(".can-do-global-settings-modal-overlay");
+        if (overlay) {
+            const cats = {
+                doors: overlay.querySelector("#ha_cat_doors")?.checked ?? true,
+                locks: overlay.querySelector("#ha_cat_locks")?.checked ?? true,
+                battery: overlay.querySelector("#ha_cat_battery")?.checked ?? true,
+                climate: overlay.querySelector("#ha_cat_climate")?.checked ?? true,
+                seats: overlay.querySelector("#ha_cat_seats")?.checked ?? false,
+                dynamics: overlay.querySelector("#ha_cat_dynamics")?.checked ?? false
+            };
+            saveExposedCatalogCategories(cats);
+        }
     } catch (e) {
-        console.error("Error saving catalog URL:", e);
+        console.error("Error saving catalog settings:", e);
     }
     const overlay = btn ? btn.closest(".can-do-global-settings-modal-overlay") : document.querySelector(".can-do-global-settings-modal-overlay");
     if (overlay) {

@@ -452,7 +452,9 @@ function updateCanDoActivityStats(statsArray) {
         if (st.is_active) {
             const ageSec = (st.age_ms !== undefined && st.age_ms >= 0) ? Math.round(st.age_ms / 1000) : 0;
             let ageStr = `${ageSec}s ago`;
-            if (ageSec > 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
+            if (ageSec >= 3600) ageStr = `${Math.floor(ageSec / 3600)}h ago`;
+            else if (ageSec >= 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
+
             badge.className = "can-do-activity-badge active-on";
             badge.textContent = `ON (${st.count}x, ${ageStr})`;
             badge.title = "Rule is currently TOGGLED ON";
@@ -463,8 +465,21 @@ function updateCanDoActivityStats(statsArray) {
         } else {
             const ageSec = Math.round(st.age_ms / 1000);
             let ageStr = `${ageSec}s ago`;
-            if (ageSec > 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
-            badge.textContent = `${st.count}x (${ageStr})`;
+            let badgeText = `${st.count}x (${ageStr})`;
+
+            if (ageSec >= 86400) {
+                const days = Math.floor(ageSec / 86400);
+                ageStr = `${days}d ago`;
+                badgeText = `${st.count}x (${ageStr})`;
+            } else if (ageSec >= 3600) {
+                ageStr = `${Math.floor(ageSec / 3600)}h ago`;
+                badgeText = `${st.count}x Today`;
+            } else if (ageSec >= 60) {
+                ageStr = `${Math.floor(ageSec / 60)}m ago`;
+                badgeText = `${st.count}x (${ageStr})`;
+            }
+
+            badge.textContent = badgeText;
             badge.title = `Fired ${st.count} time(s), last ${ageStr}`;
 
             if (st.age_ms >= 0 && st.age_ms < 4000) {

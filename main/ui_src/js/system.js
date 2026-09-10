@@ -242,17 +242,61 @@ function Load() {
                     if (el && val !== undefined) el.value = val;
                 };
 
+                setElVal("wifi_mode", obj.wifi_mode || "AP");
+                setElVal("ap_ch_value", obj.ap_ch || "6");
                 setElVal("ap_pass_value", obj.ap_pass || "Testpass");
+                setElVal("can_datarate", obj.can_datarate || "500K");
+                setElVal("can_mode", obj.can_mode || "normal");
+                setElVal("port_type", obj.port_type || "tcp");
                 setElVal("tcp_port_value", obj.port || "3333");
                 setElVal("ble_pass_value", obj.ble_pass || "000000");
                 setElVal("sleep_volt", obj.sleep_volt || "13.2");
+                setElVal("sleep_time", obj.sleep_time || "2");
 
                 const sleepDisp = document.getElementById("sleep_volt_value");
                 if (sleepDisp) sleepDisp.textContent = obj.sleep_volt || "13.2";
+                const sleepTimeDisp = document.getElementById("sleep_time_value");
+                if (sleepTimeDisp) sleepTimeDisp.textContent = obj.sleep_time || "2";
+
+                // Render station networks list
+                if (typeof renderStaNetworksList === "function") {
+                    renderStaNetworksList(obj.sta_networks || []);
+                }
+
+                // MQTT Broker fields
+                let cleanMqttUrl = (obj.mqtt_url || "").replace(/^mqtt:\/\//, "");
+                setElVal("mqtt_url", cleanMqttUrl);
+                setElVal("mqtt_port", obj.mqtt_port || "1883");
+                setElVal("mqtt_user", obj.mqtt_user || "");
+                setElVal("mqtt_pass", obj.mqtt_pass || "");
+                setElVal("keep_alive", obj.keep_alive || "60");
+                setElVal("mqtt_tx_topic", obj.mqtt_tx_topic || "wican/can/tx");
+                setElVal("mqtt_rx_topic", obj.mqtt_rx_topic || "wican/can/rx");
+                setElVal("mqtt_status_topic", obj.mqtt_status_topic || "wican/status");
+                setElVal("mqtt_elm327_log", obj.mqtt_elm327_log || "disable");
+
+                const txCb = document.getElementById("mqtt_tx_en_checkbox");
+                if (txCb) {
+                    txCb.checked = (obj.mqtt_tx_en === "enable");
+                    if (typeof txCheckBoxChanged === "function") txCheckBoxChanged();
+                }
+
+                const rxCb = document.getElementById("mqtt_rx_en_checkbox");
+                if (rxCb) {
+                    rxCb.checked = (obj.mqtt_rx_en === "enable");
+                    if (typeof rxCheckBoxChanged === "function") rxCheckBoxChanged();
+                }
 
                 const mqttDiv = document.getElementById("mqtt_en_div");
                 if (mqttDiv) {
                     mqttDiv.style.display = (obj.mqtt_en === "enable") ? "block" : "none";
+                }
+
+                if (typeof submit_enable === "function") {
+                    // Update disabled/enabled states based on wifi_mode & ble
+                    const isAp = (obj.wifi_mode === "AP");
+                    const bleEl = document.getElementById("ble_status");
+                    if (bleEl) bleEl.disabled = !isAp;
                 }
 
                 if (typeof checkStatus === "function") checkStatus();

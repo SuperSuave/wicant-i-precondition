@@ -2461,13 +2461,16 @@ static bool config_server_load_cfg(char *cfg) {
   ESP_LOGE(TAG, "device_config.ap_pass: %s", device_config.ap_pass);
 
   key = cJSON_GetObjectItem(root, "protocol");
-  if (key == 0) {
+  if (key && key->valuestring && strlen(key->valuestring) >= 2 &&
+      strlen(key->valuestring) <= 64) {
+    strcpy(device_config.protocol, key->valuestring);
+  } else if (!key || !key->valuestring || strlen(key->valuestring) == 0) {
+    if (strlen(device_config.protocol) == 0) {
+      strcpy(device_config.protocol, "savvycan");
+    }
+  } else {
     goto config_error;
   }
-  if (strlen(key->valuestring) < 2 || strlen(key->valuestring) > 64) {
-    goto config_error;
-  }
-  strcpy(device_config.protocol, key->valuestring);
   ESP_LOGE(TAG, "device_config.protocol: %s", device_config.protocol);
 
   key = cJSON_GetObjectItem(root, "ble_pass");

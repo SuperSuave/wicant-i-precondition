@@ -173,9 +173,9 @@ function postConfig(btn) {
     obj["can_fwd_mode"] = getVal("can_fwd_mode");
     obj["port_type"] = getVal("port_type");
     obj["port"] = getVal("tcp_port_value");
-    obj["ap_pass"] = getVal("ap_pass_value");
-    obj["protocol"] = getVal("protocol");
-    obj["ble_pass"] = getVal("ble_pass_value");
+    obj["ap_pass"] = getVal("ap_pass_value", "@meatpi#");
+    obj["protocol"] = getVal("protocol", "savvycan");
+    obj["ble_pass"] = getVal("ble_pass_value", "123456");
     obj["ble_status"] = getVal("ble_status");
     obj["sleep_status"] = getVal("sleep_status");
     obj["sleep_volt"] = getVal("sleep_volt");

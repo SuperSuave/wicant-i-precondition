@@ -64,9 +64,6 @@ function submit_enable() {
     }
 
     if (typeof updateStaNetworksUI === "function") updateStaNetworksUI();
-
-    const submitBtn = document.getElementById("submit_button");
-    if (submitBtn) submitBtn.disabled = false;
 }
 
 function initAppTheme() {
@@ -150,11 +147,6 @@ function openTab(evt, tabName) {
         closeSidebarDrawer();
     }
 
-    const submitBtn = document.getElementById("submit_button");
-    if (submitBtn) {
-        const configTabs = ["autopid_tab", "connectivity_tab", "can_hardware_tab", "system_tab"];
-        submitBtn.style.display = configTabs.includes(tabName) ? "inline-block" : "none";
-    }
 
     const canDoFab = document.getElementById("can_do_anchored_save_fab");
     if (canDoFab) {

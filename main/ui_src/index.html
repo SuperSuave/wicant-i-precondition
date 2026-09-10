@@ -206,6 +206,9 @@
                         </select>
                     </div>
                 </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" id="btn_save_webhook" onclick="saveWebhookSettings(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Webhook Settings</button>
+                </div>
             </div>
 
             <div
@@ -263,6 +266,9 @@
                         </label>
                     </div>
                 </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Destination Settings</button>
+                </div>
             </div>
 
             <div id="automate_table">
@@ -272,8 +278,7 @@
                 <button onclick="addRowAutoTable()" class="dash-outline-btn"><svg class="icon">
                         <use href="#icon-plus" />
                     </svg> New Custom PID</button>
-                <button id="custom_pid_store" onclick="storeAutoTableData()" class="dash-action-btn store" disabled>Save
-                    Configuration</button>
+                <button id="custom_pid_store" onclick="storeAutoTableData()" class="dash-action-btn store" disabled>Save Custom PIDs</button>
             </div>
         </div>
 
@@ -345,6 +350,9 @@
                             <span class="ha-slider"></span>
                         </label>
                     </div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Wi-Fi Settings</button>
                 </div>
             </div>
 
@@ -433,6 +441,9 @@
                         </div>
                     </div>
                 </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save MQTT Settings</button>
+                </div>
             </div>
 
             <div class="section-title">Bluetooth Low Energy (BLE)</div>
@@ -450,6 +461,9 @@
                     <div class="settings-label"><span class="settings-title">BLE Passkey</span></div>
                     <div class="settings-control"><input type="number" id="ble_pass_value" value="000000" min="0"
                             max="999999" oninput="submit_enable();"></div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save BLE Settings</button>
                 </div>
             </div>
         </div>
@@ -489,6 +503,9 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">Network Port</span></div>
                     <div class="settings-control"><input type="number" id="tcp_port_value" value="3333"></div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save CAN Settings</button>
                 </div>
             </div>
 
@@ -566,6 +583,9 @@
                             oninput="document.getElementById('sleep_time_value').textContent = this.value; submit_enable();">
                     </div>
                 </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Power Settings</button>
+                </div>
             </div>
 
             <div class="section-title">Configuration Backup &amp; Restore</div>
@@ -611,9 +631,6 @@
                 </div>
             </div>
         </div>
-
-        <input id="submit_button" type="button" onclick="postConfig()" value="Submit Changes" class="dash-action-btn"
-            disabled style="margin-top: 1rem;" />
     </div>
 
     <!-- BUILD_JS -->

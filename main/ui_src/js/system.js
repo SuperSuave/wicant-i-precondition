@@ -144,7 +144,7 @@ async function uploadCfg() {
     }
 }
 
-function postConfig() {
+function postConfig(btn) {
     var obj = {};
     const bools = ["webhook_en", "grouping", "autopid_polling", "ap_auto_disable", "mqtt_en", "ble_status", "sleep_status"];
     bools.forEach(id => {
@@ -213,11 +213,33 @@ function postConfig() {
     obj["precon_button"] = getVal("precon_button", "sw_star");
     obj["precon_press"] = getVal("precon_press", "short");
 
+    let origText = "";
+    if (btn) {
+        origText = btn.textContent || btn.value;
+        btn.textContent = "Saving...";
+        btn.disabled = true;
+    }
+
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
-        if (typeof showNotification === "function") showNotification(this.responseText, "green");
-        const subBtn = document.getElementById("submit_button");
-        if (subBtn) subBtn.disabled = true;
+        if (typeof showNotification === "function") showNotification(this.responseText || "Settings saved successfully", "green");
+        if (btn) {
+            btn.textContent = "✓ Saved!";
+            setTimeout(() => {
+                btn.textContent = origText;
+                btn.disabled = false;
+            }, 2000);
+        }
+    };
+    xhttp.onerror = function () {
+        if (typeof showNotification === "function") showNotification("Failed to save settings", "red");
+        if (btn) {
+            btn.textContent = "✕ Error";
+            setTimeout(() => {
+                btn.textContent = origText;
+                btn.disabled = false;
+            }, 2000);
+        }
     };
     xhttp.open("POST", "/store_config");
     xhttp.setRequestHeader("Content-Type", "application/json");

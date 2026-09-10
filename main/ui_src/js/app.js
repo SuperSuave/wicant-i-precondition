@@ -27,8 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof initAppTheme === "function") initAppTheme();
     if (typeof initActiveTab === "function") initActiveTab();
 
-    const submitBtn = document.getElementById("submit_button");
-    if (submitBtn) submitBtn.disabled = true;
 
     // 2. Fetch device time and config
     if (typeof fetchDeviceTime === "function") fetchDeviceTime();

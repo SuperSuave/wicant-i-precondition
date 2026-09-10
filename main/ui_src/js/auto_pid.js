@@ -704,6 +704,64 @@ function loadAutoTable(jsonData) {
     }
 }
 
+async function saveWebhookSettings(btn) {
+    const webhookUrlEl = document.getElementById("webhook_url");
+    const webhookIntervalEl = document.getElementById("webhook_interval");
+    const webhookEnEl = document.getElementById("webhook_en");
+    if (!webhookUrlEl) return false;
+
+    const wUrl = webhookUrlEl.value.trim();
+    const wEn = webhookEnEl ? webhookEnEl.checked : true;
+    const wInt = webhookIntervalEl ? parseInt(webhookIntervalEl.value, 10) : 60;
+
+    if (wEn && wUrl && !wUrl.startsWith("http://") && !wUrl.startsWith("https://")) {
+        if (typeof showNotification === "function") showNotification("Webhook URL must start with http:// or https://", "red", 3500);
+        return false;
+    }
+
+    if (btn) {
+        btn.textContent = "Saving...";
+        btn.disabled = true;
+    }
+
+    try {
+        if (wUrl && (wUrl.startsWith("http://") || wUrl.startsWith("https://"))) {
+            const res = await fetch('/api/webhook', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: wUrl,
+                    enabled: wEn,
+                    interval: isNaN(wInt) || wInt < 1 ? 60 : wInt
+                })
+            });
+            if (!res.ok) throw new Error("Status " + res.status);
+        } else if (!wEn) {
+            await fetch('/api/webhook', { method: 'DELETE' });
+        }
+
+        if (btn) {
+            btn.textContent = "✓ Saved!";
+            setTimeout(() => {
+                btn.textContent = "Save Webhook Settings";
+                btn.disabled = false;
+            }, 2000);
+        }
+        if (typeof showNotification === "function") showNotification("Webhook settings saved successfully!", "green", 3000);
+        return true;
+    } catch (e) {
+        if (btn) {
+            btn.textContent = "✕ Error";
+            setTimeout(() => {
+                btn.textContent = "Save Webhook Settings";
+                btn.disabled = false;
+            }, 2000);
+        }
+        if (typeof showNotification === "function") showNotification("Failed to save Webhook settings: " + e.message, "red", 3500);
+        return false;
+    }
+}
+
 async function storeAutoTableData() {
     try {
         const custom_pid_data = [];
@@ -853,27 +911,8 @@ async function storeAutoTableData() {
             ecu_protocol: ecu_protocolValue
         };
 
-        const webhookUrlEl = document.getElementById("webhook_url");
-        const webhookIntervalEl = document.getElementById("webhook_interval");
-        const webhookEnEl = document.getElementById("webhook_en");
-        if (webhookUrlEl) {
-            const wUrl = webhookUrlEl.value.trim();
-            const wEn = webhookEnEl ? (webhookEnEl.value === "enable") : true;
-            const wInt = webhookIntervalEl ? parseInt(webhookIntervalEl.value, 10) : 60;
-            if (wUrl && (wUrl.startsWith("http://") || wUrl.startsWith("https://"))) {
-                await fetch('/api/webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: wUrl,
-                        enabled: wEn,
-                        interval: isNaN(wInt) || wInt < 1 ? 60 : wInt
-                    })
-                }).catch(e => console.warn('Webhook save failed', e));
-            } else if (!wUrl && !wEn) {
-                await fetch('/api/webhook', { method: 'DELETE' }).catch(() => { });
-            }
-        }
+        // Save webhook settings independently
+        await saveWebhookSettings();
 
         const response = await fetch('store_auto_data', {
             method: 'POST',

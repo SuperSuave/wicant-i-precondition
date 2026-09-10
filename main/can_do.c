@@ -1745,15 +1745,10 @@ static void sanitize_ha_identifier(const char *in, char *out, size_t max_len) {
   }
 }
 
-static void publish_ha_sensor_discovery(const char *dev_id,
-                                        const char *component,
-                                        const char *sensor_id,
-                                        const char *name,
-                                        const char *state_topic,
-                                        const char *val_tpl,
-                                        const char *dev_class,
-                                        const char *unit,
-                                        const char *icon) {
+static void publish_ha_sensor_discovery(
+    const char *dev_id, const char *component, const char *sensor_id,
+    const char *name, const char *state_topic, const char *val_tpl,
+    const char *dev_class, const char *unit, const char *icon) {
   char disc_topic[192];
   snprintf(disc_topic, sizeof(disc_topic),
            "homeassistant/%s/wican_%s/%s/config", component, dev_id, sensor_id);
@@ -1803,25 +1798,47 @@ static void publish_ha_sensor_discovery(const char *dev_id,
 }
 
 static void can_do_publish_ha_state_entities(const char *dev_id) {
-  char door_topic[128], lock_topic[128], soc_topic[128], v12_topic[128], plug_topic[128];
+  char door_topic[128], lock_topic[128], soc_topic[128], v12_topic[128],
+      plug_topic[128];
   snprintf(door_topic, sizeof(door_topic), "wican/%s/state/doors", dev_id);
   snprintf(lock_topic, sizeof(lock_topic), "wican/%s/state/lock", dev_id);
   snprintf(soc_topic, sizeof(soc_topic), "wican/%s/state/battery_soc", dev_id);
   snprintf(v12_topic, sizeof(v12_topic), "wican/%s/state/voltage_12v", dev_id);
-  snprintf(plug_topic, sizeof(plug_topic), "wican/%s/state/charging_plug", dev_id);
+  snprintf(plug_topic, sizeof(plug_topic), "wican/%s/state/charging_plug",
+           dev_id);
 
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "door_fl", "Front Left Door", door_topic, "{{ value_json.door_fl }}", "door", NULL, "mdi:car-door");
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "door_fr", "Front Right Door", door_topic, "{{ value_json.door_fr }}", "door", NULL, "mdi:car-door");
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "door_rl", "Rear Left Door", door_topic, "{{ value_json.door_rl }}", "door", NULL, "mdi:car-door");
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "door_rr", "Rear Right Door", door_topic, "{{ value_json.door_rr }}", "door", NULL, "mdi:car-door");
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "trunk", "Trunk", door_topic, "{{ value_json.trunk }}", "door", NULL, "mdi:car-back");
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "hood", "Hood", door_topic, "{{ value_json.hood }}", "door", NULL, "mdi:car");
+  publish_ha_sensor_discovery(
+      dev_id, "binary_sensor", "door_fl", "Front Left Door", door_topic,
+      "{{ value_json.door_fl }}", "door", NULL, "mdi:car-door");
+  publish_ha_sensor_discovery(
+      dev_id, "binary_sensor", "door_fr", "Front Right Door", door_topic,
+      "{{ value_json.door_fr }}", "door", NULL, "mdi:car-door");
+  publish_ha_sensor_discovery(
+      dev_id, "binary_sensor", "door_rl", "Rear Left Door", door_topic,
+      "{{ value_json.door_rl }}", "door", NULL, "mdi:car-door");
+  publish_ha_sensor_discovery(
+      dev_id, "binary_sensor", "door_rr", "Rear Right Door", door_topic,
+      "{{ value_json.door_rr }}", "door", NULL, "mdi:car-door");
+  publish_ha_sensor_discovery(dev_id, "binary_sensor", "trunk", "Trunk",
+                              door_topic, "{{ value_json.trunk }}", "door",
+                              NULL, "mdi:car-back");
+  publish_ha_sensor_discovery(dev_id, "binary_sensor", "hood", "Hood",
+                              door_topic, "{{ value_json.hood }}", "door", NULL,
+                              "mdi:car");
 
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "door_lock", "Door Lock Status", lock_topic, "{{ value_json.locked }}", "lock", NULL, "mdi:car-door-lock");
+  publish_ha_sensor_discovery(
+      dev_id, "binary_sensor", "door_lock", "Door Lock Status", lock_topic,
+      "{{ value_json.locked }}", "lock", NULL, "mdi:car-door-lock");
 
-  publish_ha_sensor_discovery(dev_id, "sensor", "battery_soc", "High Voltage Battery SOC", soc_topic, "{{ value_json.soc }}", "battery", "%", "mdi:battery-high");
-  publish_ha_sensor_discovery(dev_id, "sensor", "voltage_12v", "12V Battery Voltage", v12_topic, "{{ value_json.voltage }}", "voltage", "V", "mdi:battery-12v");
-  publish_ha_sensor_discovery(dev_id, "binary_sensor", "charging_plug", "Charging Plug Connected", plug_topic, "{{ value_json.plugged }}", "plug", NULL, "mdi:power-plug");
+  publish_ha_sensor_discovery(
+      dev_id, "sensor", "battery_soc", "High Voltage Battery SOC", soc_topic,
+      "{{ value_json.soc }}", "battery", "%", "mdi:battery-high");
+  publish_ha_sensor_discovery(
+      dev_id, "sensor", "voltage_12v", "12V Battery Voltage", v12_topic,
+      "{{ value_json.voltage }}", "voltage", "V", "mdi:battery-12v");
+  publish_ha_sensor_discovery(
+      dev_id, "binary_sensor", "charging_plug", "Charging Plug Connected",
+      plug_topic, "{{ value_json.plugged }}", "plug", NULL, "mdi:power-plug");
 }
 
 void can_do_publish_ha_discovery(void) {
@@ -1842,7 +1859,8 @@ void can_do_publish_ha_discovery(void) {
   if (strlen(dev_id) == 0)
     strcpy(dev_id, "default");
 
-  // Publish vehicle state monitoring discovery entities (doors, locks, battery, voltage)
+  // Publish vehicle state monitoring discovery entities (doors, locks, battery,
+  // voltage)
   can_do_publish_ha_state_entities(dev_id);
 
   if (!g_can_do_rules.rules || g_can_do_rules.rule_count == 0) {

@@ -645,6 +645,7 @@ function loadAutoTable(jsonData) {
 
         setElementValue("car_specific", data.car_specific, 'disable');
         setElementValue("webhook_data_mode", data.webhook_data_mode, 'full');
+        if (typeof loadWebhookConfig === "function") loadWebhookConfig();
         setElementValue("ha_discovery", 'disable');
         setElementValue("grouping", data.grouping, 'disable');
         setElementValue("autopid_polling", data.autopid_polling, 'enable');
@@ -701,6 +702,38 @@ function loadAutoTable(jsonData) {
     } catch (error) {
         console.error('Error in loadAutoTable:', error);
         showNotification("Error loading table data: " + error.message, "red");
+    }
+}
+
+async function loadWebhookConfig() {
+    try {
+        const res = await fetch('/api/webhook');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const webhookUrlEl = document.getElementById("webhook_url");
+        const webhookIntervalEl = document.getElementById("webhook_interval");
+        const webhookEnEl = document.getElementById("webhook_en");
+
+        if (webhookUrlEl && data.url !== undefined) {
+            webhookUrlEl.value = data.url;
+        }
+        if (webhookEnEl && data.enabled !== undefined) {
+            webhookEnEl.checked = (data.enabled === true);
+        }
+        if (webhookIntervalEl && data.interval !== undefined) {
+            webhookIntervalEl.value = data.interval;
+        }
+
+        const statOk = document.getElementById("webhook_stat_success");
+        const statFail = document.getElementById("webhook_stat_fail");
+        const statStatus = document.getElementById("webhook_stat_status");
+
+        if (statOk && data.success_count !== undefined) statOk.textContent = `OK: ${data.success_count}`;
+        if (statFail && data.fail_count !== undefined) statFail.textContent = `Fail: ${data.fail_count}`;
+        if (statStatus && data.status) statStatus.textContent = `Status: ${data.status}`;
+    } catch (e) {
+        console.warn("Failed to load webhook config:", e);
     }
 }
 

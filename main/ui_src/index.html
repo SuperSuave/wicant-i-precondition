@@ -187,9 +187,15 @@
                     </div>
                 </div>
                 <div class="settings-row">
-                    <div class="settings-label"><span class="settings-title">WebHook URL</span></div>
+                    <div class="settings-label"><span class="settings-title">Primary WebHook URL</span></div>
                     <div class="settings-control"><input type="text" id="webhook_url"
                             placeholder="http://homeassistant.local:8123/..."
+                            oninput="enableAutoStoreButton();submit_enable();"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Fallback WebHook URL</span></div>
+                    <div class="settings-control"><input type="text" id="webhook_url_fallback"
+                            placeholder="https://my-nabucasa-url.ui.nabu.casa/..."
                             oninput="enableAutoStoreButton();submit_enable();"></div>
                 </div>
                 <div class="settings-row">

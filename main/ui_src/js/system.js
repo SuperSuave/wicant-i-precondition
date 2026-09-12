@@ -284,7 +284,11 @@ function Load() {
                 setElVal("can_datarate", obj.can_datarate || "500K");
                 setElVal("can_mode", obj.can_mode || "normal");
                 setElVal("port_type", obj.port_type || "tcp");
+                setElVal("protocol", obj.protocol || "savvycan");
                 setElVal("tcp_port_value", obj.port || "3333");
+                
+                updatePortFromProtocol();
+                
                 setElVal("ble_pass_value", obj.ble_pass || "000000");
                 setElVal("sleep_volt", obj.sleep_volt || "13.2");
                 setElVal("sleep_time", obj.sleep_time || "2");
@@ -355,6 +359,22 @@ function Load() {
         xhttp.send();
     } catch (xhrErr) {
         console.warn("Load XHR initialization error:", xhrErr);
+    }
+}
+
+function updatePortFromProtocol() {
+    const protocol = document.getElementById("protocol");
+    const portInput = document.getElementById("tcp_port_value");
+    const portType = document.getElementById("port_type");
+    
+    if (protocol && protocol.value === "savvycan") {
+        portInput.value = "23";
+        portInput.disabled = true;
+        portType.value = "tcp";
+        portType.disabled = true;
+    } else {
+        portInput.disabled = false;
+        portType.disabled = false;
     }
 }
 

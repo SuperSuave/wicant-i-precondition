@@ -498,6 +498,18 @@
                     </div>
                 </div>
                 <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Protocol</span></div>
+                    <div class="settings-control">
+                        <select id="protocol" onchange="updatePortFromProtocol(); submit_enable();">
+                            <option value="realdash66">realdash66</option>
+                            <option value="slcan">slcan</option>
+                            <option value="savvycan">SavvyCAN/Lens</option>
+                            <option value="elm327">elm327</option>
+                            <option value="auto_pid">AutoPID</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">Port Type</span></div>
                     <div class="settings-control">
                         <select id="port_type">

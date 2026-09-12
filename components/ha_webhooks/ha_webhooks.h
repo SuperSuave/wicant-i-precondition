@@ -29,6 +29,9 @@ extern "C"
 {
 #endif
 
+#define MAX_WEBHOOK_URLS 4
+#define WEBHOOK_URL_MAX_LEN 192
+
 /**
  * @brief Home Assistant webhook configuration structure
  *
@@ -36,7 +39,9 @@ extern "C"
  */
 typedef struct ha_webhook_config
 {
-    char url[192];       /**< Webhook URL (HTTP/HTTPS) */
+    char url[WEBHOOK_URL_MAX_LEN];       /**< Legacy Webhook URL, points to urls[0] */
+    char urls[MAX_WEBHOOK_URLS][WEBHOOK_URL_MAX_LEN]; /**< Webhook URLs (HTTP/HTTPS) */
+    uint8_t url_count;                   /**< Number of configured webhook URLs */
     bool enabled;        /**< Whether webhook is enabled */
     int interval;        /**< Poll/post interval in seconds (or minutes as defined by usage) */
     char last_post[32];  /**< Timestamp of last successful POST */

@@ -154,13 +154,37 @@ esp_err_t ha_webhook_load_config(ha_webhook_config_t *cfg)
     }
     cJSON *it;
 
-    // Parse URL
+    // Parse URLs array
+    cJSON *urls_it = cJSON_GetObjectItem(root, "urls");
+    if (cJSON_IsArray(urls_it))
+    {
+        int count = cJSON_GetArraySize(urls_it);
+        for (int i = 0; i < count && i < MAX_WEBHOOK_URLS; i++)
+        {
+            cJSON *url_item = cJSON_GetArrayItem(urls_it, i);
+            if (cJSON_IsString(url_item))
+            {
+                strlcpy(cfg->urls[i], url_item->valuestring, WEBHOOK_URL_MAX_LEN);
+                trim_str(cfg->urls[i]);
+                cfg->url_count++;
+            }
+        }
+    }
+
+    // Parse legacy URL
     it = cJSON_GetObjectItem(root, "url");
     if (cJSON_IsString(it))
     {
         strlcpy(cfg->url, it->valuestring, sizeof(cfg->url));
         trim_str(cfg->url);
         ESP_LOGD(TAG, "Loaded webhook URL: %s", cfg->url);
+
+        if (cfg->url_count == 0 && cfg->url[0] != '\0') {
+            strlcpy(cfg->urls[0], cfg->url, WEBHOOK_URL_MAX_LEN);
+            cfg->url_count = 1;
+        }
+    } else if (cfg->url_count > 0) {
+        strlcpy(cfg->url, cfg->urls[0], sizeof(cfg->url));
     }
 
     // Parse enabled flag
@@ -233,6 +257,13 @@ esp_err_t ha_webhook_save_config(const ha_webhook_config_t *cfg)
     }
 
     cJSON_AddStringToObject(root, "url", cfg->url);
+    if (cfg->url_count > 0) {
+        cJSON *urls_array = cJSON_CreateArray();
+        for (int i = 0; i < cfg->url_count; i++) {
+            cJSON_AddItemToArray(urls_array, cJSON_CreateString(cfg->urls[i]));
+        }
+        cJSON_AddItemToObject(root, "urls", urls_array);
+    }
     cJSON_AddBoolToObject(root, "enabled", cfg->enabled);
     cJSON_AddStringToObject(root, "last_post", cfg->last_post);
     cJSON_AddStringToObject(root, "status", cfg->status[0] ? cfg->status : "unknown");

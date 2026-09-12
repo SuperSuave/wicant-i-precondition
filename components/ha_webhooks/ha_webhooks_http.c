@@ -130,17 +130,9 @@ static esp_err_t webhook_post_handler(httpd_req_t *req)
     }
 
     cJSON *url = cJSON_GetObjectItem(root, "url");
+    cJSON *urls_it = cJSON_GetObjectItem(root, "urls");
     cJSON *enabled = cJSON_GetObjectItem(root, "enabled");
     cJSON *interval = cJSON_GetObjectItem(root, "interval");
-
-    if (!cJSON_IsString(url) || !url_is_http(url->valuestring))
-    {
-        ESP_LOGW(TAG, "Invalid or missing URL in request");
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "invalid url");
-    }
-
-    ESP_LOGI(TAG, "Setting webhook URL: %s", url->valuestring);
 
     // Load current cached config to determine if changes are needed
     ha_webhook_config_t old_cfg = {0};
@@ -149,13 +141,55 @@ static esp_err_t webhook_post_handler(httpd_req_t *req)
 
     // Prepare new configuration, preserving fields not controlled here
     ha_webhook_config_t cfg = old_cfg;
-    strlcpy(cfg.url, url->valuestring, sizeof(cfg.url));
+    cfg.url_count = 0;
+
+    if (cJSON_IsArray(urls_it))
+    {
+        int count = cJSON_GetArraySize(urls_it);
+        for (int i = 0; i < count && i < MAX_WEBHOOK_URLS; i++)
+        {
+            cJSON *url_item = cJSON_GetArrayItem(urls_it, i);
+            if (cJSON_IsString(url_item) && url_is_http(url_item->valuestring))
+            {
+                strlcpy(cfg.urls[cfg.url_count], url_item->valuestring, WEBHOOK_URL_MAX_LEN);
+                cfg.url_count++;
+            }
+        }
+        if (cfg.url_count > 0)
+        {
+            strlcpy(cfg.url, cfg.urls[0], sizeof(cfg.url));
+            ESP_LOGI(TAG, "Setting %d webhook URLs. Primary: %s", cfg.url_count, cfg.url);
+        }
+    }
+    else if (cJSON_IsString(url) && url_is_http(url->valuestring))
+    {
+        strlcpy(cfg.url, url->valuestring, sizeof(cfg.url));
+        strlcpy(cfg.urls[0], url->valuestring, WEBHOOK_URL_MAX_LEN);
+        cfg.url_count = 1;
+        ESP_LOGI(TAG, "Setting webhook URL: %s", cfg.url);
+    }
+    else
+    {
+        ESP_LOGW(TAG, "Invalid or missing URL in request");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "invalid url");
+    }
+
     cfg.enabled = cJSON_IsBool(enabled) ? cJSON_IsTrue(enabled) : true;
     if (cJSON_IsNumber(interval))
         cfg.interval = interval->valueint;
 
     // Check if meaningful fields actually changed
-    bool changed = (strcmp(old_cfg.url, cfg.url) != 0) || (old_cfg.enabled != cfg.enabled) || (old_cfg.interval != cfg.interval);
+    bool changed = (strcmp(old_cfg.url, cfg.url) != 0) || (old_cfg.enabled != cfg.enabled) || (old_cfg.interval != cfg.interval) || (old_cfg.url_count != cfg.url_count);
+
+    if (!changed) {
+        for (int i = 0; i < cfg.url_count; i++) {
+            if (strcmp(old_cfg.urls[i], cfg.urls[i]) != 0) {
+                changed = true;
+                break;
+            }
+        }
+    }
 
     ESP_LOGI(TAG, "Webhook %s, enabled: %s", first_set ? "created" : (changed ? "updated" : "unchanged"),
              cfg.enabled ? "yes" : "no");
@@ -176,6 +210,13 @@ static esp_err_t webhook_post_handler(httpd_req_t *req)
 
     cJSON *resp = cJSON_CreateObject();
     cJSON_AddStringToObject(resp, "url", cfg.url);
+    if (cfg.url_count > 0) {
+        cJSON *urls_array = cJSON_CreateArray();
+        for (int i = 0; i < cfg.url_count; i++) {
+            cJSON_AddItemToArray(urls_array, cJSON_CreateString(cfg.urls[i]));
+        }
+        cJSON_AddItemToObject(resp, "urls", urls_array);
+    }
     cJSON_AddBoolToObject(resp, "enabled", cfg.enabled);
     cJSON_AddNumberToObject(resp, "interval", cfg.interval);
 
@@ -213,6 +254,13 @@ static esp_err_t webhook_get_handler(httpd_req_t *req)
                  cfg.status[0] ? cfg.status : "unknown");
 
         cJSON_AddStringToObject(resp, "url", cfg.url);
+        if (cfg.url_count > 0) {
+            cJSON *urls_array = cJSON_CreateArray();
+            for (int i = 0; i < cfg.url_count; i++) {
+                cJSON_AddItemToArray(urls_array, cJSON_CreateString(cfg.urls[i]));
+            }
+            cJSON_AddItemToObject(resp, "urls", urls_array);
+        }
         cJSON_AddBoolToObject(resp, "enabled", cfg.enabled);
         cJSON_AddStringToObject(resp, "last_post", cfg.last_post[0] ? cfg.last_post : "");
         cJSON_AddStringToObject(resp, "status", cfg.status[0] ? cfg.status : "unknown");
@@ -263,6 +311,10 @@ static esp_err_t webhook_delete_handler(httpd_req_t *req)
 
     ha_webhook_config_t cfg = old_cfg;
     strlcpy(cfg.url, "", sizeof(cfg.url));
+    cfg.url_count = 0;
+    for (int i = 0; i < MAX_WEBHOOK_URLS; i++) {
+        cfg.urls[i][0] = '\0';
+    }
     cfg.enabled = false;
     cfg.last_post[0] = '\0';
     strlcpy(cfg.status, "disabled", sizeof(cfg.status));
@@ -272,7 +324,7 @@ static esp_err_t webhook_delete_handler(httpd_req_t *req)
     cfg.last_error_time[0] = '\0';
     cfg.last_error[0] = '\0';
 
-    bool changed = (old_cfg.url[0] != '\0') || (old_cfg.enabled != false) ||
+    bool changed = (old_cfg.url[0] != '\0') || (old_cfg.url_count != 0) || (old_cfg.enabled != false) ||
                    (old_cfg.last_post[0] != '\0') || (strcmp(old_cfg.status, "disabled") != 0) ||
                    (old_cfg.retries != 0) || (old_cfg.interval != 0) ||
                    (old_cfg.success_count != 0) || (old_cfg.fail_count != 0) ||

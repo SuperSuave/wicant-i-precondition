@@ -11,7 +11,7 @@ set(requires
     esp_driver_twai esp_twai_mcp2515 esp_timer esp_wifi nvs_flash 
     fatfs vfs driver esp-tls esp_adc esp_eth log app_update 
     esp_http_server bt spiffs freertos mqtt json debug_logs 
-    ha_webhooks filesystem
+    ha_webhooks filesystem esp_http_client
 )
 
 idf_component_register(

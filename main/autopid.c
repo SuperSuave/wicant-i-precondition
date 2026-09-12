@@ -36,6 +36,7 @@
 #include "freertos/task.h"
 #include "ha_webhooks.h"
 #include "hw_config.h"
+#include "esp_http_client.h"
 #include "lwip/err.h"
 #include "lwip/netdb.h"
 #include "lwip/sockets.h"
@@ -233,51 +234,28 @@ typedef struct {
 //     printf("\n");
 // }
 
-static bool webhook_parse_http_url(const char *url, char *host, size_t host_len,
-                                   int *out_port, char *path, size_t path_len) {
-  if (!url || !host || !path || !out_port)
-    return false;
+typedef struct {
+    char *buf;
+    size_t max_len;
+    size_t cur_len;
+} webhook_res_buf_t;
 
-  // HTTP only
-  if (strncasecmp(url, "http://", 7) != 0)
-    return false;
-
-  const char *p = url + 7;
-  // host[:port][/path]
-  const char *host_end = p;
-  while (*host_end && *host_end != '/' && *host_end != ':')
-    host_end++;
-
-  size_t hlen = (size_t)(host_end - p);
-  if (hlen == 0 || hlen >= host_len)
-    return false;
-  memcpy(host, p, hlen);
-  host[hlen] = '\0';
-
-  int port = 80;
-  const char *after_host = host_end;
-  if (*after_host == ':') {
-    after_host++;
-    port = 0;
-    while (*after_host && isdigit((unsigned char)*after_host)) {
-      port = (port * 10) + (*after_host - '0');
-      after_host++;
-    }
-    if (port <= 0 || port > 65535)
-      return false;
+static esp_err_t _http_event_handle(esp_http_client_event_t *evt) {
+  if (evt->event_id == HTTP_EVENT_ON_DATA) {
+      webhook_res_buf_t *res = (webhook_res_buf_t *)evt->user_data;
+      if (res && res->buf && res->max_len > 1) {
+          size_t copy_len = evt->data_len;
+          if (res->cur_len + copy_len >= res->max_len) {
+              copy_len = res->max_len - res->cur_len - 1;
+          }
+          if (copy_len > 0) {
+              memcpy(res->buf + res->cur_len, evt->data, copy_len);
+              res->cur_len += copy_len;
+              res->buf[res->cur_len] = '\0';
+          }
+      }
   }
-
-  if (*after_host == '\0') {
-    strlcpy(path, "/", path_len);
-  } else if (*after_host == '/') {
-    strlcpy(path, after_host, path_len);
-  } else {
-    // Unexpected character after host/port
-    return false;
-  }
-
-  *out_port = port;
-  return true;
+  return ESP_OK;
 }
 
 static esp_err_t webhook_post_json(const char *url, const char *body,
@@ -287,144 +265,53 @@ static esp_err_t webhook_post_json(const char *url, const char *body,
   if (!url || !body)
     return ESP_ERR_INVALID_ARG;
 
-  // webhook_printf_post_body(url, body, body_len);
-
   if (out_status)
     *out_status = -1;
   if (out_snippet && out_snippet_len)
     out_snippet[0] = '\0';
 
-  char host[96] = {0};
-  char path[192] = {0};
-  int port = 80;
-  if (!webhook_parse_http_url(url, host, sizeof(host), &port, path,
-                              sizeof(path)))
-    return ESP_ERR_INVALID_ARG;
-
-  char port_str[8];
-  snprintf(port_str, sizeof(port_str), "%d", port);
-
-  struct addrinfo hints;
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
-
-  struct addrinfo *res = NULL;
-  int gai = getaddrinfo(host, port_str, &hints, &res);
-  if (gai != 0 || !res) {
-    if (out_snippet && out_snippet_len) {
-      // Keep message short and always bounded (build uses
-      // -Werror=format-truncation)
-      snprintf(out_snippet, out_snippet_len, "getaddrinfo failed gai=%d", gai);
-    }
-    return ESP_FAIL;
-  }
-
-  int sock = -1;
-  int last_errno = 0;
-  struct addrinfo *ai = res;
-  for (; ai; ai = ai->ai_next) {
-    sock = (int)socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-    if (sock < 0)
-      continue;
-
-    struct timeval tv;
-    tv.tv_sec = timeout_ms / 1000;
-    tv.tv_usec = (timeout_ms % 1000) * 1000;
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-
-    if (connect(sock, ai->ai_addr, (socklen_t)ai->ai_addrlen) == 0)
-      break;
-
-    last_errno = errno;
-    close(sock);
-    sock = -1;
-  }
-  freeaddrinfo(res);
-
-  if (sock < 0) {
-    if (out_snippet && out_snippet_len) {
-      // Keep message short and always bounded (build uses
-      // -Werror=format-truncation)
-      snprintf(out_snippet, out_snippet_len, "connect failed errno=%d",
-               last_errno);
-    }
-    return ESP_FAIL;
-  }
-
-  // Build HTTP request
-  const char *fmt = "POST %s HTTP/1.1\r\n"
-                    "Host: %s\r\n"
-                    "Content-Type: application/json\r\n"
-                    "Connection: close\r\n"
-                    "Content-Length: %u\r\n"
-                    "\r\n";
-
-  int hdr_len = snprintf(NULL, 0, fmt, path, host, (unsigned)body_len);
-  if (hdr_len <= 0) {
-    close(sock);
-    return ESP_FAIL;
-  }
-
-  size_t req_len = (size_t)hdr_len + body_len;
-  char *req = (char *)malloc(req_len + 1);
-  if (!req) {
-    close(sock);
-    return ESP_ERR_NO_MEM;
-  }
-
-  int w =
-      snprintf(req, (size_t)hdr_len + 1, fmt, path, host, (unsigned)body_len);
-  if (w != hdr_len) {
-    free(req);
-    close(sock);
-    return ESP_FAIL;
-  }
-  memcpy(req + hdr_len, body, body_len);
-  req[req_len] = '\0';
-
-  // Send all
-  size_t sent = 0;
-  while (sent < req_len) {
-    int n = (int)send(sock, req + sent, (int)(req_len - sent), 0);
-    if (n <= 0) {
-      free(req);
-      close(sock);
-      return ESP_FAIL;
-    }
-    sent += (size_t)n;
-  }
-  free(req);
-
-  // Read response (small)
-  char resp[512];
-  int r = (int)recv(sock, resp, sizeof(resp) - 1, 0);
-  close(sock);
-  if (r <= 0)
-    return ESP_FAIL;
-  resp[r] = '\0';
-
-  // Parse status code
-  int status = -1;
-  const char *sp = strstr(resp, "HTTP/");
-  if (sp) {
-    const char *code = strchr(sp, ' ');
-    if (code)
-      status = atoi(code + 1);
-  }
-  if (out_status)
-    *out_status = status;
-
-  // Extract a snippet after headers if possible
+  webhook_res_buf_t res_buf = {0};
   if (out_snippet && out_snippet_len > 0) {
-    const char *body_start = strstr(resp, "\r\n\r\n");
-    body_start = body_start ? (body_start + 4) : resp;
-    strlcpy(out_snippet, body_start, out_snippet_len);
-    webhook_sanitize_snippet(out_snippet);
+      res_buf.buf = out_snippet;
+      res_buf.max_len = out_snippet_len;
+      res_buf.cur_len = 0;
   }
 
-  return ESP_OK;
+  esp_http_client_config_t config = {
+      .url = url,
+      .event_handler = _http_event_handle,
+      .user_data = &res_buf,
+      .timeout_ms = timeout_ms,
+  };
+
+  esp_http_client_handle_t client = esp_http_client_init(&config);
+  if (!client) {
+    if (out_snippet && out_snippet_len)
+      snprintf(out_snippet, out_snippet_len, "esp_http_client_init failed");
+    return ESP_FAIL;
+  }
+
+  esp_http_client_set_method(client, HTTP_METHOD_POST);
+  esp_http_client_set_header(client, "Content-Type", "application/json");
+  esp_http_client_set_post_field(client, body, body_len);
+
+  esp_err_t err = esp_http_client_perform(client);
+
+  if (err == ESP_OK) {
+    if (out_status) {
+      *out_status = esp_http_client_get_status_code(client);
+    }
+    if (out_snippet) {
+        webhook_sanitize_snippet(out_snippet);
+    }
+  } else {
+    if (out_snippet && out_snippet_len) {
+      snprintf(out_snippet, out_snippet_len, "esp_http_client_perform failed: %s", esp_err_to_name(err));
+    }
+  }
+
+  esp_http_client_cleanup(client);
+  return err;
 }
 
 // Recursively limit decimal precision in the JSON structure
@@ -2370,27 +2257,7 @@ static void autopid_webhook_task(void *pvParameters) {
       memset(&webhook_cfg, 0, sizeof(webhook_cfg));
       esp_err_t err = ha_webhooks_get_config(&webhook_cfg);
 
-      if (err == ESP_OK && webhook_cfg.enabled && webhook_cfg.url[0] != '\0') {
-        // Enforce HTTP-only
-        if (strncasecmp(webhook_cfg.url, "http://", 7) != 0) {
-          uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
-          uint32_t interval_sec =
-              (webhook_cfg.interval > 0) ? (uint32_t)webhook_cfg.interval : 60;
-          if ((now - last_post_time) >= interval_sec) {
-            last_post_time = now;
-
-            ha_webhook_config_t upd = webhook_cfg;
-            upd.fail_count++;
-            strlcpy(upd.status, "failed", sizeof(upd.status));
-            webhook_format_utc(upd.last_error_time);
-            strlcpy(upd.last_error, "https not supported: use http://",
-                    sizeof(upd.last_error));
-            (void)ha_webhooks_update_cache(&upd);
-          }
-          vTaskDelay(pdMS_TO_TICKS(1000));
-          continue;
-        }
-
+      if (err == ESP_OK && webhook_cfg.enabled && webhook_cfg.url_count > 0) {
         uint64_t now = (uint64_t)(esp_timer_get_time() / 1000000ULL);
         uint32_t interval_sec =
             (webhook_cfg.interval > 0) ? (uint32_t)webhook_cfg.interval : 60;
@@ -2400,10 +2267,6 @@ static void autopid_webhook_task(void *pvParameters) {
 
           char *raw_json = autopid_data_read();
           if (raw_json) {
-            char *url = strdup_heap(webhook_cfg.url);
-            if (url) {
-              ESP_LOGI(TAG, "Webhook: posting %s payload to %s",
-                       send_full_data ? "full" : "diff", url);
               cJSON *root_obj = cJSON_CreateObject();
               cJSON *cfg_curr = autopid_build_config_object();
               char *status_json = config_server_get_status_json(
@@ -2522,11 +2385,24 @@ static void autopid_webhook_task(void *pvParameters) {
                 if (body) {
                   int status = -1;
                   char snippet[96] = {0};
-                  esp_err_t post_err =
-                      webhook_post_json(url, body, strlen(body), 5000, &status,
-                                        snippet, sizeof(snippet));
-                  bool ok =
-                      (post_err == ESP_OK && status >= 200 && status < 300);
+                  esp_err_t post_err = ESP_FAIL;
+                  bool ok = false;
+                  int url_idx = 0;
+
+                  for (; url_idx < webhook_cfg.url_count; url_idx++) {
+                      char *current_url = webhook_cfg.urls[url_idx];
+                      if (!current_url || current_url[0] == '\0') continue;
+
+                      ESP_LOGI(TAG, "Webhook: posting %s payload to %s (attempt %d/%d)",
+                               send_full_data ? "full" : "diff", current_url, url_idx + 1, webhook_cfg.url_count);
+
+                      post_err = webhook_post_json(current_url, body, strlen(body), 5000, &status, snippet, sizeof(snippet));
+                      ok = (post_err == ESP_OK && status >= 200 && status < 300);
+
+                      if (ok) {
+                          break; // Stop on first successful post
+                      }
+                  }
 
                   ha_webhook_config_t upd = webhook_cfg;
                   if (ok) {
@@ -2558,13 +2434,12 @@ static void autopid_webhook_task(void *pvParameters) {
                         snprintf(upd.last_error, sizeof(upd.last_error),
                                  "http=%d", status);
                     }
-                    ESP_LOGE(TAG, "Webhook POST failed: %s (http=%d)",
+                    ESP_LOGE(TAG, "Webhook POST failed for all URLs: %s (last http=%d)",
                              esp_err_to_name(post_err), status);
                   }
                   (void)ha_webhooks_update_cache(&upd);
 
                   free(body);
-                }
               }
 
               if (root_obj)
@@ -2575,8 +2450,6 @@ static void autopid_webhook_task(void *pvParameters) {
                 cJSON_Delete(sts_curr);
               if (auto_curr)
                 cJSON_Delete(auto_curr);
-
-              free(url);
             }
             free(raw_json);
           }

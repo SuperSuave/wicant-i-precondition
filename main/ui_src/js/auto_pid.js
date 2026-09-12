@@ -963,7 +963,10 @@ async function storeAutoTableData() {
         };
 
         // Save webhook settings independently
-        await saveWebhookSettings();
+        const webhookSuccess = await saveWebhookSettings();
+        if (!webhookSuccess) {
+            throw new Error("Failed to save Webhook settings");
+        }
 
         const response = await fetch('store_auto_data', {
             method: 'POST',

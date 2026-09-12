@@ -1,4 +1,4 @@
- /* This file is part of the WiCAN project.
+/* This file is part of the WiCAN project.
  *
  * Copyright (C) 2022  Meatpi Electronics.
  * Written by Ali Slim <ali@meatpi.com>
@@ -19,35 +19,43 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
 #include <esp_err.h>
 #include <esp_http_server.h>
+#include <stdbool.h>
+#include <stdint.h>
+
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
+
+#define MAX_WEBHOOK_URLS 4
+#define WEBHOOK_URL_MAX_LEN 192
 
 /**
  * @brief Home Assistant webhook configuration structure
  *
  * Stores the webhook URL, state, and status information
  */
-typedef struct ha_webhook_config
-{
-    char url[192];       /**< Webhook URL (HTTP/HTTPS) */
-    bool enabled;        /**< Whether webhook is enabled */
-    int interval;        /**< Poll/post interval in seconds (or minutes as defined by usage) */
-    char last_post[32];  /**< Timestamp of last successful POST */
-    char status[16];     /**< Current webhook status (e.g., "ok", "failed", "disabled") */
-    int retries;         /**< Number of retry attempts */
+typedef struct ha_webhook_config {
+  char url[WEBHOOK_URL_MAX_LEN]; /**< Legacy Webhook URL, points to urls[0] */
+  char urls[MAX_WEBHOOK_URLS]
+           [WEBHOOK_URL_MAX_LEN]; /**< Webhook URLs (HTTP/HTTPS) */
+  uint8_t url_count;              /**< Number of configured webhook URLs */
+  bool enabled;                   /**< Whether webhook is enabled */
+  int interval; /**< Poll/post interval in seconds (or minutes as defined by
+                   usage) */
+  char last_post[32]; /**< Timestamp of last successful POST */
+  char status[16];    /**< Current webhook status (e.g., "ok", "failed",
+                         "disabled") */
+  int retries;        /**< Number of retry attempts */
 
-    // Runtime stats (not required to be persisted)
-    uint32_t success_count;     /**< Number of successful POSTs since boot */
-    uint32_t fail_count;        /**< Number of failed POSTs since boot */
-    char last_error_time[32];   /**< Timestamp of last error (UTC ISO8601) */
-    char last_error[160];       /**< Latest error summary (HTTP status / esp_err + snippet) */
+  // Runtime stats (not required to be persisted)
+  uint32_t success_count;   /**< Number of successful POSTs since boot */
+  uint32_t fail_count;      /**< Number of failed POSTs since boot */
+  char last_error_time[32]; /**< Timestamp of last error (UTC ISO8601) */
+  char last_error[160];     /**< Latest error summary (HTTP status / esp_err +
+                               snippet) */
 } ha_webhook_config_t;
 
 /**
@@ -132,8 +140,9 @@ esp_err_t ha_webhooks_set_config(const ha_webhook_config_t *cfg);
 /**
  * @brief Update only the PSRAM cache (no filesystem writes)
  *
- * This is safe to call from tasks that run with PSRAM stacks (e.g. AutoPID tasks).
- * It updates the cached config so APIs/UI can reflect runtime status and counters.
+ * This is safe to call from tasks that run with PSRAM stacks (e.g. AutoPID
+ * tasks). It updates the cached config so APIs/UI can reflect runtime status
+ * and counters.
  *
  * @param[in] cfg Configuration to cache
  * @return ESP_OK on success

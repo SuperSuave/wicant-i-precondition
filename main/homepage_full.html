@@ -2675,9 +2675,15 @@
                     </div>
                 </div>
                 <div class="settings-row">
-                    <div class="settings-label"><span class="settings-title">WebHook URL</span></div>
+                    <div class="settings-label"><span class="settings-title">Primary WebHook URL</span></div>
                     <div class="settings-control"><input type="text" id="webhook_url"
                             placeholder="http://homeassistant.local:8123/..."
+                            oninput="enableAutoStoreButton();submit_enable();"></div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label"><span class="settings-title">Fallback WebHook URL</span></div>
+                    <div class="settings-control"><input type="text" id="webhook_url_fallback"
+                            placeholder="https://my-nabucasa-url.ui.nabu.casa/..."
                             oninput="enableAutoStoreButton();submit_enable();"></div>
                 </div>
                 <div class="settings-row">
@@ -2693,6 +2699,9 @@
                             <option value="changed">Changed Values Only</option>
                         </select>
                     </div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" id="btn_save_webhook" onclick="saveWebhookSettings(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Webhook Settings</button>
                 </div>
             </div>
 
@@ -2751,6 +2760,9 @@
                         </label>
                     </div>
                 </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Destination Settings</button>
+                </div>
             </div>
 
             <div id="automate_table">
@@ -2760,8 +2772,7 @@
                 <button onclick="addRowAutoTable()" class="dash-outline-btn"><svg class="icon">
                         <use href="#icon-plus" />
                     </svg> New Custom PID</button>
-                <button id="custom_pid_store" onclick="storeAutoTableData()" class="dash-action-btn store" disabled>Save
-                    Configuration</button>
+                <button id="custom_pid_store" onclick="storeAutoTableData()" class="dash-action-btn store" disabled>Save Custom PIDs</button>
             </div>
         </div>
 
@@ -2802,7 +2813,7 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">Wireless Mode</span></div>
                     <div class="settings-control">
-                        <select id="wifi_mode">
+                        <select id="wifi_mode" onchange="submit_enable();">
                             <option value="AP">Access Point Only</option>
                             <option value="APStation">AP + Station</option>
                         </select>
@@ -2811,14 +2822,16 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">AP Channel</span></div>
                     <div class="settings-control">
-                        <select id="ap_ch_value">
-                            <option value="6">6</option>
+                        <select id="ap_ch_value" onchange="submit_enable();">
+                            <option value="1">1</option>
+                            <option value="6" selected>6</option>
+                            <option value="11">11</option>
                         </select>
                     </div>
                 </div>
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">AP Password</span></div>
-                    <div class="settings-control"><input type="text" id="ap_pass_value" value="Testpass"></div>
+                    <div class="settings-control"><input type="text" id="ap_pass_value" value="Testpass" oninput="submit_enable();"></div>
                 </div>
                 <div class="settings-row">
                     <div class="settings-label">
@@ -2831,6 +2844,9 @@
                             <span class="ha-slider"></span>
                         </label>
                     </div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Wi-Fi Settings</button>
                 </div>
             </div>
 
@@ -2855,6 +2871,73 @@
                         </label>
                     </div>
                 </div>
+                <div id="mqtt_en_div">
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">MQTT Server URL</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_url" placeholder="192.168.1.100" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Port</span></div>
+                        <div class="settings-control"><input type="number" id="mqtt_port" value="1883" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Username</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_user" placeholder="Optional" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Password</span></div>
+                        <div class="settings-control"><input type="password" id="mqtt_pass" placeholder="Optional" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Keep Alive (s)</span></div>
+                        <div class="settings-control"><input type="number" id="keep_alive" value="60" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Enable Transmit (TX) Topic</span></div>
+                        <div class="settings-control">
+                            <label class="ha-switch">
+                                <input type="checkbox" id="mqtt_tx_en_checkbox" onchange="txCheckBoxChanged(); submit_enable();">
+                                <span class="ha-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">TX Topic</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_tx_topic" placeholder="wican/can/tx" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Enable Receive (RX) Topic</span></div>
+                        <div class="settings-control">
+                            <label class="ha-switch">
+                                <input type="checkbox" id="mqtt_rx_en_checkbox" onchange="rxCheckBoxChanged(); submit_enable();">
+                                <span class="ha-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">RX Topic</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_rx_topic" placeholder="wican/can/rx" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label"><span class="settings-title">Status Topic</span></div>
+                        <div class="settings-control"><input type="text" id="mqtt_status_topic" placeholder="wican/status" oninput="submit_enable();"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-label">
+                            <span class="settings-title">ELM327 Log</span>
+                            <span class="settings-desc" style="cursor: pointer; text-decoration: underline;" onclick="alert_elm327();">What is this?</span>
+                        </div>
+                        <div class="settings-control">
+                            <select id="mqtt_elm327_log" onchange="submit_enable();">
+                                <option value="disable">Disable</option>
+                                <option value="enable">Enable</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save MQTT Settings</button>
+                </div>
             </div>
 
             <div class="section-title">Bluetooth Low Energy (BLE)</div>
@@ -2871,7 +2954,10 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">BLE Passkey</span></div>
                     <div class="settings-control"><input type="number" id="ble_pass_value" value="000000" min="0"
-                            max="999999"></div>
+                            max="999999" oninput="submit_enable();"></div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save BLE Settings</button>
                 </div>
             </div>
         </div>
@@ -2911,6 +2997,9 @@
                 <div class="settings-row">
                     <div class="settings-label"><span class="settings-title">Network Port</span></div>
                     <div class="settings-control"><input type="number" id="tcp_port_value" value="3333"></div>
+                </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save CAN Settings</button>
                 </div>
             </div>
 
@@ -2988,6 +3077,9 @@
                             oninput="document.getElementById('sleep_time_value').textContent = this.value; submit_enable();">
                     </div>
                 </div>
+                <div class="settings-row" style="justify-content: flex-end; padding-top: 0.8rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="postConfig(this)" class="dash-action-btn" style="padding: 6px 18px; font-size: 0.85rem; font-weight: 600;">Save Power Settings</button>
+                </div>
             </div>
 
             <div class="section-title">Configuration Backup &amp; Restore</div>
@@ -3010,7 +3102,7 @@
 
             <div class="section-title">Firmware &amp; OTA Update</div>
             <div class="settings-card">
-                <form id="ota_form" method="POST" action="/update" enctype="multipart/form-data">
+                <form id="ota_form" method="POST" action="/upload/ota.bin" enctype="multipart/form-data">
                     <div class="settings-row">
                         <div class="settings-label">
                             <span class="settings-title">OTA Firmware File</span>
@@ -3033,49 +3125,32 @@
                 </div>
             </div>
         </div>
-
-        <input id="submit_button" type="button" onclick="postConfig()" value="Submit Changes" class="dash-action-btn"
-            disabled style="margin-top: 1rem;" />
     </div>
 
     <script>
 /* === js/network.js === */
-(function () {
-    function resolveSafeUrl(url) {
-        if (typeof url !== 'string') return url;
-        if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') || url.startsWith('data:')) {
-            return url;
-        }
-        const clean = url.startsWith('/') ? url : ('/' + url);
-        if (window.location.protocol === 'blob:' || window.location.protocol === 'file:' || !window.location.host) {
-            const base = (window.location.origin && window.location.origin !== 'null' && window.location.origin.startsWith('http'))
-                ? window.location.origin
-                : 'https://wican.local';
-            return base + clean;
-        }
-        return clean;
+// --- NETWORK & URL HELPERS ---
+
+function resolveSafeUrl(url) {
+    if (typeof url !== 'string') return url;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('ws://') || url.startsWith('wss://') || url.startsWith('data:')) {
+        return url;
     }
+    return url.startsWith('/') ? url : ('/' + url);
+}
 
-    const origXhrOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-        const safe = resolveSafeUrl(url);
-        return origXhrOpen.call(this, method, safe, ...rest);
-    };
-
-    const origFetch = window.fetch;
-    window.fetch = function (input, init) {
-        if (typeof input === 'string') {
-            input = resolveSafeUrl(input);
-        }
-        return origFetch.call(this, input, init);
-    };
-})();
 
 /* === js/ui.js === */
 // --- GENERAL UI, TABS, THEMES & NOTIFICATIONS ---
 
 function escapeHtml(str) {
-    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function showNotification(message, color = "blue", duration = 4000) {
@@ -3132,9 +3207,6 @@ function submit_enable() {
     }
 
     if (typeof updateStaNetworksUI === "function") updateStaNetworksUI();
-
-    const submitBtn = document.getElementById("submit_button");
-    if (submitBtn) submitBtn.disabled = false;
 }
 
 function initAppTheme() {
@@ -3218,11 +3290,6 @@ function openTab(evt, tabName) {
         closeSidebarDrawer();
     }
 
-    const submitBtn = document.getElementById("submit_button");
-    if (submitBtn) {
-        const configTabs = ["autopid_tab", "connectivity_tab", "can_hardware_tab", "system_tab"];
-        submitBtn.style.display = configTabs.includes(tabName) ? "inline-block" : "none";
-    }
 
     const canDoFab = document.getElementById("can_do_anchored_save_fab");
     if (canDoFab) {
@@ -3261,15 +3328,25 @@ function closeSidebarDrawer() {
     if (backdrop) backdrop.classList.remove("active");
 }
 
+let _rtfNarrow = null;
+try {
+    if (typeof Intl !== "undefined" && Intl.RelativeTimeFormat) {
+        _rtfNarrow = new Intl.RelativeTimeFormat('en', { style: 'narrow', numeric: 'always' });
+    }
+} catch (e) { }
+
 function formatAge(ageMs) {
+    if (ageMs === undefined || ageMs === null || isNaN(ageMs)) return "0s";
     const seconds = Math.max(0, Math.round(ageMs / 1000));
     if (seconds < 60) return `${seconds}s`;
 
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {
+        return _rtfNarrow ? _rtfNarrow.format(-minutes, 'minute').replace(' ago', '').replace(' ', '') : `${minutes}m`;
+    }
 
     const hours = Math.floor(minutes / 60);
-    return `${hours}h`;
+    return _rtfNarrow ? _rtfNarrow.format(-hours, 'hour').replace(' ago', '').replace(' ', '') : `${hours}h`;
 }
 
 function initActiveTab() {
@@ -3296,6 +3373,7 @@ function initActiveTab() {
         if (defaultBtn) defaultBtn.click();
     }
 }
+
 
 /* === js/wifi.js === */
 // --- MULTI-NETWORK STA CONFIG HELPERS ---
@@ -3598,7 +3676,7 @@ async function uploadCfg() {
     }
 }
 
-function postConfig() {
+function postConfig(btn) {
     var obj = {};
     const bools = ["webhook_en", "grouping", "autopid_polling", "ap_auto_disable", "mqtt_en", "ble_status", "sleep_status"];
     bools.forEach(id => {
@@ -3609,7 +3687,6 @@ function postConfig() {
     const getVal = (id, fallback = "") => document.getElementById(id)?.value || fallback;
 
     obj["wifi_mode"] = getVal("wifi_mode");
-    obj["webhook_en"] = getVal("webhook_en");
     obj["ap_ch"] = getVal("ap_ch_value");
 
     if (typeof updateLegacyStaFields === "function") updateLegacyStaFields();
@@ -3627,11 +3704,9 @@ function postConfig() {
     obj["can_fwd_mode"] = getVal("can_fwd_mode");
     obj["port_type"] = getVal("port_type");
     obj["port"] = getVal("tcp_port_value");
-    obj["ap_pass"] = getVal("ap_pass_value");
-    obj["protocol"] = getVal("protocol");
-    obj["ble_pass"] = getVal("ble_pass_value");
-    obj["ble_status"] = getVal("ble_status");
-    obj["sleep_status"] = getVal("sleep_status");
+    obj["ap_pass"] = getVal("ap_pass_value", "@meatpi#");
+    obj["protocol"] = getVal("protocol", "savvycan");
+    obj["ble_pass"] = getVal("ble_pass_value", "123456");
     obj["sleep_volt"] = getVal("sleep_volt");
     obj["sleep_time"] = getVal("sleep_time");
     obj["batt_alert"] = getVal("batt_alert");
@@ -3648,7 +3723,6 @@ function postConfig() {
     obj["batt_alert_time"] = getVal("batt_alert_time");
     obj["batt_mqtt_user"] = getVal("batt_mqtt_user");
     obj["batt_mqtt_pass"] = getVal("batt_mqtt_pass");
-    obj["mqtt_en"] = getVal("mqtt_en");
 
     let raw_mqtt_url = getVal("mqtt_url").replace(/^mqtt:\/\//, "");
     obj["mqtt_url"] = mqtt_txt.concat(raw_mqtt_url);
@@ -3657,7 +3731,6 @@ function postConfig() {
     obj["mqtt_pass"] = getVal("mqtt_pass");
     obj["keep_alive"] = getVal("keep_alive");
     obj["mqtt_tx_topic"] = getVal("mqtt_tx_topic");
-    obj["ap_auto_disable"] = getVal("ap_auto_disable");
     obj["mqtt_tx_en"] = document.getElementById("mqtt_tx_en_checkbox")?.checked ? "enable" : "disable";
     obj["mqtt_rx_topic"] = getVal("mqtt_rx_topic");
     obj["mqtt_rx_en"] = document.getElementById("mqtt_rx_en_checkbox")?.checked ? "enable" : "disable";
@@ -3667,11 +3740,33 @@ function postConfig() {
     obj["precon_button"] = getVal("precon_button", "sw_star");
     obj["precon_press"] = getVal("precon_press", "short");
 
+    let origText = "";
+    if (btn) {
+        origText = btn.textContent || btn.value;
+        btn.textContent = "Saving...";
+        btn.disabled = true;
+    }
+
     const xhttp = new XMLHttpRequest();
     xhttp.onload = function () {
-        if (typeof showNotification === "function") showNotification(this.responseText, "green");
-        const subBtn = document.getElementById("submit_button");
-        if (subBtn) subBtn.disabled = true;
+        if (typeof showNotification === "function") showNotification(this.responseText || "Settings saved successfully", "green");
+        if (btn) {
+            btn.textContent = "✓ Saved!";
+            setTimeout(() => {
+                btn.textContent = origText;
+                btn.disabled = false;
+            }, 2000);
+        }
+    };
+    xhttp.onerror = function () {
+        if (typeof showNotification === "function") showNotification("Failed to save settings", "red");
+        if (btn) {
+            btn.textContent = "✕ Error";
+            setTimeout(() => {
+                btn.textContent = origText;
+                btn.disabled = false;
+            }, 2000);
+        }
     };
     xhttp.open("POST", "/store_config");
     xhttp.setRequestHeader("Content-Type", "application/json");
@@ -3696,17 +3791,61 @@ function Load() {
                     if (el && val !== undefined) el.value = val;
                 };
 
+                setElVal("wifi_mode", obj.wifi_mode || "AP");
+                setElVal("ap_ch_value", obj.ap_ch || "6");
                 setElVal("ap_pass_value", obj.ap_pass || "Testpass");
+                setElVal("can_datarate", obj.can_datarate || "500K");
+                setElVal("can_mode", obj.can_mode || "normal");
+                setElVal("port_type", obj.port_type || "tcp");
                 setElVal("tcp_port_value", obj.port || "3333");
                 setElVal("ble_pass_value", obj.ble_pass || "000000");
                 setElVal("sleep_volt", obj.sleep_volt || "13.2");
+                setElVal("sleep_time", obj.sleep_time || "2");
 
                 const sleepDisp = document.getElementById("sleep_volt_value");
                 if (sleepDisp) sleepDisp.textContent = obj.sleep_volt || "13.2";
+                const sleepTimeDisp = document.getElementById("sleep_time_value");
+                if (sleepTimeDisp) sleepTimeDisp.textContent = obj.sleep_time || "2";
+
+                // Render station networks list
+                if (typeof renderStaNetworksList === "function") {
+                    renderStaNetworksList(obj.sta_networks || []);
+                }
+
+                // MQTT Broker fields
+                let cleanMqttUrl = (obj.mqtt_url || "").replace(/^mqtt:\/\//, "");
+                setElVal("mqtt_url", cleanMqttUrl);
+                setElVal("mqtt_port", obj.mqtt_port || "1883");
+                setElVal("mqtt_user", obj.mqtt_user || "");
+                setElVal("mqtt_pass", obj.mqtt_pass || "");
+                setElVal("keep_alive", obj.keep_alive || "60");
+                setElVal("mqtt_tx_topic", obj.mqtt_tx_topic || "wican/can/tx");
+                setElVal("mqtt_rx_topic", obj.mqtt_rx_topic || "wican/can/rx");
+                setElVal("mqtt_status_topic", obj.mqtt_status_topic || "wican/status");
+                setElVal("mqtt_elm327_log", obj.mqtt_elm327_log || "disable");
+
+                const txCb = document.getElementById("mqtt_tx_en_checkbox");
+                if (txCb) {
+                    txCb.checked = (obj.mqtt_tx_en === "enable");
+                    if (typeof txCheckBoxChanged === "function") txCheckBoxChanged();
+                }
+
+                const rxCb = document.getElementById("mqtt_rx_en_checkbox");
+                if (rxCb) {
+                    rxCb.checked = (obj.mqtt_rx_en === "enable");
+                    if (typeof rxCheckBoxChanged === "function") rxCheckBoxChanged();
+                }
 
                 const mqttDiv = document.getElementById("mqtt_en_div");
                 if (mqttDiv) {
                     mqttDiv.style.display = (obj.mqtt_en === "enable") ? "block" : "none";
+                }
+
+                if (typeof submit_enable === "function") {
+                    // Update disabled/enabled states based on wifi_mode & ble
+                    const isAp = (obj.wifi_mode === "AP");
+                    const bleEl = document.getElementById("ble_status");
+                    if (bleEl) bleEl.disabled = !isAp;
                 }
 
                 if (typeof checkStatus === "function") checkStatus();
@@ -4775,6 +4914,7 @@ function loadAutoTable(jsonData) {
 
         setElementValue("car_specific", data.car_specific, 'disable');
         setElementValue("webhook_data_mode", data.webhook_data_mode, 'full');
+        if (typeof loadWebhookConfig === "function") loadWebhookConfig();
         setElementValue("ha_discovery", 'disable');
         setElementValue("grouping", data.grouping, 'disable');
         setElementValue("autopid_polling", data.autopid_polling, 'enable');
@@ -4831,6 +4971,114 @@ function loadAutoTable(jsonData) {
     } catch (error) {
         console.error('Error in loadAutoTable:', error);
         showNotification("Error loading table data: " + error.message, "red");
+    }
+}
+
+async function loadWebhookConfig() {
+    try {
+        const res = await fetch('/api/webhook');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const webhookUrlEl = document.getElementById("webhook_url");
+        const webhookUrlFallbackEl = document.getElementById("webhook_url_fallback");
+        const webhookIntervalEl = document.getElementById("webhook_interval");
+        const webhookEnEl = document.getElementById("webhook_en");
+
+        if (webhookUrlEl) {
+            if (data.urls && data.urls.length > 0) {
+                webhookUrlEl.value = data.urls[0] || '';
+                if (webhookUrlFallbackEl && data.urls.length > 1) {
+                    webhookUrlFallbackEl.value = data.urls[1] || '';
+                }
+            } else if (data.url !== undefined) {
+                webhookUrlEl.value = data.url;
+            }
+        }
+        if (webhookEnEl && data.enabled !== undefined) {
+            webhookEnEl.checked = (data.enabled === true);
+        }
+        if (webhookIntervalEl && data.interval !== undefined) {
+            webhookIntervalEl.value = data.interval;
+        }
+
+        const statOk = document.getElementById("webhook_stat_success");
+        const statFail = document.getElementById("webhook_stat_fail");
+        const statStatus = document.getElementById("webhook_stat_status");
+
+        if (statOk && data.success_count !== undefined) statOk.textContent = `OK: ${data.success_count}`;
+        if (statFail && data.fail_count !== undefined) statFail.textContent = `Fail: ${data.fail_count}`;
+        if (statStatus && data.status) statStatus.textContent = `Status: ${data.status}`;
+    } catch (e) {
+        console.warn("Failed to load webhook config:", e);
+    }
+}
+
+async function saveWebhookSettings(btn) {
+    const webhookUrlEl = document.getElementById("webhook_url");
+    const webhookUrlFallbackEl = document.getElementById("webhook_url_fallback");
+    const webhookIntervalEl = document.getElementById("webhook_interval");
+    const webhookEnEl = document.getElementById("webhook_en");
+    if (!webhookUrlEl) return false;
+
+    const wUrl = webhookUrlEl.value.trim();
+    const wUrlFallback = webhookUrlFallbackEl ? webhookUrlFallbackEl.value.trim() : '';
+    const wEn = webhookEnEl ? webhookEnEl.checked : true;
+    const wInt = webhookIntervalEl ? parseInt(webhookIntervalEl.value, 10) : 60;
+
+    if (wEn && wUrl && !wUrl.startsWith("http://") && !wUrl.startsWith("https://")) {
+        if (typeof showNotification === "function") showNotification("Webhook URL must start with http:// or https://", "red", 3500);
+        return false;
+    }
+
+    if (btn) {
+        btn.textContent = "Saving...";
+        btn.disabled = true;
+    }
+
+    try {
+        if (wUrl && (wUrl.startsWith("http://") || wUrl.startsWith("https://"))) {
+            let payload = {
+                url: wUrl,
+                enabled: wEn,
+                interval: isNaN(wInt) || wInt < 1 ? 60 : wInt
+            };
+
+            let urls = [wUrl];
+            if (wUrlFallback && (wUrlFallback.startsWith("http://") || wUrlFallback.startsWith("https://"))) {
+                urls.push(wUrlFallback);
+            }
+            payload.urls = urls;
+
+            const res = await fetch('/api/webhook', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error("Status " + res.status);
+        } else if (!wEn) {
+            await fetch('/api/webhook', { method: 'DELETE' });
+        }
+
+        if (btn) {
+            btn.textContent = "✓ Saved!";
+            setTimeout(() => {
+                btn.textContent = "Save Webhook Settings";
+                btn.disabled = false;
+            }, 2000);
+        }
+        if (typeof showNotification === "function") showNotification("Webhook settings saved successfully!", "green", 3000);
+        return true;
+    } catch (e) {
+        if (btn) {
+            btn.textContent = "✕ Error";
+            setTimeout(() => {
+                btn.textContent = "Save Webhook Settings";
+                btn.disabled = false;
+            }, 2000);
+        }
+        if (typeof showNotification === "function") showNotification("Failed to save Webhook settings: " + e.message, "red", 3500);
+        return false;
     }
 }
 
@@ -4983,27 +5231,8 @@ async function storeAutoTableData() {
             ecu_protocol: ecu_protocolValue
         };
 
-        const webhookUrlEl = document.getElementById("webhook_url");
-        const webhookIntervalEl = document.getElementById("webhook_interval");
-        const webhookEnEl = document.getElementById("webhook_en");
-        if (webhookUrlEl) {
-            const wUrl = webhookUrlEl.value.trim();
-            const wEn = webhookEnEl ? (webhookEnEl.value === "enable") : true;
-            const wInt = webhookIntervalEl ? parseInt(webhookIntervalEl.value, 10) : 60;
-            if (wUrl && (wUrl.startsWith("http://") || wUrl.startsWith("https://"))) {
-                await fetch('/api/webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: wUrl,
-                        enabled: wEn,
-                        interval: isNaN(wInt) || wInt < 1 ? 60 : wInt
-                    })
-                }).catch(e => console.warn('Webhook save failed', e));
-            } else if (!wUrl && !wEn) {
-                await fetch('/api/webhook', { method: 'DELETE' }).catch(() => { });
-            }
-        }
+        // Save webhook settings independently
+        await saveWebhookSettings();
 
         const response = await fetch('store_auto_data', {
             method: 'POST',
@@ -5034,10 +5263,6 @@ async function storeAutoTableData() {
 window._dashEditMode = false;
 window._lastStatusObj = null;
 window._canDoStateCache = {};
-
-function escapeHtml(str) {
-    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 
 const DASH_WIDGET_CATALOG = {
     batt_12v: {
@@ -5949,6 +6174,7 @@ setInterval(() => {
         updateCanDoStateWidgets();
     }
 }, 3000);
+
 
 /* === js/can_do/catalog.js === */
 /* CAN_DO_CATALOG_START - Dynamic GitHub & SPIFFS Catalog Loader */
@@ -7413,7 +7639,9 @@ function updateCanDoActivityStats(statsArray) {
         if (st.is_active) {
             const ageSec = (st.age_ms !== undefined && st.age_ms >= 0) ? Math.round(st.age_ms / 1000) : 0;
             let ageStr = `${ageSec}s ago`;
-            if (ageSec > 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
+            if (ageSec >= 3600) ageStr = `${Math.floor(ageSec / 3600)}h ago`;
+            else if (ageSec >= 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
+
             badge.className = "can-do-activity-badge active-on";
             badge.textContent = `ON (${st.count}x, ${ageStr})`;
             badge.title = "Rule is currently TOGGLED ON";
@@ -7424,8 +7652,21 @@ function updateCanDoActivityStats(statsArray) {
         } else {
             const ageSec = Math.round(st.age_ms / 1000);
             let ageStr = `${ageSec}s ago`;
-            if (ageSec > 60) ageStr = `${Math.floor(ageSec / 60)}m ago`;
-            badge.textContent = `${st.count}x (${ageStr})`;
+            let badgeText = `${st.count}x (${ageStr})`;
+
+            if (ageSec >= 86400) {
+                const days = Math.floor(ageSec / 86400);
+                ageStr = `${days}d ago`;
+                badgeText = `${st.count}x (${ageStr})`;
+            } else if (ageSec >= 3600) {
+                ageStr = `${Math.floor(ageSec / 3600)}h ago`;
+                badgeText = `${st.count}x Today`;
+            } else if (ageSec >= 60) {
+                ageStr = `${Math.floor(ageSec / 60)}m ago`;
+                badgeText = `${st.count}x (${ageStr})`;
+            }
+
+            badge.textContent = badgeText;
             badge.title = `Fired ${st.count} time(s), last ${ageStr}`;
 
             if (st.age_ms >= 0 && st.age_ms < 4000) {
@@ -8004,32 +8245,12 @@ document.addEventListener("keyup", function (e) {
     }
 }, true);
 
-function initCanDoMutationObserver() {
-    const container = document.getElementById("can_do_rules_container");
-    if (!container || window._can_doObserverAttached) return;
-    window._can_doObserverAttached = true;
-    const observer = new MutationObserver(function (mutations) {
-        if (window._suppressCanDoDirty) return;
-        for (let m of mutations) {
-            if (m.addedNodes.length > 0 || m.removedNodes.length > 0) {
-                if (typeof markCanDoDirty === "function") markCanDoDirty();
-                break;
-            }
-        }
-    });
-    observer.observe(container, { childList: true, subtree: true });
-}
-
-if (document.getElementById("can_do_rules_container")) {
-    initCanDoMutationObserver();
-}
-document.addEventListener("DOMContentLoaded", initCanDoMutationObserver);
-
 document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
         closeCanDoSettingsMenu();
     }
 });
+
 
 /* === js/can_do/dialog.js === */
 function openAddAutomationElementDialog(type, targetContainer, ruleCard, options = {}) {
@@ -8239,11 +8460,12 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
         });
     }
 
-    // Create Overlay Element
-    const overlay = document.createElement("div");
-    overlay.className = "ha-add-element-dialog-overlay";
+    // Create Native <dialog> Element
+    const dialog = document.createElement("dialog");
+    dialog.className = "ha-add-element-dialog-overlay ha-native-dialog";
+    dialog.style.cssText = "border: none; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh;";
 
-    overlay.innerHTML = `
+    dialog.innerHTML = `
                         <div class="ha-add-element-dialog" onclick="event.stopPropagation();">
                             <div class="ha-dialog-header">
                                 <div class="ha-dialog-header-top">
@@ -8251,7 +8473,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                                         <span class="can-do-ha-pill ${typeConfig.pillClass}">${typeConfig.pillText}</span>
                                         <h3 class="ha-dialog-title">${typeConfig.title}</h3>
                                     </div>
-                                    <button type="button" class="ha-dialog-close-btn" onclick="this.closest('.ha-add-element-dialog-overlay').remove();" title="Close dialog">✕</button>
+                                    <button type="button" class="ha-dialog-close-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }" title="Close dialog">✕</button>
                                 </div>
                                 <div class="ha-dialog-search-wrap">
                                     <svg class="ha-dialog-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -8266,7 +8488,11 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                         </div>
                     `;
 
-    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+    if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+    }
+    const overlay = dialog;
 
     const searchInput = overlay.querySelector(".ha-dialog-search-input");
     const dialogBody = overlay.querySelector("#ha_dialog_body");
@@ -8522,6 +8748,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     }
 
     function handleTargetSelection(item, stateOpt) {
+        if (typeof overlay.close === "function") overlay.close();
         overlay.remove();
         item.onSelect(stateOpt);
         const newElem = targetContainer ? targetContainer.lastElementChild : null;
@@ -8540,16 +8767,13 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
     searchInput.oninput = () => renderPicker();
 
     overlay.onclick = (e) => {
-        if (e.target === overlay) overlay.remove();
-    };
-
-    const escHandler = (e) => {
-        if (e.key === "Escape") {
+        if (e.target === overlay) {
+            if (typeof overlay.close === "function") overlay.close();
             overlay.remove();
-            document.removeEventListener("keydown", escHandler);
         }
     };
-    document.addEventListener("keydown", escHandler);
+
+    overlay.onclose = () => overlay.remove();
 
     renderPicker();
     setTimeout(() => searchInput.focus(), 60);
@@ -8559,95 +8783,120 @@ function showCanDoHaSettingsModal(btn) {
     const card = btn ? btn.closest(".can-do-rule-card") : null;
     if (!card) return;
 
-    document.querySelectorAll(".can-do-ha-settings-modal-overlay").forEach(el => el.remove());
+    document.querySelectorAll(".can-do-ha-settings-modal-overlay, dialog.ha-native-dialog").forEach(el => {
+        if (el.querySelector("#can_do_modal_ha_expose")) el.remove();
+    });
 
     const ruleName = card.querySelector(".can-do-name")?.value || "CAN Do Automation";
     const currentExpose = card.dataset.haExpose !== undefined ? (card.dataset.haExpose === "true") : true;
     const currentIcon = card.dataset.haIcon || "mdi:car-defrost-rear";
 
-    const overlay = document.createElement("div");
-    overlay.className = "can-do-ha-settings-modal-overlay";
-    overlay.style.cssText = "position: fixed; inset: 0; z-index: 1000000; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 1rem;";
+    const dialog = document.createElement("dialog");
+    dialog.className = "ha-add-element-dialog-overlay ha-native-dialog";
+    dialog.style.cssText = "border: none; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh;";
 
-    overlay.innerHTML = `
-                        <div class="can-do-ha-settings-modal" style="width: 100%; max-width: 460px; box-shadow: 0 20px 45px rgba(0,0,0,0.4); border-radius: var(--m3-shape-lg, 16px); padding: 1.5rem; margin: 0; position: relative;" onclick="event.stopPropagation();">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.5rem;">
-                                        <span>Home Assistant Integration</span>
-                                    </h3>
-                                    <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 3px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        "${ruleName}"
-                                    </span>
-                                </div>
-                                <button type="button" class="system-button" style="width: 28px; height: 28px; min-width: 28px; padding: 0; font-size: 0.9rem; border-radius: 50%;" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">✕</button>
-                            </div>
+    dialog.innerHTML = `
+        <div class="ha-add-element-dialog" style="max-width: 480px;" onclick="event.stopPropagation();">
+            <div class="ha-dialog-header">
+                <div class="ha-dialog-header-top">
+                    <div class="ha-dialog-title-wrap">
+                        <span class="can-do-ha-pill act-pill">Home Assistant</span>
+                        <h3 class="ha-dialog-title">Home Assistant Integration</h3>
+                    </div>
+                    <button type="button" class="ha-dialog-close-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }" title="Close dialog">✕</button>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    "${escapeHtml(ruleName)}"
+                </div>
+            </div>
+            <div class="ha-dialog-body" style="padding: 1.25rem; gap: 1.1rem; display: flex; flex-direction: column;">
+                <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
+                    <div>
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
+                    </div>
+                </label>
 
-                            <div style="display: flex; flex-direction: column; gap: 1.1rem;">
-                                <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; user-select: none;">
-                                    <input type="checkbox" id="can_do_modal_ha_expose" ${currentExpose ? "checked" : ""} style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--md-sys-color-primary); cursor: pointer;">
-                                    <div>
-                                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-heading); display: block;">Expose to Home Assistant</span>
-                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Creates an interactive button or switch entity via MQTT discovery for this automation rule.</span>
-                                    </div>
-                                </label>
+                <div>
+                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
+                        Material Design Icon (MDI):
+                    </label>
+                    <input type="text" id="can_do_modal_ha_icon" value="${escapeHtml(currentIcon)}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-heading);">
+                    <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
 
-                                <div>
-                                    <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-heading); margin-bottom: 0.35rem;">
-                                        Material Design Icon (MDI):
-                                    </label>
-                                    <input type="text" id="can_do_modal_ha_icon" value="${currentIcon}" placeholder="mdi:car-defrost-rear" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.88rem; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px;">
-                                    <span style="font-size: 0.73rem; color: var(--text-muted); margin-top: 3px; display: block;">Specify any standard icon from <a href="https://pictogrammers.com/library/mdi/" target="_blank" rel="noopener" style="color: var(--md-sys-color-primary); text-decoration: underline;">pictogrammers.com/mdi</a></span>
+                    <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
+                        <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
+                        <button type="button" class="dash-outline-btn" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
+                    </div>
+                </div>
 
-                                    <div style="margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center;">
-                                        <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">Quick Pick:</span>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-defrost-rear'">Defrost</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-electric'">EV Battery</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:air-conditioner'">Climate</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-door-lock'">Locks</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-back'">Trunk</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:car-light-high'">Lights</button>
-                                        <button type="button" class="system-button" style="padding: 2px 7px; font-size: 0.74rem;" onclick="document.getElementById('can_do_modal_ha_icon').value='mdi:flash'">Generic</button>
-                                    </div>
-                                </div>
-
-                                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
-                                    <button type="button" class="system-button" onclick="this.closest('.can-do-ha-settings-modal-overlay').remove();">Cancel</button>
-                                    <button type="button" class="primary-button" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 0.9rem;">
+                    <button type="button" class="dash-outline-btn" onclick="const d = this.closest('dialog'); if (d) { d.close(); d.remove(); }">Cancel</button>
+                    <button type="button" class="dash-action-btn" style="font-weight: 600; margin: 0;" onclick="saveCanDoHaSettingsModal(this, window._activeHaTargetCard);">Save HA Settings</button>
+                </div>
+            </div>
+        </div>
+    `;
 
     window._activeHaTargetCard = card;
-    document.body.appendChild(overlay);
+    document.body.appendChild(dialog);
+    if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+    }
 
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.remove();
-    });
+    dialog.onclick = (e) => {
+        if (e.target === dialog) {
+            if (typeof dialog.close === "function") dialog.close();
+            dialog.remove();
+        }
+    };
+    dialog.onclose = () => dialog.remove();
 }
 
 function saveCanDoHaSettingsModal(btn, card) {
     if (!card) {
         card = window._activeHaTargetCard;
     }
-    const modal = btn ? btn.closest(".can-do-ha-settings-modal-overlay") : document.querySelector(".can-do-ha-settings-modal-overlay");
-    if (!card || !modal) return;
+    const dialog = btn ? btn.closest("dialog") : document.querySelector("dialog");
+    if (!card || !dialog) return;
 
-    const exposeCb = modal.querySelector("#can_do_modal_ha_expose");
-    const iconInput = modal.querySelector("#can_do_modal_ha_icon");
+    const exposeCb = dialog.querySelector("#can_do_modal_ha_expose");
+    const iconInput = dialog.querySelector("#can_do_modal_ha_icon");
 
     card.dataset.haExpose = (exposeCb && exposeCb.checked) ? "true" : "false";
     card.dataset.haIcon = (iconInput && iconInput.value.trim()) ? iconInput.value.trim() : "mdi:car-defrost-rear";
 
-    modal.remove();
+    if (typeof dialog.close === "function") dialog.close();
+    dialog.remove();
     autoSaveCanDoRules("Updated Home Assistant settings for " + (card.querySelector(".can-do-name")?.value || "rule"), "blue");
+}
+
+function getExposedCatalogCategories() {
+    try {
+        const saved = localStorage.getItem("wican_ha_exposed_catalog_cats");
+        if (saved) return JSON.parse(saved);
+    } catch (e) { }
+    return { doors: true, locks: true, battery: true, climate: true, seats: false, dynamics: false };
+}
+
+function saveExposedCatalogCategories(cats) {
+    try {
+        localStorage.setItem("wican_ha_exposed_catalog_cats", JSON.stringify(cats));
+    } catch (e) { }
 }
 
 function toggleCanDoGlobalSettingsModal() {
     document.querySelectorAll(".can-do-global-settings-modal-overlay").forEach(el => el.remove());
 
     const currentUnit = getUnitSystem();
+    const exposedCats = getExposedCatalogCategories();
 
     const overlay = document.createElement("div");
     overlay.className = "can-do-global-settings-modal-overlay ha-add-element-dialog-overlay";
@@ -8679,8 +8928,43 @@ function toggleCanDoGlobalSettingsModal() {
                                     <span style="font-size: 0.74rem; color: var(--text-muted);">Trim variants enable vehicle-specific features like ventilated seats, AWD, or HUD.</span>
                                 </div>
 
+                                <!-- Home Assistant Catalog Entity Exposure -->
+                                <div style="border-top: 1px dashed var(--border-color); padding-top: 0.8rem; margin-top: 0.2rem;">
+                                    <label style="font-weight: 600; font-size: 0.88rem; color: var(--text-heading); display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem;">
+                                        <span>Home Assistant Vehicle State Exposure</span>
+                                    </label>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted); display: block; margin-bottom: 0.6rem;">Select which catalog vehicle signal categories are automatically exposed as Home Assistant sensors:</span>
+
+                                    <div id="ha_cat_exposure_grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; font-size: 0.82rem; color: var(--text-heading);">
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_doors" ${exposedCats.doors ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Door &amp; Hatch States</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_locks" ${exposedCats.locks ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Door Lock Status</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_battery" ${exposedCats.battery ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Battery SOC &amp; Charging</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_climate" ${exposedCats.climate ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Climate &amp; Temps</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;" id="lbl_ha_cat_seats">
+                                            <input type="checkbox" id="ha_cat_seats" ${exposedCats.seats ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Seat &amp; Wheel Comfort</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                                            <input type="checkbox" id="ha_cat_dynamics" ${exposedCats.dynamics ? "checked" : ""} style="accent-color: var(--md-sys-color-primary);">
+                                            <span>Gears &amp; Speed</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <!-- Imperial / Metric Unit System -->
-                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                <div class="ha-form-row" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.4rem;">
                                     <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-heading);">Measurement Units:</label>
                                     <select id="can_do_unit_system" class="ha-form-select" onchange="changeUnitSystem(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 0.88rem; color: var(--text-heading); box-sizing: border-box;">
                                         <option value="metric" ${currentUnit === "metric" ? "selected" : ""}>Metric (°C, km/h, bar, kPa)</option>
@@ -8714,8 +8998,46 @@ function toggleCanDoGlobalSettingsModal() {
     // Populate vehicle make/model/trim dropdowns from catalog
     try {
         populateVehicleDropdowns(getCatalogVehicles());
+        updateVehicleFeatureGatingUI();
     } catch (e) {
         console.error("Error populating vehicle dropdowns:", e);
+    }
+}
+
+function updateVehicleFeatureGatingUI() {
+    try {
+        const modelSel = document.getElementById("can_do_vehicle_model");
+        const trimSel = document.getElementById("can_do_vehicle_trim");
+        if (!modelSel || !trimSel) return;
+
+        const selectedTrimId = trimSel.value || modelSel.value;
+        const vehicles = (typeof getCatalogVehicles === "function") ? getCatalogVehicles() : [];
+        const activeVehicle = vehicles.find(v => v.id === selectedTrimId || v.family === selectedTrimId) || vehicles[0];
+
+        if (activeVehicle && activeVehicle.features) {
+            const seatsCb = document.getElementById("ha_cat_seats");
+            const seatsLbl = document.getElementById("lbl_ha_cat_seats");
+            const hasSeatsFeature = activeVehicle.features.includes("heated_seats") || activeVehicle.features.includes("ventilated_seats") || activeVehicle.features.includes("heated_wheel");
+
+            if (seatsCb) {
+                if (!hasSeatsFeature) {
+                    seatsCb.checked = false;
+                    seatsCb.disabled = true;
+                    if (seatsLbl) {
+                        seatsLbl.style.opacity = "0.5";
+                        seatsLbl.title = "Not supported by selected vehicle trim";
+                    }
+                } else {
+                    seatsCb.disabled = false;
+                    if (seatsLbl) {
+                        seatsLbl.style.opacity = "1.0";
+                        seatsLbl.title = "";
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Failed to gate HA feature categories by vehicle:", err);
     }
 }
 
@@ -8725,8 +9047,21 @@ function saveCanDoGlobalSettings(btn) {
         if (urlInput) {
             saveCanDoCatalogUrl(urlInput.value);
         }
+
+        const overlay = btn ? btn.closest(".can-do-global-settings-modal-overlay") : document.querySelector(".can-do-global-settings-modal-overlay");
+        if (overlay) {
+            const cats = {
+                doors: overlay.querySelector("#ha_cat_doors")?.checked ?? true,
+                locks: overlay.querySelector("#ha_cat_locks")?.checked ?? true,
+                battery: overlay.querySelector("#ha_cat_battery")?.checked ?? true,
+                climate: overlay.querySelector("#ha_cat_climate")?.checked ?? true,
+                seats: overlay.querySelector("#ha_cat_seats")?.checked ?? false,
+                dynamics: overlay.querySelector("#ha_cat_dynamics")?.checked ?? false
+            };
+            saveExposedCatalogCategories(cats);
+        }
     } catch (e) {
-        console.error("Error saving catalog URL:", e);
+        console.error("Error saving catalog settings:", e);
     }
     const overlay = btn ? btn.closest(".can-do-global-settings-modal-overlay") : document.querySelector(".can-do-global-settings-modal-overlay");
     if (overlay) {
@@ -9138,6 +9473,7 @@ function showAutomationsGlobalMenu(btn, event) {
     };
     setTimeout(() => document.addEventListener("click", closeHandler), 10);
 }
+
 
 /* === js/can_do/rules_engine.js === */
 function addCanDoRuleUI(ruleData = {}, isCollapsed = true, shouldScroll = false, isNew = false) {
@@ -13258,8 +13594,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof initAppTheme === "function") initAppTheme();
     if (typeof initActiveTab === "function") initActiveTab();
 
-    const submitBtn = document.getElementById("submit_button");
-    if (submitBtn) submitBtn.disabled = true;
 
     // 2. Fetch device time and config
     if (typeof fetchDeviceTime === "function") fetchDeviceTime();
@@ -13291,6 +13625,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         canDoFab.style.display = isAutoActive ? "inline-flex" : "none";
     }
 });
+
 </script>
 
     <!-- Home Assistant Style Floating Anchored Save FAB -->

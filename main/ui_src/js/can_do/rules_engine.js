@@ -366,7 +366,7 @@ function findMatchingActionPresetVal(data) {
                     return `${cIdx}:${pIdx}`;
                 }
             }
-            if (p.can_id && data.can_id && p.can_id.toLowerCase() === data.can_id.toLowerCase()) {
+            if (p.state_can_id && data.can_id && p.state_can_id.toLowerCase() === data.can_id.toLowerCase()) {
                 if (p.popup_message && data.popup_message && p.popup_message === data.popup_message) {
                     return `${cIdx}:${pIdx}`;
                 }
@@ -417,7 +417,7 @@ function findMatchingConditionPresetVal(data) {
         for (let pIdx = 0; pIdx < cat.presets.length; pIdx++) {
             const p = cat.presets[pIdx];
             if (p.type === "speed_zero" && data.type === "speed_zero") return `${cIdx}:${pIdx}`;
-            if (p.can_id && data.can_id && p.can_id.toLowerCase() === data.can_id.toLowerCase()) {
+            if (p.state_can_id && data.can_id && p.state_can_id.toLowerCase() === data.can_id.toLowerCase()) {
                 if (!p.match_payload || p.match_payload === data.match_payload) return `${cIdx}:${pIdx}`;
                 if (p.options && Array.isArray(p.options) && data.match_payload) {
                     const hasMatch = p.options.some(o => o.match_payload === data.match_payload);
@@ -474,9 +474,9 @@ function applyCanDoCondPreset(selectElem, notify = true) {
         const exp = item.querySelector(".can-do-cond-expr");
         if (exp) exp.value = preset.expression;
     }
-    if (preset.can_id) {
+    if (preset.state_can_id) {
         const cid = item.querySelector(".can-do-cond-can-id");
-        if (cid) cid.value = preset.can_id;
+        if (cid) cid.value = preset.state_can_id;
     }
     if (preset.match_payload) {
         setByteGridString(item, "can-do-cond-can", preset.match_payload);
@@ -615,10 +615,10 @@ function applyCanDoTrigPreset(selectElem, notify = true) {
     }
 
     if (preset) {
-        if (preset.can_id) {
-            const cid = item.querySelector(".can-do-trig-can-id");
-            if (cid) cid.value = preset.can_id;
-        }
+        if (preset.state_can_id) {
+        const cid = item.querySelector(".can-do-trig-can-id");
+        if (cid) cid.value = preset.state_can_id;
+    }
         if (preset.bus !== undefined) {
             const b = item.querySelector(".can-do-trig-bus");
             if (b) b.value = preset.bus.toString();
@@ -768,7 +768,7 @@ function toggleCanDoItemDetails(btn) {
 
             const showClimate = preset && (preset.type === "climate_target" || preset.target_temp_c !== undefined || preset.target_temp_f !== undefined);
             const showPrecon = newOpen && preset && (preset.type === "precondition" || preset.precon_mode !== undefined);
-            const showCan = newOpen && preset && (preset.type === "can_tx" || preset.can_id !== undefined || preset.steps !== undefined || (preset.options && preset.options.some(o => o.payload)));
+            const showCan = newOpen && preset && (preset.type === "can_tx" || (preset.action_can_id !== undefined || preset.state_can_id !== undefined) || preset.steps !== undefined || (preset.options && preset.options.some(o => o.payload)));
             const showPopup = newOpen && preset && (preset.type === "popup" || preset.popup_message !== undefined || (preset.options && preset.options.some(o => o.popup)));
             const showGeneral = newOpen && (!preset || (!showClimate && !showPrecon));
 
@@ -1452,7 +1452,7 @@ function renderCanDoTriggerItem(container, data = {}) {
         matchedPreset = builtIn[0];
     }
 
-    const canId = data.can_id || (matchedPreset ? matchedPreset.can_id : "0x448");
+    const canId = data.can_id || (matchedPreset ? matchedPreset.state_can_id : "0x448");
     const busVal = data.bus !== undefined ? data.bus : (matchedPreset && matchedPreset.bus !== undefined ? matchedPreset.bus : 0);
     const fromPayload = data.from_payload !== undefined ? data.from_payload : (matchedPreset ? (matchedPreset.from_payload || "") : "");
     const toPayload = data.to_payload !== undefined ? data.to_payload : (data.match_payload !== undefined ? data.match_payload : (matchedPreset ? (matchedPreset.to_payload || "") : ""));
@@ -1789,7 +1789,7 @@ function renderCanDoConditionItem(container, data = {}) {
     } else if (data.match_payload) {
         cats.forEach((cat, catIdx) => {
             cat.presets.forEach((p, pIdx) => {
-                if (p.can_id && p.can_id === data.can_id && p.match_payload === data.match_payload) {
+                if (p.state_can_id && p.state_can_id === data.can_id && p.match_payload === data.match_payload) {
                     selectedPresetVal = `${catIdx}:${pIdx}`;
                     matchedPreset = p;
                 }
@@ -1801,7 +1801,7 @@ function renderCanDoConditionItem(container, data = {}) {
         matchedPreset = cats[0].presets[0];
     }
 
-    const canId = data.can_id || (matchedPreset ? matchedPreset.can_id : "0x448");
+    const canId = data.can_id || (matchedPreset ? matchedPreset.state_can_id : "0x448");
     const matchPayload = data.match_payload || (matchedPreset ? (matchedPreset.match_payload || "") : "");
 
     itemDiv.innerHTML = `
@@ -3443,7 +3443,7 @@ function applyCanDoActionPreset(selectElem) {
     // Determine which parameter sections to display
     const showClimate = (preset.type === "climate_target" || preset.target_temp_c !== undefined || preset.target_temp_f !== undefined);
     const showPrecon = (preset.type === "precondition" || preset.precon_mode !== undefined);
-    const showCan = (preset.type === "can_tx" || preset.can_id !== undefined || preset.steps !== undefined || (preset.options && preset.options.some(o => o.payload)));
+    const showCan = (preset.type === "can_tx" || (preset.action_can_id !== undefined || preset.state_can_id !== undefined) || preset.steps !== undefined || (preset.options && preset.options.some(o => o.payload)));
     const showPopup = (preset.type === "popup" || preset.popup_message !== undefined || (preset.options && preset.options.some(o => o.popup)));
 
     const isDetailsOpen = item.dataset.detailsOpen === "true";
@@ -3506,9 +3506,9 @@ function applyCanDoActionPreset(selectElem) {
     }
 
     // CAN ID, bus, delay
-    if (preset.can_id) {
+    if (preset.action_can_id || preset.state_can_id) {
         const cid = item.querySelector(".can-do-act-can-id");
-        if (cid) cid.value = preset.can_id;
+        if (cid) cid.value = preset.action_can_id || preset.state_can_id;
     }
     if (preset.bus !== undefined) {
         const b = item.querySelector(".can-do-act-bus");

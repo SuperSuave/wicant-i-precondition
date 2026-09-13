@@ -72,7 +72,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             allItems.push({
                 id: `custom_trig_${idx}`,
                 name: p.name || `Custom Trigger #${idx + 1}`,
-                desc: p.description || (p.can_id ? `CAN ID: ${p.can_id}` : "Saved Trigger Preset"),
+                desc: p.description || (p.state_can_id ? `CAN ID: ${p.state_can_id}` : "Saved Trigger Preset"),
                 domain: tax.domain,
                 subdomain: tax.subdomain,
                 icon: "star",
@@ -81,7 +81,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                     renderCanDoTriggerItem(targetContainer, {
                         source: "preset",
                         id: p.id,
-                        can_id: p.can_id,
+                        can_id: p.state_can_id,
                         bus: p.bus,
                         from_payload: stateOpt ? stateOpt.from_payload : p.from_payload,
                         to_payload: stateOpt ? stateOpt.to_payload : p.to_payload
@@ -95,7 +95,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
             allItems.push({
                 id: p.id || p.name,
                 name: p.name || "Trigger Preset",
-                desc: p.description || (p.can_id ? `CAN ID: ${p.can_id}` : "Vehicle Trigger"),
+                desc: p.description || (p.state_can_id ? `CAN ID: ${p.state_can_id}` : "Vehicle Trigger"),
                 domain: tax.domain,
                 subdomain: tax.subdomain,
                 icon: "",
@@ -104,7 +104,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                     renderCanDoTriggerItem(targetContainer, {
                         source: "preset",
                         id: p.id,
-                        can_id: p.can_id,
+                        can_id: p.state_can_id,
                         bus: p.bus,
                         from_payload: stateOpt ? stateOpt.from_payload : p.from_payload,
                         to_payload: stateOpt ? stateOpt.to_payload : p.to_payload
@@ -131,7 +131,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                 allItems.push({
                     id: p.id || p.name,
                     name: p.name || "Condition Preset",
-                    desc: p.description || p.expression || (p.can_id ? `CAN ID: ${p.can_id}` : "Preset Condition"),
+                    desc: p.description || p.expression || (p.state_can_id ? `CAN ID: ${p.state_can_id}` : "Preset Condition"),
                     domain: tax.domain,
                     subdomain: tax.subdomain,
                     icon: "",
@@ -140,7 +140,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                         renderCanDoConditionItem(targetContainer, {
                             type: p.type || "preset",
                             expression: stateOpt ? (stateOpt.expression !== undefined ? stateOpt.expression : p.expression) : p.expression,
-                            can_id: p.can_id,
+                            can_id: p.state_can_id,
                             match_payload: stateOpt ? stateOpt.match_payload : p.match_payload,
                             days: p.days,
                             start_time: p.start_time,
@@ -171,7 +171,7 @@ function openAddAutomationElementDialog(type, targetContainer, ruleCard, options
                 allItems.push({
                     id: p.id || p.name,
                     name: p.name || "Action Preset",
-                    desc: p.description || (p.can_id ? `CAN ID: ${p.can_id}` : (p.popup_message || "Preset Template")),
+                    desc: p.description || (p.action_can_id ? `CAN ID: ${p.action_can_id}` : (p.state_can_id ? `CAN ID: ${p.state_can_id}` : (p.popup_message || "Preset Template"))),
                     domain: tax.domain,
                     subdomain: tax.subdomain,
                     icon: "",

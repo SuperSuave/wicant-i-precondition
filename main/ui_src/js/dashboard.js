@@ -326,15 +326,15 @@ function updateCanDoStateWidgets() {
                     }
 
                     let stateObj = null;
-                    if (itemDef.can_id) {
-                        const parsed = parseInt(itemDef.can_id, 16);
+                    if (itemDef.state_can_id) {
+                        const parsed = parseInt(itemDef.state_can_id, 16);
                         if (!isNaN(parsed)) {
                             const normKey = "0x" + parsed.toString(16).toUpperCase();
-                            stateObj = states[normKey] || states[normKey.toLowerCase()] || states[itemDef.can_id];
+                            stateObj = states[normKey] || states[normKey.toLowerCase()] || states[itemDef.state_can_id];
                         }
                     }
                     if (!stateObj) {
-                        stateObj = states[itemDef.can_id] || states[itemDef.can_id?.toLowerCase()];
+                        stateObj = states[itemDef.state_can_id] || states[itemDef.state_can_id?.toLowerCase()];
                     }
 
                     if (!stateObj) {

@@ -78,6 +78,46 @@ const CAN_DO_DOMAIN_TAXONOMY = {
     }
 };
 
+function updateDynamicTaxonomy(data) {
+    if (!data || typeof data !== "object") return;
+    if (data.domains && typeof data.domains === "object") {
+        Object.keys(data.domains).forEach(dKey => {
+            if (!CAN_DO_DOMAIN_TAXONOMY[dKey]) {
+                CAN_DO_DOMAIN_TAXONOMY[dKey] = { subdomains: {}, ...data.domains[dKey] };
+            } else {
+                Object.assign(CAN_DO_DOMAIN_TAXONOMY[dKey], data.domains[dKey]);
+                CAN_DO_DOMAIN_TAXONOMY[dKey].subdomains = {
+                    ...CAN_DO_DOMAIN_TAXONOMY[dKey].subdomains,
+                    ...(data.domains[dKey].subdomains || {})
+                };
+            }
+        });
+    }
+    (data.commands || []).forEach(cmd => {
+        const dom = cmd.domain || cmd.category;
+        if (!dom) return;
+        const domKey = dom.toLowerCase().replace(/[^a-z0-9]/g, "_");
+        if (!CAN_DO_DOMAIN_TAXONOMY[domKey]) {
+            CAN_DO_DOMAIN_TAXONOMY[domKey] = {
+                id: domKey,
+                name: cmd.domain_name || dom,
+                icon: cmd.domain_icon || "box",
+                desc: `${cmd.domain_name || dom} controls and sensors`,
+                subdomains: {}
+            };
+        }
+        const sub = cmd.subdomain || "general";
+        const domObj = CAN_DO_DOMAIN_TAXONOMY[domKey];
+        if (!domObj.subdomains[sub]) {
+            domObj.subdomains[sub] = {
+                id: sub,
+                name: cmd.subdomain_name || (sub.charAt(0).toUpperCase() + sub.slice(1).replace(/_/g, " ")),
+                desc: `${sub} commands`
+            };
+        }
+    });
+}
+
 let CAN_DO_CATALOG = {
     catalog_version: "0.0.0",
     vehicles: [],
@@ -97,6 +137,7 @@ async function loadCanDoCatalog() {
             } catch (e) { }
         }
         CAN_DO_CATALOG = data;
+        updateDynamicTaxonomy(data);
         try {
             localStorage.setItem("wican_can_do_catalog", JSON.stringify(data));
         } catch (e) { }
@@ -492,8 +533,14 @@ function changeUnitSystem(unit, syncToDevice = true) {
 
 function getCommandTaxonomy(cmd) {
     if (!cmd) return { domain: "system_automation", subdomain: "network_integrations" };
-    if (cmd.domain && cmd.subdomain) {
-        return { domain: cmd.domain, subdomain: cmd.subdomain };
+    if (cmd.domain) {
+        return { domain: cmd.domain, subdomain: cmd.subdomain || "general" };
+    }
+    if (cmd.category) {
+        const catKey = cmd.category.toLowerCase().replace(/[^a-z0-9]/g, "_");
+        if (CAN_DO_DOMAIN_TAXONOMY[catKey]) {
+            return { domain: catKey, subdomain: cmd.subdomain || "general" };
+        }
     }
     const id = (cmd.id || "").toLowerCase();
     const name = (cmd.name || "").toLowerCase();
